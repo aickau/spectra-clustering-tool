@@ -31,6 +31,17 @@ namespace Helpers
 		return sstrStream.str();
 	}
 
+	template<class T>
+	T stringToNumber( const std::string &_sstrString )
+	{
+		std::istringstream sstrStream(_sstrString);
+		T num;
+		if (sstrStream) {
+			sstrStream >> num;	
+		}
+		return num;
+	}
+
 	// find tag in value and replace by insert value
 	bool insertString( const std::string &sstrTag, const std::string &sstrInsertValue, std::string &sstrValue );
 	

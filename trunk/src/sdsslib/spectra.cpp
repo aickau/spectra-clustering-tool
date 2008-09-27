@@ -14,8 +14,13 @@
 #include "defines.h"
 
 
-const float Spectra::waveBegin = 3800.f;	
-const float Spectra::waveEnd = 9200.f;
+// spectra read from SDSS FITS have a wavelength of 3800..9200 Angström
+// full spectrum range should go from ~540 Amgström to 9200 assuming max redshifts of 6.
+const float Spectra::waveBeginSrc = 3800.f;	
+const float Spectra::waveEndSrc = 9200.f;
+const float Spectra::waveBeginDst = 540.f;	
+const float Spectra::waveEndDst = 9200.f;
+
 
 
 Spectra::Spectra()
@@ -38,15 +43,25 @@ Spectra::~Spectra()
 
 void Spectra::clear()
 {
+	m_Min = 0.0f;
+	m_Max = 1.f;
 	m_SamplesRead = 0;
 	m_Index = -1;
 	m_SpecObjID = 0;
-	m_Type = SpectraType::SPEC_UNKNOWN;
+	m_Type = SpectraType::SPT_NOT_SET;
 	m_Z = 0.0;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		m_Amplitude[i] = 0.0f;
+	}
+
+	for (size_t i=0;i<Spectra::numSpectraLines;i++)
+	{
+		m_Lines[i].height = 0.0f;
+		m_Lines[i].wave = 0.0f;
+		m_Lines[i].waveMin = 0.0f;
+		m_Lines[i].waveMax = 0.0f;
 	}
 }
 
@@ -83,6 +98,14 @@ void Spectra::set(const Spectra &_spectra)
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		m_Amplitude[i] = _spectra.m_Amplitude[i];
+	}
+
+	for (size_t i=0;i<Spectra::numSpectraLines;i++)
+	{
+		m_Lines[i].height = _spectra.m_Lines[i].height;
+		m_Lines[i].wave = _spectra.m_Lines[i].wave;
+		m_Lines[i].waveMin = _spectra.m_Lines[i].waveMin;
+		m_Lines[i].waveMax = _spectra.m_Lines[i].waveMax;
 	}
 }
 
@@ -229,46 +252,103 @@ bool Spectra::loadFromFITS(std::string &filename)
 		return false;
 	}
 
-	fits_get_img_size(f, 2, size, &status );
-	float spectrum[numSamples*4];
-
-	// spec says:
-	// The first row is the spectrum, the second row is the continuum subtracted spectrum, 
-	// the third row is the noise in the spectrum (standard deviation, in the same units as the spectrum), 
-	// the forth row is the mask array. The spectra are binned log-linear. Units are 10^(-17) erg/cm/s^2/Ang.
-	long adress[2]={1,1};
-	long elements_to_read = MIN(size[0],numSamples*4);
-
-	fits_read_pix( f, TFLOAT, adress, elements_to_read, NULL, (void*)spectrum, NULL, &status );
-
-	// reduce input spectra with factor 4
-	size_t c=0;
-	if ( elements_to_read > 3)
-	{
-		for (int i=0;i<elements_to_read-3;i+=4)
-		{
-			m_Amplitude[c] = (spectrum[i]+spectrum[i+1]+spectrum[i+2]+spectrum[i+3])/4.0f;
-			c++;
-		}
-	}
-
-	// fill unread samples with 0.0
-	for ( size_t i=c;i<numSamples;i++)
-	{
-		m_Amplitude[i] = 0.0f;
-	}
-	m_SamplesRead = static_cast<__int16>(c);
-
+	// read important info of spectrum
 	int mjd, plateID, fiber;
-	
 	fits_read_key( f, TINT, "MJD", &mjd, NULL, &status );
 	fits_read_key( f, TINT, "PLATEID", &plateID, NULL, &status );
 	fits_read_key( f, TINT, "FIBERID", &fiber, NULL, &status );
 	fits_read_key( f, TDOUBLE, "Z", &m_Z, NULL, &status );
 	fits_read_key( f, TINT, "SPEC_CLN", &m_Type, NULL, &status );
-
+	m_Type = static_cast<SpectraType>(1<<m_Type);
 	m_SpecObjID = Spectra::calcSpecObjID( plateID, mjd, fiber, 0 );
+
+	// read spectral data
+	fits_get_img_size(f, 2, size, &status );
+	const size_t spectrumMaxSize = 3900; 
+	float spectrum[spectrumMaxSize];
+	
+	size_t elementsToRead = size[0];
+	assert( elementsToRead <= spectrumMaxSize );
+	elementsToRead = MIN( elementsToRead, spectrumMaxSize );
+
+	// spec says:
+	// The first row is the spectrum,
+	// the second row is the continuum subtracted spectrum, 
+	// the third row is the noise in the spectrum (standard deviation, in the same units as the spectrum), 
+	// the forth row is the mask array. The spectra are binned log-linear. Units are 10^(-17) erg/cm/s^2/Ang.
+	long adress[2]={1,1};
+	fits_read_pix( f, TFLOAT, adress, elementsToRead, NULL, (void*)spectrum, NULL, &status );
+
+	// fold the spectrum to reduce noize
+	const size_t sampleReductionRatio = 4;
+	for ( size_t j=0;j<sampleReductionRatio;j++ )
+	{
+		size_t c=0;
+		for (size_t i=0;i<elementsToRead-1;i+=2)
+		{
+			spectrum[c] = (spectrum[i]+spectrum[i+1]) * 0.5f;
+			c++;
+		}
+		elementsToRead /= 2; 
+	}
+
+	// calculate redshift back
+	float wBegin = waveBeginSrc / (1.f+m_Z);
+	float wEnd = waveEndSrc / (1.f+m_Z);
+
+	float d = (waveEndDst-waveBeginDst) / static_cast<float>(numSamples);
+	float w = waveBeginDst;
+	for (size_t i=0;i<numSamples;i++)
+	{
+		if ( w < wBegin || w > wEnd )
+		{
+			m_Amplitude[i] = m_Z;
+		}
+		else
+		{
+			size_t i0 = Spectra::waveLengthToIndex( w, wBegin, wEnd, elementsToRead );
+
+			if (i0>=elementsToRead-2)
+			{
+				i0 = elementsToRead-2;
+			}
+
+			float w0 = Spectra::indexToWaveLength( i0, wBegin, wEnd, elementsToRead );
+			float w1 = Spectra::indexToWaveLength( i0+1, wBegin, wEnd, elementsToRead );
+			float frac = (w-w0)/(w1-w0); 
+			float a0 = spectrum[i0];
+			float a1 = spectrum[i0+1];
+			m_Amplitude[i] = a0*(1.f-frac)+a1*frac;
+		}
+
+		w+=d; 
+	}
+
+	m_SamplesRead = numSamples;
+
+
+
 /*
+	for ( int j=0;j<sampleReductionRatio;j++ )
+	{
+		size_t c=0;
+		for (size_t i=0;i<elementsToRead-1;i+=2)
+		{
+			spectrum[c] = (spectrum[i]+spectrum[i+1]) * 0.5f;
+			c++;
+		}
+		elementsToRead /= 2; 
+	}
+
+	memcpy( m_Amplitude, spectrum, sizeof(float)*elementsToRead );
+
+	// fill unread samples with 0.0
+	for ( size_t i=elementsToRead;i<numSamples;i++)
+	{
+		m_Amplitude[i] = 0.0f;
+	}
+	m_SamplesRead = static_cast<__int16>(elementsToRead);
+*/
 	// read emission and absorption lines
 	int numhdus = 0;
 	int hdutype = 0; // should be BINARY_TBL
@@ -282,35 +362,40 @@ bool Spectra::loadFromFITS(std::string &filename)
 
 	float nullVal = 0.f;
 	float wave, waveMin, waveMax, height = 0.f;
-	size_t rowsToRead = tblrows; 
+	size_t rowsToRead = MIN( tblrows, numSpectraLines ); 
 
-	for (size_t i=0;i<numSamples;i++) {
-		m_Amplitude[i]=0.0f;
-	}
+	//for (size_t i=0;i<numSamples;i++) {
+	//	m_Amplitude[i]=0.0f;
+	//}
 
 	if ( hdutype == BINARY_TBL && 
 		 tblcols == 23 )
 	{
-		for ( size_t i=1;i<=44;i++ )
+		for ( size_t i=0;i<rowsToRead;i++ )
 		{
-			fits_read_col( f, TFLOAT, 1, i, 1, 1, &nullVal, &wave, NULL, &status );
+			size_t i1 = i+1;
+			fits_read_col( f, TFLOAT, 1, i1, 1, 1, &nullVal, &wave, NULL, &status );
 			if (wave>0.f)
 			{
-				fits_read_col( f, TFLOAT, 3, i, 1, 1, &nullVal, &waveMin, NULL, &status );
-				fits_read_col( f, TFLOAT, 4, i, 1, 1, &nullVal, &waveMax, NULL, &status );
-				fits_read_col( f, TFLOAT, 9, i, 1, 1, &nullVal, &height, NULL, &status );
+				fits_read_col( f, TFLOAT, 3, i1, 1, 1, &nullVal, &waveMin, NULL, &status );
+				fits_read_col( f, TFLOAT, 4, i1, 1, 1, &nullVal, &waveMax, NULL, &status );
+				fits_read_col( f, TFLOAT, 9, i1, 1, 1, &nullVal, &height, NULL, &status );
 
-				size_t indexBegin=Spectra::waveLengthToIndex(waveMin);
-				size_t indexEnd=Spectra::waveLengthToIndex(waveMax);
+				m_Lines[i].height = height;
+				m_Lines[i].wave = wave;
+				m_Lines[i].waveMin = waveMin;
+				m_Lines[i].waveMax = waveMax;
 
-				for (size_t j=indexBegin;j<indexEnd;j++) {
-					m_Amplitude[j]=height;
-				}
+				//size_t indexBegin=Spectra::waveLengthToIndex(waveMin);
+				//size_t indexEnd=Spectra::waveLengthToIndex(waveMax);
+				//for (size_t j=indexBegin;j<indexEnd;j++) {
+				//	m_Amplitude[j]=height;
+				//}
 			}
 		}
 	}
 
-*/
+
 	fits_close_file(f, &status);
 
 	calcMinMax();
@@ -420,6 +505,26 @@ loop1:
 		error += d*d;
 	}
 	return error;
+}
+
+
+float Spectra::compareAdvanced(const Spectra &_spectra) const
+{
+	float err1 = compare(_spectra) / static_cast<float>(numSamples);
+
+	float err2 = 0.0f;
+	for (size_t i=0;i<numSpectraLines;i++)
+	{
+		// todo add weights
+		float d = m_Lines[i].height-_spectra.m_Lines[i].height;
+		err2 += d*d;
+	}
+	err2 /= static_cast<float>(numSpectraLines);
+
+	float err3 = m_Z-_spectra.m_Z;
+	err3 *= err3;
+
+	return err1*1.0f + err2*0.25f + err3*0.1f;
 }
 
 
@@ -536,17 +641,55 @@ std::string Spectra::plateToString( int _plate )
 }
 
 
-float Spectra::indexToWaveLength( int _index )
+float Spectra::indexToWaveLength( size_t _index, float _waveBegin, float _waveEnd, int _numSamples )
 {
-	float d = (waveEnd-waveBegin)/numSamples;
-	return waveBegin+static_cast<float>(_index)*d;
+	float d = (_waveEnd-_waveBegin)/static_cast<float>(_numSamples);
+	return _waveBegin+static_cast<float>(_index)*d;
 }
 
-int Spectra::waveLengthToIndex( float _waveLength )
+size_t Spectra::waveLengthToIndex( float _waveLength, float _waveBegin, float _waveEnd, int _numSamples )
 {
-	float d = (waveEnd-waveBegin);
-	d = (_waveLength-waveBegin)/d;
+	float d = (_waveEnd-_waveBegin);
+	d = (_waveLength-_waveBegin)/d;
 	d = CLAMP( d, 0.f, 1.f );
-	return static_cast<int>(d*(static_cast<float>(numSamples-1)));
+	return static_cast<int>(floorf(d*static_cast<float>(_numSamples)));
 }
 
+
+std::string Spectra::spectraFilterToString( unsigned int spectraFilter )
+{
+	std::string sstrOutString;
+	if ( spectraFilter & Spectra::SPT_SPEC_UNKNOWN )
+	{
+		sstrOutString += "SPEC_UNKNOWN ";
+	}
+	if ( spectraFilter & Spectra::SPT_SPEC_STAR )
+	{
+		sstrOutString += "SPEC_STAR ";
+	}
+	if ( spectraFilter & Spectra::SPT_SPEC_GALAXY )
+	{
+		sstrOutString += "SPEC_GALAXY ";
+	}
+	if ( spectraFilter & Spectra::SPT_SPEC_QSO )
+	{
+		sstrOutString += "SPEC_QSO ";
+	}
+	if ( spectraFilter & Spectra::SPT_SPEC_HIZ_QSO )
+	{
+		sstrOutString += "SPEC_HIZ_QSO ";
+	}
+	if ( spectraFilter & Spectra::SPT_SPEC_SKY )
+	{
+		sstrOutString += "SPEC_SKY ";
+	}
+	if ( spectraFilter & Spectra::SPT_STAR_LATE )
+	{
+		sstrOutString += "STAR_LATE ";
+	}
+	if ( spectraFilter & Spectra::SPT_GAL_EM )
+	{
+		sstrOutString += "GAL_EM ";
+	}
+	return sstrOutString;
+}

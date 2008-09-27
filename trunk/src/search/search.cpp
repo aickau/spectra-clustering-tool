@@ -89,6 +89,8 @@ void main(int argc, char* argv[])
 	bool bReverseOrder = false;
 	std::string sstrDumpFile(DUMPFILE);
 
+	unsigned int spectraFilter = SPT_DEFAULTFILTER;
+
 	if (argc > 1)
 	{
 		sstrDumpFile = std::string(argv[1]);
@@ -155,10 +157,7 @@ void main(int argc, char* argv[])
 	for ( size_t i=0;i<numSpectra;i++ )
 	{
 		Spectra *a = vfs.beginRead(i);
-		if ( a->m_Type != Spectra::SPEC_GALAXY && 
-			a->m_Type != Spectra::SPEC_STAR && 
-			a->m_Type != Spectra::STAR_LATE && 
-			a->m_Type != Spectra::SPEC_SKY )
+		if (a->m_Type & spectraFilter > 0)
 		{
 			if ( bNormalize )
 			{
@@ -262,10 +261,7 @@ void main(int argc, char* argv[])
 	for ( size_t i=0;i<numSpectra;i++ )
 	{
 		Spectra *a = vfs.beginRead(i);
-		if ( a->m_Type != Spectra::SPEC_GALAXY && 
-			a->m_Type != Spectra::SPEC_STAR && 
-			a->m_Type != Spectra::STAR_LATE && 
-			a->m_Type != Spectra::SPEC_SKY )
+		if ( a->m_Type & spectraFilter > 0 )
 		{
 			comparisonMap.insert( std::pair<float, __int64>(a->m_Z, a->m_SpecObjID) );
 		}

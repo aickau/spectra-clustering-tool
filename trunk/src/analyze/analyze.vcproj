@@ -414,30 +414,6 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="DevIL"
-			>
-			<File
-				RelativePath="..\devil\include\Il\devil_internal_exports.h"
-				>
-			</File>
-			<File
-				RelativePath="..\devil\include\Il\il.h"
-				>
-			</File>
-			<File
-				RelativePath="..\devil\include\Il\ilu.h"
-				>
-			</File>
-			<File
-				RelativePath="..\devil\include\Il\ilu_region.h"
-				>
-			</File>
-			<File
-				RelativePath="..\devil\include\Il\ilut.h"
-				>
-			</File>
-		</Filter>
 		<File
 			RelativePath=".\analyze.cpp"
 			>
