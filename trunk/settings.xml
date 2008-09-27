@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<SETTINGS>
+	<STEP current="1" total="100"/>
+	<GRIDSIZE value="40"/>
+	<RANDOMSEED value="26"/>
+	<LEARNRATE begin="0.25" end="0.01"/>
+	<RADIUS begin="1" end="0.5"/>
+	<SPECTRUM size="3952" file="sofmnet.bin"/>
+	<EXPORT>
+		<SUBPAGES value="0"/>
+		<WAITFORUSER value="1"/>
+	</EXPORT>
+</SETTINGS>
