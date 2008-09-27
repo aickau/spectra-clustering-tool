@@ -42,7 +42,6 @@ SpectraVFS *g_pVFSSource = NULL;
 
 int InitGL( const std::string &sstrCmdLine )		
 {
-	mt_initrandom(23);
 	AllocConsole();
 
 	SpectraHelpers::Init( fr_hDC );
