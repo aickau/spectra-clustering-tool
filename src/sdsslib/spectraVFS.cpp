@@ -318,7 +318,7 @@ void SpectraVFS::flush()
 
 
 
-void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName )
+void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter )
 {
 	std::vector<std::string> fileList;
 
@@ -338,11 +338,7 @@ void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFil
 
 		if ( bResult )
 		{
-			// extra filtering
-			if ( spec.m_Type != Spectra::SPEC_GALAXY && 
-				spec.m_Type != Spectra::SPEC_STAR && 
-				spec.m_Type != Spectra::STAR_LATE && 
-				spec.m_Type != Spectra::SPEC_SKY )
+			if ( (spec.m_Type & _spectraFilter) > 0 )
 			{
 				DWORD bytesWritten = 0;
 				bResult = (WriteFile( f, &spec, sizeof(Spectra), &bytesWritten, NULL ) > 0) ? true : false;

@@ -14,12 +14,12 @@
 #include "sdsslib/helpers.h"
 #include "sdsslib/Timer.h"
 #include "sdsslib/spectraVFS.h"
+#include "sdsslib/spectraHelpers.h"
 #include "sdsslib/XMLExport.h"
 #include "sdsslib/XMLParser.h"
 
 
 
-extern void RenderSpectraIconToDisk( Spectra &_spectra, const std::string &sstrFilename, size_t width, size_t height, float yscale, float redness );
 
 //Parameters(100,1,0.5,0.1,0.5,1)
 //Parameters(100,26,1.0,0.001,0.5,1)
@@ -83,7 +83,6 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 
 		//ExportEnergyMap();
 		RenderIcons();
-
 	}
 	else
 	{
@@ -139,7 +138,6 @@ void SOFMNetwork::WriteSettings( const std::string &_sstrFileName )
 	XMLExport::xmlSingleElementEnd( sstrXML );
 
 	XMLExport::xmlSingleElementBegin( "SPECTRUM", 1, sstrXML );
-	XMLExport::xmlAddAttribute( "size", sizeof(Spectra), sstrXML );
 	XMLExport::xmlAddAttribute( "file", m_pNet->getFileName(), sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
 
@@ -189,17 +187,16 @@ bool SOFMNetwork::ReadSettings( const std::string &_sstrFileName, std::string &_
 	bSuccess &= p.getChildValue("LEARNRATE", "end", m_params.lRateEnd );
 	bSuccess &= p.getChildValue("RADIUS", "begin", m_params.radiusBegin );
 	bSuccess &= p.getChildValue("RADIUS", "end", m_params.radiusEnd );
-	bSuccess &= p.getChildValue("SPECTRUM", "size", spectraSize );
+//	bSuccess &= p.getChildValue("SPECTRUM", "size", spectraSize );
 	bSuccess &= p.getChildValue("SPECTRUM", "file", _sstrSOFMFileName );
 
 	if ( !bSuccess)
 		Helpers::Print( std::string("Error: some setting value could not loaded.\n"), &m_logFile );
 
 
-	bSuccess &= ( spectraSize == sizeof(Spectra) );
-
-	if ( !bSuccess)
-		Helpers::Print( std::string("Error: Given spectrum size matches not with spectrum size from dump file.\n"), &m_logFile );
+	//bSuccess &= ( spectraSize == sizeof(Spectra) );
+	//if ( !bSuccess)
+	//	Helpers::Print( std::string("Error: Given spectrum size matches not with spectrum size from dump file.\n"), &m_logFile );
 
 	p.gotoChild();
 	
@@ -245,10 +242,6 @@ void SOFMNetwork::CalcMinMax()
 }
 
 
-extern void RenderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, 
-						 size_t _width, size_t _height, const std::string &sstrFilename );
-
-
 void SOFMNetwork::ExportEnergyMap()
 {
 	Helpers::Print( std::string("Exporting energy map.\n"), &m_logFile );
@@ -269,9 +262,9 @@ void SOFMNetwork::ExportEnergyMap()
 	std::sort( toatalenergymap.begin(), toatalenergymap.end() );
 	std::sort( zmap.begin(), zmap.end() );
 
-	RenderDiagramToDisk(&energymap[0], energymap.size(), 4, 0, 1200, 800, std::string("energymap.png") );
-	RenderDiagramToDisk(&toatalenergymap[0], toatalenergymap.size(), 4, 0, 1200, 800, std::string("toatalenergymap.png") );
-	RenderDiagramToDisk(&zmap[0], zmap.size(), 4, 0, 1200, 800, std::string("zmap.png") );
+	SpectraHelpers::RenderDiagramToDisk(&energymap[0], energymap.size(), 4, 0, 1200, 800, std::string("energymap.png") );
+	SpectraHelpers::RenderDiagramToDisk(&toatalenergymap[0], toatalenergymap.size(), 4, 0, 1200, 800, std::string("toatalenergymap.png") );
+	SpectraHelpers::RenderDiagramToDisk(&zmap[0], zmap.size(), 4, 0, 1200, 800, std::string("zmap.png") );
 }
 
 
@@ -308,7 +301,7 @@ void SOFMNetwork::RenderIcons()
 			redness *= redness*2.f;
 		}
 
-		RenderSpectraIconToDisk(*a, sstrFilename, 100, 100, localmax, redness );
+		SpectraHelpers::RenderSpectraIconToDisk(*a, sstrFilename, 100, 100, localmax, redness );
 
 		m_pSourceVFS->endRead( i );
 	}
@@ -508,7 +501,8 @@ void SOFMNetwork::Process()
 			float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
 			float lrate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
 			float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
-			float tsigma = sigma*sigma*2.f;
+			float tsigma = sigma*sigma;
+			float tsigma2 = tsigma*2.f;
 
 			size_t xpBestMatch = currentBestMatch.index % m_gridSize;
 			size_t ypBestMatch = currentBestMatch.index / m_gridSize;
@@ -523,7 +517,10 @@ void SOFMNetwork::Process()
 				for ( size_t x=0;x<m_gridSize;x++)
 				{
 					float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
-					float hxy = exp(-sqrtf(tdistx*tdistx+tdisty2)/tsigma);
+					float tdistx2 = tdistx*tdistx;
+					float tdistall = tdistx2+tdisty2;
+					float mexican_hat_term = 1.f-tdistall/tsigma;
+					float hxy = exp(-(tdistall)/tsigma2);
 					float lratehsx = lrate*hxy;
 
 					if ( lratehsx > 0.001 )
@@ -584,7 +581,8 @@ void SOFMNetwork::Process()
 		float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
 		float lrate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
 		float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
-		float tsigma = sigma*sigma*2.f;
+		float tsigma = sigma*sigma;
+		float tsigma2 = tsigma*2.f;
 
 		size_t xpBestMatch = bestMatch % m_gridSize;
 		size_t ypBestMatch = bestMatch / m_gridSize;
@@ -599,7 +597,10 @@ void SOFMNetwork::Process()
 			for ( size_t x=0;x<m_gridSize;x++)
 			{
 				float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
-				float hxy = exp(-sqrtf(tdistx*tdistx+tdisty2)/tsigma);
+				float tdistx2 = tdistx*tdistx;
+				float tdistall = tdistx2+tdisty2;
+				float mexican_hat_term = 1.f-tdistall/tsigma;
+				float hxy = exp(-(tdistall)/tsigma2);
 				float lratehsx = lrate*hxy;
 
 				if ( lratehsx > 0.001 )

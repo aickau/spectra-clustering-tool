@@ -46,7 +46,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../"
+				AdditionalIncludeDirectories="../devil/include/;../"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;$(NOINHERIT)"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -115,7 +115,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../"
+				AdditionalIncludeDirectories="../devil/include/;../"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;$(NOINHERIT)"
 				RuntimeLibrary="2"
 				RuntimeTypeInfo="false"
@@ -222,6 +222,30 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="DevIL"
+			>
+			<File
+				RelativePath="..\devil\include\IL\devil_internal_exports.h"
+				>
+			</File>
+			<File
+				RelativePath="..\devil\include\IL\il.h"
+				>
+			</File>
+			<File
+				RelativePath="..\devil\include\IL\ilu.h"
+				>
+			</File>
+			<File
+				RelativePath="..\devil\include\IL\ilu_region.h"
+				>
+			</File>
+			<File
+				RelativePath="..\devil\include\IL\ilut.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\debug.cpp"
 			>
@@ -248,6 +272,14 @@
 		</File>
 		<File
 			RelativePath=".\helpers.h"
+			>
+		</File>
+		<File
+			RelativePath=".\mathhelpers.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\mathhelpers.h"
 			>
 		</File>
 		<File
@@ -293,6 +325,14 @@
 					Name="MASM"
 				/>
 			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\spectraHelpers.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\spectraHelpers.h"
+			>
 		</File>
 		<File
 			RelativePath=".\spectraVFS.cpp"

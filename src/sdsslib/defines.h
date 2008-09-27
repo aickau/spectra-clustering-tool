@@ -11,6 +11,10 @@
 
 #define EULER 2.718281828f
 
+#ifndef NULL
+#define NULL 0
+#endif
+
 
 // this is Visual c++ .NET 2003
 #if _MSC_VER <= 1310

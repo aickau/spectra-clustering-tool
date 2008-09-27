@@ -9,6 +9,7 @@
 #include "sdsslib/helpers.h"
 #include "sdsslib/spectra.h"
 #include "sdsslib/glhelper.h"
+#include "sdsslib/spectraHelpers.h"
 
 extern HWND		fr_hWnd;
 
@@ -22,7 +23,7 @@ std::vector<std::string> g_FileList;
 
 int g_FontID=0;
 Spectra g_Spectrum;
-float g_YScale=2.0f;
+float g_YScale=1.0f;
 
 
 
@@ -50,6 +51,8 @@ int InitGL( const std::string &sstrCmdLine )
 	sstrCaptionText += sstrFileName;
 	SetWindowText(fr_hWnd, sstrCaptionText.c_str());
 
+	SpectraHelpers::Init( fr_hDC );
+
 	// opengl init stuff
 	glShadeModel(GL_SMOOTH);							
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);				
@@ -58,7 +61,7 @@ int InitGL( const std::string &sstrCmdLine )
 	glDepthFunc(GL_LEQUAL);			
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	
 
-	g_FontID = GLHelper::BuildFont(fr_hDC, "Arial", 16, true, false);
+	SpectraHelpers::CombineSpectra( std::string("allSpectra_qso.bin"), "allSpectra.png" );
 
 	bool bRetVal=false;
 	std::string sstrExtension(Helpers::getFileExtension(sstrFileName));
@@ -93,36 +96,12 @@ void UpdateGLView(int width, int height)
 }	
 
 
-void DrawSpectra(Spectra &spectra, bool showfilename, float xoffset = 0.f, float yoffset=300, float xscale=0.8f, float yscale=2.f)
-{
-	int stepSize = MAX(floorf(1.0/xscale),1);
-
-	glBegin(GL_LINE_STRIP);
-	for ( int i=0;i<spectra.m_SamplesRead-1;i+=stepSize)
-	{
-		glVertex3f(static_cast<float>(i)*xscale+xoffset, -spectra.m_Amplitude[i]*yscale+yoffset, -10.f );
-	}
-	glEnd();
-	if (showfilename)
-	{
-		float pos[]={10,20,-10};
-		GLHelper::Print( g_FontID, pos, spectra.getFileName().c_str() );
-	}
-
-	float pos[]={10,40,-10};
-	std::stringstream sstream;
-	sstream << "min: " << spectra.m_Min << "  max: " << spectra.m_Max;
-	GLHelper::Print( g_FontID, pos, sstream.str().c_str() );
-}
-
-
 
 void DrawGLScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-	DrawSpectra( g_Spectrum, true, 0,scr_height*3/4,static_cast<float>(scr_width-10)/static_cast<float>(Spectra::numSamples),g_YScale );
-
+	SpectraHelpers::DrawSpectra( g_Spectrum, true, false, 0,0,scr_width,scr_height,g_YScale );
 
 	Sleep(50);
 }
@@ -154,7 +133,7 @@ void ArrowRight()
 
 void ArrowUp()
 {
-	g_YScale +=0.2f;
+	g_YScale +=0.05f;
 	up = 1;
 }
 
@@ -162,7 +141,7 @@ void ArrowDown()
 {
 	if ( g_YScale > 0.0f )
 	{
-		g_YScale -=0.2f;
+		g_YScale -=0.05f;
 	}
 	down = 1;
 }

@@ -46,7 +46,11 @@ void GLHelper::KillFont(int fontid)
 
 
 void GLHelper::Print(int fontid, float *position, const char *fmt, ...)			
-{			
+{	
+	assert(fontid>0);
+	if ( fontid<1 )
+		return;
+
 	// security issue (TM)
 	char		text[4096];						
 	va_list		ap;										

@@ -74,7 +74,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib IL$(PlatformName).lib ILU$(PlatformName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -167,7 +167,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib IL$(PlatformName).lib ILU$(PlatformName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -260,7 +260,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib IL$(PlatformName).lib ILU$(PlatformName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -353,7 +353,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib IL$(PlatformName).lib ILU$(PlatformName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
