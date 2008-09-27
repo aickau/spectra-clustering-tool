@@ -1,23 +1,41 @@
 #ifndef H_RANDOM
 #define H_RANDOM
 
-// ij must be in 0..31328
-// kl must be in 0..30081
-// init random and set seed
-void initrandom ( int ij=1802, int kl=9373 );
+// random number generation class
+class Rnd
+{
+public:
 
-// seed can be anything except 0
-void mt_initrandom ( unsigned long seed = 4357 );
- 
+	// random seed, zero is not allowed.
+	Rnd( unsigned long _seed = 4357 );
 
-// return random number [0..1]
-float random ();
-// return random number [0..1]
-double mt_random_double ();
-// return random number with logarithmic scale [0..1], ex = erwartungswert 
-double mt_random_double_log (float ex); 
-// return random number [0..0xffffffff]
-unsigned long mt_random_int ();
+	// reset random number generation to a given seed
+	void initRandom( unsigned long _seed = 4357 );
+
+	// return random number [0..1]
+	float randomFloat();
+
+	// return random number [0..1]
+	double randomDouble();
+
+	// return random number with logarithmic scale [0..1], ex = erwartungswert 
+	double randomDouleLog( float _ex );
+
+	// return random number [0..0xffffffff]
+	unsigned int randomInt();
+
+	// return random number [0.._range]
+	unsigned int randomInt( unsigned int _range );
+
+
+private:
+
+	static const int N=624;
+
+	unsigned long m_mt[N]; // the array for the state vector 
+	int m_mti; 
+};
+
 
 #endif
 

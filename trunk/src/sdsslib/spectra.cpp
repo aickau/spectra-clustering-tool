@@ -76,9 +76,11 @@ void Spectra::randomize(float minrange, float maxrange )
 
 	float d = maxrange-minrange;
 
+	Rnd r;
+
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
-		m_Amplitude[i] = static_cast<float>(mt_random_double())*d+minrange;
+		m_Amplitude[i] = r.randomFloat()*d+minrange;
 	}
 	m_SamplesRead = Spectra::numSamples;
 	calcMinMax();
@@ -144,33 +146,35 @@ void Spectra::set( size_t type, float noize )
 	}
 */
 
+	Rnd r;
+
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		float x=static_cast<float>(i)*0.01f;
 
 		if ( type == 0 )
 		{
-			m_Amplitude[i] = sinf(x)*20.f+(static_cast<float>(mt_random_double())-0.5f)*noize;
+			m_Amplitude[i] = sinf(x)*20.f+(r.randomFloat()-0.5f)*noize;
 		}
 
 		if ( type == 1 )
 		{
-			m_Amplitude[i] = cosf(x)*20.f+(static_cast<float>(mt_random_double())-0.5f)*noize;
+			m_Amplitude[i] = cosf(x)*20.f+(r.randomFloat()-0.5f)*noize;
 		}
 
 		if ( type == 2 )
 		{
-			m_Amplitude[i] = x+(static_cast<float>(mt_random_double())-0.5f)*noize;
+			m_Amplitude[i] = x+(r.randomFloat()-0.5f)*noize;
 		}
 
 		if ( type == 3 )
 		{
-			m_Amplitude[i] = -x+(static_cast<float>(mt_random_double())-0.5f)*noize;
+			m_Amplitude[i] = -x+(r.randomFloat()-0.5f)*noize;
 		}
 
 		if ( type == 4 )
 		{
-			m_Amplitude[i] = x*x+(static_cast<float>(mt_random_double())-0.5f)*noize;
+			m_Amplitude[i] = x*x+(r.randomFloat()-0.5f)*noize;
 		}
 	}
 

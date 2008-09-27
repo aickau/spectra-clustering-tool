@@ -350,6 +350,14 @@
 			RelativePath=".\Timer.h"
 			>
 		</File>
+		<File
+			RelativePath=".\Vecf.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Vecf.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

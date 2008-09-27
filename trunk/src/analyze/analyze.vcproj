@@ -435,6 +435,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\NeuralGas.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\NeuralGas.h"
+			>
+		</File>
+		<File
 			RelativePath=".\QTClustering.cpp"
 			>
 		</File>

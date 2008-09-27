@@ -2,6 +2,7 @@
 #define _SOFMNETWORK_H
 
 #include "sdsslib/spectra.h"
+#include "sdsslib/random.h"
 
 #include <fstream>
 
@@ -88,6 +89,8 @@ protected:
 	// training data
 	SpectraVFS		*m_pSourceVFS;
 	size_t			m_numSpectra;
+
+	Rnd				m_Random;
 
 	std::ofstream	m_logFile;
 };

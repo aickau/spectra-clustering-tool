@@ -15,6 +15,7 @@
 #include "sdsslib/Timer.h"
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/spectraHelpers.h"
+#include "sdsslib/mathhelpers.h"
 #include "sdsslib/XMLExport.h"
 #include "sdsslib/XMLParser.h"
 
@@ -53,7 +54,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 ,m_params( Parameters::defaultParameters )
 ,m_Min(FLT_MAX)
 ,m_Max(-FLT_MAX)
-,m_logFile("analyze_log.txt")
+,m_logFile("sofm_log.txt")
 {
 	std::string sstrSOFMFileName("");
 	if ( !ReadSettings("settings.xml", sstrSOFMFileName) )
@@ -297,7 +298,7 @@ void SOFMNetwork::RenderIcons()
 		float redness = localmax;
 		if (redness != 0.f)
 		{
-			redness = log(redness)/logf(globalmax);
+			redness = MathHelpers::logf(redness,globalmax);
 			redness *= redness*2.f;
 		}
 
@@ -325,13 +326,9 @@ void SOFMNetwork::Reset( const Parameters &_params )
 	m_params = _params;
 	m_currentStep = 0;
 
-	mt_initrandom(m_params.randomSeed);
+	m_Random.initRandom( m_params.randomSeed );
 }
 
-float logf(float value, float base)
-{
-	return log(value)/log(base);
-}
  
 
 void SOFMNetwork::Process()
@@ -379,8 +376,8 @@ void SOFMNetwork::Process()
 	// shake well
 	for ( size_t i=0;i<m_numSpectra*2;i++)
 	{
-		size_t ind0 = mt_random_int()%m_numSpectra;
-		size_t ind1 = mt_random_int()%m_numSpectra;
+		size_t ind0 = m_Random.randomInt(m_numSpectra-1);
+		size_t ind1 = m_Random.randomInt(m_numSpectra-1);
 
 		size_t hui = spectraIndexList[ind0];
 		spectraIndexList[ind0] = spectraIndexList[ind1];
