@@ -157,7 +157,7 @@ void main(int argc, char* argv[])
 	for ( size_t i=0;i<numSpectra;i++ )
 	{
 		Spectra *a = vfs.beginRead(i);
-		if (a->m_Type & spectraFilter > 0)
+		if ((a->m_Type & spectraFilter) > 0)
 		{
 			if ( bNormalize )
 			{

@@ -190,6 +190,25 @@ void Spectra::set( size_t type, float noize )
 }
 
 
+
+void Spectra::set( float _freq )
+{
+	static size_t UIDCount = 1;
+	m_SpecObjID =(UIDCount++)<<22;
+
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		float x=static_cast<float>(i)*0.01f;
+		m_Amplitude[i] = sinf(x*_freq)+1.f;
+	}
+
+
+	m_SamplesRead = Spectra::numSamples;
+	calcMinMax();
+}
+
+
+
 void Spectra::add(const Spectra &_spectra)
 {
 	for (size_t i=0;i<Spectra::numSamples;i++)

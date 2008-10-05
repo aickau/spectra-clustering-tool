@@ -59,6 +59,9 @@ public:
 	// type: 0=sin, 1=cos, 2=lin, 3=lin inv, 4=sqr
 	void set( size_t _type, float _noize );
 
+	// set sine test spectra with a given frequency.
+	void set( float _freq );
+
 	// add signals from other spectra
 	void add(const Spectra &_spectra);
 	

@@ -104,10 +104,11 @@ void SpectraHelpers::DrawSpectra(Spectra &_spectra,
 {
 	if ( _spectra.m_SamplesRead <= 2 )
 		return;
+
 	float xoffset=X2Win(_xp);
 	float yoffset=Y2Win(_yp)-_height*0.25f; 
 	float xscale=static_cast<float>(_width-10)/static_cast<float>(Spectra::numSamples);
-	float yscale=_yscale*static_cast<float>(_height*0.75)/_spectra.m_Max;
+	float yscale=_yscale*static_cast<float>(_height*0.75);
 
 	GLHelper::DrawDiagram( &_spectra.m_Amplitude[0], _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
 
@@ -197,7 +198,8 @@ void SpectraHelpers::RenderSpectraIconToDisk( Spectra &_spectra, const std::stri
 
 	glClearColor(_redness,g,0,0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
-	DrawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f );
+	_spectra.calcMinMax();
+	DrawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/_spectra.m_Max );
 
 	glReadPixels(0,getFBHeight()-h4,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 	iluScale(_width,_height,1);

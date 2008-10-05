@@ -6,17 +6,22 @@
 #include "sdsslib/Timer.h"
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/spectraHelpers.h"
-
+#include "sdsslib/Vecf.h"
 
 #include <map>
 
 
-NeuralGas::Parameters NeuralGas::Parameters::defaultParameters(100,23); // default parameters
+NeuralGas::Parameters NeuralGas::Parameters::defaultParameters(100,23,10,0.25,0.01,1.0,0.5); // default parameters
 
 
-NeuralGas::Parameters::Parameters(  unsigned int _numSteps, unsigned int _randomSeed  )
+NeuralGas::Parameters::Parameters(  unsigned int _numSteps, unsigned int _randomSeed, unsigned int _numAdaptionElements, float _lRateBegin, float _lRateEnd, float _radiusBegin, float _radiusEnd  )
 :numSteps(_numSteps)
 ,randomSeed(_randomSeed)	
+,numAdaptionElements(_numAdaptionElements)
+,lRateBegin(_lRateBegin)
+,lRateEnd(_lRateEnd)
+,radiusBegin(_radiusBegin)
+,radiusEnd(_radiusEnd)
 {
 }
 
@@ -79,10 +84,15 @@ void NeuralGas::Process()
 		unsigned int ind0 = m_Random.randomInt(m_numSpectra-1);
 		unsigned int ind1 = m_Random.randomInt(m_numSpectra-1);
 
-		unsigned int hui = spectraIndexList[ind0];
+		unsigned int t = spectraIndexList[ind0];
 		spectraIndexList[ind0] = spectraIndexList[ind1];
-		spectraIndexList[ind1] = hui;
+		spectraIndexList[ind1] = t;
 	}
+	
+	float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
+	float lRate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
+	float lambda = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
+
 
 	// for each training spectra..
 	for ( unsigned int j=0;j<m_numSpectra;j++ )
@@ -109,6 +119,27 @@ void NeuralGas::Process()
 			m_pSourceVFS->endRead( i );
 		}
 
+		// compute adaption vector
+		Vec2f pos = m_pPosition[j];
+		Vec2f adaptionVec;
+		adaptionVec.Set(0.f, 0.f);
+
+
+		std::map<float,unsigned int>::iterator it = errorMap.begin();
+		std::map<float,unsigned int>::iterator itEnd = errorMap.end();
+
+		unsigned int rank=1;
+		while ( it != itEnd && rank <= m_params.numAdaptionElements  )
+		{
+			//Spectra *b = m_pSourceVFS->beginRead( it->second );
+			//m_pSourceVFS->endRead( it->second );
+			float nb = exp(-static_cast<float>(rank)/lambda);
+			adaptionVec += (m_pPosition[it->second]-pos)*lRate*nb;
+
+			rank++;
+			it++;
+		}
+		m_pPosition[j] += adaptionVec;
 
 
 		m_pSourceVFS->endRead( j );
