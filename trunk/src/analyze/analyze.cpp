@@ -87,7 +87,8 @@ int InitGL( const std::string &sstrCmdLine )
 	_cprintf( "Reading dump file " );
 	_cprintf( sstrSourceSpectraFileName.c_str() );
 	_cprintf( "\n" );
-	g_pVFSSource = new SpectraVFS( sstrSourceSpectraFileName, true );
+
+	g_pVFSSource = new SpectraVFS( sstrSourceSpectraFileName, false );
 	g_numSpectra = g_pVFSSource->getNumSpectra();
 
 	if ( g_numSpectra == 0 )
@@ -207,7 +208,7 @@ void ShowTrainData()
 		return;
 
 	Spectra *a = g_pVFSSource->beginRead( g_CurrentSpectraIndex );
-	SpectraHelpers::DrawSpectra( *a, true, false, 0, 0, scr_width, scr_height, 0.99f );
+	SpectraHelpers::DrawSpectra( *a, true, false, 0, 0, scr_width, scr_height, 0.99f/a->m_Max );
 	g_pVFSSource->endRead( g_CurrentSpectraIndex );
 
 	if ( up || down )

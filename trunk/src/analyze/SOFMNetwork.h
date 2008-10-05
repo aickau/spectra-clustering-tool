@@ -76,7 +76,9 @@ protected:
 		float error;	
 	};
 
-	void CalcMinMax();
+	void CalcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax );
+	void CalcMinMaxInputDS();
+
 	void RenderIcons();
 	void ExportEnergyMap();
 	void WriteSettings( const std::string &_sstrFileName );

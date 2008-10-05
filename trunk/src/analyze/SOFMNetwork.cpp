@@ -28,7 +28,7 @@
 //Parameters(100,26,1.0,0.001,0.5,2)
 //Parameters(100,1,0.15,0.05,10,1)
 //Parameters(100,26,0.25,0.01,1,0.5) << best!
-SOFMNetwork::Parameters SOFMNetwork::Parameters::defaultParameters(100,26,0.25,0.01,1,0.5); // default parameters
+SOFMNetwork::Parameters SOFMNetwork::Parameters::defaultParameters(100,26,0.25f,0.01f,1.f,0.5f); // default parameters
 
 
 SOFMNetwork::Parameters::Parameters( size_t _numSteps, size_t _randomSeed, float _lRateBegin, float _lRateEnd, float _radiusBegin, float _radiusEnd )
@@ -63,7 +63,20 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 		Helpers::Print( std::string("Error reading settings from settings.xml. Abortion.\n"), &m_logFile );
 		exit(0);
 	}
-	CalcMinMax();
+
+	// test begin
+	//for ( size_t i=0;i<m_numSpectra;i++ )
+	//{
+	//	Spectra *a = m_pSourceVFS->beginWrite( i );
+
+	//	a->set( .1f + (float) i*0.001f );
+	//
+	//	m_pSourceVFS->endWrite( i );
+	//}
+	// test end
+
+
+	CalcMinMaxInputDS();
 
 
 	if ( !bContinueComputation )
@@ -71,7 +84,12 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 		size_t gridSizeMin = static_cast<size_t>(ceilf(sqrtf(m_numSpectra+1))*1.2f);
 		if ( m_gridSize < gridSizeMin )
 		{
-			_cprintf( "Grid size %i too small. Clamping to %i\n\n", m_gridSize, gridSizeMin );
+			std::string sstrString( std::string("Grid size ") );
+			sstrString += Helpers::numberToString(m_gridSize);
+			sstrString += std::string("  too small. Clamping to ");
+			sstrString += Helpers::numberToString(gridSizeMin);
+			sstrString += std::string(".\n\n");
+			Helpers::Print(  sstrString, &m_logFile );
 			m_gridSize = gridSizeMin;
 		}
 		m_gridSizeSqr = m_gridSize*m_gridSize;
@@ -219,28 +237,37 @@ bool SOFMNetwork::ReadSettings( const std::string &_sstrFileName, std::string &_
 }
 
 
-void SOFMNetwork::CalcMinMax()
+void SOFMNetwork::CalcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax )
 {
-	Helpers::Print( std::string("Calculating min/max of input.\n"), &m_logFile );
+	_outMin = FLT_MAX;
+	_outMax = -FLT_MAX;
 
 	// calc min/max
 	for ( size_t i=0;i<m_numSpectra;i++ )
 	{
-		Spectra *a = m_pSourceVFS->beginRead( i );
-		if ( m_Min > a->m_Min ) 
-		{
-			m_Min = a->m_Min;
-		}
-		if ( m_Max < a->m_Max) 
-		{
-			m_Max = a->m_Max;
-		}
-		m_pSourceVFS->endRead( i );
-	}
-	// -560 .. ~20.000
+		Spectra *a = _vfs.beginRead( i );
 
+		if ( _outMin > a->m_Min ) 
+		{
+			_outMin = a->m_Min;
+		}
+		if ( _outMax < a->m_Max) 
+		{
+			_outMax = a->m_Max;
+		}
+		_vfs.endRead( i );
+	}
+	// for sdds: -560 .. ~20.000 Angström
+}
+
+
+void SOFMNetwork::CalcMinMaxInputDS()
+{
+	Helpers::Print( std::string("Calculating min/max of input.\n"), &m_logFile );
+	CalcMinMax( *m_pSourceVFS, m_Min, m_Max );
 	Helpers::Print( std::string("global min / max: ") + Helpers::numberToString(m_Min) + std::string(" / " ) + Helpers::numberToString(m_Max) + std::string("\n" ), &m_logFile );
 }
+
 
 
 void SOFMNetwork::ExportEnergyMap()
@@ -398,12 +425,12 @@ void SOFMNetwork::Process()
 	size_t j=0;
 	while (j<m_numSpectra)
 	{
-		size_t jInc = MIN( SpectraVFS::CACHELINESIZE, (MIN(m_numSpectra, j+SpectraVFS::CACHELINESIZE)-j));
+		const int jInc = MIN( SpectraVFS::CACHELINESIZE, (MIN(m_numSpectra, j+SpectraVFS::CACHELINESIZE)-j));
 //		Helpers::Print( std::string("."), &m_logFile );
 
 		// initialize best match batch
 		BestMatch bestMatch[SpectraVFS::CACHELINESIZE];
-		for ( size_t k=0;k<jInc;k++)
+		for ( int k=0;k<jInc;k++)
 		{
 			bestMatch[k].error = FLT_MAX;
 			bestMatch[k].index = 0;
@@ -416,9 +443,9 @@ void SOFMNetwork::Process()
 			Spectra *a = m_pNet->beginRead( i );
 
 			Spectra *src[SpectraVFS::CACHELINESIZE];
-			for ( size_t k=0;k<jInc;k++)
+			for ( int k=0;k<jInc;k++)
 			{
-				size_t spectraIndex = spectraIndexList.at(j+k);
+				const size_t spectraIndex = spectraIndexList.at(j+k);
 				src[k] = m_pSourceVFS->beginRead(spectraIndex);
 			}
 
@@ -429,7 +456,7 @@ void SOFMNetwork::Process()
 				BestMatch &currentBestMatch = bestMatch[k];
 				Spectra &currentSpectra = *src[k];
 
-				float tmin = a->compare( currentSpectra );
+				const float tmin = a->compare( currentSpectra );
 
 				if (tmin < currentBestMatch.error && a->isEmpty() )
 				{
@@ -438,9 +465,9 @@ void SOFMNetwork::Process()
 				}
 			}
 
-			for ( size_t k=0;k<jInc;k++)
+			for ( int k=0;k<jInc;k++)
 			{
-				size_t spectraIndex = spectraIndexList.at(j+k);
+				const size_t spectraIndex = spectraIndexList.at(j+k);
 				m_pSourceVFS->endRead(spectraIndex);
 			}
 
@@ -452,10 +479,10 @@ void SOFMNetwork::Process()
 		_cprintf( "search time: %f\n", search_t ); 
 		t.Start();
 
-		for ( size_t k=0;k<jInc;k++)
+		for ( int k=0;k<jInc;k++)
 		{
 			BestMatch &currentBestMatch = bestMatch[k];
-			size_t spectraIndex = spectraIndexList.at(j+k);
+			const size_t spectraIndex = spectraIndexList.at(j+k);
 			Spectra &currentSpectra = *m_pSourceVFS->beginRead(spectraIndex);
 
 			Spectra *a = m_pNet->beginWrite( currentBestMatch.index );
@@ -472,7 +499,7 @@ void SOFMNetwork::Process()
 				// this cell in our cluster is already occupied by another neuron/spectra match
 				// check errors  
 				Spectra *b = m_pSourceVFS->beginRead(a->m_Index);
-				float errorOld = a->compare( *b );
+				const float errorOld = a->compare( *b );
 				m_pSourceVFS->endRead(a->m_Index);
 
 				if ( errorOld < currentBestMatch.error )
@@ -495,32 +522,33 @@ void SOFMNetwork::Process()
 		//	Helpers::Print( std::string(":"), &m_logFile );
 
 
-			float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
-			float lrate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
-			float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
-			float tsigma = sigma*sigma;
-			float tsigma2 = tsigma*2.f;
+			const float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
+			const float lrate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
+			const float lratehsxTreshhold = m_params.lRateEnd*0.01f;
+			const float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
+			const float tsigma = sigma*sigma;
+			const float tsigma2 = tsigma*2.f;
 
-			size_t xpBestMatch = currentBestMatch.index % m_gridSize;
-			size_t ypBestMatch = currentBestMatch.index / m_gridSize;
+			const size_t xpBestMatch = currentBestMatch.index % m_gridSize;
+			const size_t ypBestMatch = currentBestMatch.index / m_gridSize;
 
 			// adjust weights of the whole network
 			size_t c=0;
 			for ( size_t y=0;y<m_gridSize;y++)
 			{
-				float tdisty = static_cast<float>(y)-static_cast<float>(ypBestMatch);
-				float tdisty2=tdisty*tdisty;
+				const float tdisty = static_cast<float>(y)-static_cast<float>(ypBestMatch);
+				const float tdisty2=tdisty*tdisty;
 
 				for ( size_t x=0;x<m_gridSize;x++)
 				{
-					float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
-					float tdistx2 = tdistx*tdistx;
-					float tdistall = tdistx2+tdisty2;
-					float mexican_hat_term = 1.f-tdistall/tsigma;
-					float hxy = exp(-(tdistall)/tsigma2);
-					float lratehsx = lrate*hxy;
+					const float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
+					const float tdistx2 = tdistx*tdistx;
+					const float tdistall = tdistx2+tdisty2;
+					const float mexican_hat_term = 1.f-tdistall/tsigma;
+					const float hxy = exp(-(tdistall)/tsigma2);
+					const float lratehsx = lrate*hxy;
 
-					if ( lratehsx > 0.001 )
+					if ( lratehsx > lratehsxTreshhold )
 					{
 						Spectra *a = m_pNet->beginWrite( c );
 						for ( size_t i=0;i<Spectra::numSamples;i++ )
@@ -548,7 +576,7 @@ void SOFMNetwork::Process()
 	// for each collision spectra..
 	for ( size_t j=0;j<spectraCollisionList.size();j++)
 	{
-		size_t spectraIndex = spectraCollisionList.at(j);
+		const size_t spectraIndex = spectraCollisionList.at(j);
 		Spectra &currentSpectra = *m_pSourceVFS->beginRead(spectraIndex);
 
 		// retrieve first best match neuron
@@ -575,32 +603,33 @@ void SOFMNetwork::Process()
 		a->m_Index = spectraIndex;
 		m_pNet->endWrite( bestMatch );
 
-		float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
-		float lrate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
-		float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
-		float tsigma = sigma*sigma;
-		float tsigma2 = tsigma*2.f;
+		const float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
+		const float lrate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
+		const float lratehsxTreshhold = m_params.lRateEnd*0.01f;
+		const float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
+		const float tsigma = sigma*sigma;
+		const float tsigma2 = tsigma*2.f;
 
-		size_t xpBestMatch = bestMatch % m_gridSize;
-		size_t ypBestMatch = bestMatch / m_gridSize;
+		const size_t xpBestMatch = bestMatch % m_gridSize;
+		const size_t ypBestMatch = bestMatch / m_gridSize;
 
 		// adjust weights of the whole network
 		size_t c=0;
 		for ( size_t y=0;y<m_gridSize;y++)
 		{
-			float tdisty = static_cast<float>(y)-static_cast<float>(ypBestMatch);
-			float tdisty2=tdisty*tdisty;
+			const float tdisty = static_cast<float>(y)-static_cast<float>(ypBestMatch);
+			const float tdisty2=tdisty*tdisty;
 
 			for ( size_t x=0;x<m_gridSize;x++)
 			{
-				float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
-				float tdistx2 = tdistx*tdistx;
-				float tdistall = tdistx2+tdisty2;
-				float mexican_hat_term = 1.f-tdistall/tsigma;
-				float hxy = exp(-(tdistall)/tsigma2);
-				float lratehsx = lrate*hxy;
+				const float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
+				const float tdistx2 = tdistx*tdistx;
+				const float tdistall = tdistx2+tdisty2;
+				const float mexican_hat_term = 1.f-tdistall/tsigma;
+				const float hxy = exp(-(tdistall)/tsigma2);
+				const float lratehsx = lrate*hxy;
 
-				if ( lratehsx > 0.001 )
+				if ( lratehsx > lratehsxTreshhold )
 				{
 					Spectra *a = m_pNet->beginWrite( c );
 					for ( size_t i=0;i<Spectra::numSamples;i++ )
