@@ -10,11 +10,11 @@
 //
 // warning:
 // changing order and / or size of this structure will invalidate all dumped files !
-//
+// 
 class Spectra
 {
 public:
-	static const int numSamples = 1732;			// number of samples in spectrum 
+	static const int numSamples = 3900/4;		// number of samples in spectrum 
 	static const int numSpectraLines = 44;		// number of stored emission and absorption lines
 	static const float waveBeginSrc;			// spectrum measurement start (in Angström)
 	static const float waveEndSrc;				// spectrum measurement end 

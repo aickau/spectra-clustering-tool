@@ -6,7 +6,7 @@
 
 typedef char _TCHAR;
 
-#define DATADIR std::string("c:/prj/sdss_svn/data/*")
+#define DATADIR std::string("c:/prj/sdss_svn2/trunk/data/*")
 //#define DATADIR std::string("G:/SDSS_ANALYZE/fits/spectro/data/*")
 #define DUMPFILE std::string("allSpectra.bin")
  
