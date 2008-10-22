@@ -1,0 +1,13 @@
+Makefile
+*.o
+*.obj
+config.log
+config.status
+libtool
+autom4te.cache
+.cdtproject
+.project
+configure
+aclocal.m4
+Makefile.in
+config.cache
