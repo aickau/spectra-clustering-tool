@@ -64,16 +64,16 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 		exit(0);
 	}
 
-	// test begin
-	//for ( size_t i=0;i<m_numSpectra;i++ )
-	//{
-	//	Spectra *a = m_pSourceVFS->beginWrite( i );
+/*	// test begin
+	for ( size_t i=0;i<m_numSpectra;i++ )
+	{
+		Spectra *a = m_pSourceVFS->beginWrite( i );
 
-	//	a->set( .1f + (float) i*0.001f );
-	//
-	//	m_pSourceVFS->endWrite( i );
-	//}
-	// test end
+		a->set( 0.1f + (float) i*0.005f );
+	
+		m_pSourceVFS->endWrite( i );
+	}
+*/	// test end
 
 
 	CalcMinMaxInputDS();
@@ -102,6 +102,25 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 
 		//ExportEnergyMap();
 		RenderIcons();
+
+		// initialize with input data
+		Rnd r(m_params.randomSeed);
+		for ( size_t i=0;i<m_gridSizeSqr;i++ )
+		{
+			size_t xp = i % m_gridSize;
+			size_t yp = i / m_gridSize;
+			const size_t inset = 0;
+			if ( xp >= inset && xp <= (m_gridSize-inset) && yp >= inset && yp <= (m_gridSize-inset) )
+			{
+				Spectra *a = m_pNet->beginWrite( i );
+				size_t spectraIndex = r.randomInt(m_numSpectra-1);
+				Spectra *b = m_pSourceVFS->beginRead( spectraIndex );
+				a->set( *b );
+				m_pSourceVFS->endRead( spectraIndex );
+				m_pNet->endWrite( i );
+			}
+		}
+
 	}
 	else
 	{
@@ -242,8 +261,10 @@ void SOFMNetwork::CalcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax )
 	_outMin = FLT_MAX;
 	_outMax = -FLT_MAX;
 
+	const size_t numSpectra = _vfs.getNumSpectra();
+
 	// calc min/max
-	for ( size_t i=0;i<m_numSpectra;i++ )
+	for ( size_t i=0;i<numSpectra;i++ )
 	{
 		Spectra *a = _vfs.beginRead( i );
 
@@ -328,6 +349,8 @@ void SOFMNetwork::RenderIcons()
 			redness = MathHelpers::logf(redness,globalmax);
 			redness *= redness*2.f;
 		}
+
+		//redness = (float)i*2.f/(float)m_numSpectra;
 
 		SpectraHelpers::RenderSpectraIconToDisk(*a, sstrFilename, 100, 100, localmax, redness );
 
@@ -545,7 +568,10 @@ void SOFMNetwork::Process()
 					const float tdistx2 = tdistx*tdistx;
 					const float tdistall = tdistx2+tdisty2;
 					const float mexican_hat_term = 1.f-tdistall/tsigma;
-					const float hxy = exp(-(tdistall)/tsigma2);
+					//const float hxy = exp(-(tdistall)/tsigma2);							// original
+					const float hxy = exp(-sqrtf(tdistall)/tsigma2);						// spike
+					//const float hxy = exp(-(tdistall)/tsigma2)*mexican_hat_term;			// Mexican hat
+
 					const float lratehsx = lrate*hxy;
 
 					if ( lratehsx > lratehsxTreshhold )
@@ -626,7 +652,9 @@ void SOFMNetwork::Process()
 				const float tdistx2 = tdistx*tdistx;
 				const float tdistall = tdistx2+tdisty2;
 				const float mexican_hat_term = 1.f-tdistall/tsigma;
-				const float hxy = exp(-(tdistall)/tsigma2);
+				//const float hxy = exp(-(tdistall)/tsigma2);							// original
+				const float hxy = exp(-sqrtf(tdistall)/tsigma2);						// spike
+				//const float hxy = exp(-(tdistall)/tsigma2)*mexican_hat_term;			// Mexican hat
 				const float lratehsx = lrate*hxy;
 
 				if ( lratehsx > lratehsxTreshhold )

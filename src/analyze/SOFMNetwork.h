@@ -90,7 +90,7 @@ protected:
 
 	// training data
 	SpectraVFS		*m_pSourceVFS;
-	size_t			m_numSpectra;
+	const size_t	m_numSpectra;
 
 	Rnd				m_Random;
 

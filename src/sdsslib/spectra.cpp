@@ -199,7 +199,7 @@ void Spectra::set( float _freq )
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		float x=static_cast<float>(i)*0.01f;
-		m_Amplitude[i] = sinf(x*_freq)+1.f;
+		m_Amplitude[i] = (sinf(x*_freq)+1.f);
 	}
 
 
@@ -302,6 +302,8 @@ bool Spectra::loadFromFITS(std::string &filename)
 	long adress[2]={1,1};
 	fits_read_pix( f, TFLOAT, adress, elementsToRead, NULL, (void*)spectrum, NULL, &status );
 
+
+#ifdef _ZBACKCALC
 	// fold the spectrum to reduce noize
 	const size_t sampleReductionRatio = 4;
 	for ( size_t j=0;j<sampleReductionRatio;j++ )
@@ -314,6 +316,7 @@ bool Spectra::loadFromFITS(std::string &filename)
 		}
 		elementsToRead /= 2; 
 	}
+	m_SamplesRead = numSamples;
 
 	// calculate redshift back
 	float wBegin = waveBeginSrc / (1.f+m_Z);
@@ -346,12 +349,8 @@ bool Spectra::loadFromFITS(std::string &filename)
 
 		w+=d; 
 	}
-
-	m_SamplesRead = numSamples;
-
-
-
-/*
+#else // _ZBACKCALC
+	const size_t sampleReductionRatio = 2;
 	for ( int j=0;j<sampleReductionRatio;j++ )
 	{
 		size_t c=0;
@@ -371,7 +370,8 @@ bool Spectra::loadFromFITS(std::string &filename)
 		m_Amplitude[i] = 0.0f;
 	}
 	m_SamplesRead = static_cast<__int16>(elementsToRead);
-*/
+#endif // _ZBACKCALC
+
 	// read emission and absorption lines
 	int numhdus = 0;
 	int hdutype = 0; // should be BINARY_TBL

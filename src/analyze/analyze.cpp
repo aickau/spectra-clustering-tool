@@ -46,7 +46,6 @@ int InitGL( const std::string &sstrCmdLine )
 
 	SpectraHelpers::Init( fr_hDC );
 
-
 	// opengl init stuff
 	glShadeModel(GL_SMOOTH);							
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);				
@@ -145,7 +144,7 @@ void DrawNetwork( SOFMNetwork &network )
 	if (g_DisableOutput)
 		return;
 
-	const size_t nMaxGridSize = 20;
+	const size_t nMaxGridSize = 40;
 
 	size_t gridSize = MIN( network.m_gridSize, nMaxGridSize );
 	size_t stepSize = network.m_gridSize / gridSize;
@@ -170,9 +169,10 @@ void DrawNetwork( SOFMNetwork &network )
 
 	float yscale = 1.f/(network.m_Max-network.m_Min);
 
-	size_t yp=0;
+	size_t yp=gridSize;
 	for ( size_t y=0;y<network.m_gridSize;y+=stepSize)
 	{
+		yp--;
 		size_t xp=0;
 		for ( size_t x=0;x<network.m_gridSize;x+=stepSize)
 		{
@@ -196,7 +196,6 @@ void DrawNetwork( SOFMNetwork &network )
 //			}
 			xp++;
 		}
-		yp++;
 	}
 }
 
