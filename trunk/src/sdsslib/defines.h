@@ -8,6 +8,8 @@
 #define MAX(a,b)    (((a) > (b)) ? (a) : (b))
 #define CLAMP(x,min,max) MAX(MIN(x,max),min)
 
+#define CALC_ADRESS(x,y,xsize) ((x)+((y)*(xsize)))
+
 #define POINTER2INDEX(pointer,basepointer,type) (((unsigned int)(pointer)-(unsigned int)basepointer)/sizeof(type))
 
 #ifndef EPS

@@ -686,6 +686,112 @@ void SOFMNetwork::Process()
 }
 
 
+static
+void intensityToRGB(float _intensity, float *_pRGB )
+{
+	_intensity *= 3.f;
+	_pRGB[2] = MIN(_intensity,1.f);
+	_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
+	_pRGB[0] = CLAMP(_intensity-2.f,0.f,1.f);
+}
+
+void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bShowEmpty, bool _bNormalize )
+{
+	if ( m_pNet == NULL || m_pNet->getNumSpectra() == 0 )
+	{
+		return;
+	}
+	assert( !_sstrFilenName.empty() );
+
+	float *pUMatrix = new float[m_gridSizeSqr];
+	float *pRGBMap = new float[m_gridSizeSqr*3];
+
+	float maxErr = 0.0f;
+
+	// flash
+	for (size_t i=0;i<m_gridSizeSqr;i++) 
+	{
+		pUMatrix[i] = 0.0f;
+	}
+
+	// calc errors
+	for ( size_t y=1;y<m_gridSize-1;y++ )
+	{
+		for ( size_t x=1;x<m_gridSize-1;x++ )
+		{
+			const size_t i = CALC_ADRESS(x,y,m_gridSize);
+			const size_t iLeft = CALC_ADRESS(x-1,y,m_gridSize);
+			const size_t iRight = CALC_ADRESS(x+1,y,m_gridSize);
+			const size_t iUp = CALC_ADRESS(x,y-1,m_gridSize);
+			const size_t iBottom = CALC_ADRESS(x,y+1,m_gridSize);
+			Spectra *spCenter = m_pNet->beginRead( i );
+			Spectra *spLeft = m_pNet->beginRead( iLeft );
+			Spectra *spRight = m_pNet->beginRead( iRight );
+			Spectra *spTop = m_pNet->beginRead( iUp );
+			Spectra *spBottom = m_pNet->beginRead( iBottom );
+
+			if ( _bShowEmpty || !spCenter->isEmpty() )
+			{
+				ISSE_ALIGN Spectra backupCenter (*spCenter);
+				ISSE_ALIGN Spectra backupLeft(*spLeft);
+				ISSE_ALIGN Spectra backupRight(*spRight);
+				ISSE_ALIGN Spectra backupTop(*spTop);
+				ISSE_ALIGN Spectra backupBottom(*spBottom);
+
+				if ( _bNormalize )
+				{
+					backupCenter.normalize();
+					backupLeft.normalize();
+					backupRight.normalize();
+					backupTop.normalize();
+					backupBottom.normalize();
+				}
+
+				pUMatrix[i] += backupCenter.compare( backupLeft );
+				pUMatrix[i] += backupCenter.compare( backupRight );
+				pUMatrix[i] += backupCenter.compare( backupTop );
+				pUMatrix[i] += backupCenter.compare( backupBottom );
+
+				maxErr = MAX( maxErr, pUMatrix[i] );
+			}
+
+
+			m_pNet->endRead( i );
+			m_pNet->endRead( iLeft );
+			m_pNet->endRead( iRight );
+			m_pNet->endRead( iUp );
+			m_pNet->endRead( iBottom );
+		}
+	}
+	
+	// normalize
+	if ( maxErr > 0.0f )
+	{
+		for (size_t i=0;i<m_gridSizeSqr;i++) 
+		{
+			float scale;
+			if ( _bUseLogScale )
+			{
+				// logarithmic scale
+				scale  = log10f(pUMatrix[i]+1.f)/log10f(maxErr);
+			}
+			else
+			{
+				// linear scale
+				scale  = pUMatrix[i] /= maxErr;;
+			}
+
+			intensityToRGB( scale,  &pRGBMap[i*3] );
+		}
+	}
+
+
+	SpectraHelpers::SaveIntensityMap( pRGBMap, m_gridSize, m_gridSize, _sstrFilenName );
+
+	delete[] pUMatrix;
+	delete[] pRGBMap;
+}
+
 
 void SOFMNetwork::Export( const std::string &_sstrFilename )
 {
