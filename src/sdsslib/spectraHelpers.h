@@ -17,6 +17,11 @@ public:
 	static void RenderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, 
 		size_t _width, size_t _height, const std::string &sstrFilename );
 
+	// save a floating point map as RGB png image
+	// _pMap map
+	// _sstrFileName path+filename without extension
+	static void SaveIntensityMap( float *_pMap, size_t _sizeX, size_t _sizeY, const std::string &_sstrFileName );
+
 	// Draw Spectrum (to framebuffer)
 	static void DrawSpectra(Spectra &_spectra, 
 							bool _showInfo,

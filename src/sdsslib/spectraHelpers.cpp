@@ -80,6 +80,36 @@ void SpectraHelpers::RenderDiagramToDisk( float *_values, size_t _valueCount, si
 }
 
 
+void SpectraHelpers::SaveIntensityMap( float *_pMap, size_t _sizeX, size_t _sizeY, const std::string &_sstrFileName )
+{
+	assert( _pMap != NULL );
+	assert( _sizeX > 0 );
+	assert( _sizeY > 0 );
+
+	std::string sstrFileNameFull = _sstrFileName;
+	sstrFileNameFull += std::string(".png");
+
+	ILuint image;
+	ILenum err;
+	ilGenImages( 1, &image );
+	ilBindImage(image);
+	ilEnable(IL_FILE_OVERWRITE );
+	ilTexImage(_sizeX,_sizeY,1,3,IL_RGB, IL_FLOAT, _pMap );
+	err = ilGetError();
+	assert( err == IL_NO_ERROR );
+	ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE );
+	err = ilGetError();
+	assert( err == IL_NO_ERROR );
+	iluFlipImage();
+	ilSave( IL_PNG, const_cast<char*>(sstrFileNameFull.c_str()) );
+	err = ilGetError();
+	assert( err == IL_NO_ERROR );
+	ilDeleteImage(image);
+}
+
+
+
+
 float X2Win( float _xp )
 {
 	return ( _xp );
