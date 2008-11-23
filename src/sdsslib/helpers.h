@@ -8,6 +8,10 @@
 namespace Helpers
 {
 
+	// get a list of files from a given directory.
+	// e.g. _sstrSearchDir = d:/hui/* - find all files in directory "d:/hui" and all subdirectories.
+	//      _sstrSearchDir = d:/hui/*.exe find all executables in in directory "d:/hui" and all subdirectories.
+	//      _sstrSearchDir = d:/hui/ find all files in in directory "d:/hui" not in subdirectories.
 	size_t getFileList( const std::string &_sstrSearchDir, std::vector<std::string> &_outFileNameList );
 
 	// extract extension
