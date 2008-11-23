@@ -544,10 +544,10 @@ float Spectra::compareAdvanced(const Spectra &_spectra) const
 	}
 	err2 /= static_cast<float>(numSpectraLines);
 
-	float err3 = m_Z-_spectra.m_Z;
+	double err3 = m_Z-_spectra.m_Z;
 	err3 *= err3;
 
-	return err1*1.0f + err2*0.25f + err3*0.1f;
+	return err1*1.0f + err2*0.25f + static_cast<float>(err3)*0.1f;
 }
 
 
