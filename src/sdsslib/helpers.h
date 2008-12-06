@@ -7,6 +7,7 @@
 
 namespace Helpers
 {
+	std::string getCurrentDir();
 
 	// get a list of files from a given directory.
 	// e.g. _sstrSearchDir = d:/hui/* - find all files in directory "d:/hui" and all subdirectories.
