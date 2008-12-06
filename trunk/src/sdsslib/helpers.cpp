@@ -18,6 +18,13 @@ void lowercase( std::string &_sstr )
 	}
 }
 
+std::string Helpers::getCurrentDir()
+{
+	char dir[MAX_PATH+2];
+	GetCurrentDirectory(MAX_PATH, dir);
+	return std::string(dir);
+}
+
 size_t Helpers::getFileList( const std::string &_sstrSearchDir, std::vector<std::string> &_outFileNameList )
 {
 	WIN32_FIND_DATA fileInfo;

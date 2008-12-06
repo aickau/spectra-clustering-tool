@@ -793,6 +793,92 @@ void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogS
 }
 
 
+
+void SOFMNetwork::calcDifference( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize )
+{
+	if ( m_pNet == NULL || m_pNet->getNumSpectra() == 0 )
+	{
+		return;
+	}
+	if ( m_pSourceVFS == NULL || m_pSourceVFS->getNumSpectra() == 0 )
+	{
+	}
+
+	assert( !_sstrFilenName.empty() );
+
+	float *pUMatrix = new float[m_gridSizeSqr];
+	float *pRGBMap = new float[m_gridSizeSqr*3];
+
+	float maxErr = 0.0f;
+
+	// calc errors
+	for ( size_t i=0;i<m_gridSizeSqr;i++ )
+	{
+		Spectra *spNet = m_pNet->beginRead( i );
+		ISSE_ALIGN Spectra backupNet(*spNet);
+
+		if ( spNet->isEmpty() )
+		{
+			// mark empty cells
+			pUMatrix[i] = -1.f;
+		}
+		else
+		{
+			Spectra *spSource = m_pSourceVFS->beginRead( spNet->m_Index );
+			ISSE_ALIGN Spectra backupSource(*spSource);
+
+			if ( _bNormalize )
+			{
+				backupSource.normalize();
+				backupNet.normalize();
+			}
+			pUMatrix[i] = backupNet.compare( backupSource );
+			maxErr = MAX( maxErr, pUMatrix[i] );
+			m_pSourceVFS->endRead( spNet->m_Index );
+		}
+		m_pNet->endRead( i );
+	}
+
+	// normalize
+	if ( maxErr > 0.0f )
+	{
+		for (size_t i=0;i<m_gridSizeSqr;i++) 
+		{
+			if ( pUMatrix[i] >= 0.0f )
+			{
+				float scale;
+				if ( _bUseLogScale )
+				{
+					// logarithmic scale
+					scale  = log10f(pUMatrix[i]+1.f)/log10f(maxErr);
+				}
+				else
+				{
+					// linear scale
+					scale  = pUMatrix[i] /= maxErr;
+				}
+
+				intensityToRGB( scale, &pRGBMap[i*3] );
+			}
+			else
+			{
+				// mark empty cells
+				pRGBMap[i*3]   = 0.5f;
+				pRGBMap[i*3+1] = 0.5f;
+				pRGBMap[i*3+2] = 0.5f;
+			}
+		}
+	}
+
+
+	SpectraHelpers::SaveIntensityMap( pRGBMap, m_gridSize, m_gridSize, _sstrFilenName );
+
+	delete[] pUMatrix;
+	delete[] pRGBMap;
+}
+
+
+
 void SOFMNetwork::Export( const std::string &_sstrFilename )
 {
 	std::string sstrLog;

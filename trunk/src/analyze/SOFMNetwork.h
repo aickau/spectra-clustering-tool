@@ -66,6 +66,14 @@ public:
 	// _bNormalize normalize map for comparison
 	void calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogScale=true, bool _bShowEmpty=true, bool _bNormalize=false );
 
+	// Calculate difference map of the SOM codebook vectors and the input data assigned to a neuron  for the current calculation step. 
+	// sstrFilenName path + filename (no extension)
+	// _bUseLogScale use logarithmic scaling for matrix display
+	// _bShowEmpty show intensities for empty cells (no input data in there), otherwise empty cells are filled with black pixels
+	// _bNormalize normalize map for comparison
+	void calcDifference( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize );
+
+
 	size_t			m_gridSize;
 	size_t			m_gridSizeSqr;
 	size_t			m_currentStep;

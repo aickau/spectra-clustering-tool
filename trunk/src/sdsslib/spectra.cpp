@@ -112,7 +112,7 @@ void Spectra::set(const Spectra &_spectra)
 }
 
 
-void Spectra::set( size_t type, float noize )
+void Spectra::set( size_t type, float _noize )
 {
 	type = type %= 5;
 
@@ -154,27 +154,27 @@ void Spectra::set( size_t type, float noize )
 
 		if ( type == 0 )
 		{
-			m_Amplitude[i] = sinf(x)*20.f+(r.randomFloat()-0.5f)*noize;
+			m_Amplitude[i] = sinf(x)*20.f+(r.randomFloat()-0.5f)*_noize;
 		}
 
 		if ( type == 1 )
 		{
-			m_Amplitude[i] = cosf(x)*20.f+(r.randomFloat()-0.5f)*noize;
+			m_Amplitude[i] = cosf(x)*20.f+(r.randomFloat()-0.5f)*_noize;
 		}
 
 		if ( type == 2 )
 		{
-			m_Amplitude[i] = x+(r.randomFloat()-0.5f)*noize;
+			m_Amplitude[i] = x+(r.randomFloat()-0.5f)*_noize;
 		}
 
 		if ( type == 3 )
 		{
-			m_Amplitude[i] = -x+(r.randomFloat()-0.5f)*noize;
+			m_Amplitude[i] = -x+(r.randomFloat()-0.5f)*_noize;
 		}
 
 		if ( type == 4 )
 		{
-			m_Amplitude[i] = x*x+(r.randomFloat()-0.5f)*noize;
+			m_Amplitude[i] = x*x+(r.randomFloat()-0.5f)*_noize;
 		}
 	}
 
@@ -190,16 +190,41 @@ void Spectra::set( size_t type, float noize )
 }
 
 
-
-void Spectra::set( float _freq )
+void Spectra::setSine( float _frequency, float _phase, float _amplitude, float _noize )
 {
 	static size_t UIDCount = 1;
 	m_SpecObjID =(UIDCount++)<<22;
 
+	Rnd r;
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
-		float x=static_cast<float>(i)*0.01f;
-		m_Amplitude[i] = (sinf(x*_freq)+1.f);
+		float x=_phase+static_cast<float>(i)*_frequency;
+		m_Amplitude[i] = sinf(x)*_amplitude+(r.randomFloat()-0.5f)*_noize;
+	}
+	m_SamplesRead = Spectra::numSamples;
+	calcMinMax();
+}
+
+void Spectra::setRect( float _width, float _phase, float _amplitude )
+{
+	static size_t UIDCount = 1;
+	m_SpecObjID =(UIDCount++)<<22;
+	
+	float x = 0.0f;
+	float xInc = 1.f/static_cast<float>(Spectra::numSamples);
+
+
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		if ( x>= _phase && x<= _phase+_width )
+		{
+			m_Amplitude[i] = _amplitude;
+		}
+		else
+		{
+			m_Amplitude[i] = 0.0f;
+		}
+		x += xInc;
 	}
 
 

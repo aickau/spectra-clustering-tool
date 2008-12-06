@@ -59,8 +59,12 @@ public:
 	// type: 0=sin, 1=cos, 2=lin, 3=lin inv, 4=sqr
 	void set( size_t _type, float _noize );
 
-	// set sine test spectra with a given frequency.
-	void set( float _freq );
+	// set rect 
+	// _phase 0..1, _width 0..1
+	void setRect( float _width=0.1, float _phase=0.5, float _amplitude=1.f );
+
+	// set sine curve with a given frequency, phase and amplitude.
+	void setSine( float _frequency = 1.f, float _phase = 0.f, float _amplitude=1.f, float _noize=0.f );
 
 	// add signals from other spectra
 	void add(const Spectra &_spectra);
