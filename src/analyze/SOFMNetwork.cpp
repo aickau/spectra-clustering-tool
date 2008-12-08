@@ -12,6 +12,7 @@
 #include "sdsslib/random.h"
 #include "sdsslib/defines.h"
 #include "sdsslib/helpers.h"
+#include "sdsslib/filehelpers.h"
 #include "sdsslib/Timer.h"
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/spectraHelpers.h"
@@ -1049,7 +1050,7 @@ void SOFMNetwork::Export( const std::string &_sstrFilename )
 
 				sstrMainTable += "<td>";
 				sstrMainTable += "<a href=\"";
-				sstrMainTable += Helpers::getFileName(sstrFilename);
+				sstrMainTable += FileHelpers::getFileName(sstrFilename);
 				sstrMainTable += "\" target=\"_blank\">";
 				sstrMainTable += "<img src=\"";
 				sstrMainTable += sstrLastImageInPlan;

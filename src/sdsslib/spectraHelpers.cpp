@@ -9,6 +9,7 @@
 #include "sdsslib/spectra.h"
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/helpers.h"
+#include "sdsslib/filehelpers.h"
 #include "sdsslib/glhelper.h"
 
 
@@ -167,7 +168,7 @@ void SpectraHelpers::DrawSpectra(Spectra &_spectra,
 		pos[1] = Y2Win(_height-30.f);
 
 		std::stringstream sstream;
-		sstream << "min: " << _spectra.m_Min << "  max: " << _spectra.m_Max;
+		sstream << "min: " << _spectra.m_Min << "  max: " << _spectra.m_Max << "  z: " << _spectra.m_Z;
 		std::string sstrOut( sstream.str() );
 		GLHelper::Print( s_FontID, pos, sstrOut.c_str() );
 
@@ -199,7 +200,7 @@ void SpectraHelpers::DrawSpectra(Spectra &_spectra,
 
 void SpectraHelpers::RenderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yMax, float _redness )
 {
-	if ( Helpers::fileExists(_sstrFilename) )
+	if ( FileHelpers::fileExists(_sstrFilename) )
 		return;
 
 	size_t saa = 8;
