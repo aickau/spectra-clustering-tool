@@ -275,6 +275,15 @@
 			>
 		</File>
 		<File
+			RelativePath=".\fileHelpers.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\fileHelpers.h"
+			>
+		</File>
+
+		<File
 			RelativePath=".\mathhelpers.cpp"
 			>
 		</File>

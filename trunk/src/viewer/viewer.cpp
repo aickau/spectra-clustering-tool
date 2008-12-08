@@ -7,6 +7,7 @@
 
 #include "sdsslib/defines.h"
 #include "sdsslib/helpers.h"
+#include "sdsslib/filehelpers.h"
 #include "sdsslib/spectra.h"
 #include "sdsslib/glhelper.h"
 #include "sdsslib/spectraHelpers.h"
@@ -24,18 +25,27 @@ std::vector<std::string> g_spectraFileList;
 
 int g_FontID=0;
 Spectra g_Spectrum;
-float g_YScale=2.0f;
+float g_YScale=.66f;
 
-
+void setCaptionText( const std::string &_sstrFileName )
+{
+	std::string sstrCaptionText("SDSS Viewer - ");
+	sstrCaptionText += _sstrFileName;
+	SetWindowText(fr_hWnd, sstrCaptionText.c_str());
+}
 
 
 int InitGL( const std::string &sstrCmdLine )		
 {
+	std::string sstrCurrentDir( FileHelpers::getCurrentDirectory() );
 	std::string sstrFileName("");
+
+	sstrFileName = sstrCmdLine;
+	/*
 	std::istringstream sstrStream(sstrCmdLine);
 	if (sstrStream) {
 		sstrStream >> sstrFileName;	
-	}
+	}*/
 
 	bool bRetVal=true;
 	if ( !sstrFileName.empty() )
@@ -46,10 +56,15 @@ int InitGL( const std::string &sstrCmdLine )
 			sstrFileName.erase( --sstrFileName.end() );
 		}
 
-		std::string sstrExtension(Helpers::getFileExtension(sstrFileName));
+		std::string sstrExtension(FileHelpers::getFileExtension(sstrFileName));
 		if ( sstrExtension == ".fit" )
 		{
 			bRetVal = g_Spectrum.loadFromFITS( sstrFileName );
+		}
+		std::string sstrDir = FileHelpers::getFilePath( sstrFileName );
+		if ( FileHelpers::exitsDirectory(sstrDir) )
+		{
+			sstrCurrentDir = sstrDir;
 		}
 	}
 	else
@@ -57,21 +72,19 @@ int InitGL( const std::string &sstrCmdLine )
 		g_Spectrum.setSine(1.f,1.f,1.f);
 	}
 
-	// get spectra files for current dir
-	std::string sstrCurrentDir( Helpers::getCurrentDir() );
+	// get spectra files for current working dir
+	sstrCurrentDir = FileHelpers::getFilePath( sstrCurrentDir );
 	sstrCurrentDir += std::string("/*");
 	std::vector<std::string> fileList;
-	Helpers::getFileList( sstrCurrentDir, fileList );
+	FileHelpers::getFileList( sstrCurrentDir, fileList );
 	for (size_t i=0;i<fileList.size();i++) {
-		if ( Helpers::getFileExtension(fileList[i]) == std::string(".fit") )
+		if ( FileHelpers::getFileExtension(fileList[i]) == std::string(".fit") )
 		{
 			g_spectraFileList.push_back( fileList[i] );
 		}
 	}
 
-	std::string sstrCaptionText("SDSS Viewer - ");
-	sstrCaptionText += sstrFileName;
-	SetWindowText(fr_hWnd, sstrCaptionText.c_str());
+	setCaptionText( sstrFileName );
 
 	SpectraHelpers::Init( fr_hDC );
 
@@ -114,7 +127,7 @@ void DrawGLScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-	SpectraHelpers::DrawSpectra( g_Spectrum, true, false, 0,0,scr_width,scr_height,g_YScale );
+	SpectraHelpers::DrawSpectra( g_Spectrum, true, false, 0,0,scr_width,scr_height,g_YScale/g_Spectrum.m_Max );
 
 	Sleep(50);
 }
@@ -137,7 +150,13 @@ void ArrowLeft()
 {
 	if ( fileListPos > 0 ) {
 		fileListPos--;
-		g_Spectrum.loadFromFITS( g_spectraFileList[fileListPos] );
+		std::string sstrFN = g_spectraFileList[fileListPos];
+		bool bSuccess = g_Spectrum.loadFromFITS( sstrFN );
+		if ( !bSuccess )
+		{
+			sstrFN +=" - [ failed ]";
+		}
+		setCaptionText( sstrFN );
 	}
 	left = 1;
 }
@@ -147,7 +166,13 @@ void ArrowRight()
 {
 	if ( fileListPos+1 < g_spectraFileList.size() ) {
 		fileListPos++;
-		g_Spectrum.loadFromFITS( g_spectraFileList[fileListPos] );
+		std::string sstrFN = g_spectraFileList[fileListPos];
+		bool bSuccess = g_Spectrum.loadFromFITS( sstrFN );
+		if ( !bSuccess )
+		{
+			sstrFN +=" - [ failed ]";
+		}
+		setCaptionText( sstrFN );
 	}
 
 	right = 1;
@@ -155,7 +180,7 @@ void ArrowRight()
 
 void ArrowUp()
 {
-	g_YScale +=0.25f;
+	g_YScale +=0.01f;
 	up = 1;
 }
 
@@ -163,7 +188,7 @@ void ArrowDown()
 {
 	if ( g_YScale > 0.0f )
 	{
-		g_YScale -=0.25f;
+		g_YScale -=0.01f;
 	}
 	down = 1;
 }

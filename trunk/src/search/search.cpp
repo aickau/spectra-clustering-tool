@@ -7,6 +7,7 @@
 #include <conio.h>
 
 #include "sdsslib/helpers.h"
+#include "sdsslib/filehelpers.h"
 #include "sdsslib/spectra.h"
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/memory.h"
@@ -14,22 +15,6 @@
 #define COMPAREDIR std::string("compare/")
 
 std::vector<std::string> g_compareFileList;
-
-
-bool insertTag( std::string &sstrDoc, const std::string &sstrTag, const std::string &sstrInsertText )
-{
-	std::string sstrTagTitle("*TITLE*");
-	size_t insertpos = sstrDoc.find(sstrTag);
-	if (insertpos == std::string::npos )
-	{
-		return false;
-	}
-
-	sstrDoc = sstrDoc.erase( insertpos, sstrTag.size() );
-	sstrDoc.insert( insertpos, sstrInsertText );
-
-	return true;
-}
 
 
 void writeTableEntry( const Spectra &spectrum, float error, std::string &sstrOutTable )
@@ -78,12 +63,21 @@ void main(int argc, char* argv[])
 	if ( argc < 2 )
 	{
 		_cprintf( "No parameters specified. Using default settings.\n\n");
-		_cprintf( "usage: search.exe <dumpfile.bin> [normalize] [reverse order]\n");
-		_cprintf( "example: search.exe allSpectra.bin 1 0\n\n\n");
+		_cprintf( "usage: search.exe <dumpfile.bin> [spectra filter] [normalize] [reverse order]\n");
+		_cprintf( "spectra filter is defined as follows:\n" );
+		_cprintf( "SPEC_UNKNOWN = 1\n" );
+		_cprintf( "SPEC_STAR    = 2\n" );
+		_cprintf( "SPEC_GALAXY  = 4\n" );
+		_cprintf( "SPEC_QSO     = 8\n" );
+		_cprintf( "SPEC_HIZ_QSO = 16\n" );
+		_cprintf( "SPEC_SKY     = 32\n" );
+		_cprintf( "STAR_LATE    = 64\n" );   
+		_cprintf( "GAL_EM       = 128\n" );     
+		_cprintf( "filters can be combined by adding the values, to disable filtering use 255.\n" );                 
+		_cprintf( "if no filter is specified it uses SPEC_UNKNOWN|SPEC_QSO|SPEC_HIZ_QSO|GAL_EM as default filter\n\n" );                 
+		_cprintf( "example: search.exe allSpectra.bin 255 1 0\n\n\n");
+
 	}
-
-	_cprintf( "each spectrum contains %i bytes.\n\n", sizeof(Spectra) );
-
 
 	bool bNormalize = false;
 	bool bReverseOrder = false;
@@ -98,14 +92,46 @@ void main(int argc, char* argv[])
 
 	if (argc > 2)
 	{
-		bNormalize = (argv[2][0] == '1') ? true : false;
+		int filter = Helpers::stringToNumber<int>(std::string(argv[2]));
+		if ( filter > 0) 
+		{
+			spectraFilter = filter;
+		}
 	}
 
 	if (argc > 3)
 	{
-		bReverseOrder = (argv[3][0] == '1') ? true : false;
+		bNormalize = (argv[3][0] == '1') ? true : false;
 	}
 
+	if (argc > 4)
+	{
+		bReverseOrder = (argv[4][0] == '1') ? true : false;
+	}
+
+	std::string sstrBaseInfo;
+
+	_cprintf( "dumpfile: %s\n", sstrDumpFile.c_str() );
+	_cprintf( "filter: %s\n", Spectra::spectraFilterToString(spectraFilter).c_str() );
+	_cprintf( "normalize: %i\n", bNormalize );
+	_cprintf( "reversed order: %i\n", bReverseOrder );
+	_cprintf( "each spectrum contains %i bytes.\n\n", sizeof(Spectra) );
+
+	sstrBaseInfo += "creation date: ";
+	sstrBaseInfo += Helpers::getCurentDateTimeStampString();
+	sstrBaseInfo += "<br>\ndumpfile: ";
+	sstrBaseInfo += sstrDumpFile;
+	sstrBaseInfo += "<br>\nfilter: ";
+	sstrBaseInfo += Spectra::spectraFilterToString(spectraFilter);
+	sstrBaseInfo += "<br>\nnormalize: ";
+	sstrBaseInfo += Helpers::numberToString<int>(bNormalize);
+	sstrBaseInfo += "<br>\nreversed order: ";
+	sstrBaseInfo += Helpers::numberToString<int>(bReverseOrder);
+	sstrBaseInfo += "<br>\neach spectrum contains ";
+	sstrBaseInfo += Helpers::numberToString<int>(sizeof(Spectra));
+	sstrBaseInfo += " bytes.<br>\n\n";
+
+	_cprintf( sstrBaseInfo.c_str() );
 	SpectraVFS vfs(sstrDumpFile);
 
 	size_t numSpectra = vfs.getNumSpectra();
@@ -120,7 +146,7 @@ void main(int argc, char* argv[])
 		_cprintf("%i spectra found.\n",numSpectra);
 	}
 
-	size_t numCompareSpectra = Helpers::getFileList( std::string(COMPAREDIR+"*.fit"), g_compareFileList );
+	size_t numCompareSpectra = FileHelpers::getFileList( std::string(COMPAREDIR+"*.fit"), g_compareFileList );
 
 	if ( numCompareSpectra == 0 )
 	{
@@ -199,7 +225,7 @@ void main(int argc, char* argv[])
 		}
 
 
-		if (!insertTag( sstrHTMLDoc, std::string("*TITLE*"), sstrCompareFilename ) )
+		if (!Helpers::insertString( std::string("*TITLE*"), sstrCompareFilename, sstrHTMLDoc ) )
 		{
 			printf("export failed. Wrong template.html ?!?\n");
 			return;
@@ -235,15 +261,23 @@ void main(int argc, char* argv[])
 			}
 		}
 	
-		if (!insertTag( sstrHTMLDoc, std::string("*TEMPLATE*"), sstrTable ) )
+		if (!Helpers::insertString( std::string("*TEMPLATE*"), sstrTable, sstrHTMLDoc ) )
 		{
 			printf("export failed. Wrong template.html ?!?\n");
 			return;
 		}
 
+		std::string sstrInfo(sstrBaseInfo);
+		sstrInfo += "Compared spectrum: ";
+		sstrInfo += sstrCompareFilename;
+		sstrInfo += "<br>\nNumber of compared spectra: ";
+		sstrInfo += Helpers::numberToString<size_t>(numSpectra);
+
+		Helpers::insertString( std::string("*INFO*"), sstrInfo, sstrHTMLDoc );
+
 
 		std::string sstrResultFilename("searchresults_");
-		sstrResultFilename += Helpers::getFileName(sstrCompareFilename);
+		sstrResultFilename += FileHelpers::getFileName(sstrCompareFilename);
 		sstrResultFilename += ".html";
 
 		printf( "\n\nExporting results to %s \n", sstrResultFilename.c_str() );

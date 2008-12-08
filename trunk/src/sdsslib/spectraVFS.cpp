@@ -1,6 +1,7 @@
 #include "spectraVFS.h"
 
 #include "helpers.h"
+#include "filehelpers.h"
 #include "spectra.h"
 #include "Timer.h"
 
@@ -304,13 +305,16 @@ void SpectraVFS::flush()
 {
 	for ( size_t i=0;i<CACHELINES;i++) 
 	{
-		// check if spectrum is in cache, if so return.
-		CacheTag &currentTag = m_TagTable[i];
-		if ( currentTag.bCommitWrite  )
+		if ( m_pCache[i] != NULL )
 		{
-			Spectra *pCacheLineStart = m_pCache[i];
-			Write( currentTag.nCacheLineIndex*CACHELINESIZE, pCacheLineStart );
-			currentTag.bCommitWrite = false;
+			// check if spectrum is in cache, if so return.
+			CacheTag &currentTag = m_TagTable[i];
+			if ( currentTag.bCommitWrite  )
+			{
+				Spectra *pCacheLineStart = m_pCache[i];
+				Write( currentTag.nCacheLineIndex*CACHELINESIZE, pCacheLineStart );
+				currentTag.bCommitWrite = false;
+			}
 		}
 	}
 }
@@ -322,7 +326,7 @@ void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFil
 {
 	std::vector<std::string> fileList;
 
-	size_t numSpectra = Helpers::getFileList( _sstrDir, fileList );
+	size_t numSpectra = FileHelpers::getFileList( _sstrDir, fileList );
 
 	std::ofstream flog("dump_log.txt");
 
@@ -500,7 +504,6 @@ void SpectraVFS::Write(  size_t _nSpectraIndex, Spectra *_pSource )
 	// check out of array bounds
 	if ( _nSpectraIndex >= m_nNumberOfSpectra )
 	{
-		assert(0);
 		// total missed the bounds -> skip
 		return;
 	}
