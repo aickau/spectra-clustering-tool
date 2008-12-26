@@ -25,17 +25,14 @@ namespace Helpers
 		return num;
 	}
 
+	// returns current date and time as string.
+	std::string getCurentDateTimeStampString();
+
 	// find tag in value and replace by insert value
 	bool insertString( const std::string &sstrTag, const std::string &sstrInsertValue, std::string &sstrValue );
 	
 	// print text to console, optional to a log file.
 	void Print( const std::string &_sstrText, std::ofstream *_logStream=NULL );
-
-	// get global bounds of a given float array.
-	void getMinMax( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, float &_outMin, float &_outMax );
-
-	// returns current date and time as string.
-	std::string getCurentDateTimeStampString();
 
 };
 

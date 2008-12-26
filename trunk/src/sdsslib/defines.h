@@ -45,6 +45,7 @@
 #define SQR(x) ((x)*(x))
 #endif
 
+#define FWHM_GAUSS	2.3548200450309493820231386529194f
 
 
 #define CACHE_LINE 64

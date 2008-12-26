@@ -81,8 +81,9 @@ public:
 	// compare spectra and return accumulated quadratic error of all compared samples
 	float compare(const Spectra &_spectra) const;
 
-	// compare spectra using a more advanced error measure (usese emission and absorption lines)
-	float compareAdvanced(const Spectra &_spectra) const;
+	// compare spectra using a more advanced error measure
+	// _width 0..1
+	float compareAdvanced(const Spectra &_spectra, float _width) const;
 
 	// calculate extrema
 	void calcMinMax();

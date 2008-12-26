@@ -556,23 +556,34 @@ loop1:
 }
 
 
-float Spectra::compareAdvanced(const Spectra &_spectra) const
+
+float Spectra::compareAdvanced(const Spectra &_spectra, float _width) const
 {
-	float err1 = compare(_spectra) / static_cast<float>(numSamples);
+	assert(_width>=0.0f);
+	float error=0.0f;
+	int width  = static_cast<int>((static_cast<float>(Spectra::numSamples)*_width));
 
-	float err2 = 0.0f;
-	for (size_t i=0;i<numSpectraLines;i++)
+	if (_width<=0||width==0)
 	{
-		// todo add weights
-		float d = m_Lines[i].height-_spectra.m_Lines[i].height;
-		err2 += d*d;
+		// use default comparison if width=0
+		return compare(_spectra);
 	}
-	err2 /= static_cast<float>(numSpectraLines);
 
-	double err3 = m_Z-_spectra.m_Z;
-	err3 *= err3;
+	for (int i=0;i<Spectra::numSamples;i++)
+	{
+		float d2 = FLT_MAX;
+		int wBegin = MAX(static_cast<int>(i)-width, 0);
+		int wEnd = MIN(i+width, Spectra::numSamples);
 
-	return err1*1.0f + err2*0.25f + static_cast<float>(err3)*0.1f;
+		for (int w=wBegin;w<wEnd;w++) {
+			float d = m_Amplitude[i]-_spectra.m_Amplitude[w];
+			d*=d;
+			d2 = MIN(d2,d);
+		}
+
+		error += d2;
+	}
+	return error;
 }
 
 

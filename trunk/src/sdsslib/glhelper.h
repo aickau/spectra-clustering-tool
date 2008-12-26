@@ -172,8 +172,9 @@ public:
 	static void			DrawCylinder();
 
 	static void			DrawLine(float *l1, float *l2);
+	static void			DrawLine(float _l1x, float _l1y, float _l2x, float _l2y);
 
-	static void			DrawDiagram( float *_values, size_t _valueCount, size_t _strideInBytes=4, size_t _offsetInBytes=0, 
+	static void			DrawDiagram( float *_values, size_t _numValues, size_t _strideInBytes=4, size_t _offsetInBytes=0, 
                                      float _xoffset=0.0f, float _yoffset=0.0f, float _xscale=1.f, float _yscale=1.f );
 
 

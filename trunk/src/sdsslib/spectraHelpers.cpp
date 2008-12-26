@@ -9,6 +9,7 @@
 #include "sdsslib/spectra.h"
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/helpers.h"
+#include "sdsslib/mathhelpers.h"
 #include "sdsslib/filehelpers.h"
 #include "sdsslib/glhelper.h"
 
@@ -68,7 +69,7 @@ void SpectraHelpers::RenderDiagramToDisk( float *_values, size_t _valueCount, si
 
 	float yMin, yMax;
 
-	Helpers::getMinMax( _values, _valueCount, _strideInBytes, _offsetInBytes , yMin, yMax );
+	MathHelpers::getMinMax( _values, _valueCount, _strideInBytes, _offsetInBytes , yMin, yMax );
 
 	float xs = static_cast<float>(_width)/static_cast<float>(_valueCount);
 	float ys = static_cast<float>(_height*3.f/4.f)/yMax;

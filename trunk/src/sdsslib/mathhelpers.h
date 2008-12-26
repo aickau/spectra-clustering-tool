@@ -2,6 +2,15 @@
 
 namespace MathHelpers
 {
+	// mean or average type
+	enum MeanType 
+	{
+		MEAN_STANDARD,			// < standard mean over all samples
+		MEAN_ABSOLUTE,			// < absolute mean over all samples
+		MEAN_POSITIVE,			// < positive mean over all positive samples
+		MEAN_NEGATIVE			// < negative mean over all negative samples
+	};
+
 	// compare to float values
 	bool floatEq (float a, float b, float epsilon); 
 
@@ -24,7 +33,37 @@ namespace MathHelpers
 	// factors = float array of size n+1
 	// n = number of factors
 	// e.g. for n=4 this would yield to 1/16, 4/16, 6/16, 4/16, 1/16
-	void binomialFilter1d( float *factors, unsigned int n );
+	void binomialFilter1D( float *factors, unsigned int n );
+
+	// one dimensional Gaussian function
+	// _width is normalized to FWHM (full width at half maximum)
+	float gauss1D( float _x,  float _amplitude=1.f, float _phase=0.f, float _width=1.f );
+
+	// get global bounds of a given float array.
+	void getMinMax( float *_values, const size_t _numValues, const size_t _strideInBytes, const size_t _offsetInBytes, float &_outMin, float &_outMax );
+
+	// get mean value and deviation of a given float array.
+	// _type = mean and deviation type:
+	void getMeanDeviation( float *_values, 
+							const size_t _numValues, 
+							const size_t _strideInBytes, 
+							const size_t _offsetInBytes, 
+							const MeanType _type, 
+							float &_outMean, 
+							float &_outDeviation );
+
+	// fold float array to half size (in situ)
+	// _numValues > 2
+	// returns size of folded float array
+	size_t fold1D( float *_values, size_t _numValues );
+
+	// calculate gradient of a given array (in situ)
+	// _numValues > 2
+	// last gradient element is always 0.0
+	void gradient1D( float *_values, const size_t _numValues, const size_t _strideInBytes=4,  const size_t _offsetInBytes=0 );
+
+	// get overall difference between 2 float arrays
+	float getError( const float *_values1, const float *_values2, const size_t _numValues );
 
 };
 
