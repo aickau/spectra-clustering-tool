@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#define DEFAULT_Z -10.f
+
 int GLHelper::BuildFont(HDC hdc, char *fontname, int fontsize, bool bold, bool italic)								
 {
 
@@ -623,9 +625,18 @@ void GLHelper::DrawLine(float *l1, float *l2)
 }
 
 
+void GLHelper::DrawLine(float _l1x, float _l1y, float _l2x, float _l2y)
+{
+	glBegin ( GL_LINES );
+		glVertex3f( _l1x,_l1y, DEFAULT_Z );
+		glVertex3f( _l2x,_l2y, DEFAULT_Z );
+	glEnd ();
+}
 
 
-void GLHelper::DrawDiagram( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, 
+
+
+void GLHelper::DrawDiagram( float *_values, size_t _numValues, size_t _strideInBytes, size_t _offsetInBytes, 
 				 float _xoffset, float _yoffset, float _xscale, float _yscale )
 {
 	assert( _values != NULL );
@@ -635,10 +646,10 @@ void GLHelper::DrawDiagram( float *_values, size_t _valueCount, size_t _strideIn
 	}
 	char *p = reinterpret_cast<char*>(_values)+_offsetInBytes;
 	glBegin(GL_LINE_STRIP);
-	for ( int i=0;i<_valueCount;i++)
+	for ( size_t i=0;i<_numValues;i++)
 	{
 		float *v = reinterpret_cast<float*>( p );
-		glVertex3f(static_cast<float>(i)*_xscale+_xoffset, -*v*_yscale+_yoffset, -10.f );
+		glVertex3f(static_cast<float>(i)*_xscale+_xoffset, -*v*_yscale+_yoffset, DEFAULT_Z );
 		p += _strideInBytes;
 	}
 	glEnd();

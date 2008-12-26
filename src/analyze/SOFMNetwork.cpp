@@ -568,7 +568,7 @@ void SOFMNetwork::Process()
 					const float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
 					const float tdistx2 = tdistx*tdistx;
 					const float tdistall = tdistx2+tdisty2;
-					const float mexican_hat_term = 1.f-tdistall/tsigma;
+					//const float mexican_hat_term = 1.f-tdistall/tsigma;
 					//const float hxy = exp(-(tdistall)/tsigma2);							// original
 					const float hxy = exp(-sqrtf(tdistall)/tsigma2);						// spike
 					//const float hxy = exp(-(tdistall)/tsigma2)*mexican_hat_term;			// Mexican hat
