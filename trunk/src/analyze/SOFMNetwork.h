@@ -91,16 +91,33 @@ protected:
 		float error;	
 	};
 
+	// calculate min/max values for a given SpectraVFS
 	void calcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax );
+
+	// calculate min/max values for the input data set.
 	void calcMinMaxInputDS();
 
+	// render icons for input data set to disk.
 	void renderIcons();
+
+	// export an energy graph for the current input data set.
 	void exportEnergyMap();
+	
+	// write SOM cluster settings to file
 	void writeSettings( const std::string &_sstrFileName );
+
+	// read SOM cluster settings from file
 	bool readSettings( const std::string &_sstrFileName, std::string &_sstrSOFMFileName );
 
+	// adapt network for a given neuron/spectrum
+	// _spectrum source spectrum to adapt
+	// _bestMatchIndex index into network where it best matches
+	// _adaptionThreshold adaption threshold so we do not need to go through the whole network
+	// _sigmaSqr sigma squared
+	// _lRate current learning rate for the given processing step
 	void adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex, float _adaptionThreshold, float _sigmaSqr, float _lRate );
 
+	// calculate index from cell positions
 	size_t getIndex( size_t _cellX, size_t _cellY );
 
 	SpectraVFS		*m_pNet;	
