@@ -509,10 +509,15 @@ float Spectra::compare(const Spectra &_spectra) const
 	// this is 10x faster than compiler generated SSE code!
 	const float *a0 = &m_Amplitude[0];
 	const float *a1 = &_spectra.m_Amplitude[0];
-	const size_t numSamples4 = (Spectra::numSamples >> 3) << 3;
+	size_t numSamples4 = (Spectra::numSamples >> 3) << 3;
 
 #ifdef X64
-	spectraCompareX64(a0,a1,errorv,numSamples4);
+	//spectraCompareX64(a0,a1,errorv,numSamples4);
+	errorv[0]=0.0f;
+	errorv[1]=0.0f;
+	errorv[2]=0.0f;
+	errorv[3]=0.0f; 
+	numSamples4 = 0;
 #else // X64
 
 	_asm {
