@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <map>
 #include <conio.h>
 #include <math.h>
 #include <float.h>
@@ -9,13 +10,16 @@
 #include "../cfitsio/fitsio.h"
 #include "../cfitsio/longnam.h"
 
-#include "random.h"
-#include "helpers.h"
-#include "defines.h"
+//#include "fftw/fftw3.h"
+
+#include "sdsslib/random.h"
+#include "sdsslib/helpers.h"
+#include "sdsslib/mathhelpers.h"
+#include "sdsslib/defines.h"
 
 
 // spectra read from SDSS FITS have a wavelength of 3800..9200 Angström
-// full spectrum range should go from ~540 Amgström to 9200 assuming max redshifts of 6.
+// full spectrum range should range from ~540 Amgström to 9200 assuming max redshifts of 6.
 const float Spectra::waveBeginSrc = 3800.f;	
 const float Spectra::waveEndSrc = 9200.f;
 const float Spectra::waveBeginDst = 540.f;	
@@ -48,7 +52,7 @@ void Spectra::clear()
 	m_SamplesRead = 0;
 	m_Index = -1;
 	m_SpecObjID = 0;
-	m_Type = SpectraType::SPT_NOT_SET;
+	m_Type = SPT_NOT_SET;
 	m_Z = 0.0;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
@@ -56,6 +60,7 @@ void Spectra::clear()
 		m_Amplitude[i] = 0.0f;
 	}
 
+#ifdef _USE_SPECTRALINES
 	for (size_t i=0;i<Spectra::numSpectraLines;i++)
 	{
 		m_Lines[i].height = 0.0f;
@@ -63,6 +68,7 @@ void Spectra::clear()
 		m_Lines[i].waveMin = 0.0f;
 		m_Lines[i].waveMax = 0.0f;
 	}
+#endif
 }
 
 void Spectra::randomize(float minrange, float maxrange )
@@ -101,7 +107,7 @@ void Spectra::set(const Spectra &_spectra)
 	{
 		m_Amplitude[i] = _spectra.m_Amplitude[i];
 	}
-
+#ifdef _USE_SPECTRALINES
 	for (size_t i=0;i<Spectra::numSpectraLines;i++)
 	{
 		m_Lines[i].height = _spectra.m_Lines[i].height;
@@ -109,6 +115,7 @@ void Spectra::set(const Spectra &_spectra)
 		m_Lines[i].waveMin = _spectra.m_Lines[i].waveMin;
 		m_Lines[i].waveMax = _spectra.m_Lines[i].waveMax;
 	}
+#endif
 }
 
 
@@ -396,7 +403,7 @@ bool Spectra::loadFromFITS(std::string &filename)
 	}
 	m_SamplesRead = static_cast<__int16>(elementsToRead);
 #endif // _ZBACKCALC
-
+#ifdef _USE_SPECTRALINES
 	// read emission and absorption lines
 	int numhdus = 0;
 	int hdutype = 0; // should be BINARY_TBL
@@ -433,7 +440,8 @@ bool Spectra::loadFromFITS(std::string &filename)
 				m_Lines[i].wave = wave;
 				m_Lines[i].waveMin = waveMin;
 				m_Lines[i].waveMax = waveMax;
-
+				
+				// uncomment to use spectra lines as spectrum
 				//size_t indexBegin=Spectra::waveLengthToIndex(waveMin);
 				//size_t indexEnd=Spectra::waveLengthToIndex(waveMax);
 				//for (size_t j=indexBegin;j<indexEnd;j++) {
@@ -442,8 +450,7 @@ bool Spectra::loadFromFITS(std::string &filename)
 			}
 		}
 	}
-
-
+#endif // _USE_SPECTRALINES
 	fits_close_file(f, &status);
 
 	calcMinMax();
@@ -585,6 +592,354 @@ float Spectra::compareAdvanced(const Spectra &_spectra, float _width) const
 	}
 	return error;
 }
+
+static
+void genPeakSpectrum( const std::vector<float> &_peakArray, float _width, size_t _numSamples, std::vector<float> &_outPeakSpectrum )
+{
+	_outPeakSpectrum.resize( _numSamples );
+	for ( size_t i=0;i<_numSamples;i++ ) {
+		_outPeakSpectrum[i] = 0.0f;
+	}
+	//todo: calculate right bounds using a formula instead of this iterative shit.
+	size_t w=1;
+	while (w<_numSamples) {
+		const float g =  MathHelpers::gauss1D( w, 1.f,0.f, _width );
+		if ( g < 0.01f ) {
+			break;
+		}
+		w++;
+	}
+	
+	for ( size_t j=0;j<_peakArray.size();j+=2) {
+		int beg = MAX(_peakArray[j+1]-w,0);
+		int end = MIN(_peakArray[j+1]+w,_numSamples-1);
+		for ( int i=beg;i<end;i++ ) {
+			_outPeakSpectrum[i] = MAX( MathHelpers::gauss1D( static_cast<float>(i)-_peakArray[j+1], fabsf(_peakArray[j]), 0.f, _width ), _outPeakSpectrum[i] );
+		}
+	}
+}
+
+
+float Spectra::compareSuperAdvanced(const Spectra &_spectra, float _width) const
+{
+	const size_t continuumMaxSize = 32;
+	const size_t numPeaks = 20;
+	const float peakCutOffTreshold = 2.f;
+
+	// map _width (0..1] to right range.
+	_width *= static_cast<float>(Spectra::numSamples/4);
+
+	// (1) generate continuum spectrum
+	std::vector<float> continuum1;
+	std::vector<float> continuum2;
+	generateContinuum( continuumMaxSize, continuum1 );
+	_spectra.generateContinuum( continuumMaxSize, continuum2 );
+
+	// (2) generate spectrum minus continuum 
+	std::vector<float> spectrumMinusContinuum1;
+	std::vector<float> spectrumMinusContinuum2;
+	getSpectrumMinusContinuum( continuumMaxSize, spectrumMinusContinuum1 );
+	_spectra.getSpectrumMinusContinuum( continuumMaxSize, spectrumMinusContinuum2 );
+
+
+	// (2) get peaks
+	std::vector<float> minPeaks1;
+	std::vector<float> maxPeaks1;
+	std::vector<float> minPeaks2;
+	std::vector<float> maxPeaks2;
+	getPeaks( spectrumMinusContinuum1, numPeaks, peakCutOffTreshold, minPeaks1, maxPeaks1 );
+	_spectra.getPeaks( spectrumMinusContinuum2, numPeaks, peakCutOffTreshold, minPeaks2, maxPeaks2 );
+
+
+	// widen peaks
+	std::vector<float> minPeaksS1;
+	std::vector<float> maxPeaksS1;
+	std::vector<float> minPeaksS2;
+	std::vector<float> maxPeaksS2;
+
+	genPeakSpectrum( minPeaks1, _width, Spectra::numSamples, minPeaksS1 );
+	genPeakSpectrum( maxPeaks1, _width, Spectra::numSamples, maxPeaksS1 );
+	genPeakSpectrum( minPeaks2, _width, Spectra::numSamples, minPeaksS2 );
+	genPeakSpectrum( maxPeaks2, _width, Spectra::numSamples, maxPeaksS2 );
+
+	float errMinPeaks = MathHelpers::getError( &minPeaksS1[0], &minPeaksS2[0], Spectra::numSamples );
+	float errMaxPeaks = MathHelpers::getError( &maxPeaksS1[0], &maxPeaksS2[0], Spectra::numSamples );
+	float errContinuum = MathHelpers::getError( &continuum1[0], &continuum2[0], continuum1.size() );
+
+	double errTotal = sqrt((errMinPeaks+errMaxPeaks)*errContinuum);
+
+	return static_cast<float>(errTotal);
+}
+
+
+
+
+
+void Spectra::dft()
+{
+	// test code
+	//fftwf_complex complex[numSamples/2+1];
+	//fftwf_plan p;
+
+	//size_t numSamplesHalf = numSamples/2;
+
+	//bool bReverse = (pad[0] > 0); 
+
+	//if ( bReverse )
+	//{
+	//	for ( size_t i=0;i<numSamplesHalf;i++) {
+	//		complex[i][0] = m_Amplitude[i];
+	//		complex[i][1] = m_Amplitude[numSamplesHalf+i];
+	//	}
+
+	//	p = fftwf_plan_dft_c2r_1d( numSamples-2, complex, &m_Amplitude[0], FFTW_ESTIMATE ); //FFTW_MEASURE
+	//	fftwf_execute(p); 
+	//	pad[0] = 0;
+	//}
+	//else
+	//{
+	//	p = fftwf_plan_dft_r2c_1d( numSamples-2, &m_Amplitude[0], complex, FFTW_ESTIMATE ); //FFTW_MEASURE
+	//	fftwf_execute(p); 
+
+	//	for ( size_t i=0;i<numSamplesHalf;i++) {
+	//		m_Amplitude[i] = complex[i][0];
+	//		m_Amplitude[i+numSamplesHalf] = complex[i][1];
+	//	}
+	//	pad[0] = 1;
+	//}
+
+	//calcMinMax();
+}
+
+
+void Spectra::generateContinuum( size_t _continuumSamples, std::vector<float> &_outContinuum ) const
+{
+	float continuum[Spectra::numSamples];
+	memcpy( continuum, m_Amplitude, Spectra::numSamples*sizeof(float) );
+
+	size_t continuumSize = Spectra::numSamples;
+	do {
+		continuumSize = MathHelpers::fold1D( continuum, continuumSize );
+	} while ( continuumSize >= _continuumSamples );
+
+	_outContinuum.clear();
+	for ( size_t i=0;i<continuumSize;i++ ) {
+		_outContinuum.push_back( continuum[i] );
+	}
+}
+
+void Spectra::getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<float> &_outSpectrum ) const
+{
+	_outSpectrum.clear();
+	std::vector<float> continuum; 
+	generateContinuum( _continuumSamples, continuum );
+
+	const float continuumSizef = static_cast<float>(continuum.size());
+	float c=0.0f;
+	const float cInc=(continuumSizef-1.f)/static_cast<float>(Spectra::numSamples);
+	for ( size_t i=0;i<static_cast<size_t>(Spectra::m_SamplesRead);i++ )
+	{
+		const float c0 = floorf(c); 
+		const size_t i0 = static_cast<size_t>(c0);
+		const float c1 = c - c0;
+		_outSpectrum.push_back( m_Amplitude[i] - MathHelpers::lerp( continuum[i0], continuum[i0+1], c1 ) );
+		c+=cInc;
+	}
+}
+
+void Spectra::getPeaks( const std::vector<float> &_spectrumMinusContinuum, size_t _numPeaks, float _cutOffTreshold, std::vector<float> &_outMinPeaks, std::vector<float> &_outMaxPeaks ) const
+{
+	assert(_cutOffTreshold > 0.0f);
+	assert( m_SamplesRead <= static_cast<int>(_spectrumMinusContinuum.size()) );
+
+	typedef std::map<float, int> PeakMap;
+
+	PeakMap minPeaksMap;
+	PeakMap maxPeaksMap;
+
+	if ( m_SamplesRead <= 1 && _spectrumMinusContinuum.size() <= 1) {
+		assert(0);
+		return;
+	}
+
+	const int lastSample = m_SamplesRead-1;
+
+	if ( _spectrumMinusContinuum[0] > _spectrumMinusContinuum[1] ) {
+		maxPeaksMap.insert( std::make_pair<float,int>(_spectrumMinusContinuum[0],0) );
+	}
+
+	if ( _spectrumMinusContinuum[lastSample] < _spectrumMinusContinuum[lastSample-1] ) {
+		minPeaksMap.insert( std::make_pair<float,int>(_spectrumMinusContinuum[lastSample],lastSample) );
+	}
+
+	for ( int i=1;i<lastSample;i++ )
+	{
+		// process maximum peaks
+		/////////////////////////////////////////////////
+
+		// do we have a peak ?
+		const bool bHaveMaxPeak = _spectrumMinusContinuum[i-1] < _spectrumMinusContinuum[i] && 
+			                      _spectrumMinusContinuum[i+1] < _spectrumMinusContinuum[i];
+
+		if ( bHaveMaxPeak )
+		{
+			if (maxPeaksMap.size()>=_numPeaks ) 
+			{
+				// check if existing smallest max peak is greater than current peak.
+				PeakMap::iterator itFirst = maxPeaksMap.begin();
+				if ( itFirst->first < _spectrumMinusContinuum[i] ) 
+				{
+					//  if not, erase.
+					maxPeaksMap.erase( itFirst );
+				}
+			}
+			// add new peak to list if last peak in map was erased
+			if ( maxPeaksMap.size() < _numPeaks ) 
+			{
+				maxPeaksMap.insert( std::make_pair<float,int>(_spectrumMinusContinuum[i],i) );
+			}
+		}
+	
+
+
+		// process minimum peaks
+		/////////////////////////////////////////////////
+
+		// do we have a peak ?
+		const bool bHaveMinPeak = _spectrumMinusContinuum[i-1] > _spectrumMinusContinuum[i] && 
+								  _spectrumMinusContinuum[i+1] > _spectrumMinusContinuum[i];
+
+		if ( bHaveMinPeak )
+		{
+			if (minPeaksMap.size()>=_numPeaks) 
+			{
+				PeakMap::iterator itLast = minPeaksMap.end();
+				itLast--;
+
+				if ( itLast->first > _spectrumMinusContinuum[i] ) 
+				{
+					minPeaksMap.erase( itLast );
+				}
+			}
+			if ( minPeaksMap.size() < _numPeaks )
+			{
+				minPeaksMap.insert( std::make_pair<float,int>(_spectrumMinusContinuum[i],i) );
+			}
+		}
+	}
+
+	float globalMinPeak = 1.f;
+	float globalMaxPeak = 1.f;
+
+	if ( maxPeaksMap.size() > 0 ) {
+		PeakMap::iterator itLast = maxPeaksMap.end();
+		itLast--;
+		globalMaxPeak =  fabsf(itLast->first);
+		if ( globalMaxPeak == 0.0f ) {
+			globalMaxPeak = 1.f;
+		}
+	}
+
+	if ( minPeaksMap.size() > 0 )
+	{
+		globalMinPeak =  fabsf(minPeaksMap.begin()->first);
+		if ( globalMinPeak == 0.0f ) {
+			globalMinPeak = 1.f;
+		}
+	}
+
+	const float globalPeak = MAX( globalMaxPeak, globalMinPeak );
+	std::vector<float> maxPeaks;
+	std::vector<float> minPeaks;
+
+
+	// normalize min peaks
+	{
+		PeakMap::iterator it = minPeaksMap.begin();
+		while (it != minPeaksMap.end() ) {
+			const float p = it->first/globalPeak;
+			minPeaks.push_back( p );
+			minPeaks.push_back( static_cast<float>(it->second) );
+			it++;
+		}
+	}
+
+	// normalize max peaks
+	{
+		PeakMap::iterator it = maxPeaksMap.begin();
+		while (it != maxPeaksMap.end() ) {
+			const float p = it->first/globalPeak;
+			maxPeaks.push_back( p );
+			maxPeaks.push_back( static_cast<float>(it->second) );
+			it++;
+		}
+	}
+
+
+	// generate gradient for peaks
+	std::vector<float> maxPeaksG(maxPeaks);
+	std::vector<float> minPeaksG(minPeaks);
+	MathHelpers::gradient1D( &maxPeaksG[0], maxPeaksG.size()/2, 8, 0 );
+	MathHelpers::gradient1D( &minPeaksG[0], minPeaksG.size()/2, 8, 0 );
+
+	const float gradientTresholdMaxPeaks = MIN(2.f/(static_cast<float>(maxPeaksG.size())*_cutOffTreshold),1.f);
+	const float gradientTresholdMinPeaks = MIN(2.f/(static_cast<float>(minPeaksG.size())*_cutOffTreshold),1.f);
+
+	for (size_t i=0;i<maxPeaksG.size();i+=2) {
+		if ( maxPeaksG[i]<gradientTresholdMaxPeaks) {
+			maxPeaks[i] = 0.0f;
+			maxPeaks[i+1] = 0.0f;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	for (size_t i=minPeaksG.size()-2;i>0;i-=2) {
+		if ( minPeaksG[i]<gradientTresholdMinPeaks) {
+			minPeaks[i] = 0.0f;
+			minPeaks[i+1] = 0.0f;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	for ( size_t i=0;i<maxPeaks.size();i+=2 ) {
+		if ( maxPeaks[i] != 0.0f ) {
+			_outMaxPeaks.push_back( maxPeaks[i] );
+			_outMaxPeaks.push_back( maxPeaks[i+1] );
+		}
+	}
+
+	for ( size_t i=0;i<minPeaks.size();i+=2 ) {
+		if ( minPeaks[i] != 0.0f ) {
+			_outMinPeaks.push_back( minPeaks[i] );
+			_outMinPeaks.push_back( minPeaks[i+1] );
+		}
+	}
+
+	/*
+	treshold calculation
+	const float k=0.5;
+	float m,d;
+	float mAbs,dAbs;
+	float mPos,dPos;
+	float mNeg,dNeg;
+	float gmin, gmax;
+	MathHelpers::getMinMax( &spectrumMinusContinuum[0], spectrumMinusContinuum.size(), 4, 0, gmin, gmax );
+	MathHelpers::getMeanDeviation( &spectrumMinusContinuum[0], spectrumMinusContinuum.size(), 4, 0, MathHelpers::MEAN_STANDARD, m, d );
+	MathHelpers::getMeanDeviation( &spectrumMinusContinuum[0], spectrumMinusContinuum.size(), 4, 0, MathHelpers::MEAN_ABSOLUTE,mAbs, dAbs );
+	MathHelpers::getMeanDeviation( &spectrumMinusContinuum[0], spectrumMinusContinuum.size(), 4, 0, MathHelpers::MEAN_POSITIVE, mPos, dPos );
+	MathHelpers::getMeanDeviation( &spectrumMinusContinuum[0], spectrumMinusContinuum.size(), 4, 0, MathHelpers::MEAN_NEGATIVE, mNeg, dNeg );
+	const float treshholdMax = (gmax+mPos)*0.5f+k*dPos;
+	const float treshholdMin = (gmin+mNeg)*0.5f-k*dNeg;
+	*/
+}
+
+
 
 
 std::string Spectra::getFileName() const

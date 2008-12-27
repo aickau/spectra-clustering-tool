@@ -69,7 +69,7 @@ void QTClustering::Process()
 				Spectra *sb = m_pSourceVFS->beginRead( b );
 				sb->normalize();
 
-				float error = sa->compareAdvanced(*sb);
+				float error = sa->compareAdvanced(*sb, 0.1f );
 				if ( error < m_params.errorPerSpectrum )
 				{
 					currentCluster.insert( std::make_pair(error, static_cast<unsigned int>(b)) );

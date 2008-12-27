@@ -1002,7 +1002,7 @@ void SOFMNetwork::Export( const std::string &_sstrFilename )
 					// insert link
 					if ( sp->m_Index>=0 && !sp->isEmpty() )
 					{
-						assert(sp->m_Index<m_numSpectra);
+						assert(sp->m_Index<static_cast<int>(m_numSpectra));
 						sstrTable += "<a href=\"";
 						sstrTable += sp->getURL();
 						sstrTable += "\" target=\"_blank\">";
