@@ -144,6 +144,7 @@ void SpectraHelpers::DrawSpectra(Spectra &_spectra,
 
 	GLHelper::DrawDiagram( &_spectra.m_Amplitude[0], _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
 
+#ifdef _USE_SPECTRALINES
 	if ( _showSpectraLines )
 	{
 		for ( int i=0;i<_spectra.numSpectraLines;i++)
@@ -160,6 +161,7 @@ void SpectraHelpers::DrawSpectra(Spectra &_spectra,
 			glDisable(GL_LINE_STIPPLE);
 		}
 	}
+#endif // _USE_SPECTRALINES
 
 	if (_showInfo)
 	{

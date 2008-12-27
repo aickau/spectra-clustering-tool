@@ -85,11 +85,26 @@ public:
 	// _width 0..1
 	float compareAdvanced(const Spectra &_spectra, float _width) const;
 
+	float compareSuperAdvanced(const Spectra &_spectra, float _width) const;
+
 	// calculate extrema
 	void calcMinMax();
 
 	// normalize to range -1..1
 	void normalize();
+
+	// transforms spectrum into frequency domain using a DFT.
+	void dft();
+
+	void generateContinuum( size_t _continuumSamples, std::vector<float> &_outContinuum ) const;
+	void getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<float> &_outSpectrum ) const;
+
+	// _cutOffTreshold: high value = many peaks, low value less peaks, [0.1..1000], reasonable range [1..10]
+	void getPeaks( const std::vector<float> &_spectrumMinusContinuum, 
+		size_t _numPeaks, 
+		float _cutOffTreshold, 
+		std::vector<float> &_outMinPeaks, 
+		std::vector<float> &_outMaxPeak ) const;
 
 	// returns assembled filename
 	std::string getFileName() const;
@@ -118,8 +133,9 @@ public:
 	__int64 m_SpecObjID;	
 	SpectraType m_Type;
 	double m_Z;
+#ifdef _USE_SPECTRALINES
 	SpectraLines m_Lines[numSpectraLines];
-
+#endif
 	char pad[8];						// for padding to multiple of 16 byte boundaries
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////

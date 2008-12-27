@@ -63,7 +63,7 @@ void main(int argc, char* argv[])
 	if ( argc < 2 )
 	{
 		_cprintf( "No parameters specified. Using default settings.\n\n");
-		_cprintf( "usage: search.exe <dumpfile.bin> [spectra filter] [normalize] [reverse order]\n");
+		_cprintf( "usage: search.exe <dumpfile.bin> [spectra filter] [compare function] [comparison invariance] [normalize] [reverse order]\n");
 		_cprintf( "spectra filter is defined as follows:\n" );
 		_cprintf( "SPEC_UNKNOWN = 1\n" );
 		_cprintf( "SPEC_STAR    = 2\n" );
@@ -74,16 +74,21 @@ void main(int argc, char* argv[])
 		_cprintf( "STAR_LATE    = 64\n" );   
 		_cprintf( "GAL_EM       = 128\n" );     
 		_cprintf( "filters can be combined by adding the values, to disable filtering use 255.\n" );                 
-		_cprintf( "if no filter is specified it uses SPEC_UNKNOWN|SPEC_QSO|SPEC_HIZ_QSO|GAL_EM as default filter\n\n" );                 
-		_cprintf( "example: search.exe allSpectra.bin 255 1 0\n\n\n");
+		_cprintf( "if no filter is specified it uses SPEC_UNKNOWN|SPEC_QSO|SPEC_HIZ_QSO|GAL_EM as default filter\n\n" );  
+		_cprintf( "compare function is defined as follows:\n" );
+		_cprintf( "simple (euclidean squared over all samples) = 0\n" );
+		_cprintf( "advanced (takes neighborhood into account)  = 1\n" );
+		_cprintf( "super advanced (uses peak detection)        = 2\n\n" );
+		_cprintf( "example: search.exe allSpectra.bin 255 2 0.1 1 0\n\n\n");
 
 	}
 
+	std::string sstrDumpFile(DUMPFILE);
+	unsigned int spectraFilter = SPT_DEFAULTFILTER;
+	unsigned int compareFunc = 2;
+	float compareInvariance = 0.1f;
 	bool bNormalize = false;
 	bool bReverseOrder = false;
-	std::string sstrDumpFile(DUMPFILE);
-
-	unsigned int spectraFilter = SPT_DEFAULTFILTER;
 
 	if (argc > 1)
 	{
@@ -101,28 +106,59 @@ void main(int argc, char* argv[])
 
 	if (argc > 3)
 	{
-		bNormalize = (argv[3][0] == '1') ? true : false;
+		int compare = Helpers::stringToNumber<int>(std::string(argv[3]));
+		if ( compare >= 0 && compare <= 2) 
+		{
+			compareFunc = compare;
+		}
 	}
 
-	if (argc > 4)
+
+	if (argc > 3)
 	{
-		bReverseOrder = (argv[4][0] == '1') ? true : false;
+		float val = Helpers::stringToNumber<float>(std::string(argv[4]));
+		if (val>=0.f || val<=1.f)
+		{
+			compareInvariance = val;
+		}
 	}
 
-	std::string sstrBaseInfo;
+	if (argc > 5)
+	{
+		bNormalize = (argv[5][0] == '1') ? true : false;
+	}
+
+	if (argc > 6)
+	{
+		bReverseOrder = (argv[6][0] == '1') ? true : false;
+	}
+
+	std::string sstrCompareFunc;
+	switch (compareFunc){
+		case 1:sstrCompareFunc="advanced";break;
+		case 2:sstrCompareFunc="super advanced";break;
+		default: sstrCompareFunc="simple";break;
+	}
 
 	_cprintf( "dumpfile: %s\n", sstrDumpFile.c_str() );
 	_cprintf( "filter: %s\n", Spectra::spectraFilterToString(spectraFilter).c_str() );
+	_cprintf( "compare function: %s\n", sstrCompareFunc.c_str() );
+	_cprintf( "comparison invariance: %f\n", compareInvariance );
 	_cprintf( "normalize: %i\n", bNormalize );
 	_cprintf( "reversed order: %i\n", bReverseOrder );
 	_cprintf( "each spectrum contains %i bytes.\n\n", sizeof(Spectra) );
 
+	std::string sstrBaseInfo;
 	sstrBaseInfo += "creation date: ";
 	sstrBaseInfo += Helpers::getCurentDateTimeStampString();
 	sstrBaseInfo += "<br>\ndumpfile: ";
 	sstrBaseInfo += sstrDumpFile;
 	sstrBaseInfo += "<br>\nfilter: ";
 	sstrBaseInfo += Spectra::spectraFilterToString(spectraFilter);
+	sstrBaseInfo += "<br>\ncompare function: ";
+	sstrBaseInfo += sstrCompareFunc;
+	sstrBaseInfo += "<br>\ncomaprison invariance: ";
+	sstrBaseInfo += Helpers::numberToString<float>(compareInvariance);
 	sstrBaseInfo += "<br>\nnormalize: ";
 	sstrBaseInfo += Helpers::numberToString<int>(bNormalize);
 	sstrBaseInfo += "<br>\nreversed order: ";
@@ -131,7 +167,7 @@ void main(int argc, char* argv[])
 	sstrBaseInfo += Helpers::numberToString<int>(sizeof(Spectra));
 	sstrBaseInfo += " bytes.<br>\n\n";
 
-	_cprintf( sstrBaseInfo.c_str() );
+
 	SpectraVFS vfs(sstrDumpFile);
 
 	size_t numSpectra = vfs.getNumSpectra();
@@ -191,7 +227,13 @@ void main(int argc, char* argv[])
 			}
 			for ( size_t j=0;j<numCompareSpectra;j++ )
 			{
-				float err = compareSpectra[j].compare( *a );
+				float err;
+				switch (compareFunc)
+				{
+					case 1: err = compareSpectra[j].compareAdvanced( *a, compareInvariance ); break;
+					case 2: err = compareSpectra[j].compareSuperAdvanced( *a, compareInvariance ); break;
+					default: err = compareSpectra[j].compare( *a ); break;
+				}
 				comparisonMap[j].insert( std::pair<float, size_t>(err, i) );
 			}
 		}
