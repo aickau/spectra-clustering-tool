@@ -23,6 +23,16 @@
 
 
 
+static
+void intensityToRGB(float _intensity, float *_pRGB )
+{
+	_intensity *= 3.f;
+	_pRGB[2] = MIN(_intensity,1.f);
+	_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
+	_pRGB[0] = CLAMP(_intensity-2.f,0.f,1.f);
+}
+
+
 //Parameters(100,1,0.5,0.1,0.5,1)
 //Parameters(100,26,1.0,0.001,0.5,1)
 //Parameters(100,26,0.15,0.05,10,1)
@@ -58,7 +68,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 ,m_logFile("sofm_log.txt")
 {
 	std::string sstrSOFMFileName("");
-	if ( !ReadSettings("settings.xml", sstrSOFMFileName) )
+	if ( !readSettings("settings.xml", sstrSOFMFileName) )
 	{
 		//error
 		Helpers::Print( std::string("Error reading settings from settings.xml. Abortion.\n"), &m_logFile );
@@ -77,7 +87,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 */	// test end
 
 
-	CalcMinMaxInputDS();
+	calcMinMaxInputDS();
 
 
 	if ( !bContinueComputation )
@@ -90,19 +100,22 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 			sstrString += std::string("  too small. Clamping to ");
 			sstrString += Helpers::numberToString(gridSizeMin);
 			sstrString += std::string(".\n\n");
-			Helpers::Print(  sstrString, &m_logFile );
+			Helpers::Print( sstrString, &m_logFile );
 			m_gridSize = gridSizeMin;
 		}
 		m_gridSizeSqr = m_gridSize*m_gridSize;
+
+		Helpers::Print( std::string("Start clustering using ")+Helpers::numberToString(m_numSpectra)+
+			            std::string(" spectra. Grid size is ")+Helpers::numberToString(m_gridSize)+std::string(".\n"), &m_logFile );
 
 		// generate random filled cluster and load it.
 		std::string sstrNet("sofmnet.bin");
 		SpectraVFS::write( m_gridSize, m_Min, m_Max*0.01f, sstrNet );
 		m_pNet = new SpectraVFS( sstrNet, false );
-		Reset(m_params);
+		reset(m_params);
 
-		//ExportEnergyMap();
-		RenderIcons();
+		//exportEnergyMap();
+		renderIcons();
 
 		// initialize with input data
 		Rnd r(m_params.randomSeed);
@@ -125,6 +138,11 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 	}
 	else
 	{
+
+		Helpers::Print( std::string("Continue clustering at step ")+Helpers::numberToString(m_currentStep)+
+			            std::string(" using ")+Helpers::numberToString(m_numSpectra)+
+						std::string(" spectra. Grid size is ")+Helpers::numberToString(m_gridSize)+std::string(".\n"), &m_logFile );
+
 		m_pNet = new SpectraVFS( sstrSOFMFileName, false );
 
 		m_gridSizeSqr = m_pNet->getNumSpectra();
@@ -146,7 +164,7 @@ SOFMNetwork::~SOFMNetwork()
 }
 
 
-void SOFMNetwork::WriteSettings( const std::string &_sstrFileName )
+void SOFMNetwork::writeSettings( const std::string &_sstrFileName )
 {
 	std::string sstrXML("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 
@@ -199,7 +217,7 @@ void SOFMNetwork::WriteSettings( const std::string &_sstrFileName )
 	fon<<sstrXML;
 }
 
-bool SOFMNetwork::ReadSettings( const std::string &_sstrFileName, std::string &_sstrSOFMFileName )
+bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_sstrSOFMFileName )
 {
 	XMLParser p;
 
@@ -257,7 +275,7 @@ bool SOFMNetwork::ReadSettings( const std::string &_sstrFileName, std::string &_
 }
 
 
-void SOFMNetwork::CalcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax )
+void SOFMNetwork::calcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax )
 {
 	_outMin = FLT_MAX;
 	_outMax = -FLT_MAX;
@@ -283,16 +301,16 @@ void SOFMNetwork::CalcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax )
 }
 
 
-void SOFMNetwork::CalcMinMaxInputDS()
+void SOFMNetwork::calcMinMaxInputDS()
 {
 	Helpers::Print( std::string("Calculating min/max of input.\n"), &m_logFile );
-	CalcMinMax( *m_pSourceVFS, m_Min, m_Max );
+	calcMinMax( *m_pSourceVFS, m_Min, m_Max );
 	Helpers::Print( std::string("global min / max: ") + Helpers::numberToString(m_Min) + std::string(" / " ) + Helpers::numberToString(m_Max) + std::string("\n" ), &m_logFile );
 }
 
 
 
-void SOFMNetwork::ExportEnergyMap()
+void SOFMNetwork::exportEnergyMap()
 {
 	Helpers::Print( std::string("Exporting energy map.\n"), &m_logFile );
 	std::vector<float> energymap;
@@ -318,7 +336,7 @@ void SOFMNetwork::ExportEnergyMap()
 }
 
 
-void SOFMNetwork::RenderIcons()
+void SOFMNetwork::renderIcons()
 {
 	Helpers::Print( std::string("Rendering Icons.\n"), &m_logFile );
 
@@ -372,7 +390,7 @@ Spectra SOFMNetwork::getSOFMSpectra( size_t _cellX, size_t _cellY )
 
 
 
-void SOFMNetwork::Reset( const Parameters &_params )
+void SOFMNetwork::reset( const Parameters &_params )
 {
 	m_params = _params;
 	m_currentStep = 0;
@@ -380,9 +398,50 @@ void SOFMNetwork::Reset( const Parameters &_params )
 	m_Random.initRandom( m_params.randomSeed );
 }
 
+
+
+void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex, float _adaptionThreshold, float _sigmaSqr, float _lRate )
+{
+	const size_t xpBestMatch = _bestMatchIndex % m_gridSize;
+	const size_t ypBestMatch = _bestMatchIndex / m_gridSize;
+
+	const float sigmaSqr2 = _sigmaSqr*2.f;
+
+	// adjust weights of the whole network
+	size_t c=0;
+	for ( size_t y=0;y<m_gridSize;y++)
+	{
+		const float tdisty = static_cast<float>(y)-static_cast<float>(ypBestMatch);
+		const float tdisty2=tdisty*tdisty;
+
+		for ( size_t x=0;x<m_gridSize;x++)
+		{
+			const float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
+			const float tdistx2 = tdistx*tdistx;
+			const float tdistall = tdistx2+tdisty2;
+			//const float mexican_hat_term = 1.f-tdistall/sigmaSqr;
+			//const float hxy = exp(-(tdistall)/sigmaSqr2);							// original
+			const float hxy = exp(-sqrtf(tdistall)/sigmaSqr2);						// spike
+			//const float hxy = exp(-(tdistall)/tsigma2)*mexican_hat_term;			// Mexican hat
+
+			const float lratehsx = _lRate*hxy;
+
+			if ( lratehsx > _adaptionThreshold )
+			{
+				Spectra *a = m_pNet->beginWrite( c );
+				for ( size_t i=0;i<Spectra::numSamples;i++ )
+				{
+					a->m_Amplitude[i] += lratehsx*(_spectrum.m_Amplitude[i]-a->m_Amplitude[i]);
+				}
+				m_pNet->endWrite( c );
+			}
+			c++;
+		}
+	}
+}
  
 
-void SOFMNetwork::Process()
+void SOFMNetwork::process()
 {
 	if ( m_currentStep > m_params.numSteps )
 	{
@@ -392,28 +451,34 @@ void SOFMNetwork::Process()
 
 	if ( m_currentStep == m_params.numSteps )
 	{
-		Export("export/full");
+		exportToHTML("export/full");
 	} else
 	if ( m_currentStep == m_params.numSteps/2 )
 	{
-		Export("export/half");
+		exportToHTML("export/half");
 	} else
 	if ( m_currentStep == m_params.numSteps/4 )
 	{
-		Export("export/quarter");
+		exportToHTML("export/quarter");
 	} else
 	if ( m_currentStep == 1 )
 	{
-		Export("export/first");
+		exportToHTML("export/first");
 	} else
 	{
-		Export("export/current");
+		exportToHTML("export/current");
 	}
 
 	std::string sstrLog("Calculating step ");
 	sstrLog += Helpers::numberToString( m_currentStep ) + " / " + Helpers::numberToString( m_params.numSteps ) + "\n";
 	Helpers::Print( sstrLog, &m_logFile );
-	Helpers::Print( std::string("initializing.\n"), &m_logFile );
+
+	const float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
+	const float lRate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
+	const float adaptionThreshold = m_params.lRateEnd*0.01f;
+	const float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
+	const float sigmaSqr = sigma*sigma;
+
 
 	// select random spectra from spectra dataset
 	std::vector<size_t> spectraIndexList;
@@ -499,8 +564,9 @@ void SOFMNetwork::Process()
 		}
 
 
-		double search_t = t.GetElapsedSecs();
-		_cprintf( "search time: %f\n", search_t ); 
+		double searchTime = t.GetElapsedSecs();
+		Helpers::Print( std::string("Best match search time: ")+Helpers::numberToString<float>(searchTime)+std::string("\n"), &m_logFile );
+
 		t.Start();
 
 		for ( int k=0;k<jInc;k++)
@@ -545,53 +611,13 @@ void SOFMNetwork::Process()
 
 		//	Helpers::Print( std::string(":"), &m_logFile );
 
-
-			const float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
-			const float lrate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
-			const float lratehsxTreshhold = m_params.lRateEnd*0.01f;
-			const float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
-			const float tsigma = sigma*sigma;
-			const float tsigma2 = tsigma*2.f;
-
-			const size_t xpBestMatch = currentBestMatch.index % m_gridSize;
-			const size_t ypBestMatch = currentBestMatch.index / m_gridSize;
-
-			// adjust weights of the whole network
-			size_t c=0;
-			for ( size_t y=0;y<m_gridSize;y++)
-			{
-				const float tdisty = static_cast<float>(y)-static_cast<float>(ypBestMatch);
-				const float tdisty2=tdisty*tdisty;
-
-				for ( size_t x=0;x<m_gridSize;x++)
-				{
-					const float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
-					const float tdistx2 = tdistx*tdistx;
-					const float tdistall = tdistx2+tdisty2;
-					//const float mexican_hat_term = 1.f-tdistall/tsigma;
-					//const float hxy = exp(-(tdistall)/tsigma2);							// original
-					const float hxy = exp(-sqrtf(tdistall)/tsigma2);						// spike
-					//const float hxy = exp(-(tdistall)/tsigma2)*mexican_hat_term;			// Mexican hat
-
-					const float lratehsx = lrate*hxy;
-
-					if ( lratehsx > lratehsxTreshhold )
-					{
-						Spectra *a = m_pNet->beginWrite( c );
-						for ( size_t i=0;i<Spectra::numSamples;i++ )
-						{
-							a->m_Amplitude[i] += lratehsx*(currentSpectra.m_Amplitude[i]-a->m_Amplitude[i]);
-						}
-						m_pNet->endWrite( c );
-					}
-					c++;
-				}
-			}
+			adaptNetwork( currentSpectra, currentBestMatch.index, adaptionThreshold, sigmaSqr, lRate );
 
 			m_pSourceVFS->endRead(spectraIndex);
 		}
-		double calc_t = t.GetElapsedSecs();
-		_cprintf( "calc time %f\n", calc_t ); 
+		double adaptionTime = t.GetElapsedSecs();
+		Helpers::Print( std::string("NW adaption time: ")+Helpers::numberToString<float>(adaptionTime)+std::string("\n"), &m_logFile );
+
 
 		j += jInc;
 	}
@@ -630,71 +656,22 @@ void SOFMNetwork::Process()
 		a->m_Index = spectraIndex;
 		m_pNet->endWrite( bestMatch );
 
-		const float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
-		const float lrate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
-		const float lratehsxTreshhold = m_params.lRateEnd*0.01f;
-		const float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
-		const float tsigma = sigma*sigma;
-		const float tsigma2 = tsigma*2.f;
-
-		const size_t xpBestMatch = bestMatch % m_gridSize;
-		const size_t ypBestMatch = bestMatch / m_gridSize;
-
-		// adjust weights of the whole network
-		size_t c=0;
-		for ( size_t y=0;y<m_gridSize;y++)
-		{
-			const float tdisty = static_cast<float>(y)-static_cast<float>(ypBestMatch);
-			const float tdisty2=tdisty*tdisty;
-
-			for ( size_t x=0;x<m_gridSize;x++)
-			{
-				const float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
-				const float tdistx2 = tdistx*tdistx;
-				const float tdistall = tdistx2+tdisty2;
-				const float mexican_hat_term = 1.f-tdistall/tsigma;
-				//const float hxy = exp(-(tdistall)/tsigma2);							// original
-				const float hxy = exp(-sqrtf(tdistall)/tsigma2);						// spike
-				//const float hxy = exp(-(tdistall)/tsigma2)*mexican_hat_term;			// Mexican hat
-				const float lratehsx = lrate*hxy;
-
-				if ( lratehsx > lratehsxTreshhold )
-				{
-					Spectra *a = m_pNet->beginWrite( c );
-					for ( size_t i=0;i<Spectra::numSamples;i++ )
-					{
-						a->m_Amplitude[i] += lratehsx*(currentSpectra.m_Amplitude[i]-a->m_Amplitude[i]);
-					}
-					m_pNet->endWrite( c );
-				}
-				c++;
-			}
-		}
+		adaptNetwork( currentSpectra, bestMatch, adaptionThreshold, sigmaSqr, lRate );
 
 		m_pSourceVFS->endRead(spectraIndex);
 	//	Helpers::Print( std::string("."), &m_logFile );
 	}
 
 
-	double collision_t = t.GetElapsedSecs();
-	_cprintf( "collision calc time %f\n", collision_t ); 
+	double collisionTime = t.GetElapsedSecs();
+	Helpers::Print( std::string("Collision NW adaption time: ")+Helpers::numberToString<float>(collisionTime)+std::string("\n"), &m_logFile );
+	Helpers::Print( std::string("Flushing cluster table to disk.\n"), &m_logFile );
 
-
-	Helpers::Print( std::string("\nFlushing cluster table to disk.\n"), &m_logFile );
 	m_pNet->flush();
 
 	m_currentStep++;
 }
 
-
-static
-void intensityToRGB(float _intensity, float *_pRGB )
-{
-	_intensity *= 3.f;
-	_pRGB[2] = MIN(_intensity,1.f);
-	_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
-	_pRGB[0] = CLAMP(_intensity-2.f,0.f,1.f);
-}
 
 void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bShowEmpty, bool _bNormalize )
 {
@@ -880,7 +857,7 @@ void SOFMNetwork::calcDifference( const std::string &_sstrFilenName, bool _bUseL
 
 
 
-void SOFMNetwork::Export( const std::string &_sstrFilename )
+void SOFMNetwork::exportToHTML( const std::string &_sstrFilename )
 {
 	std::string sstrLog;
 	sstrLog = "Exporting results to ";
@@ -912,15 +889,16 @@ void SOFMNetwork::Export( const std::string &_sstrFilename )
 
 	std::string sstrInfo;
 	
-	sstrInfo += std::string("step ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+std::string("<br>\n");
-	sstrInfo += std::string("gridsize ")+Helpers::numberToString( m_gridSize )+std::string("<br>\n");;
-	sstrInfo += std::string("number of clustered spectra ")+Helpers::numberToString( m_numSpectra )+std::string("<br>\n");
-	sstrInfo += std::string("random seed ")+Helpers::numberToString( m_params.randomSeed )+std::string("<br>\n");
-	sstrInfo += std::string("learn rate begin ")+Helpers::numberToString( m_params.lRateBegin )+std::string("<br>\n");
-	sstrInfo += std::string("learn rate end ")+Helpers::numberToString( m_params.lRateEnd )+std::string("<br>\n");
-	sstrInfo += std::string("radius begin ")+Helpers::numberToString( m_params.radiusBegin )+std::string("<br>\n");
-	sstrInfo += std::string("radius end ")+Helpers::numberToString( m_params.radiusEnd )+std::string("<br>\n");
-	sstrInfo += std::string("spectrum size in bytes ")+Helpers::numberToString( sizeof(Spectra) )+std::string("<br>\n");
+	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+std::string("<br>\n");;
+	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+std::string("<br>\n");
+	sstrInfo += std::string("grid size: ")+Helpers::numberToString( m_gridSize )+std::string("<br>\n");;
+	sstrInfo += std::string("number of clustered spectra: ")+Helpers::numberToString( m_numSpectra )+std::string("<br>\n");
+	sstrInfo += std::string("random seed: ")+Helpers::numberToString( m_params.randomSeed )+std::string("<br>\n");
+	sstrInfo += std::string("learn rate begin: ")+Helpers::numberToString( m_params.lRateBegin )+std::string("<br>\n");
+	sstrInfo += std::string("learn rate end: ")+Helpers::numberToString( m_params.lRateEnd )+std::string("<br>\n");
+	sstrInfo += std::string("radius begin: ")+Helpers::numberToString( m_params.radiusBegin )+std::string("<br>\n");
+	sstrInfo += std::string("radius end: ")+Helpers::numberToString( m_params.radiusEnd )+std::string("<br>\n");
+	sstrInfo += std::string("spectrum size in bytes: ")+Helpers::numberToString( sizeof(Spectra) )+std::string("<br>\n");
 
 	Helpers::insertString( std::string("*INFO*"), sstrInfo, sstrMainHTMLDoc );
 	const size_t OutputPlanSizeTemp = (m_params.exportSubPage) ? OutputPlanSize : m_gridSize;
@@ -1070,7 +1048,7 @@ void SOFMNetwork::Export( const std::string &_sstrFilename )
 	std::ofstream fon(std::string(_sstrFilename+".html").c_str());
 	fon<<sstrMainHTMLDoc;
 
-	WriteSettings("settings.xml");
+	writeSettings("settings.xml");
 
 	if ( m_params.waitForUser )
 	{

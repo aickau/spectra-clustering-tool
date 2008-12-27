@@ -234,7 +234,7 @@ void ShowTrainData()
 void SOFM()
 {
 	DrawNetwork( *g_pSOFM );
-	g_pSOFM->Process();
+	g_pSOFM->process();
 }
 
 void DrawGLScene()
@@ -277,7 +277,7 @@ void KillGL()
 
 void Export()
 {
-	g_pSOFM->Export("output.html");
+	g_pSOFM->exportToHTML("output.html");
 }
 
 void DisableOutput()
