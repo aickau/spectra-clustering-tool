@@ -78,13 +78,15 @@ public:
 	// load from SDSS .fit file
 	bool loadFromFITS(std::string &_filename);
 
-	// compare spectra and return accumulated quadratic error of all compared samples
+	// compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 	float compare(const Spectra &_spectra) const;
 
-	// compare spectra using a more advanced error measure
+	// compare spectra using a more advanced error measure taking neighboring samples into account.
 	// _width 0..1
 	float compareAdvanced(const Spectra &_spectra, float _width) const;
 
+	// super advanced compare using peak detectors and continuum spectra.
+	// _width 0..1
 	float compareSuperAdvanced(const Spectra &_spectra, float _width) const;
 
 	// calculate extrema
@@ -96,10 +98,22 @@ public:
 	// transforms spectrum into frequency domain using a DFT.
 	void dft();
 
+	// generate continuum spectrum by heavy under sampling.
+	// _continuumSamples should be an order of magnitude smaller than Spectra::numSamples. 32 for instance is a good fit.
 	void generateContinuum( size_t _continuumSamples, std::vector<float> &_outContinuum ) const;
+
+	// generate continuum subtracted spectrum
+	// _continuumSamples should be an order of magnitude smaller than Spectra::numSamples. 32 for instance is a good fit.
 	void getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<float> &_outSpectrum ) const;
 
-	// _cutOffTreshold: high value = many peaks, low value less peaks, [0.1..1000], reasonable range [1..10]
+	// get a list of detected peaks.
+	// _spectrumMinusContinuum continuum subtracted spectrum of the used spectrum
+	// _numPeaks maximum number of detected and returned peaks
+	// _cutOffTreshold high value = many peaks, low value less peaks, [0.1..1000], reasonable range [1..10]
+	// _outMinPeaks ordered pairs of minimum peaks below continuum. starts with lowest value first.
+	//              first = amplitude, second = sample index
+	// _outMinPeaks ordered pairs of maximum peaks above continuum. starts with lowest value first.
+	//              first = amplitude, second = sample index
 	void getPeaks( const std::vector<float> &_spectrumMinusContinuum, 
 		size_t _numPeaks, 
 		float _cutOffTreshold, 
