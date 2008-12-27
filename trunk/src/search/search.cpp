@@ -140,7 +140,7 @@ void main(int argc, char* argv[])
 		default: sstrCompareFunc="simple";break;
 	}
 
-	_cprintf( "dumpfile: %s\n", sstrDumpFile.c_str() );
+	_cprintf( "dump file: %s\n", sstrDumpFile.c_str() );
 	_cprintf( "filter: %s\n", Spectra::spectraFilterToString(spectraFilter).c_str() );
 	_cprintf( "compare function: %s\n", sstrCompareFunc.c_str() );
 	_cprintf( "comparison invariance: %f\n", compareInvariance );

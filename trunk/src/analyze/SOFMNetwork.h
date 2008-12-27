@@ -44,10 +44,10 @@ public:
 	~SOFMNetwork();
 
 	// resets the network
-	void Reset( const Parameters &_params );
+	void reset( const Parameters &_params );
 
 	// one learning step
-	void Process();
+	void process();
 
 	// get spectra from SOFM at a given cell.
 	// if a given cell contains a match (thus it is occupied by some input spectra) can be seen by its objectID
@@ -57,7 +57,7 @@ public:
 
 	// export to HTML.
 	// _sstrFilename absolute or relative filename without (!) extension.
-	void Export( const std::string &_sstrFilename );
+	void exportToHTML( const std::string &_sstrFilename );
 	
 	// Calculate U-matrix (Ultsch 1989) of the SOM for the current calculation step
 	// sstrFilenName path + filename (no extension)
@@ -91,13 +91,15 @@ protected:
 		float error;	
 	};
 
-	void CalcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax );
-	void CalcMinMaxInputDS();
+	void calcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax );
+	void calcMinMaxInputDS();
 
-	void RenderIcons();
-	void ExportEnergyMap();
-	void WriteSettings( const std::string &_sstrFileName );
-	bool ReadSettings( const std::string &_sstrFileName, std::string &_sstrSOFMFileName );
+	void renderIcons();
+	void exportEnergyMap();
+	void writeSettings( const std::string &_sstrFileName );
+	bool readSettings( const std::string &_sstrFileName, std::string &_sstrSOFMFileName );
+
+	void adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex, float _adaptionThreshold, float _sigmaSqr, float _lRate );
 
 	size_t getIndex( size_t _cellX, size_t _cellY );
 

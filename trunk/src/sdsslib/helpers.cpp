@@ -21,9 +21,13 @@ bool Helpers::insertString( const std::string &sstrTag, const std::string &sstrI
 
 void Helpers::Print( const std::string &_sstrText, std::ofstream *_logStream )
 {
+	std::string sstrPrefix( Helpers::getCurentDateTimeStampString() );
+	sstrPrefix += "> ";
+	_cprintf( sstrPrefix.c_str() );
 	_cprintf( _sstrText.c_str() );
 	if ( _logStream != NULL )
 	{
+		(*_logStream) << sstrPrefix;
 		(*_logStream) << _sstrText;
 	}
 }
@@ -35,19 +39,19 @@ std::string Helpers::getCurentDateTimeStampString()
 	GetSystemTime( &systime	);
 
 	std::string sstrOutString("");
-	sstrOutString += Helpers::numberToString<WORD>(systime.wHour);
-	sstrOutString += ":";
-	sstrOutString += numberToString<WORD>(systime.wMinute);
-	sstrOutString += ":";
-	sstrOutString += numberToString<WORD>(systime.wSecond);
-	sstrOutString += ",";
-	sstrOutString += numberToString<WORD>(systime.wMilliseconds);
-	sstrOutString += " ";
 	sstrOutString += numberToString<WORD>(systime.wMonth);
 	sstrOutString += "/";
 	sstrOutString += numberToString<WORD>(systime.wDay);
 	sstrOutString += "/";
 	sstrOutString += numberToString<WORD>(systime.wYear);
+	sstrOutString += " ";
+	sstrOutString += Helpers::numberToString<WORD>(systime.wHour);
+	sstrOutString += ":";
+	sstrOutString += numberToString<WORD>(systime.wMinute);
+	sstrOutString += ":";
+	sstrOutString += numberToString<WORD>(systime.wSecond);
+	//sstrOutString += ",";
+	//sstrOutString += numberToString<WORD>(systime.wMilliseconds);
 
 	return sstrOutString;
 }
