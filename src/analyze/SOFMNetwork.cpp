@@ -172,16 +172,16 @@ void SOFMNetwork::writeSettings( const std::string &_sstrFileName )
 	XMLExport::xmlElementEndBegin( sstrXML );
 
 	XMLExport::xmlSingleElementBegin( "STEP", 1, sstrXML );
-	XMLExport::xmlAddAttribute( "current", m_currentStep, sstrXML );
-	XMLExport::xmlAddAttribute( "total", m_params.numSteps, sstrXML );
+	XMLExport::xmlAddAttribute( "current", static_cast<unsigned int>(m_currentStep), sstrXML );
+	XMLExport::xmlAddAttribute( "total", static_cast<unsigned int>(m_params.numSteps), sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
 
 	XMLExport::xmlSingleElementBegin( "GRIDSIZE", 1, sstrXML );
-	XMLExport::xmlAddAttribute( "value", m_gridSize, sstrXML );
+	XMLExport::xmlAddAttribute( "value", static_cast<unsigned int>(m_gridSize), sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
 
 	XMLExport::xmlSingleElementBegin( "RANDOMSEED", 1, sstrXML );
-	XMLExport::xmlAddAttribute( "value", m_params.randomSeed, sstrXML );
+	XMLExport::xmlAddAttribute( "value", static_cast<unsigned int>(m_params.randomSeed), sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
 
 	XMLExport::xmlSingleElementBegin( "LEARNRATE", 1, sstrXML );
@@ -404,7 +404,6 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 {
 	const size_t xpBestMatch = _bestMatchIndex % m_gridSize;
 	const size_t ypBestMatch = _bestMatchIndex / m_gridSize;
-
 	const float sigmaSqr2 = _sigmaSqr*2.f;
 
 	// adjust weights of the whole network
@@ -421,8 +420,8 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 			const float tdistall = tdistx2+tdisty2;
 			//const float mexican_hat_term = 1.f-tdistall/sigmaSqr;
 			//const float hxy = exp(-(tdistall)/sigmaSqr2);							// original
+			//const float hxy = exp(-(tdistall)/sigmaSqr2)*mexican_hat_term;		// Mexican hat
 			const float hxy = exp(-sqrtf(tdistall)/sigmaSqr2);						// spike
-			//const float hxy = exp(-(tdistall)/tsigma2)*mexican_hat_term;			// Mexican hat
 
 			const float lratehsx = _lRate*hxy;
 
