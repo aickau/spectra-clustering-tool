@@ -459,12 +459,28 @@
 			RelativePath=".\spectracompare.asm"
 			>
 			<FileConfiguration
+				Name="Debug|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="MASM"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
 				Name="Debug|x64"
 				>
 				<Tool
 					Name="VCCustomBuildTool"
 					CommandLine="ml64.exe /DWIN_X64 /c /Fl /Fo $(IntDir)\$(InputName).obj $(InputName).asm"
 					Outputs="$(IntDir)\$(InputName).obj"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="MASM"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
