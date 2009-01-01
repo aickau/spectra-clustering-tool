@@ -76,23 +76,23 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 	}
 
 /*	// test begin
+	float f = 0.001f;
 	for ( size_t i=0;i<m_numSpectra;i++ )
 	{
 		Spectra *a = m_pSourceVFS->beginWrite( i );
-
-		a->set( 0.1f + (float) i*0.005f );
-	
+		a->setSine( f );
+		f += 0.0000125f;
 		m_pSourceVFS->endWrite( i );
 	}
-*/	// test end
-
+	// test end
+*/
 
 	calcMinMaxInputDS();
 
 
 	if ( !bContinueComputation )
 	{
-		size_t gridSizeMin = static_cast<size_t>(ceilf(sqrtf(m_numSpectra+1))*1.2f);
+		size_t gridSizeMin = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1)));//*1.2
 		if ( m_gridSize < gridSizeMin )
 		{
 			std::string sstrString( std::string("Grid size ") );
@@ -369,7 +369,7 @@ void SOFMNetwork::renderIcons()
 			redness *= redness*2.f;
 		}
 
-		//redness = (float)i*2.f/(float)m_numSpectra;
+//		redness = (float)i*2.f/(float)m_numSpectra;
 
 		SpectraHelpers::RenderSpectraIconToDisk(*a, sstrFilename, 100, 100, localmax, redness );
 
@@ -394,7 +394,6 @@ void SOFMNetwork::reset( const Parameters &_params )
 {
 	m_params = _params;
 	m_currentStep = 0;
-
 	m_Random.initRandom( m_params.randomSeed );
 }
 
@@ -514,7 +513,8 @@ void SOFMNetwork::process()
 	while (j<m_numSpectra)
 	{
 		const int jInc = MIN( SpectraVFS::CACHELINESIZE, (MIN(m_numSpectra, j+SpectraVFS::CACHELINESIZE)-j));
-//		Helpers::Print( std::string("."), &m_logFile );
+		//_cprintf( "." );
+
 
 		// initialize best match batch
 		BestMatch bestMatch[SpectraVFS::CACHELINESIZE];
@@ -526,10 +526,49 @@ void SOFMNetwork::process()
 
 		// retrieve best match neuron for a cache line batch of source spectra
 		Timer t;
-		for ( size_t i = 0;i < m_gridSizeSqr;i++)
-		{
-			Spectra *a = m_pNet->beginRead( i );
 
+		const bool bFullSearch = ((m_currentStep % MAX((m_params.numSteps/s_globalSearchFraction),1)) == 0) || (m_currentStep<5);
+
+		if (bFullSearch) 
+		{
+			for ( size_t i = 0;i < m_gridSizeSqr;i++)
+			{
+				Spectra *a = m_pNet->beginRead( i );
+
+				Spectra *src[SpectraVFS::CACHELINESIZE];
+				for ( int k=0;k<jInc;k++)
+				{
+					const size_t spectraIndex = spectraIndexList.at(j+k);
+					src[k] = m_pSourceVFS->beginRead(spectraIndex);
+				}
+
+
+				#pragma omp parallel for
+				for ( int k=0;k<jInc;k++)
+				{
+					BestMatch &currentBestMatch = bestMatch[k];
+					Spectra &currentSpectra = *src[k];
+
+					const float errMin = a->compare( currentSpectra );
+
+					if (errMin < currentBestMatch.error && a->isEmpty() )
+					{
+						currentBestMatch.error = errMin;
+						currentBestMatch.index = i;
+					}
+				}
+
+				for ( int k=0;k<jInc;k++)
+				{
+					const size_t spectraIndex = spectraIndexList.at(j+k);
+					m_pSourceVFS->endRead(spectraIndex);
+				}
+
+				m_pNet->endRead( i );
+			}
+		}
+		else
+		{
 			Spectra *src[SpectraVFS::CACHELINESIZE];
 			for ( int k=0;k<jInc;k++)
 			{
@@ -537,29 +576,45 @@ void SOFMNetwork::process()
 				src[k] = m_pSourceVFS->beginRead(spectraIndex);
 			}
 
-
-			#pragma omp parallel for
 			for ( int k=0;k<jInc;k++)
 			{
 				BestMatch &currentBestMatch = bestMatch[k];
 				Spectra &currentSpectra = *src[k];
 
-				const float tmin = a->compare( currentSpectra );
+				const int xpBestMatchOld = currentSpectra.m_Index % m_gridSize;
+				const int ypBestMatchOld = currentSpectra.m_Index / m_gridSize;
 
-				if (tmin < currentBestMatch.error && a->isEmpty() )
+				const int xMin = MAX( xpBestMatchOld-s_searchRadius, 0 );
+				const int yMin = MAX( ypBestMatchOld-s_searchRadius, 0 );
+				const int xMax = MIN( xpBestMatchOld+s_searchRadius, m_gridSize );
+				const int yMax = MIN( ypBestMatchOld+s_searchRadius, m_gridSize );
+
+				for ( int y=xMin;y<yMax;y++ )
 				{
-					currentBestMatch.error = tmin;
-					currentBestMatch.index = i;
+					for ( int x=xMin;x<xMax;x++ )
+					{
+						const size_t spectraIndex = getIndex( x, y );
+						Spectra *a = m_pNet->beginRead( spectraIndex );
+
+						const float errMin = a->compare( currentSpectra );
+
+						if (errMin < currentBestMatch.error && a->isEmpty() )
+						{
+							currentBestMatch.error = errMin;
+							currentBestMatch.index = spectraIndex;
+						}
+
+						m_pNet->endRead( spectraIndex );
+					}
 				}
 			}
+
 
 			for ( int k=0;k<jInc;k++)
 			{
 				const size_t spectraIndex = spectraIndexList.at(j+k);
 				m_pSourceVFS->endRead(spectraIndex);
 			}
-
-			m_pNet->endRead( i );
 		}
 
 
@@ -572,7 +627,7 @@ void SOFMNetwork::process()
 		{
 			BestMatch &currentBestMatch = bestMatch[k];
 			const size_t spectraIndex = spectraIndexList.at(j+k);
-			Spectra &currentSpectra = *m_pSourceVFS->beginRead(spectraIndex);
+			Spectra &currentSpectra = *m_pSourceVFS->beginWrite(spectraIndex);
 
 			Spectra *a = m_pNet->beginWrite( currentBestMatch.index );
 
@@ -603,16 +658,19 @@ void SOFMNetwork::process()
 					spectraCollisionList.push_back( a->m_Index );
 					a->m_SpecObjID = currentSpectra.m_SpecObjID;
 					a->m_Index = spectraIndex;
+
+					// remember best match position to NW for faster search
+					currentSpectra.m_Index = currentBestMatch.index;
 				}
 			}
 			m_pNet->endWrite( currentBestMatch.index );
 
 
-		//	Helpers::Print( std::string(":"), &m_logFile );
+			//_cprintf(":");
 
 			adaptNetwork( currentSpectra, currentBestMatch.index, adaptionThreshold, sigmaSqr, lRate );
 
-			m_pSourceVFS->endRead(spectraIndex);
+			m_pSourceVFS->endWrite(spectraIndex);
 		}
 		double adaptionTime = t.GetElapsedSecs();
 		Helpers::Print( std::string("NW adaption time: ")+Helpers::numberToString<float>(adaptionTime)+std::string("\n"), &m_logFile );
@@ -621,7 +679,7 @@ void SOFMNetwork::process()
 		j += jInc;
 	}
 
-//	Helpers::Print( std::string("="), &m_logFile );
+	//_cprintf( "=" );
 
 	Timer t;
 	// collision handling
@@ -629,7 +687,7 @@ void SOFMNetwork::process()
 	for ( size_t j=0;j<spectraCollisionList.size();j++)
 	{
 		const size_t spectraIndex = spectraCollisionList.at(j);
-		Spectra &currentSpectra = *m_pSourceVFS->beginRead(spectraIndex);
+		Spectra &currentSpectra = *m_pSourceVFS->beginWrite(spectraIndex);
 
 		// retrieve first best match neuron
 		float min = FLT_MAX;
@@ -638,27 +696,30 @@ void SOFMNetwork::process()
 		for ( size_t i = 0;i < m_gridSizeSqr;i++)
 		{
 			Spectra *a = m_pNet->beginRead( i );
-			float tmin =a->compare( currentSpectra );
+			float minErr =a->compare( currentSpectra );
 
-			if ( tmin < min && a->isEmpty() )
+			if ( minErr < min && a->isEmpty() )
 			{
-				min = tmin;
+				min = minErr;
 				bestMatch = i;
 			}
 			m_pNet->endRead( i );
 		}
 
-//		Helpers::Print( std::string(":"), &m_logFile );
+		//_cprintf(":");
 
 		Spectra *a = m_pNet->beginWrite( bestMatch );
 		a->m_SpecObjID = currentSpectra.m_SpecObjID;
 		a->m_Index = spectraIndex;
 		m_pNet->endWrite( bestMatch );
 
+		// remember best match position to NW for faster search
+		currentSpectra.m_Index = bestMatch;
+
 		adaptNetwork( currentSpectra, bestMatch, adaptionThreshold, sigmaSqr, lRate );
 
-		m_pSourceVFS->endRead(spectraIndex);
-	//	Helpers::Print( std::string("."), &m_logFile );
+		m_pSourceVFS->endWrite(spectraIndex);
+		//_cprintf(".");
 	}
 
 
@@ -900,7 +961,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename )
 	sstrInfo += std::string("spectrum size in bytes: ")+Helpers::numberToString( sizeof(Spectra) )+std::string("<br>\n");
 
 	Helpers::insertString( std::string("*INFO*"), sstrInfo, sstrMainHTMLDoc );
-	const size_t OutputPlanSizeTemp = (m_params.exportSubPage) ? OutputPlanSize : m_gridSize;
+	const size_t OutputPlanSizeTemp = (m_params.exportSubPage) ? s_outputPlanSize : m_gridSize;
 
 	size_t planXMax = 1 + m_gridSize / OutputPlanSizeTemp;
 	size_t planYMax = 1 + m_gridSize / OutputPlanSizeTemp;

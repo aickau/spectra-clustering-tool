@@ -16,8 +16,14 @@ class SOFMNetwork
 {
 public:
 
-	// number of columns and rows of spectra output table per html page.
-	static const size_t OutputPlanSize = 5;
+	// number of columns and rows of spectra output table per HTML page.
+	static const size_t s_outputPlanSize = 5;
+
+	// fraction of global search vs. local search
+	static const size_t s_globalSearchFraction = 10;
+
+	// search radius in cells for local search
+	static const int s_searchRadius = 4;
 
 	// SOFM parameters
 	class Parameters
@@ -30,7 +36,7 @@ public:
 		float lRateEnd;												// learn rate end (0.0 .. 1.0)
 		float radiusBegin;											// radius begin (0.0 .. grid size)
 		float radiusEnd;											// radius end (0.0 .. grid size)
-		bool exportSubPage;											// if true add subpages to html output
+		bool exportSubPage;											// if true add subpages to HTML output
 		bool waitForUser;											// if true wait for user input after each calculation step
 
 		static Parameters defaultParameters;

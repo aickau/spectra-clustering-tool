@@ -512,12 +512,7 @@ float Spectra::compare(const Spectra &_spectra) const
 	size_t numSamples4 = (Spectra::numSamples >> 3) << 3;
 
 #ifdef X64
-	//spectraCompareX64(a0,a1,errorv,numSamples4);
-	errorv[0]=0.0f;
-	errorv[1]=0.0f;
-	errorv[2]=0.0f;
-	errorv[3]=0.0f; 
-	numSamples4 = 0;
+	spectraCompareX64(a0,a1,errorv,numSamples4);
 #else // X64
 
 	_asm {
