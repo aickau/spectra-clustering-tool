@@ -50,6 +50,7 @@ public:
 	size_t getNumSpectra();
 
 	// get spectrum for read access
+	// all changes that are made to the spectrum might get lost in some circumstances.
 	Spectra *beginRead( size_t _nSpectraIndex );
 
 	// end read access. pointer will become invalid (and may used for other data).
@@ -101,13 +102,13 @@ private:
 		OVERLAPPED m_overlapped;
 	};
 
-	// Read cacheline into cache
+	// Read cache line into cache
 	// _nSpectraIndex to spectra in file
 	// _pDestination to cache 
 	// bAsyncRead if true read op is not blocked
 	void Read( size_t _nSpectraIndex, Spectra *_pDestination, bool bAsyncRead = false );
 
-	// write cacheline to disk
+	// write cache line to disk
 	// _nSpectraIndex to spectra in file
 	// _pDestination to cache 
 	void Write( size_t _nSpectraIndex, Spectra *_pSource );

@@ -1,6 +1,6 @@
+public spectraCompareX64 
 .code
 align 16
-public spectraCompareX64 
 spectraCompareX64 PROC a0:PTR, a1:PTR, result:PTR, numSamples:QWORD
 
 		push rdi
