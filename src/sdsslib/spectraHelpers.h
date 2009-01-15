@@ -43,6 +43,9 @@ public:
 	// _sstrFilename output image graph of resulting spectra
 	static void CombineSpectra( std::string &_sstrDumpFilename, const std::string &_sstrFilename );
 
+	// load HTML template containing token: *INFO* *TITLE* *TEMPLATE* 
+	static std::string loadHTMLTemplate();
+
 	static int s_FontID;
 
 private:

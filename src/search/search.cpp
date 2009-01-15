@@ -249,23 +249,8 @@ void main(int argc, char* argv[])
 
 	for ( size_t j=0;j<numCompareSpectra;j++ )
 	{
-		// load template
-		std::ifstream fin("template.html");
-		std::string sstrTemp;
-		std::string sstrHTMLDoc;
+		std::string sstrHTMLDoc = SpectraHelpers::loadHTMLTemplate();
 		std::string sstrCompareFilename(g_compareFileList.at(j));
-
-		if( !fin ) 
-		{
-			printf("export failed. Missing template.html\n");
-			return;
-		}
-
-		while( getline(fin,sstrTemp) ) 
-		{
-			sstrHTMLDoc += sstrTemp;
-		}
-
 
 		if (!Helpers::insertString( std::string("*TITLE*"), sstrCompareFilename, sstrHTMLDoc ) )
 		{

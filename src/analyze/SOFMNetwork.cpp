@@ -449,22 +449,22 @@ void SOFMNetwork::process()
 
 	if ( m_currentStep == m_params.numSteps )
 	{
-		exportToHTML("export/full");
+		exportToHTML("export/full", true);
 	} else
 	if ( m_currentStep == m_params.numSteps/2 )
 	{
-		exportToHTML("export/half");
+		exportToHTML("export/half", true);
 	} else
 	if ( m_currentStep == m_params.numSteps/4 )
 	{
-		exportToHTML("export/quarter");
+		exportToHTML("export/quarter", true);
 	} else
 	if ( m_currentStep == 1 )
 	{
-		exportToHTML("export/first");
+		exportToHTML("export/first", true);
 	} else
 	{
-		exportToHTML("export/current");
+		exportToHTML("export/current", false);
 	}
 
 	std::string sstrLog("Calculating step ");
@@ -832,7 +832,7 @@ void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogS
 
 
 
-void SOFMNetwork::calcDifference( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize )
+void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize )
 {
 	if ( m_pNet == NULL || m_pNet->getNumSpectra() == 0 )
 	{
@@ -916,9 +916,44 @@ void SOFMNetwork::calcDifference( const std::string &_sstrFilenName, bool _bUseL
 }
 
 
-
-void SOFMNetwork::exportToHTML( const std::string &_sstrFilename )
+void SOFMNetwork::generateHTMLInfoPages()
 {
+	Helpers::Print( "Generating info pages for spectra\n", &m_logFile );
+
+	std::string sstrMainHTMLDoc;
+	std::string sstrHTMLDocTemplate = SpectraHelpers::loadHTMLTemplate();
+
+	sstrMainHTMLDoc = sstrHTMLDocTemplate;
+
+
+
+	int plateOld = -1;	
+	for ( size_t i=0;i<m_numSpectra;i++ )
+	{
+		Spectra *a = m_pSourceVFS->beginRead( i );
+
+		int plate = a->getPlate();
+		std::string sstrDir("export/");
+		sstrDir += Spectra::plateToString(plate) + std::string("/");
+		if ( plate != plateOld )
+		{
+			plateOld = plate;
+			CreateDirectory( sstrDir.c_str(), NULL );
+		}
+		std::string sstrFilename(sstrDir);
+		sstrFilename += a->getFileName();
+		sstrFilename += ".html";
+
+		m_pSourceVFS->endRead( i );
+	}
+}
+
+
+void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExport )
+{
+	std::string sstrName( FileHelpers::getFileName(_sstrFilename) );
+	std::string sstrDirectory( FileHelpers::getFilePath(_sstrFilename) );
+
 	std::string sstrLog;
 	sstrLog = "Exporting results to ";
 	sstrLog += _sstrFilename;
@@ -926,28 +961,19 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename )
 
 	Helpers::Print( sstrLog, &m_logFile );
 
-	// load template
-	std::ifstream fin("template.html");
-	if( !fin ) 
-	{
-		Helpers::Print( std::string("export failed. Missing template.html\n"), &m_logFile );
-		return;
-	}
-
-	std::string sstrTemp;
+	std::string sstrHTMLDocTemplate = SpectraHelpers::loadHTMLTemplate();	
 	std::string sstrHTMLDoc;
 	std::string sstrMainHTMLDoc;
-	std::string sstrHTMLDocTemplate;
 	std::string sstrMainTable;
-
-	while( getline(fin,sstrTemp) ) 
-	{
-		sstrHTMLDocTemplate += sstrTemp;
-	}
 
 	sstrMainHTMLDoc = sstrHTMLDocTemplate;
 
 	std::string sstrInfo;
+
+	const std::string sstrUMatrix =  "UMatrix_" + sstrName;
+	const std::string sstrDifferenceMap = "DifferenceMap_" + sstrName;
+	calcUMatrix( sstrDirectory+sstrUMatrix, true, false, false );
+	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false);
 	
 	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+std::string("<br>\n");;
 	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+std::string("<br>\n");
@@ -959,6 +985,8 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename )
 	sstrInfo += std::string("radius begin: ")+Helpers::numberToString( m_params.radiusBegin )+std::string("<br>\n");
 	sstrInfo += std::string("radius end: ")+Helpers::numberToString( m_params.radiusEnd )+std::string("<br>\n");
 	sstrInfo += std::string("spectrum size in bytes: ")+Helpers::numberToString( sizeof(Spectra) )+std::string("<br>\n");
+	sstrInfo += std::string("UMatrix:<br>\n<img src=\"")+sstrUMatrix += ".png\"><br>\n";
+	sstrInfo += std::string("Difference map:<br>\n<img src=\"")+sstrDifferenceMap += ".png\"><br>\n";
 
 	Helpers::insertString( std::string("*INFO*"), sstrInfo, sstrMainHTMLDoc );
 	const size_t OutputPlanSizeTemp = (m_params.exportSubPage) ? s_outputPlanSize : m_gridSize;
