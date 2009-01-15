@@ -3,6 +3,7 @@
 #include "sdsslib/spectra.h"
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/helpers.h"
+#include "sdsslib/spectrahelpers.h"
 
 #include <set>
 #include <assert.h>
@@ -148,24 +149,11 @@ void QTClustering::Export( const std::string &_sstrFilename )
 
 	Helpers::Print( sstrLog, &m_logFile );
 
-	// load template
-	std::ifstream fin("template.html");
-	if( !fin ) 
-	{
-		Helpers::Print( std::string("export failed. Missing template.html\n"), &m_logFile );
-		return;
-	}
-
 	std::string sstrTemp;
 	std::string sstrHTMLDoc;
 	std::string sstrHTMLMainDoc;
-	std::string sstrHTMLDocTemplate;
+	std::string sstrHTMLDocTemplate = SpectraHelpers::loadHTMLTemplate();
 	std::string sstrTable;
-
-	while( getline(fin,sstrTemp) ) 
-	{
-		sstrHTMLDocTemplate += sstrTemp;
-	}
 
 	sstrHTMLMainDoc = sstrHTMLDoc = sstrHTMLDocTemplate;
 

@@ -1,6 +1,7 @@
 #include "sdsslib/spectraHelpers.h"
 
 #include <assert.h>
+#include <fstream>
 
 #include "devil/include/il/il.h"
 #include "devil/include/il/ilu.h"
@@ -293,4 +294,27 @@ void SpectraHelpers::CombineSpectra( std::string &_sstrDumpFilename, const std::
 
 	SpectraHelpers::RenderSpectraIconToDisk(accumSpectra, _sstrFilename, scrWidth, scrHeight, 1.f, 0.0f );
 
+}
+
+
+std::string SpectraHelpers::loadHTMLTemplate()
+{
+	const std::string sstrDefaultHTMLDocTemplate("<html><head><title>SDSS Analyze</title><meta http-equiv=\"Content-Type\"content=\"text/html;charset=utf-8\" /></head><body>*INFO*<table width=\"200\" height=\"200\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" align=\"center\"><caption>*TITLE*</caption><tbody>*TEMPLATE*</tbody></table></body></html>");
+	const std::string sstrTemplateFileName("template.html");
+
+	// load template
+	std::string sstrTemp;
+	std::string sstrHTMLDocTemplate;
+
+	std::ifstream fin(sstrTemplateFileName.c_str());
+	if( !fin ) 
+	{
+		assert(0); // missing template file, taking default template.
+		return sstrDefaultHTMLDocTemplate;
+	}
+	while( getline(fin,sstrTemp) ) 
+	{
+		sstrHTMLDocTemplate += sstrTemp;
+	}
+	return sstrHTMLDocTemplate;
 }
