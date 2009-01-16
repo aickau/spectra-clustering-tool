@@ -11,44 +11,12 @@
 #include "sdsslib/spectra.h"
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/memory.h"
+#include "sdsslib/spectrahelpers.h"
 
 #define COMPAREDIR std::string("compare/")
 
 std::vector<std::string> g_compareFileList;
 
-
-void writeTableEntry( const Spectra &spectrum, float error, std::string &sstrOutTable )
-{
-	const Spectra *sp = &spectrum;
-	sstrOutTable += "<tr>\n";
-	sstrOutTable += "<td>";
-	// insert link
-	if ( !sp->getFileName().empty() )
-	{
-		sstrOutTable += "<a href=\"";
-		sstrOutTable += sp->getURL();
-		sstrOutTable += "\" target=\"_blank\">";
-
-		sstrOutTable += "<img src=\"";
-		sstrOutTable += "http://cas.sdss.org/dr6/en/get/specById.asp?id=";
-		sstrOutTable += Helpers::numberToString<__int64>(sp->m_SpecObjID);
-		sstrOutTable += "\"><br>err=";
-		sstrOutTable += Helpers::numberToString<float>(error);
-		sstrOutTable += "  z=";
-		sstrOutTable += Helpers::numberToString<float>(sp->m_Z);
-		sstrOutTable += "  ";
-		sstrOutTable += sp->getFileName();
-		sstrOutTable += "</td>";
-	}
-	else
-	{
-		// insert image
-		sstrOutTable += "<img src=\"export/empty.png\"></td>";
-	}
-
-	sstrOutTable += "</td>\n";
-	sstrOutTable += "</tr>\n";
-}
 
 
 #define DUMPFILE std::string("allSpectra.bin")
@@ -269,7 +237,7 @@ void main(int argc, char* argv[])
 			while ( it != comparisonMap[j].end() && c < 100)
 			{
 				Spectra *sp = vfs.beginRead( it->second );
-				writeTableEntry( *sp, it->first, sstrTable );
+				SpectraHelpers::writeTableEntry( *sp, it->first, sstrTable );
 				vfs.endRead( it->second );
 				it++;
 				c++;
@@ -281,7 +249,7 @@ void main(int argc, char* argv[])
 			while ( it != comparisonMap[j].rend() && c < 100)
 			{
 				Spectra *sp = vfs.beginRead( it->second );
-				writeTableEntry( *sp, it->first, sstrTable );
+				SpectraHelpers::writeTableEntry( *sp, it->first, sstrTable );
 				vfs.endRead( it->second );
 				it++;
 				c++;

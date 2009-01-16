@@ -7,6 +7,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <omp.h>
 
 #include "sdsslib/random.h"
@@ -116,6 +117,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 
 		//exportEnergyMap();
 		renderIcons();
+		generateHTMLInfoPages();
 
 		// initialize with input data
 		Rnd r(m_params.randomSeed);
@@ -923,15 +925,29 @@ void SOFMNetwork::generateHTMLInfoPages()
 	std::string sstrMainHTMLDoc;
 	std::string sstrHTMLDocTemplate = SpectraHelpers::loadHTMLTemplate();
 
-	sstrMainHTMLDoc = sstrHTMLDocTemplate;
+	const float compareInvariance = 0.1f;
+	const size_t numHiScoresEntries = 20;
 
-
-
+	std::map<float,size_t> comparisonMap;
 	int plateOld = -1;	
 	for ( size_t i=0;i<m_numSpectra;i++ )
 	{
 		Spectra *a = m_pSourceVFS->beginRead( i );
 
+		comparisonMap.clear();
+		for ( size_t j=0;j<m_numSpectra;j++ )
+		{
+			if ( j==i )
+			{
+				continue;
+			}
+			Spectra *b = m_pSourceVFS->beginRead( j );
+			float err = a->compareSuperAdvanced( *b, compareInvariance ); 
+			comparisonMap.insert( std::pair<float, size_t>(err, j) );	
+			m_pSourceVFS->endRead( j );
+		}
+
+		// create directory by plate
 		int plate = a->getPlate();
 		std::string sstrDir("export/");
 		sstrDir += Spectra::plateToString(plate) + std::string("/");
@@ -940,11 +956,46 @@ void SOFMNetwork::generateHTMLInfoPages()
 			plateOld = plate;
 			CreateDirectory( sstrDir.c_str(), NULL );
 		}
+
+		// filename for HTML page
 		std::string sstrFilename(sstrDir);
 		sstrFilename += a->getFileName();
 		sstrFilename += ".html";
 
+		sstrMainHTMLDoc = sstrHTMLDocTemplate;
+
+		std::string sstrInfo( a->getFileName() );
+		Helpers::insertString( std::string("*TITLE*"), sstrInfo, sstrMainHTMLDoc );
+
+		std::string sstrTable("");
+
+		// insert icon
+		sstrTable += "<tr>\n";
+		sstrTable += "<td>";
+		sstrTable += std::string("<br>\n<img src=\"")+a->getFileName()+ ".png\"><br>\n";
+		sstrTable += "</td>\n";
+		sstrTable += "</tr>\n";
+
+		// insert search results
+		size_t c=0;
+		std::map<float,size_t>::iterator it( comparisonMap.begin() ); 
+		while ( it != comparisonMap.end() && c < numHiScoresEntries)
+		{
+			Spectra *sp = m_pSourceVFS->beginRead( it->second );
+			SpectraHelpers::writeTableEntry( *sp, it->first, sstrTable );
+			m_pSourceVFS->endRead( it->second );
+			it++;
+			c++;
+		}
+
+		Helpers::insertString( std::string("*TEMPLATE*"), sstrTable, sstrMainHTMLDoc );
+
+
+		std::ofstream fon(sstrFilename.c_str());
+		fon<<sstrMainHTMLDoc;
+
 		m_pSourceVFS->endRead( i );
+		break;
 	}
 }
 

@@ -879,31 +879,38 @@ void Spectra::getPeaks( const std::vector<float> &_spectrumMinusContinuum, size_
 	// generate gradient for peaks
 	std::vector<float> maxPeaksG(maxPeaks);
 	std::vector<float> minPeaksG(minPeaks);
-	MathHelpers::gradient1D( &maxPeaksG[0], maxPeaksG.size()/2, 8, 0 );
-	MathHelpers::gradient1D( &minPeaksG[0], minPeaksG.size()/2, 8, 0 );
+	if ( maxPeaksG.size() > 0 )
+	{
+		MathHelpers::gradient1D( &maxPeaksG[0], maxPeaksG.size()/2, 8, 0 );
+		const float gradientTresholdMaxPeaks = MIN(2.f/(static_cast<float>(maxPeaksG.size())*_cutOffTreshold),1.f);
 
-	const float gradientTresholdMaxPeaks = MIN(2.f/(static_cast<float>(maxPeaksG.size())*_cutOffTreshold),1.f);
-	const float gradientTresholdMinPeaks = MIN(2.f/(static_cast<float>(minPeaksG.size())*_cutOffTreshold),1.f);
-
-	for (size_t i=0;i<maxPeaksG.size();i+=2) {
-		if ( maxPeaksG[i]<gradientTresholdMaxPeaks) {
-			maxPeaks[i] = 0.0f;
-			maxPeaks[i+1] = 0.0f;
-		}
-		else
-		{
-			break;
+		for (size_t i=0;i<maxPeaksG.size();i+=2) {
+			if ( maxPeaksG[i]<gradientTresholdMaxPeaks) {
+				maxPeaks[i] = 0.0f;
+				maxPeaks[i+1] = 0.0f;
+			}
+			else
+			{
+				break;
+			}
 		}
 	}
 
-	for (size_t i=minPeaksG.size()-2;i>0;i-=2) {
-		if ( minPeaksG[i]<gradientTresholdMinPeaks) {
-			minPeaks[i] = 0.0f;
-			minPeaks[i+1] = 0.0f;
-		}
-		else
-		{
-			break;
+
+	if ( minPeaksG.size() > 0 )
+	{
+		MathHelpers::gradient1D( &minPeaksG[0], minPeaksG.size()/2, 8, 0 );
+		const float gradientTresholdMinPeaks = MIN(2.f/(static_cast<float>(minPeaksG.size())*_cutOffTreshold),1.f);
+
+		for (size_t i=minPeaksG.size()-2;i>0;i-=2) {
+			if ( minPeaksG[i]<gradientTresholdMinPeaks) {
+				minPeaks[i] = 0.0f;
+				minPeaks[i+1] = 0.0f;
+			}
+			else
+			{
+				break;
+			}
 		}
 	}
 
