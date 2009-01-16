@@ -6,24 +6,30 @@
 
 class Spectra;
 
-
-class SpectraHelpers
+namespace SpectraHelpers
 {
-public:
+	// tokens for html template
+	static const std::string HTML_TOKEN_INFO("*INFO*");
+	static const std::string HTML_TOKEN_TITLE("*TITLE*");
+	static const std::string HTML_TOKEN_TEMPLATE("*TEMPLATE*");
 
-	static void Init( HDC _hDC );
+	// init system
+	void init( HDC _hDC );
+
+	// get GL default font ID
+	int getDefaultFontID();
 
 	// Render diagram to disk.
-	static void RenderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, 
+	void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, 
 		size_t _width, size_t _height, const std::string &sstrFilename );
 
 	// save a floating point map as RGB png image
 	// _pMap map
 	// _sstrFileName path+filename without extension
-	static void SaveIntensityMap( float *_pMap, size_t _sizeX, size_t _sizeY, const std::string &_sstrFileName );
+	void saveIntensityMap( float *_pMap, size_t _sizeX, size_t _sizeY, const std::string &_sstrFileName );
 
 	// Draw Spectrum (to framebuffer)
-	static void DrawSpectra(Spectra &_spectra, 
+	void drawSpectra(Spectra &_spectra, 
 							bool _showInfo,
 							bool _showSpectraLines, 
 							size_t _xp=0, size_t _yp=0, 
@@ -36,24 +42,19 @@ public:
 	// height and width in pixels
 	// yscale
 	// redness = [0..2] (0=black, 1=red, 2=yellow)
-	static void RenderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yscale, float _redness );
+	void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yscale, float _redness );
 
 	// load spectra from dump and combine all spectra into one.
 	// _sstrDumpFilename path + filename to spectra dump.
 	// _sstrFilename output image graph of resulting spectra
-	static void CombineSpectra( std::string &_sstrDumpFilename, const std::string &_sstrFilename );
+	void combineSpectra( std::string &_sstrDumpFilename, const std::string &_sstrFilename );
 
-	// load HTML template containing token: *INFO* *TITLE* *TEMPLATE* 
-	static std::string loadHTMLTemplate();
+	// load HTML template containing tokens. see HTML_TOKEN_*
+	std::string loadHTMLTemplate();
 
 	// write spectrum image and sdss link into HTML table entry
-	static void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstrOutTable );
+	void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstrOutTable );
 
-	static int s_FontID;
-
-private:
-
-	static bool s_IsInitialized;
 };
 
 

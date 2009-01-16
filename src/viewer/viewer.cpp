@@ -86,7 +86,7 @@ int InitGL( const std::string &sstrCmdLine )
 
 	setCaptionText( sstrFileName );
 
-	SpectraHelpers::Init( fr_hDC );
+	SpectraHelpers::init( fr_hDC );
 
 	// opengl init stuff
 	glShadeModel(GL_SMOOTH);							
@@ -127,7 +127,7 @@ void DrawGLScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-	SpectraHelpers::DrawSpectra( g_Spectrum, true, false, 0,0,scr_width,scr_height,g_YScale/g_Spectrum.m_Max );
+	SpectraHelpers::drawSpectra( g_Spectrum, true, false, 0,0,scr_width,scr_height,g_YScale/g_Spectrum.m_Max );
 
 	Sleep(50);
 }

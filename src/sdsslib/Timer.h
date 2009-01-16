@@ -14,17 +14,17 @@ public:
 	};
 
 
-	void Start();
-	void Pause();
+	void start();
+	void pause();
 
 	// -1.0 for no duration
-	void SetDuration( double _dDuration, EBoundaryMode _Mode );
+	void setDuration( double _dDuration, EBoundaryMode _Mode );
 
-	double GetElapsedSecs();
+	double getElapsedSecs();
 
 private:
 	typedef unsigned __int64 TTICKS;
-	static TTICKS GetTicks();
+	static TTICKS getTicks();
 
 	TTICKS m_StartTics;
 	TTICKS m_StartPauseTics;
@@ -36,7 +36,7 @@ private:
 
 
 inline 
-Timer::TTICKS Timer::GetTicks()
+Timer::TTICKS Timer::getTicks()
 {
 	LARGE_INTEGER lp;
 	QueryPerformanceCounter(&lp);
@@ -45,9 +45,9 @@ Timer::TTICKS Timer::GetTicks()
 
 
 inline 
-double Timer::GetElapsedSecs()
+double Timer::getElapsedSecs()
 {
-	TTICKS ElapsedTics = ( m_bPaused ) ? m_StartPauseTics-m_StartTics : Timer::GetTicks()-m_StartTics;
+	TTICKS ElapsedTics = ( m_bPaused ) ? m_StartPauseTics-m_StartTics : Timer::getTicks()-m_StartTics;
 
 	if ( m_DurationTicks > 0 )
 	{
@@ -55,7 +55,7 @@ double Timer::GetElapsedSecs()
 			switch( m_BoundaryMode ) {
 case kBoundaryMode_Loop :
 				ElapsedTics = 0;
-				m_StartTics = Timer::GetTicks();
+				m_StartTics = Timer::getTicks();
 				break;
 			default:
 				ElapsedTics = m_DurationTicks;

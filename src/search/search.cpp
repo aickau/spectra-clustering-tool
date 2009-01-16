@@ -162,7 +162,7 @@ void main(int argc, char* argv[])
 		_cprintf("%i comparison spectra found.\n",numCompareSpectra);
 	}
 
-	Spectra *compareSpectra = static_cast<Spectra*>( Memory::MemAlignedAlloc( sizeof(Spectra) * numCompareSpectra ) ); //new Spectra[numCompareSpectra];
+	Spectra *compareSpectra = static_cast<Spectra*>( Memory::memAlignedAlloc( sizeof(Spectra) * numCompareSpectra ) ); //new Spectra[numCompareSpectra];
 	std::map<float,size_t> *comparisonMap = new std::map<float,size_t>[numCompareSpectra];
 
 	if ( compareSpectra == NULL )
@@ -220,7 +220,7 @@ void main(int argc, char* argv[])
 		std::string sstrHTMLDoc = SpectraHelpers::loadHTMLTemplate();
 		std::string sstrCompareFilename(g_compareFileList.at(j));
 
-		if (!Helpers::insertString( std::string("*TITLE*"), sstrCompareFilename, sstrHTMLDoc ) )
+		if (!Helpers::insertString( SpectraHelpers::HTML_TOKEN_TITLE, sstrCompareFilename, sstrHTMLDoc ) )
 		{
 			printf("export failed. Wrong template.html ?!?\n");
 			return;
@@ -256,7 +256,7 @@ void main(int argc, char* argv[])
 			}
 		}
 	
-		if (!Helpers::insertString( std::string("*TEMPLATE*"), sstrTable, sstrHTMLDoc ) )
+		if (!Helpers::insertString( SpectraHelpers::HTML_TOKEN_TEMPLATE, sstrTable, sstrHTMLDoc ) )
 		{
 			printf("export failed. Wrong template.html ?!?\n");
 			return;
@@ -268,7 +268,7 @@ void main(int argc, char* argv[])
 		sstrInfo += "<br>\nNumber of compared spectra: ";
 		sstrInfo += Helpers::numberToString<size_t>(numSpectra);
 
-		Helpers::insertString( std::string("*INFO*"), sstrInfo, sstrHTMLDoc );
+		Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, sstrInfo, sstrHTMLDoc );
 
 
 		std::string sstrResultFilename("searchresults_");
@@ -280,7 +280,7 @@ void main(int argc, char* argv[])
 		std::ofstream fon(sstrResultFilename.c_str());
 		fon<<sstrHTMLDoc;
 	}
-	Memory::MemAlignedFree( compareSpectra );
+	Memory::memAlignedFree( compareSpectra );
 
 
 /*

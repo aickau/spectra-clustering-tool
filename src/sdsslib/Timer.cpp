@@ -8,30 +8,30 @@ m_BoundaryMode( kBoundaryMode_Stop ),
 m_DurationTicks( 0 )
 {
 	QueryPerformanceFrequency(&m_Frequency);
-	Start();
+	start();
 }
 
 
 
-void Timer::Start()
+void Timer::start()
 {
-	m_StartTics = Timer::GetTicks();
+	m_StartTics = Timer::getTicks();
 }
 
 
-void Timer::Pause()
+void Timer::pause()
 {
 	if( m_bPaused ) {
-		m_StartTics += Timer::GetTicks() - m_StartPauseTics;
+		m_StartTics += Timer::getTicks() - m_StartPauseTics;
 		m_bPaused = false;
 	} else {
-		m_StartPauseTics = Timer::GetTicks();
+		m_StartPauseTics = Timer::getTicks();
 		m_bPaused = true;
 	}
 }
 
 
-void Timer::SetDuration( double _dDuration, EBoundaryMode _Mode )
+void Timer::setDuration( double _dDuration, EBoundaryMode _Mode )
 {
 	m_BoundaryMode = _Mode;
 	m_DurationTicks = ( _dDuration < 0.0f ) ? 0 : static_cast<TTICKS>(_dDuration * static_cast<double>(m_Frequency.QuadPart));

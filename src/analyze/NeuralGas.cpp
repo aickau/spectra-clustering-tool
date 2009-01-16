@@ -40,7 +40,7 @@ NeuralGas::NeuralGas( SpectraVFS *_pSourceVFS )
 
 	for (unsigned int i=0;i<m_numSpectra;i++) 
 	{
-		m_pPosition[i].Set( r.randomFloat(), r.randomFloat() );
+		m_pPosition[i].set( r.randomFloat(), r.randomFloat() );
 	}
 }
 
@@ -49,24 +49,24 @@ NeuralGas::~NeuralGas()
 	delete[] m_pPosition;
 }
 
-void NeuralGas::Reset( const Parameters &_params )
+void NeuralGas::reset( const Parameters &_params )
 {
 	m_currentStep = 0;
 	m_params = _params;
 }
 
 
-void NeuralGas::Process()
+void NeuralGas::process()
 {
 	if ( m_currentStep > m_params.numSteps )
 	{
-		Helpers::Print( std::string("Clustering finished (success).\n"), &m_logFile );
+		Helpers::print( std::string("Clustering finished (success).\n"), &m_logFile );
 		exit(1);
 	}
 
 	std::string sstrLog("Calculating step ");
 	sstrLog += Helpers::numberToString( m_currentStep ) + " / " + Helpers::numberToString( m_params.numSteps ) + "\n";
-	Helpers::Print( sstrLog, &m_logFile );
+	Helpers::print( sstrLog, &m_logFile );
 
 
 	// select random spectra from spectra dataset
@@ -122,7 +122,7 @@ void NeuralGas::Process()
 		// compute adaption vector
 		Vec2f pos = m_pPosition[j];
 		Vec2f adaptionVec;
-		adaptionVec.Set(0.f, 0.f);
+		adaptionVec.set(0.f, 0.f);
 
 
 		std::map<float,unsigned int>::iterator it = errorMap.begin();

@@ -68,7 +68,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
@@ -154,7 +154,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="fits$(PlatformName).lib;sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
@@ -241,7 +241,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
@@ -327,7 +327,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="fits$(PlatformName).lib;sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"

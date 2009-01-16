@@ -30,43 +30,43 @@ public:
 		return longvec[i];
 	}
 
-	inline void Set(float _x, float _y) {
+	inline void set(float _x, float _y) {
 		this->x=_x; this->y=_y; 
 	}
 
 
-	inline void Set(float *_a) {
+	inline void set(float *_a) {
 		memcpy(longvec,_a,2*sizeof(float));
 	}
 
-	inline void Ceil() {
+	inline void ceil() {
 		x=ceilf(x); y=ceilf(y); 
 	}
 
-	inline void Floor() {
+	inline void floor() {
 		x=floorf(x); y=floorf(y);
 	}
 
-	inline void Null() {
+	inline void null() {
 		x=y=0.f;
 	}
 
 
-	inline Vec2f Max ( const Vec2f &_b ) {
+	inline Vec2f max ( const Vec2f &_b ) {
 		Vec2f ret;
 		ret.x = _b.x>x?_b.x:x;
 		ret.y = _b.y>y?_b.y:y;
 		return ret;
 	}
 
-	inline Vec2f Min ( const Vec2f &_b ) {
+	inline Vec2f min ( const Vec2f &_b ) {
 		Vec2f ret;
 		ret.x = _b.x<x?_b.x:x;
 		ret.y = _b.y<y?_b.y:y;
 		return ret;
 	}
 
-	inline Vec2f Abs () {
+	inline Vec2f abs () {
 		Vec2f r;
 		if (x<0) r.x = -x; else r.x = x;
 		if (y<0) r.y = -y; else r.y = y;
@@ -74,55 +74,55 @@ public:
 	}
 
 
-	inline void Negate() {
+	inline void negate() {
 		x=-x; y=-y;
 	}
 
-	inline Vec2f Negated() {
+	inline Vec2f negated() {
 		return Vec2f(-x, -y);
 	}
 
-	inline void Square() {
+	inline void square() {
 		x*=x; y*=y;
 	}
 
-	inline Vec2f Squared() {
+	inline Vec2f squared() {
 		return Vec2f(x*x, y*y);
 	}
 
-	inline void Invert() {
+	inline void invert() {
 		x=1.f/x; y=1.f/y;
 	}
 
-	inline Vec2f Inverted() {
+	inline Vec2f inverted() {
 		return Vec2f(1.f/x, 1.f/y);
 	}
 
-	inline Vec2f InvertedSafe() {
+	inline Vec2f invertedSafe() {
 		return Vec2f((x != 0.0f) ? 1.f/x : 0.0f, (y != 0.0f) ? 1.f/y : 0.0f);
 	}
 
 
-	inline void Scale(const Vec2f &s) {
+	inline void scale(const Vec2f &s) {
 		x*=s.x;
 		y*=s.y;
 	}
 
-	inline Vec2f Scaled(const Vec2f &s) {
+	inline Vec2f scaled(const Vec2f &s) {
 		return Vec2f(x*s.x, y*s.y);
 	}
 
-	inline float Magnitude() {
+	inline float magnitude() {
 		return sqrtf(x*x+y*y);
 	};
 
-	inline float MagnitudeSquare() {
+	inline float magnitudeSquare() {
 		return x*x+y*y;
 	};
 
 
-	inline void NormaliseSafe() {
-		float l = Magnitude();
+	inline void normaliseSafe() {
+		float l = magnitude();
 		if (l==0) {
 			x = 1.0f;
 			y = 0.f;
@@ -134,9 +134,9 @@ public:
 		}	
 	}
 
-	inline void Normalise() 
+	inline void normalise() 
 	{				
-		float l = Magnitude();
+		float l = magnitude();
 		x/=l;
 		y/=l;
 	};
