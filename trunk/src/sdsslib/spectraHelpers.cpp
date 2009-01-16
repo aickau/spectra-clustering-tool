@@ -318,3 +318,38 @@ std::string SpectraHelpers::loadHTMLTemplate()
 	}
 	return sstrHTMLDocTemplate;
 }
+
+
+
+void SpectraHelpers::writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstrOutTable )
+{
+	const Spectra *sp = &_spectrum;
+	_sstrOutTable += "<tr>\n";
+	_sstrOutTable += "<td>";
+	// insert link
+	if ( !sp->getFileName().empty() )
+	{
+		_sstrOutTable += "<a href=\"";
+		_sstrOutTable += sp->getURL();
+		_sstrOutTable += "\" target=\"_blank\">";
+
+		_sstrOutTable += "<img src=\"";
+		_sstrOutTable += "http://cas.sdss.org/dr6/en/get/specById.asp?id=";
+		_sstrOutTable += Helpers::numberToString<__int64>(sp->m_SpecObjID);
+		_sstrOutTable += "\"><br>err=";
+		_sstrOutTable += Helpers::numberToString<float>(_error);
+		_sstrOutTable += "  z=";
+		_sstrOutTable += Helpers::numberToString<float>(sp->m_Z);
+		_sstrOutTable += "  ";
+		_sstrOutTable += sp->getFileName();
+		_sstrOutTable += "</td>";
+	}
+	else
+	{
+		// insert image
+		_sstrOutTable += "<img src=\"export/empty.png\"></td>";
+	}
+
+	_sstrOutTable += "</td>\n";
+	_sstrOutTable += "</tr>\n";
+}

@@ -46,6 +46,9 @@ public:
 	// load HTML template containing token: *INFO* *TITLE* *TEMPLATE* 
 	static std::string loadHTMLTemplate();
 
+	// write spectrum image and sdss link into HTML table entry
+	static void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstrOutTable );
+
 	static int s_FontID;
 
 private:
