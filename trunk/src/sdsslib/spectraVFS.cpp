@@ -43,7 +43,7 @@ SpectraVFS::SpectraVFS( const std::string &_sstrFilename, bool _readOnly )
 		m_pCache[i] = NULL;
 	}
 
-	m_IOHandle.Reset();
+	m_IOHandle.reset();
 
 	DWORD accessMode = GENERIC_READ | ((_readOnly) ? 0 : GENERIC_WRITE);
 	m_FileHandle = CreateFile( m_sstrDumpFilename.c_str(), accessMode, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL );
@@ -78,7 +78,7 @@ SpectraVFS::SpectraVFS( const std::string &_sstrFilename, bool _readOnly )
 
 	for ( size_t i=0;i<CACHELINES;i++)
 	{
-		m_pCache[i] = static_cast<Spectra*>( Memory::MemAlignedAlloc( TOTALCACHELINEBYTES ) ); // new Spectra[CACHELINESIZE];
+		m_pCache[i] = static_cast<Spectra*>( Memory::memAlignedAlloc( TOTALCACHELINEBYTES ) ); // new Spectra[CACHELINESIZE];
 
 		if ( m_pCache == NULL )
 		{
@@ -107,7 +107,7 @@ SpectraVFS::~SpectraVFS()
 	}
 	for ( size_t i=0;i<CACHELINES;i++)
 	{
-		Memory::MemAlignedFree( m_pCache[i] );
+		Memory::memAlignedFree( m_pCache[i] );
 		m_pCache[i] = NULL;
 	}
 }
@@ -240,7 +240,7 @@ void SpectraVFS::prefetch( size_t _nSpectraIndex )
 	}
 
 	// prefetch in progress?
-	if ( !m_IOHandle.IsSet() )
+	if ( !m_IOHandle.isSet() )
 	{
 		// only one prefetch operation allowed.
 		return;
@@ -411,7 +411,7 @@ void SpectraVFS::write( size_t _count, float _noize, const std::string &_sstrFil
 
 SpectraVFS::IOHandle::IOHandle()
 {
-	Reset();
+	reset();
 }
 
 SpectraVFS::IOHandle::IOHandle( OVERLAPPED &_overlapped )
@@ -419,14 +419,14 @@ SpectraVFS::IOHandle::IOHandle( OVERLAPPED &_overlapped )
 	m_overlapped = _overlapped;
 }
 
-void SpectraVFS::IOHandle::Set( unsigned __int32 _offsetLow, unsigned __int32 _offsetHigh )
+void SpectraVFS::IOHandle::set( unsigned __int32 _offsetLow, unsigned __int32 _offsetHigh )
 {
 	m_overlapped.hEvent = (HANDLE)1;
 	m_overlapped.Offset = _offsetLow;
 	m_overlapped.OffsetHigh = _offsetHigh;
 }
 
-void SpectraVFS::IOHandle::Reset()
+void SpectraVFS::IOHandle::reset()
 {
 	m_overlapped.hEvent = 0;
 	m_overlapped.Offset = 0;
@@ -435,7 +435,7 @@ void SpectraVFS::IOHandle::Reset()
 	m_overlapped.InternalHigh = 0;
 }
 
-bool SpectraVFS::IOHandle::IsSet()
+bool SpectraVFS::IOHandle::isSet()
 {
 	return ( (int)m_overlapped.hEvent == 1 );
 }
@@ -466,7 +466,7 @@ void SpectraVFS::Read( size_t _nSpectraIndex, Spectra *_pDestination, bool bAsyn
 	unsigned __int32 nOffsetLow, nOffsetHigh;
 	UInt64toHiLow( nOffset, nOffsetLow, nOffsetHigh );
 
-	m_IOHandle.Set( nOffsetLow, nOffsetHigh );
+	m_IOHandle.set( nOffsetLow, nOffsetHigh );
 
 	ReadFileEx( m_FileHandle, _pDestination, nBytesToRead, &m_IOHandle.m_overlapped, &SpectraVFS::ReadFinished );
 	
@@ -486,7 +486,7 @@ void CALLBACK SpectraVFS::ReadFinished(DWORD dwErrorCode, DWORD dwNumberOfBytesT
 void SpectraVFS::WaitForIO( IOHandle &_handle )
 {
 //	Timer t;
-	while ( _handle.IsSet() )
+	while ( _handle.isSet() )
 	{
 		SleepEx(1,true);
 	}
@@ -520,7 +520,7 @@ void SpectraVFS::Write(  size_t _nSpectraIndex, Spectra *_pSource )
 	UInt64toHiLow( nOffset, nOffsetLow, nOffsetHigh );
 
 	IOHandle writeHandle;
-	writeHandle.Set( nOffsetLow, nOffsetHigh );
+	writeHandle.set( nOffsetLow, nOffsetHigh );
 
 	WriteFileEx( m_FileHandle, _pSource, nBytesToWrite, &writeHandle.m_overlapped, &SpectraVFS::ReadFinished );
 	WaitForIO( writeHandle );

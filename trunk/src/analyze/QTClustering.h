@@ -35,11 +35,11 @@ public:
 	~QTClustering();
 
 	// process clustering
-	void Process();
+	void process();
 
 	// export to HTML.
 	// _sstrFilename absolute or relative filename without (!) extension.
-	void Export( const std::string &_sstrFilename );
+	void exportToHTML( const std::string &_sstrFilename );
 
 
 private:

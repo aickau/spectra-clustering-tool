@@ -29,7 +29,7 @@ QTClustering::~QTClustering()
 {
 }
 
-void QTClustering::Process()
+void QTClustering::process()
 {
 	// for each spectrum we store a cluster map
 	Candidates *pClusterMap = new Candidates[m_numSpectra];
@@ -140,14 +140,14 @@ void QTClustering::Process()
 }
 
 
-void QTClustering::Export( const std::string &_sstrFilename )
+void QTClustering::exportToHTML( const std::string &_sstrFilename )
 {
 	std::string sstrLog;
 	sstrLog = "Exporting results to ";
 	sstrLog += _sstrFilename;
 	sstrLog +="\n";
 
-	Helpers::Print( sstrLog, &m_logFile );
+	Helpers::print( sstrLog, &m_logFile );
 
 	std::string sstrTemp;
 	std::string sstrHTMLDoc;
@@ -164,7 +164,7 @@ void QTClustering::Export( const std::string &_sstrFilename )
 	sstrInfo += std::string("errorPerSample ")+Helpers::numberToString( m_params.errorPerSample )+std::string("<br>\n");
 	sstrInfo += std::string("spectrum size in bytes ")+Helpers::numberToString( sizeof(Spectra) )+std::string("<br>\n");
 
-	Helpers::insertString( std::string("*INFO*"), sstrInfo, sstrHTMLMainDoc );
+	Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, sstrInfo, sstrHTMLMainDoc );
 
 	sstrTable += "<tr>\n";
 	sstrTable += "<br><h2>unclassified:</h2>\n";
@@ -223,9 +223,9 @@ void QTClustering::Export( const std::string &_sstrFilename )
 		sstrTable += "</tr>\n";
 	}
 	
-	if (!Helpers::insertString( std::string("*TEMPLATE*"), sstrTable, sstrHTMLMainDoc ) )
+	if (!Helpers::insertString( SpectraHelpers::HTML_TOKEN_TEMPLATE, sstrTable, sstrHTMLMainDoc ) )
 	{
-		Helpers::Print( std::string("export failed. Wrong template.html ?!?\n"), &m_logFile );
+		Helpers::print( std::string("export failed. Wrong template.html ?!?\n"), &m_logFile );
 		return;
 	}
 

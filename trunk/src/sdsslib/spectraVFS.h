@@ -96,9 +96,9 @@ private:
 	public:
 		IOHandle();
 		IOHandle( OVERLAPPED &_overlapped );
-		void Set( unsigned __int32 _offsetLow, unsigned __int32 _offsetHigh );
-		void Reset();
-		bool IsSet();
+		void set( unsigned __int32 _offsetLow, unsigned __int32 _offsetHigh );
+		void reset();
+		bool isSet();
 		OVERLAPPED m_overlapped;
 	};
 

@@ -32,7 +32,7 @@ namespace Helpers
 	bool insertString( const std::string &sstrTag, const std::string &sstrInsertValue, std::string &sstrValue );
 	
 	// print text to console, optional to a log file.
-	void Print( const std::string &_sstrText, std::ofstream *_logStream=NULL );
+	void print( const std::string &_sstrText, std::ofstream *_logStream=NULL );
 
 };
 

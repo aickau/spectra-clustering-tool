@@ -39,10 +39,10 @@ public:
 	~NeuralGas();
 
 	// resets the network
-	void Reset( const Parameters &_params );
+	void reset( const Parameters &_params );
 
 	// one learning step
-	void Process();
+	void process();
 
 
 protected:

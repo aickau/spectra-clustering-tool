@@ -23,7 +23,7 @@ void GrowHash()
 }
 
 
-void *MemAlignedAlloc(size_t size)
+void *memAlignedAlloc(size_t size)
 {
 	void	*pt_align, *pt_unalign;
 	size_t		pt_offset, hash_index, hash_probe;
@@ -53,7 +53,7 @@ void *MemAlignedAlloc(size_t size)
 }
 
 
-void MemAlignedFree(void *pt_align)
+void memAlignedFree(void *pt_align)
 {
 	if (pt_align == NULL)
 		return;

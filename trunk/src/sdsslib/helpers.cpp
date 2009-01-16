@@ -19,7 +19,7 @@ bool Helpers::insertString( const std::string &sstrTag, const std::string &sstrI
 }
 
 
-void Helpers::Print( const std::string &_sstrText, std::ofstream *_logStream )
+void Helpers::print( const std::string &_sstrText, std::ofstream *_logStream )
 {
 	std::string sstrPrefix( Helpers::getCurentDateTimeStampString() );
 	sstrPrefix += "> ";

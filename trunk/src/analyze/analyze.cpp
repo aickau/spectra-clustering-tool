@@ -44,7 +44,7 @@ int InitGL( const std::string &sstrCmdLine )
 {
 	AllocConsole();
 
-	SpectraHelpers::Init( fr_hDC );
+	SpectraHelpers::init( fr_hDC );
 
 	// opengl init stuff
 	glShadeModel(GL_SMOOTH);							
@@ -167,7 +167,7 @@ void DrawNetwork( SOFMNetwork &network )
 		GLHelper::DrawLine( lb1, lb2 );
 	}
 
-	float yscale = 1.f/(network.m_Max-network.m_Min);
+	float yscale = 1.f/(network.m_Max*0.1-network.m_Min);
 
 	size_t yp=gridSize;
 	for ( size_t y=0;y<network.m_gridSize;y+=stepSize)
@@ -187,7 +187,7 @@ void DrawNetwork( SOFMNetwork &network )
 			}
 			float lp[3] = {xp*w,yp*h+h,-10};
 
-			SpectraHelpers::DrawSpectra(spectra, false, false, xp*w, yp*h, w, h, yscale );
+			SpectraHelpers::drawSpectra(spectra, false, false, xp*w, yp*h, w, h, yscale );
 
 //			if ( !spectra.m_strFileName.empty() )
 //			{
@@ -207,7 +207,7 @@ void ShowTrainData()
 		return;
 
 	Spectra *a = g_pVFSSource->beginRead( g_CurrentSpectraIndex );
-	SpectraHelpers::DrawSpectra( *a, true, false, 0, 0, scr_width, scr_height, 0.99f/a->m_Max );
+	SpectraHelpers::drawSpectra( *a, true, false, 0, 0, scr_width, scr_height, 0.99f/a->m_Max );
 	g_pVFSSource->endRead( g_CurrentSpectraIndex );
 
 	if ( up || down )

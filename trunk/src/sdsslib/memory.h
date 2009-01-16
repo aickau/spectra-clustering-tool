@@ -4,8 +4,8 @@
 namespace Memory
 {
 
-void *MemAlignedAlloc(size_t size);
-void MemAlignedFree(void *pt_align);
+	void *memAlignedAlloc(size_t size);
+	void memAlignedFree(void *pt_align);
 
 };
 

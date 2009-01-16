@@ -15,7 +15,16 @@
 #include "sdsslib/glhelper.h"
 
 
-static
+namespace SpectraHelpers
+{
+
+
+
+static bool s_IsInitialized = false;
+static int s_FontID = -1;
+
+
+
 size_t getFBWidth()
 {
 	GLint params[4];
@@ -23,7 +32,6 @@ size_t getFBWidth()
 	return params[2];
 }
 
-static
 size_t getFBHeight()
 {
 	GLint params[4];
@@ -32,24 +40,25 @@ size_t getFBHeight()
 }
 
 
-bool SpectraHelpers::s_IsInitialized = false;
-int SpectraHelpers::s_FontID = -1;
 
-void SpectraHelpers::Init( HDC _hDC )
+void init( HDC _hDC )
 {
 	if (s_IsInitialized)
 		return;
 
 	s_FontID = GLHelper::BuildFont(_hDC, "Arial", 10, false, false);
-
 	ilInit();
-
 	s_IsInitialized = true;
 }
 
 
+int getDefaultFontID()
+{
+	return s_FontID;
+}
 
-void SpectraHelpers::RenderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, 
+
+void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, 
 						 size_t _width, size_t _height, const std::string &sstrFilename )
 {
 	assert(_values != NULL);
@@ -83,7 +92,7 @@ void SpectraHelpers::RenderDiagramToDisk( float *_values, size_t _valueCount, si
 }
 
 
-void SpectraHelpers::SaveIntensityMap( float *_pMap, size_t _sizeX, size_t _sizeY, const std::string &_sstrFileName )
+void saveIntensityMap( float *_pMap, size_t _sizeX, size_t _sizeY, const std::string &_sstrFileName )
 {
 	assert( _pMap != NULL );
 	assert( _sizeX > 0 );
@@ -126,7 +135,7 @@ float Y2Win( float _yp )
 	return (scrHeight - static_cast<float>(_yp) );
 }
 
-void SpectraHelpers::DrawSpectra(Spectra &_spectra, 
+void drawSpectra(Spectra &_spectra, 
 								 bool _showInfo, 
 								 bool _showSpectraLines, 
 								 size_t _xp, 
@@ -202,7 +211,7 @@ void SpectraHelpers::DrawSpectra(Spectra &_spectra,
 
 
 
-void SpectraHelpers::RenderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yMax, float _redness )
+void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yMax, float _redness )
 {
 	if ( FileHelpers::fileExists(_sstrFilename) )
 		return;
@@ -234,7 +243,7 @@ void SpectraHelpers::RenderSpectraIconToDisk( Spectra &_spectra, const std::stri
 	glClearColor(_redness,g,0,0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 	_spectra.calcMinMax();
-	DrawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/_spectra.m_Max );
+	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/_spectra.m_Max );
 
 	glReadPixels(0,getFBHeight()-h4,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 	iluScale(_width,_height,1);
@@ -248,7 +257,7 @@ void SpectraHelpers::RenderSpectraIconToDisk( Spectra &_spectra, const std::stri
 
 
 
-void SpectraHelpers::CombineSpectra( std::string &_sstrDumpFilename, const std::string &_sstrFilename )
+void combineSpectra( std::string &_sstrDumpFilename, const std::string &_sstrFilename )
 {
 	SpectraVFS *pVFS = new SpectraVFS( _sstrDumpFilename, true );
 	size_t numSpectra = pVFS->getNumSpectra();
@@ -292,12 +301,12 @@ void SpectraHelpers::CombineSpectra( std::string &_sstrDumpFilename, const std::
 	int scrWidth, scrHeight;
 	GLHelper::GetViewportSize(scrWidth, scrHeight);
 
-	SpectraHelpers::RenderSpectraIconToDisk(accumSpectra, _sstrFilename, scrWidth, scrHeight, 1.f, 0.0f );
+	renderSpectraIconToDisk(accumSpectra, _sstrFilename, scrWidth, scrHeight, 1.f, 0.0f );
 
 }
 
 
-std::string SpectraHelpers::loadHTMLTemplate()
+std::string loadHTMLTemplate()
 {
 	const std::string sstrDefaultHTMLDocTemplate("<html><head><title>SDSS Analyze</title><meta http-equiv=\"Content-Type\"content=\"text/html;charset=utf-8\" /></head><body>*INFO*<table width=\"200\" height=\"200\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" align=\"center\"><caption>*TITLE*</caption><tbody>*TEMPLATE*</tbody></table></body></html>");
 	const std::string sstrTemplateFileName("template.html");
@@ -321,7 +330,7 @@ std::string SpectraHelpers::loadHTMLTemplate()
 
 
 
-void SpectraHelpers::writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstrOutTable )
+void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstrOutTable )
 {
 	const Spectra *sp = &_spectrum;
 	_sstrOutTable += "<tr>\n";
@@ -353,3 +362,6 @@ void SpectraHelpers::writeTableEntry( const Spectra &_spectrum, float _error, st
 	_sstrOutTable += "</td>\n";
 	_sstrOutTable += "</tr>\n";
 }
+
+
+};
