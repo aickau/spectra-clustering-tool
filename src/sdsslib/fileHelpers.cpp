@@ -93,7 +93,7 @@ size_t FileHelpers::getFileList( const std::string &_sstrSearchDir, std::vector<
 
 		if ( fileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
 		{
-			if ( sstrFileName != "." && sstrFileName != ".." )
+			if ( sstrFileName != "." && sstrFileName != ".." && sstrFileName != ".svn" )
 			{
 				std::string sstrNewSearchDir( getFilePath(_sstrSearchDir) );
 				sstrNewSearchDir += sstrFileName;
