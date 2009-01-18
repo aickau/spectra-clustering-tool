@@ -96,6 +96,7 @@ protected:
 	{
 		size_t index;
 		float error;	
+		bool bOnFrame;
 	};
 
 	// calculate min/max values for a given SpectraVFS
@@ -115,6 +116,16 @@ protected:
 
 	// read SOM cluster settings from file
 	bool readSettings( const std::string &_sstrFileName, std::string &_sstrSOFMFileName );
+
+	// search for best matching spectrum/neuron in the network
+	// this version will perform a brute-force full search in the entire network
+	// _spectraIndexList list with indices to source spectra
+	// _spectraIndexListOffset base offset to to index list
+	// _pBestMatchBatch pointer to array where best match info is written in make sure this is initialized correctly.
+	// _numBestMatchElements number of best match elements to process
+	void searchBestMatchComplete( const std::vector<size_t> &_spectraIndexList, size_t _spectraIndexListOffset, BestMatch *_pBestMatchBatch, size_t _numBestMatchElements );
+
+	void searchBestMatchLocal( const std::vector<size_t> &_spectraIndexList, size_t _spectraIndexListOffset, BestMatch *_pBestMatchBatch, size_t _numBestMatchElements );
 
 	// adapt network for a given neuron/spectrum
 	// _spectrum source spectrum to adapt
