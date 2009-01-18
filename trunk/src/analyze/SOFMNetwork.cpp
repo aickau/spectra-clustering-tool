@@ -117,7 +117,6 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 
 		//exportEnergyMap();
 		renderIcons();
-		generateHTMLInfoPages();
 
 		// initialize with input data
 		Rnd r(m_params.randomSeed);
@@ -455,16 +454,17 @@ void SOFMNetwork::process()
 	} else
 	if ( m_currentStep == m_params.numSteps/2 )
 	{
-		exportToHTML("export/half", true);
+		exportToHTML("export/half", false);
 	} else
 	if ( m_currentStep == m_params.numSteps/4 )
 	{
-		exportToHTML("export/quarter", true);
+		exportToHTML("export/quarter", false);
 	} else
 	if ( m_currentStep == 1 )
 	{
-		exportToHTML("export/first", true);
+		exportToHTML("export/first", false);
 	} else
+	if ( m_currentStep > 1 ) 
 	{
 		exportToHTML("export/current", false);
 	}
@@ -633,11 +633,16 @@ void SOFMNetwork::process()
 
 			Spectra *a = m_pNet->beginWrite( currentBestMatch.index );
 
+			// remember best match position to NW for faster search
+			currentSpectra.m_Index = currentBestMatch.index;
+
+
 			// set name of best match neuron
 			if ( a->isEmpty() )
 			{
 				a->m_SpecObjID = currentSpectra.m_SpecObjID;
 				a->m_Index = spectraIndex;
+
 			}
 			else
 			{
@@ -660,9 +665,6 @@ void SOFMNetwork::process()
 					spectraCollisionList.push_back( a->m_Index );
 					a->m_SpecObjID = currentSpectra.m_SpecObjID;
 					a->m_Index = spectraIndex;
-
-					// remember best match position to NW for faster search
-					currentSpectra.m_Index = currentBestMatch.index;
 				}
 			}
 			m_pNet->endWrite( currentBestMatch.index );
@@ -918,7 +920,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 }
 
 
-void SOFMNetwork::generateHTMLInfoPages()
+void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 {
 	Helpers::print( "Generating info pages for spectra\n", &m_logFile );
 
@@ -934,13 +936,14 @@ void SOFMNetwork::generateHTMLInfoPages()
 	{
 		Spectra *a = m_pSourceVFS->beginRead( i );
 
+		Helpers::print( std::string("Generating info page for spectrum\n")+a->getFileName()+std::string("\n"), &m_logFile );
+
+		const int xpA = a->m_Index % m_gridSize;
+		const int ypA = a->m_Index / m_gridSize;
+
 		comparisonMap.clear();
 		for ( size_t j=0;j<m_numSpectra;j++ )
 		{
-			if ( j==i )
-			{
-				continue;
-			}
 			Spectra *b = m_pSourceVFS->beginRead( j );
 			float err = a->compareSuperAdvanced( *b, compareInvariance ); 
 			comparisonMap.insert( std::pair<float, size_t>(err, j) );	
@@ -957,16 +960,15 @@ void SOFMNetwork::generateHTMLInfoPages()
 			CreateDirectory( sstrDir.c_str(), NULL );
 		}
 
-		// replace empty token.
-		Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, std::string(""), sstrMainHTMLDoc );
-
-
 		// filename for HTML page
 		std::string sstrFilename(sstrDir);
 		sstrFilename += a->getFileName();
 		sstrFilename += ".html";
 
 		sstrMainHTMLDoc = sstrHTMLDocTemplate;
+
+		// replace empty token.
+		Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, std::string(""), sstrMainHTMLDoc );
 
 		std::string sstrInfo( "Summary page for spectrum " );
 		sstrInfo += a->getFileName();
@@ -986,8 +988,55 @@ void SOFMNetwork::generateHTMLInfoPages()
 		std::map<float,size_t>::iterator it( comparisonMap.begin() ); 
 		while ( it != comparisonMap.end() && c < numHiScoresEntries)
 		{
-			Spectra *sp = m_pSourceVFS->beginRead( it->second );
-			SpectraHelpers::writeTableEntry( *sp, it->first, sstrTable );
+			Spectra *b = m_pSourceVFS->beginRead( it->second );
+
+			const int xpB = b->m_Index % m_gridSize;
+			const int ypB = b->m_Index / m_gridSize;
+
+			const int xD = xpA-xpB;
+			const int yD = ypA-ypB;
+
+			const float error = it->first;
+
+			sstrTable += "<tr>\n";
+			sstrTable += "<td>";
+
+			sstrTable += "<a href=\"";
+			sstrTable += b->getURL();
+			sstrTable += "\" target=\"_blank\">";
+
+			sstrTable += "<img src=\"";
+			sstrTable += "http://cas.sdss.org/dr6/en/get/specById.asp?id=";
+			sstrTable += Helpers::numberToString<__int64>(b->m_SpecObjID);
+			sstrTable += "\"><br>err=";
+			sstrTable += Helpers::numberToString<float>(error);
+			sstrTable += "  z=";
+			sstrTable += Helpers::numberToString<float>(b->m_Z);
+			sstrTable += "  ";
+			sstrTable += b->getFileName();
+			sstrTable += "  ";
+
+			// link to map if export sub pages = yes
+			if ( m_params.exportSubPage ) 
+			{
+				sstrTable += "<a href=\"";
+				sstrTable += "../" + _sstrMapBaseName + Helpers::numberToString<int>(xpB/s_outputPlanSize) + "_" + Helpers::numberToString<int>(ypB/s_outputPlanSize) + ".html";
+				sstrTable += "\" target=\"_blank\">map</a>";
+				sstrTable += "  ";
+			}
+
+			// distance
+			if ( a->m_Index >= 0 && b->m_Index >= 0 )
+			{
+				sstrTable += "distance " + Helpers::numberToString<int>(xD) + "," + Helpers::numberToString<int>(yD);
+			}
+
+			sstrTable += "</td>";
+
+			sstrTable += "</td>\n";
+			sstrTable += "</tr>\n";
+
+
 			m_pSourceVFS->endRead( it->second );
 			it++;
 			c++;
@@ -1000,7 +1049,7 @@ void SOFMNetwork::generateHTMLInfoPages()
 		fon<<sstrMainHTMLDoc;
 
 		m_pSourceVFS->endRead( i );
-		break;
+		//break;
 	}
 }
 
@@ -1030,6 +1079,11 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	const std::string sstrDifferenceMap = "DifferenceMap_" + sstrName;
 	calcUMatrix( sstrDirectory+sstrUMatrix, true, false, false );
 	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false);
+
+	if ( _fullExport )
+	{
+		generateHTMLInfoPages( sstrName );
+	}
 	
 	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+std::string("<br>\n");;
 	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+std::string("<br>\n");
@@ -1045,6 +1099,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	sstrInfo += std::string("Difference map:<br>\n<img src=\"")+sstrDifferenceMap += ".png\"><br>\n";
 
 	Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, sstrInfo, sstrMainHTMLDoc );
+	Helpers::insertString( SpectraHelpers::HTML_TOKEN_TITLE, "", sstrMainHTMLDoc );
 	const size_t OutputPlanSizeTemp = (m_params.exportSubPage) ? s_outputPlanSize : m_gridSize;
 
 	size_t planXMax = 1 + m_gridSize / OutputPlanSizeTemp;
@@ -1066,6 +1121,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 				sstrTitle += " / ";
 				sstrTitle += Helpers::numberToString( planY );
 
+				Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, "", sstrHTMLDoc );
 				Helpers::insertString( SpectraHelpers::HTML_TOKEN_TITLE, sstrTitle, sstrHTMLDoc );
 			}
 
@@ -1113,9 +1169,19 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 					{
 						assert(sp->m_Index<static_cast<int>(m_numSpectra));
 						sstrTable += "<a href=\"";
-						sstrTable += sp->getURL();
+
+						std::string sstrPlanDirectory = Spectra::plateToString(sp->getPlate()) + std::string("/");
+
+						if ( _fullExport )
+						{
+							sstrTable += sstrPlanDirectory+sp->getFileName()+".html";
+						}
+						else
+						{
+							sstrTable += sp->getURL();
+						}
 						sstrTable += "\" target=\"_blank\">";
-						std::string sstrImagePlan = Spectra::plateToString(sp->getPlate()) + std::string("/") + sp->getFileName();
+						std::string sstrImagePlan = sstrPlanDirectory + sp->getFileName();
 						sstrTable += "<img src=\"";
 						sstrTable += sstrImagePlan;
 						sstrTable += ".png\"></td>";

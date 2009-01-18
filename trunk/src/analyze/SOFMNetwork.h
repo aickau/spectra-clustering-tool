@@ -128,7 +128,8 @@ protected:
 	size_t getIndex( size_t _cellX, size_t _cellY );
 
 	// generate HTML info pages for each source spectrum.
-	void generateHTMLInfoPages();
+	// _sstrMapBaseName base name of the exported HTML maps, see exportToHTML()
+	void generateHTMLInfoPages( const std::string &_sstrMapBaseName );
 
 	SpectraVFS		*m_pNet;	
 
