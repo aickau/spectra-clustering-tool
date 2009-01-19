@@ -1,12 +1,25 @@
+//! \verbatim
+//! ###########################################################################
+//! # SDSS sorting prototype - Stage I
+//! #
+//! # Copyright (c) 2009 Aick in der Au
+//! # All rights reserved.
+//! ###########################################################################
+//!
+//!      created by : Aick in der Au <aick.inderau@gmail.com>
+//!      created on : 1/19/2009
+//! additional docs : none
+//!  responsibility : 1. Aick in der Au
+//!                   2. 
+//! \endverbatim
+//!
+//! \file  random.cpp
+//! \brief Random number generation taken from mt19937-1.c credits: "Coded by Takuji Nishimura"
+//!        should give 2^19937-1 random numbers per seed
+
 #include "random.h"
 
 #include <assert.h>
-
-// taken from mt19937-1.c 
-// credits:
-// "Coded by Takuji Nishimura"
-// 
-// should give 2^19937-1 random numbers per seed
 
 
 #define N 624
