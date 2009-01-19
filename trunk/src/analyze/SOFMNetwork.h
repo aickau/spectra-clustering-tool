@@ -126,8 +126,8 @@ protected:
 	// render icons for input data set to disk.
 	void renderIcons();
 
-	// export an energy graph for the current input data set.
-	void exportEnergyMap();
+	// export an energy and z histograms for the current input data set.
+	void exportHistograms( const std::string &_sstrExportDirectory );
 	
 	// write SOM cluster settings to file
 	void writeSettings( const std::string &_sstrFileName );

@@ -132,8 +132,8 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 		m_pNet = new SpectraVFS( sstrNet, false );
 		reset(m_params);
 
-		//exportEnergyMap();
 		renderIcons();
+		exportHistograms("export");
 
 		// initialize with input data
 		Rnd r(m_params.randomSeed);
@@ -328,9 +328,14 @@ void SOFMNetwork::calcMinMaxInputDS()
 
 
 
-void SOFMNetwork::exportEnergyMap()
+void SOFMNetwork::exportHistograms( const std::string &_sstrExportDirectory )
 {
-	Helpers::print( std::string("Exporting energy map.\n"), &m_logFile );
+	std::string sstrDir( FileHelpers::getFilePath(_sstrExportDirectory) );
+	if ( !sstrDir.empty() ) {
+		sstrDir += "/";
+	}
+
+	Helpers::print( std::string("Exporting energy maps.\n"), &m_logFile );
 	std::vector<float> energymap;
 	std::vector<float> toatalenergymap;
 	std::vector<float> zmap;
@@ -348,9 +353,12 @@ void SOFMNetwork::exportEnergyMap()
 	std::sort( toatalenergymap.begin(), toatalenergymap.end() );
 	std::sort( zmap.begin(), zmap.end() );
 
-	SpectraHelpers::renderDiagramToDisk(&energymap[0], energymap.size(), 4, 0, 1200, 800, std::string("energymap.png") );
-	SpectraHelpers::renderDiagramToDisk(&toatalenergymap[0], toatalenergymap.size(), 4, 0, 1200, 800, std::string("toatalenergymap.png") );
-	SpectraHelpers::renderDiagramToDisk(&zmap[0], zmap.size(), 4, 0, 1200, 800, std::string("zmap.png") );
+	const size_t width = 800;
+	const size_t height = 533;
+
+	SpectraHelpers::renderDiagramToDisk(&energymap[0], energymap.size(), 4, 0, width, height, sstrDir+std::string("energymap.png") );
+	SpectraHelpers::renderDiagramToDisk(&toatalenergymap[0], toatalenergymap.size(), 4, 0, width, height, sstrDir+std::string("toatalenergymap.png") );
+	SpectraHelpers::renderDiagramToDisk(&zmap[0], zmap.size(), 4, 0, width, height, sstrDir+std::string("zmap.png") );
 }
 
 
@@ -1134,6 +1142,8 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	sstrInfo += std::string("spectrum size in bytes: ")+Helpers::numberToString( sizeof(Spectra) )+std::string("<br>\n");
 	sstrInfo += std::string("UMatrix:<br>\n<img src=\"")+sstrUMatrix += ".png\"><br>\n";
 	sstrInfo += std::string("Difference map:<br>\n<img src=\"")+sstrDifferenceMap += ".png\"><br>\n";
+	sstrInfo += std::string("Energy histogram:<br>\n<img src=\"energymap.png\"><br>\n");
+	sstrInfo += std::string("Z histogram:<br>\n<img src=\"zmap.png\"><br>\n");
 
 	Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, sstrInfo, sstrMainHTMLDoc );
 	Helpers::insertString( SpectraHelpers::HTML_TOKEN_TITLE, "", sstrMainHTMLDoc );

@@ -57,6 +57,18 @@ size_t getFBHeight()
 	return params[3];
 }
 
+float X2Win( float _xp )
+{
+	return ( _xp );
+}
+
+
+float Y2Win( float _yp )
+{
+	int scrWidth, scrHeight;
+	GLHelper::GetViewportSize(scrWidth, scrHeight);
+	return (scrHeight - static_cast<float>(_yp) );
+}
 
 
 void init( HDC _hDC )
@@ -77,7 +89,7 @@ int getDefaultFontID()
 
 
 void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, 
-						 size_t _width, size_t _height, const std::string &sstrFilename )
+						 size_t _width, size_t _height, const std::string &_sstrFilename )
 {
 	assert(_values != NULL);
 	assert(_width<=getFBWidth());
@@ -90,9 +102,9 @@ void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBy
 	ilEnable(IL_FILE_OVERWRITE );
 	iluImageParameter(ILU_FILTER,ILU_SCALE_BSPLINE);
 
-	glColor3f(1,1,1);
+	glColor3f(0,0,0);
 	glLineWidth(1.f);
-	glClearColor(0.0f,0.0f,0.f,0.f);
+	glClearColor(1.0f,1.0f,1.f,1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
 	float yMin, yMax;
@@ -104,8 +116,19 @@ void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBy
 
 	GLHelper::DrawDiagram( _values, _valueCount, _strideInBytes, _offsetInBytes, 0.0f, static_cast<float>((_height*3.f)/4.f), xs, ys );
 
+	float pos[]={10.f,10.f,-10};
+	std::stringstream sstream;
+	sstream << "min: " << yMin << "  max: " << yMax;
+	std::string sstrOut( sstream.str() );
+	GLHelper::Print( s_FontID, pos, sstrOut.c_str() );
+
+
+	glLineWidth(1.f);
+	glColor3f(1,1,1);
+	glClearColor(0.0f,0.0f,0.f,1.f);
+
 	glReadPixels(0,getFBHeight()-_height,_width,_height,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
-	ilSave( IL_PNG, const_cast<char*>(sstrFilename.c_str()) );
+	ilSave( IL_PNG, const_cast<char*>(_sstrFilename.c_str()) );
 	ilDeleteImage(image);
 }
 
@@ -137,21 +160,6 @@ void saveIntensityMap( float *_pMap, size_t _sizeX, size_t _sizeY, const std::st
 	ilDeleteImage(image);
 }
 
-
-
-
-float X2Win( float _xp )
-{
-	return ( _xp );
-}
-
-
-float Y2Win( float _yp )
-{
-	int scrWidth, scrHeight;
-	GLHelper::GetViewportSize(scrWidth, scrHeight);
-	return (scrHeight - static_cast<float>(_yp) );
-}
 
 void drawSpectra(Spectra &_spectra, 
 								 bool _showInfo, 
