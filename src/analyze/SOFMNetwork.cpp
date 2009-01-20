@@ -464,7 +464,11 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 	}
 }
 
-void SOFMNetwork::searchBestMatchComplete( const std::vector<size_t> &_spectraIndexList, size_t _spectraIndexListOffset, BestMatch *_pBestMatchBatch, size_t _numBestMatchElements )
+void SOFMNetwork::searchBestMatchComplete( const std::vector<size_t> &_spectraIndexList, 
+										  size_t _spectraIndexListOffset, 
+										  BestMatch *_pBestMatchBatch, 
+										  size_t _numBestMatchElements, 
+										  bool _bOnFrameOnly )
 {
 	assert( _pBestMatchBatch != NULL );
 	assert( _numBestMatchElements <= SpectraVFS::CACHELINESIZE );
@@ -476,8 +480,14 @@ void SOFMNetwork::searchBestMatchComplete( const std::vector<size_t> &_spectraIn
 		Spectra *a = m_pNet->beginRead( i );
 
 		Spectra *src[SpectraVFS::CACHELINESIZE];
+
+		// begin read for all src spectra
 		for ( int k=0;k<_numBestMatchElements;k++)
 		{
+			// skip spectra that are not on-frame if we are in on-frame search mode
+			if ( _bOnFrameOnly && !_pBestMatchBatch[k].bOnFrame ) {
+				continue;
+			}
 			const size_t spectraIndex = _spectraIndexList[_spectraIndexListOffset+k];
 			src[k] = m_pSourceVFS->beginRead(spectraIndex);
 		}
@@ -487,19 +497,29 @@ void SOFMNetwork::searchBestMatchComplete( const std::vector<size_t> &_spectraIn
 		for ( int k=0;k<numElements;k++)
 		{
 			BestMatch &currentBestMatch = _pBestMatchBatch[k];
-			Spectra &currentSpectra = *src[k];
-
-			const float errMin = a->compare( currentSpectra );
-
-			if (errMin < currentBestMatch.error && a->isEmpty() )
+			// perform comparision only if we are:
+			// a) on-frame 
+			// b) or for all spectra if on-onframe search mode is not activated.
+			if ( !_bOnFrameOnly || currentBestMatch.bOnFrame ) 
 			{
-				currentBestMatch.error = errMin;
-				currentBestMatch.index = i;
+				Spectra &currentSpectra = *src[k];
+
+				const float errMin = a->compare( currentSpectra );
+				
+				if (errMin < currentBestMatch.error && a->isEmpty() )
+				{
+					currentBestMatch.error = errMin;
+					currentBestMatch.index = i;
+				}
 			}
 		}
 
+		// end read for all src spectra
 		for ( int k=0;k<numElements;k++)
 		{
+			if ( _bOnFrameOnly && !_pBestMatchBatch[k].bOnFrame ) {
+				continue;
+			}
 			const size_t spectraIndex = _spectraIndexList[_spectraIndexListOffset+k];
 			m_pSourceVFS->endRead(spectraIndex);
 		}
@@ -508,7 +528,10 @@ void SOFMNetwork::searchBestMatchComplete( const std::vector<size_t> &_spectraIn
 	}
 }
  
-void SOFMNetwork::searchBestMatchLocal( const std::vector<size_t> &_spectraIndexList, size_t _spectraIndexListOffset, BestMatch *_pBestMatchBatch, size_t _numBestMatchElements )
+void SOFMNetwork::searchBestMatchLocal( const std::vector<size_t> &_spectraIndexList, 
+									   size_t _spectraIndexListOffset, 
+									   BestMatch *_pBestMatchBatch, 
+									   size_t _numBestMatchElements )
 {
 	assert( _pBestMatchBatch != NULL );
 	assert( _numBestMatchElements <= SpectraVFS::CACHELINESIZE );
@@ -556,12 +579,14 @@ void SOFMNetwork::searchBestMatchLocal( const std::vector<size_t> &_spectraIndex
 		}
 	}
 
-
 	for ( int k=0;k<_numBestMatchElements;k++)
 	{
 		const size_t spectraIndex = _spectraIndexList[_spectraIndexListOffset+k];
 		m_pSourceVFS->endRead(spectraIndex);
 	}
+
+	// do global search for all on-framers
+	searchBestMatchComplete( _spectraIndexList, _spectraIndexListOffset, _pBestMatchBatch, _numBestMatchElements, true );
 }
 
 void SOFMNetwork::process()

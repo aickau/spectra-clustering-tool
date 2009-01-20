@@ -141,9 +141,18 @@ protected:
 	// _spectraIndexListOffset base offset to to index list
 	// _pBestMatchBatch pointer to array where best match info is written in make sure this is initialized correctly.
 	// _numBestMatchElements number of best match elements to process
-	void searchBestMatchComplete( const std::vector<size_t> &_spectraIndexList, size_t _spectraIndexListOffset, BestMatch *_pBestMatchBatch, size_t _numBestMatchElements );
+	// _bOnFrameOnly if set to true, only for those that have the on-frame flag set in the BestMatch datastructure
+	void searchBestMatchComplete( const std::vector<size_t> &_spectraIndexList, 
+		size_t _spectraIndexListOffset, 
+		BestMatch *_pBestMatchBatch,
+		size_t _numBestMatchElements, 
+		bool _bOnFrameOnly = false );
 
-	void searchBestMatchLocal( const std::vector<size_t> &_spectraIndexList, size_t _spectraIndexListOffset, BestMatch *_pBestMatchBatch, size_t _numBestMatchElements );
+	// search for best matching spectrum/neuron in the network using only a local window ( s_searchRadius )
+	void searchBestMatchLocal( const std::vector<size_t> &_spectraIndexList, 
+		size_t _spectraIndexListOffset, 
+		BestMatch *_pBestMatchBatch, 
+		size_t _numBestMatchElements );
 
 	// adapt network for a given neuron/spectrum
 	// _spectrum source spectrum to adapt
