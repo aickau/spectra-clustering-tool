@@ -31,6 +31,7 @@
 #include "sdsslib/mathhelpers.h"
 #include "sdsslib/filehelpers.h"
 #include "sdsslib/glhelper.h"
+#include "sdsslib/HTMLexport.h"
 
 
 namespace SpectraHelpers
@@ -332,61 +333,32 @@ void combineSpectra( std::string &_sstrDumpFilename, const std::string &_sstrFil
 }
 
 
-std::string loadHTMLTemplate()
-{
-	const std::string sstrDefaultHTMLDocTemplate("<html><head><title>SDSS Analyze</title><meta http-equiv=\"Content-Type\"content=\"text/html;charset=utf-8\" /></head><body>*INFO*<table width=\"200\" height=\"200\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" align=\"center\"><caption>*TITLE*</caption><tbody>*TEMPLATE*</tbody></table></body></html>");
-	const std::string sstrTemplateFileName("template.html");
-
-	// load template
-	std::string sstrTemp;
-	std::string sstrHTMLDocTemplate;
-
-	std::ifstream fin(sstrTemplateFileName.c_str());
-	if( !fin ) 
-	{
-		assert(0); // missing template file, taking default template.
-		return sstrDefaultHTMLDocTemplate;
-	}
-	while( getline(fin,sstrTemp) ) 
-	{
-		sstrHTMLDocTemplate += sstrTemp;
-	}
-	return sstrHTMLDocTemplate;
-}
-
-
-
 void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstrOutTable )
 {
 	const Spectra *sp = &_spectrum;
-	_sstrOutTable += "<tr>\n";
-	_sstrOutTable += "<td>";
+
+	_sstrOutTable += HTMLExport::beginTableRow();
+	_sstrOutTable += HTMLExport::beginTableCell();
 	// insert link
 	if ( !sp->getFileName().empty() )
 	{
-		_sstrOutTable += "<a href=\"";
-		_sstrOutTable += sp->getURL();
-		_sstrOutTable += "\" target=\"_blank\">";
-
-		_sstrOutTable += "<img src=\"";
-		_sstrOutTable += "http://cas.sdss.org/dr6/en/get/specById.asp?id=";
-		_sstrOutTable += Helpers::numberToString<__int64>(sp->m_SpecObjID);
-		_sstrOutTable += "\"><br>err=";
+		_sstrOutTable += HTMLExport::imageLink( std::string("http://cas.sdss.org/dr6/en/get/specById.asp?id=")+Helpers::numberToString<__int64>(sp->m_SpecObjID), sp->getURL() );
+		_sstrOutTable += HTMLExport::lineBreak();
+		_sstrOutTable += "err=";
 		_sstrOutTable += Helpers::numberToString<float>(_error);
 		_sstrOutTable += "  z=";
 		_sstrOutTable += Helpers::numberToString<float>(sp->m_Z);
 		_sstrOutTable += "  ";
 		_sstrOutTable += sp->getFileName();
-		_sstrOutTable += "</td>";
 	}
 	else
 	{
 		// insert image
-		_sstrOutTable += "<img src=\"export/empty.png\"></td>";
+		_sstrOutTable += HTMLExport::image("export/empty.png");
 	}
 
-	_sstrOutTable += "</td>\n";
-	_sstrOutTable += "</tr>\n";
+	_sstrOutTable += HTMLExport::endTableCell();
+	_sstrOutTable += HTMLExport::endTableRow();
 }
 
 

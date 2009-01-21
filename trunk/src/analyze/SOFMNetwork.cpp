@@ -37,6 +37,7 @@
 #include "sdsslib/mathhelpers.h"
 #include "sdsslib/XMLExport.h"
 #include "sdsslib/XMLParser.h"
+#include "sdsslib/HTMLExport.h"
 
 
 
@@ -995,7 +996,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 	Helpers::print( "Generating info pages for spectra\n", &m_logFile );
 
 	std::string sstrMainHTMLDoc;
-	std::string sstrHTMLDocTemplate = SpectraHelpers::loadHTMLTemplate();
+	std::string sstrHTMLDocTemplate = HTMLExport::loadHTMLTemplate();
 
 	const float compareInvariance = 0.1f;
 	const size_t numHiScoresEntries = 20;
@@ -1038,20 +1039,20 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		sstrMainHTMLDoc = sstrHTMLDocTemplate;
 
 		// replace empty token.
-		Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, std::string(""), sstrMainHTMLDoc );
+		Helpers::insertString( HTMLExport::HTML_TOKEN_INFO, std::string(""), sstrMainHTMLDoc );
 
 		std::string sstrInfo( "Summary page for spectrum " );
 		sstrInfo += a->getFileName();
-		Helpers::insertString( SpectraHelpers::HTML_TOKEN_TITLE, sstrInfo, sstrMainHTMLDoc );
+		Helpers::insertString( HTMLExport::HTML_TOKEN_TITLE, sstrInfo, sstrMainHTMLDoc );
 
 		std::string sstrTable("");
 
 		// insert icon
-		sstrTable += "<tr>\n";
-		sstrTable += "<td>";
-		sstrTable += std::string("<br>\n<img src=\"")+a->getFileName()+ ".png\"><br>\n";
-		sstrTable += "</td>\n";
-		sstrTable += "</tr>\n";
+		sstrTable += HTMLExport::beginTableRow();
+		sstrTable += HTMLExport::beginTableCell();
+		sstrTable += HTMLExport::image(a->getFileName()+ ".png"); 
+		sstrTable += HTMLExport::endTableCell();
+		sstrTable += HTMLExport::endTableRow();
 
 		// insert search results
 		size_t c=0;
@@ -1068,17 +1069,11 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 
 			const float error = it->first;
 
-			sstrTable += "<tr>\n";
-			sstrTable += "<td>";
-
-			sstrTable += "<a href=\"";
-			sstrTable += b->getURL();
-			sstrTable += "\" target=\"_blank\">";
-
-			sstrTable += "<img src=\"";
-			sstrTable += "http://cas.sdss.org/dr6/en/get/specById.asp?id=";
-			sstrTable += Helpers::numberToString<__int64>(b->m_SpecObjID);
-			sstrTable += "\"><br>err=";
+			sstrTable += HTMLExport::beginTableRow();
+			sstrTable += HTMLExport::beginTableCell();
+			sstrTable += HTMLExport::imageLink( std::string("http://cas.sdss.org/dr6/en/get/specById.asp?id=")+Helpers::numberToString<__int64>(b->m_SpecObjID), b->getURL() );
+			sstrTable += HTMLExport::lineBreak();
+			sstrTable += "err=";
 			sstrTable += Helpers::numberToString<float>(error);
 			sstrTable += "  z=";
 			sstrTable += Helpers::numberToString<float>(b->m_Z);
@@ -1089,10 +1084,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 			// link to map if export sub pages = yes
 			if ( m_params.exportSubPage ) 
 			{
-				sstrTable += "<a href=\"";
-				sstrTable += "../" + _sstrMapBaseName + Helpers::numberToString<int>(xpB/s_outputPlanSize) + "_" + Helpers::numberToString<int>(ypB/s_outputPlanSize) + ".html";
-				sstrTable += "\" target=\"_blank\">map</a>";
-				sstrTable += "  ";
+				sstrTable += HTMLExport::textLink(std::string("map"), std::string("../") + _sstrMapBaseName + Helpers::numberToString<int>(xpB/s_outputPlanSize) + "_" + Helpers::numberToString<int>(ypB/s_outputPlanSize) + ".html");
 			}
 
 			// distance
@@ -1100,11 +1092,12 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 			{
 				sstrTable += "distance " + Helpers::numberToString<int>(xD) + "," + Helpers::numberToString<int>(yD);
 			}
-			sstrTable += "</td>\n";
+			sstrTable += HTMLExport::endTableCell();
+
 
 			{
 				// sub table
-				std::string sstrSubTable("<table width=\"2\" height=\"2\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" align=\"center\" <tbody>\n");
+				std::string sstrSubTable("");
 
 				int xStart = MAX(xpB - s_outputPlanSize/2, 0);
 				int xEnd   = MIN(xpB + s_outputPlanSize/2, m_gridSize);
@@ -1113,55 +1106,49 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 
 				for ( int y=yStart;y<yEnd;y++)
 				{
-					sstrSubTable += "<tr>\n";
+					sstrSubTable += HTMLExport::beginTableRow();
 					for ( int x=xStart;x<xEnd;x++)
 					{
 						size_t nIndex = getIndex(x,y);
 						Spectra *sp = m_pNet->beginRead( nIndex );
 
-						sstrSubTable += "<td>";
+						sstrSubTable += HTMLExport::beginTableCell();
+						sstrSubTable += HTMLExport::endTableCell();
+
+						sstrSubTable += HTMLExport::beginTableCell();
 						// insert link
 						if ( sp->m_Index>=0 && !sp->isEmpty() )
 						{
 							assert(sp->m_Index<static_cast<int>(m_numSpectra));
-
 							std::string sstrPlanDirectory = "../"+Spectra::plateToString(sp->getPlate()) +"/";
 							std::string sstrImagePlan = sstrPlanDirectory + sp->getFileName();
-
-							sstrSubTable += "<a href=\"";
-							sstrSubTable += sstrImagePlan+".html";
-							sstrSubTable += "\" target=\"_blank\">";
-							sstrSubTable += "<img src=\"";
-							sstrSubTable += sstrImagePlan;
-							sstrSubTable += ".png\">";
+							sstrSubTable += HTMLExport::imageLink( sstrImagePlan+".png", sstrImagePlan+".html" );
 						}
 						else
 						{
 							// insert image
-							sstrSubTable += "<img src=\"../empty.png\">";
+							sstrSubTable += HTMLExport::image( "../empty.png" );
 						}
 
 						m_pNet->endRead( nIndex );
 
-						sstrSubTable += "</td>\n";
+						sstrSubTable += HTMLExport::endTableCell();
 					}
-					sstrSubTable += "</tr>\n";
+					sstrSubTable += HTMLExport::endTableRow();
 				}
-				sstrSubTable += "</tbody>";
-				sstrSubTable += "</table>";
-
+				sstrTable += HTMLExport::beginTableCell();
 				sstrTable += sstrSubTable;
+				sstrTable += HTMLExport::endTableCell();
 			}
 
-			sstrTable += "</tr>\n";
-
+			sstrTable += HTMLExport::endTableRow();
 
 			m_pSourceVFS->endRead( it->second );
 			it++;
 			c++;
 		}
 
-		Helpers::insertString( SpectraHelpers::HTML_TOKEN_TEMPLATE, sstrTable, sstrMainHTMLDoc );
+		Helpers::insertString( HTMLExport::HTML_TOKEN_TEMPLATE, sstrTable, sstrMainHTMLDoc );
 
 
 		std::ofstream fon(sstrFilename.c_str());
@@ -1185,7 +1172,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 	Helpers::print( sstrLog, &m_logFile );
 
-	std::string sstrHTMLDocTemplate = SpectraHelpers::loadHTMLTemplate();	
+	std::string sstrHTMLDocTemplate = HTMLExport::loadHTMLTemplate();	
 	std::string sstrHTMLDoc;
 	std::string sstrMainHTMLDoc;
 	std::string sstrMainTable;
@@ -1204,23 +1191,23 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 		generateHTMLInfoPages( sstrName );
 	}
 	
-	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+std::string("<br>\n");;
-	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+std::string("<br>\n");
-	sstrInfo += std::string("grid size: ")+Helpers::numberToString( m_gridSize )+std::string("<br>\n");;
-	sstrInfo += std::string("number of clustered spectra: ")+Helpers::numberToString( m_numSpectra )+std::string("<br>\n");
-	sstrInfo += std::string("random seed: ")+Helpers::numberToString( m_params.randomSeed )+std::string("<br>\n");
-	sstrInfo += std::string("learn rate begin: ")+Helpers::numberToString( m_params.lRateBegin )+std::string("<br>\n");
-	sstrInfo += std::string("learn rate end: ")+Helpers::numberToString( m_params.lRateEnd )+std::string("<br>\n");
-	sstrInfo += std::string("radius begin: ")+Helpers::numberToString( m_params.radiusBegin )+std::string("<br>\n");
-	sstrInfo += std::string("radius end: ")+Helpers::numberToString( m_params.radiusEnd )+std::string("<br>\n");
-	sstrInfo += std::string("spectrum size in bytes: ")+Helpers::numberToString( sizeof(Spectra) )+std::string("<br>\n");
-	sstrInfo += std::string("UMatrix:<br>\n<img src=\"")+sstrUMatrix += ".png\"><br>\n";
-	sstrInfo += std::string("Difference map:<br>\n<img src=\"")+sstrDifferenceMap += ".png\"><br>\n";
-	sstrInfo += std::string("Energy histogram:<br>\n<img src=\"energymap.png\"><br>\n");
-	sstrInfo += std::string("Z histogram:<br>\n<img src=\"zmap.png\"><br>\n");
+	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+HTMLExport::lineBreak();
+	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+HTMLExport::lineBreak();
+	sstrInfo += std::string("grid size: ")+Helpers::numberToString( m_gridSize )+HTMLExport::lineBreak();
+	sstrInfo += std::string("number of clustered spectra: ")+Helpers::numberToString( m_numSpectra )+HTMLExport::lineBreak();
+	sstrInfo += std::string("random seed: ")+Helpers::numberToString( m_params.randomSeed )+HTMLExport::lineBreak();
+	sstrInfo += std::string("learn rate begin: ")+Helpers::numberToString( m_params.lRateBegin )+HTMLExport::lineBreak();
+	sstrInfo += std::string("learn rate end: ")+Helpers::numberToString( m_params.lRateEnd )+HTMLExport::lineBreak();
+	sstrInfo += std::string("radius begin: ")+Helpers::numberToString( m_params.radiusBegin )+HTMLExport::lineBreak();
+	sstrInfo += std::string("radius end: ")+Helpers::numberToString( m_params.radiusEnd )+HTMLExport::lineBreak();
+	sstrInfo += std::string("spectrum size in bytes: ")+Helpers::numberToString( sizeof(Spectra) )+HTMLExport::lineBreak();
+	sstrInfo += std::string("UMatrix:")+HTMLExport::lineBreak()+HTMLExport::image( sstrUMatrix+std::string(".png") )+HTMLExport::lineBreak();
+	sstrInfo += std::string("Difference map:")+HTMLExport::lineBreak()+HTMLExport::image( sstrDifferenceMap+std::string(".png") )+HTMLExport::lineBreak();
+	sstrInfo += std::string("Energy histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("energymap.png") )+HTMLExport::lineBreak();
+	sstrInfo += std::string("Z histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("zmap.png") )+HTMLExport::lineBreak();
 
-	Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, sstrInfo, sstrMainHTMLDoc );
-	Helpers::insertString( SpectraHelpers::HTML_TOKEN_TITLE, "", sstrMainHTMLDoc );
+	Helpers::insertString( HTMLExport::HTML_TOKEN_INFO, sstrInfo, sstrMainHTMLDoc );
+	Helpers::insertString( HTMLExport::HTML_TOKEN_TITLE, "", sstrMainHTMLDoc );
 	const size_t OutputPlanSizeTemp = (m_params.exportSubPage) ? s_outputPlanSize : m_gridSize;
 
 	size_t planXMax = 1 + m_gridSize / OutputPlanSizeTemp;
@@ -1232,7 +1219,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	}
 	for ( size_t planY = 0; planY<planYMax; planY++ )
 	{
-		sstrMainTable += "<tr>\n";
+		sstrMainTable += HTMLExport::beginTableRow();
 		for ( size_t planX = 0; planX<planXMax; planX++ )
 		{
 			sstrHTMLDoc = sstrHTMLDocTemplate;
@@ -1242,8 +1229,8 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 				sstrTitle += " / ";
 				sstrTitle += Helpers::numberToString( planY );
 
-				Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, "", sstrHTMLDoc );
-				Helpers::insertString( SpectraHelpers::HTML_TOKEN_TITLE, sstrTitle, sstrHTMLDoc );
+				Helpers::insertString( HTMLExport::HTML_TOKEN_INFO, "", sstrHTMLDoc );
+				Helpers::insertString( HTMLExport::HTML_TOKEN_TITLE, sstrTitle, sstrHTMLDoc );
 			}
 
 			// generate table
@@ -1276,7 +1263,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 			for ( size_t y=yStart;y<yEnd;y++)
 			{
-				sstrTable += "<tr>\n";
+				sstrTable += HTMLExport::beginTableRow();
 				for ( size_t x=xStart;x<xEnd;x++)
 				{
 					bOut = true;
@@ -1284,28 +1271,22 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 					size_t nIndex = getIndex(x,y);
 					Spectra *sp = m_pNet->beginRead( nIndex );
 
-					sstrTable += "<td>";
+					sstrTable += HTMLExport::beginTableCell();
 					// insert link
 					if ( sp->m_Index>=0 && !sp->isEmpty() )
 					{
 						assert(sp->m_Index<static_cast<int>(m_numSpectra));
-						sstrTable += "<a href=\"";
-
 						std::string sstrPlanDirectory = Spectra::plateToString(sp->getPlate()) + std::string("/");
 						std::string sstrImagePlan = sstrPlanDirectory + sp->getFileName();
 
 						if ( _fullExport )
 						{
-							sstrTable += sstrImagePlan+".html";
+							sstrTable += HTMLExport::imageLink( sstrImagePlan + std::string(".png"), sstrImagePlan+".html" );
 						}
 						else
 						{
-							sstrTable += sp->getURL();
+							sstrTable += HTMLExport::imageLink( sstrImagePlan + std::string(".png"), sp->getURL() );
 						}
-						sstrTable += "\" target=\"_blank\">";
-						sstrTable += "<img src=\"";
-						sstrTable += sstrImagePlan;
-						sstrTable += ".png\">";
 
 						if (( (x>=(xStart+OutputPlanSizeTemp) && x<(xEnd-OutputPlanSizeTemp)) || 
 							  (xS==2 && x<OutputPlanSizeTemp) ||
@@ -1320,20 +1301,20 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 					else
 					{
 						// insert image
-						sstrTable += "<img src=\"empty.png\">";
+						sstrTable += HTMLExport::image( "empty.png" );
 					}
 
 					m_pNet->endRead( nIndex );
 
-					sstrTable += "</td>\n";
+					sstrTable += HTMLExport::endTableCell();
 					c++;
 				}
-				sstrTable += "</tr>\n";
+				sstrTable += HTMLExport::endTableRow();
 			}
 
 			if ( bOut )
 			{
-				Helpers::insertString( SpectraHelpers::HTML_TOKEN_TEMPLATE, sstrTable, sstrHTMLDoc );
+				Helpers::insertString( HTMLExport::HTML_TOKEN_TEMPLATE, sstrTable, sstrHTMLDoc );
 
 				std::string sstrFilename = _sstrFilename;
 				sstrFilename += Helpers::numberToString( planX );
@@ -1344,20 +1325,15 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 				std::ofstream fon(sstrFilename.c_str());
 				fon<<sstrHTMLDoc;
 
-				sstrMainTable += "<td>";
-				sstrMainTable += "<a href=\"";
-				sstrMainTable += FileHelpers::getFileName(sstrFilename);
-				sstrMainTable += "\" target=\"_blank\">";
-				sstrMainTable += "<img src=\"";
-				sstrMainTable += sstrLastImageInPlan;
-				sstrMainTable += ".png\">";
-				sstrMainTable += "</td>\n";
+				sstrMainTable += HTMLExport::beginTableCell();
+				sstrMainTable += HTMLExport::imageLink( sstrLastImageInPlan+".png", FileHelpers::getFileName(sstrFilename) );
+				sstrMainTable += HTMLExport::endTableCell();
 			}
 		}
-		sstrMainTable += "</tr>\n";
+		sstrMainTable += HTMLExport::endTableRow();
 	}
 
-	if (!Helpers::insertString( SpectraHelpers::HTML_TOKEN_TEMPLATE, sstrMainTable, sstrMainHTMLDoc ) )
+	if (!Helpers::insertString( HTMLExport::HTML_TOKEN_TEMPLATE, sstrMainTable, sstrMainHTMLDoc ) )
 	{
 		Helpers::print( std::string("export failed. Wrong template.html ?!?\n"), &m_logFile );
 		return;

@@ -424,6 +424,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\HTMLExport.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\HTMLExport.h"
+			>
+		</File>
+		<File
 			RelativePath=".\mathhelpers.cpp"
 			>
 		</File>
@@ -471,7 +479,7 @@
 				>
 				<Tool
 					Name="VCCustomBuildTool"
-					CommandLine="ml64.exe /DWIN_X64 /c /Fl /Fo $(IntDir)\$(InputName).obj $(InputName).asm"
+					CommandLine="ml64.exe /DWIN_X64 /c /Fl /Fo $(IntDir)\$(InputName).obj $(InputName).asm&#x0D;&#x0A;"
 					Outputs="$(IntDir)\$(InputName).obj"
 				/>
 			</FileConfiguration>
@@ -488,7 +496,7 @@
 				>
 				<Tool
 					Name="VCCustomBuildTool"
-					CommandLine="ml64.exe /DWIN_X64 /c /Fl /Fo $(IntDir)\$(InputName).obj $(InputName).asm"
+					CommandLine="ml64.exe /DWIN_X64 /c /Fl /Fo $(IntDir)\$(InputName).obj $(InputName).asm&#x0D;&#x0A;"
 					Outputs="$(IntDir)\$(InputName).obj"
 				/>
 			</FileConfiguration>

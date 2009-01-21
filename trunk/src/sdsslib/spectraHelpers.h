@@ -26,11 +26,6 @@ class Spectra;
 
 namespace SpectraHelpers
 {
-	// tokens for html template
-	static const std::string HTML_TOKEN_INFO("*INFO*");
-	static const std::string HTML_TOKEN_TITLE("*TITLE*");
-	static const std::string HTML_TOKEN_TEMPLATE("*TEMPLATE*");
-
 	// init system
 	void init( HDC _hDC );
 
@@ -66,9 +61,6 @@ namespace SpectraHelpers
 	// _sstrDumpFilename path + filename to spectra dump.
 	// _sstrFilename output image graph of resulting spectra
 	void combineSpectra( std::string &_sstrDumpFilename, const std::string &_sstrFilename );
-
-	// load HTML template containing tokens. see HTML_TOKEN_*
-	std::string loadHTMLTemplate();
 
 	// write spectrum image and sdss link into HTML table entry
 	void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstrOutTable );

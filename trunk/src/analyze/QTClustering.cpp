@@ -21,6 +21,7 @@
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/helpers.h"
 #include "sdsslib/spectrahelpers.h"
+#include "sdsslib/HTMLExport.h"
 
 #include <set>
 #include <assert.h>
@@ -169,7 +170,7 @@ void QTClustering::exportToHTML( const std::string &_sstrFilename )
 	std::string sstrTemp;
 	std::string sstrHTMLDoc;
 	std::string sstrHTMLMainDoc;
-	std::string sstrHTMLDocTemplate = SpectraHelpers::loadHTMLTemplate();
+	std::string sstrHTMLDocTemplate = HTMLExport::loadHTMLTemplate();
 	std::string sstrTable;
 
 	sstrHTMLMainDoc = sstrHTMLDoc = sstrHTMLDocTemplate;
@@ -181,7 +182,7 @@ void QTClustering::exportToHTML( const std::string &_sstrFilename )
 	sstrInfo += std::string("errorPerSample ")+Helpers::numberToString( m_params.errorPerSample )+std::string("<br>\n");
 	sstrInfo += std::string("spectrum size in bytes ")+Helpers::numberToString( sizeof(Spectra) )+std::string("<br>\n");
 
-	Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, sstrInfo, sstrHTMLMainDoc );
+	Helpers::insertString( HTMLExport::HTML_TOKEN_INFO, sstrInfo, sstrHTMLMainDoc );
 
 	sstrTable += "<tr>\n";
 	sstrTable += "<br><h2>unclassified:</h2>\n";
@@ -240,7 +241,7 @@ void QTClustering::exportToHTML( const std::string &_sstrFilename )
 		sstrTable += "</tr>\n";
 	}
 	
-	if (!Helpers::insertString( SpectraHelpers::HTML_TOKEN_TEMPLATE, sstrTable, sstrHTMLMainDoc ) )
+	if (!Helpers::insertString( HTMLExport::HTML_TOKEN_TEMPLATE, sstrTable, sstrHTMLMainDoc ) )
 	{
 		Helpers::print( std::string("export failed. Wrong template.html ?!?\n"), &m_logFile );
 		return;

@@ -22,8 +22,9 @@
 #include <sstream>
 #include <assert.h>
 
-
-static 
+namespace XMLExport
+{
+ 
 void appendTabToString( unsigned int n, std::string &sstrOut )
 {
 	for (unsigned int i=0; i < n; i++ )
@@ -33,7 +34,7 @@ void appendTabToString( unsigned int n, std::string &sstrOut )
 }
 
 
-void XMLExport::xmlElementBegin( const std::string &sstrTagName, unsigned int nLevel, std::string &sstrOut )
+void xmlElementBegin( const std::string &sstrTagName, unsigned int nLevel, std::string &sstrOut )
 {
 	sstrOut += "\n";
 	appendTabToString( nLevel, sstrOut );
@@ -42,12 +43,12 @@ void XMLExport::xmlElementBegin( const std::string &sstrTagName, unsigned int nL
 }
 
 
-void XMLExport::xmlElementEndBegin( std::string &sstrOut )
+void xmlElementEndBegin( std::string &sstrOut )
 {
 	sstrOut += ">";
 }
 
-void XMLExport::xmlElementEnd( const std::string &sstrTagName, unsigned int nLevel, std::string &sstrOut )
+void xmlElementEnd( const std::string &sstrTagName, unsigned int nLevel, std::string &sstrOut )
 {
 	sstrOut += "\n";
 	appendTabToString( nLevel, sstrOut );
@@ -58,20 +59,20 @@ void XMLExport::xmlElementEnd( const std::string &sstrTagName, unsigned int nLev
 
 
 
-void XMLExport::xmlSingleElementBegin( const std::string &sstrTagName, unsigned int nLevel, std::string &sstrOut )
+void xmlSingleElementBegin( const std::string &sstrTagName, unsigned int nLevel, std::string &sstrOut )
 {
 	xmlElementBegin( sstrTagName, nLevel, sstrOut );
 }
 
 
-void XMLExport::xmlSingleElementEnd( std::string &sstrOut )
+void xmlSingleElementEnd( std::string &sstrOut )
 {
 	sstrOut += "/>";
 }
 
 
 
-void XMLExport::xmlAddAttribute( const std::string &sstrAttributeName, float value, std::string &sstrOut )
+void xmlAddAttribute( const std::string &sstrAttributeName, float value, std::string &sstrOut )
 {
 	std::stringstream strStream;
 	strStream.clear();
@@ -80,7 +81,7 @@ void XMLExport::xmlAddAttribute( const std::string &sstrAttributeName, float val
 }
 
 
-void XMLExport::xmlAddAttribute( const std::string &sstrAttributeName, int value, std::string &sstrOut )
+void xmlAddAttribute( const std::string &sstrAttributeName, int value, std::string &sstrOut )
 {
 	std::stringstream strStream;
 	strStream.clear();
@@ -90,7 +91,7 @@ void XMLExport::xmlAddAttribute( const std::string &sstrAttributeName, int value
 }
 
 
-void XMLExport::xmlAddAttribute( const std::string &sstrAttributeName, unsigned int value, std::string &sstrOut )
+void xmlAddAttribute( const std::string &sstrAttributeName, unsigned int value, std::string &sstrOut )
 {
 	std::stringstream strStream;
 	strStream.clear();
@@ -99,7 +100,7 @@ void XMLExport::xmlAddAttribute( const std::string &sstrAttributeName, unsigned 
 }
 
 
-void XMLExport::xmlAddAttribute( const std::string &sstrAttributeName, const std::string &sstrValue, std::string &sstrOut )
+void xmlAddAttribute( const std::string &sstrAttributeName, const std::string &sstrValue, std::string &sstrOut )
 {
 	std::stringstream strStream;
 	strStream.clear();
@@ -109,7 +110,7 @@ void XMLExport::xmlAddAttribute( const std::string &sstrAttributeName, const std
 
 
 
-void XMLExport::xmlAddAttributeArray( const std::string *psstrAttributeNames, const float *pValues, size_t nValues, std::string &sstrOut )
+void xmlAddAttributeArray( const std::string *psstrAttributeNames, const float *pValues, size_t nValues, std::string &sstrOut )
 {
 	std::stringstream strStream;
 	strStream.clear();
@@ -125,3 +126,4 @@ void XMLExport::xmlAddAttributeArray( const std::string *psstrAttributeNames, co
 }
 
 
+}

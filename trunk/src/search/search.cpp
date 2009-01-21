@@ -30,6 +30,7 @@
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/memory.h"
 #include "sdsslib/spectrahelpers.h"
+#include "sdsslib/HTMLExport.h"
 
 #define COMPAREDIR std::string("compare/")
 
@@ -235,10 +236,10 @@ void main(int argc, char* argv[])
 
 	for ( size_t j=0;j<numCompareSpectra;j++ )
 	{
-		std::string sstrHTMLDoc = SpectraHelpers::loadHTMLTemplate();
+		std::string sstrHTMLDoc = HTMLExport::loadHTMLTemplate();
 		std::string sstrCompareFilename(g_compareFileList.at(j));
 
-		if (!Helpers::insertString( SpectraHelpers::HTML_TOKEN_TITLE, sstrCompareFilename, sstrHTMLDoc ) )
+		if (!Helpers::insertString( HTMLExport::HTML_TOKEN_TITLE, sstrCompareFilename, sstrHTMLDoc ) )
 		{
 			printf("export failed. Wrong template.html ?!?\n");
 			return;
@@ -274,7 +275,7 @@ void main(int argc, char* argv[])
 			}
 		}
 	
-		if (!Helpers::insertString( SpectraHelpers::HTML_TOKEN_TEMPLATE, sstrTable, sstrHTMLDoc ) )
+		if (!Helpers::insertString( HTMLExport::HTML_TOKEN_TEMPLATE, sstrTable, sstrHTMLDoc ) )
 		{
 			printf("export failed. Wrong template.html ?!?\n");
 			return;
@@ -286,7 +287,7 @@ void main(int argc, char* argv[])
 		sstrInfo += "<br>\nNumber of compared spectra: ";
 		sstrInfo += Helpers::numberToString<size_t>(numSpectra);
 
-		Helpers::insertString( SpectraHelpers::HTML_TOKEN_INFO, sstrInfo, sstrHTMLDoc );
+		Helpers::insertString( HTMLExport::HTML_TOKEN_INFO, sstrInfo, sstrHTMLDoc );
 
 
 		std::string sstrResultFilename("searchresults_");
