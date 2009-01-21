@@ -571,7 +571,7 @@ void SOFMNetwork::searchBestMatchLocal( const std::vector<size_t> &_spectraIndex
 				{
 					currentBestMatch.error = errMin;
 					currentBestMatch.index = spectraIndex;
-					currentBestMatch.bOnFrame = (x==xMin) || (x==(xMax-1)) || (y==yMin) || (y==yMax-1);
+					currentBestMatch.bOnFrame = (x==xMin) || (x==(xMax-1)) || (y==yMin) || (y==yMax-1); // are we sitting on the border of the search frame ?
 				}
 
 				m_pNet->endRead( spectraIndex );
@@ -1100,10 +1100,59 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 			{
 				sstrTable += "distance " + Helpers::numberToString<int>(xD) + "," + Helpers::numberToString<int>(yD);
 			}
-
-			sstrTable += "</td>";
-
 			sstrTable += "</td>\n";
+
+			{
+				// sub table
+				std::string sstrSubTable("<table width=\"2\" height=\"2\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" align=\"center\" <tbody>\n");
+
+				int xStart = MAX(xpB - s_outputPlanSize/2, 0);
+				int xEnd   = MIN(xpB + s_outputPlanSize/2, m_gridSize);
+				int yStart = MAX(ypB - s_outputPlanSize/2, 0);
+				int yEnd   = MIN(ypB + s_outputPlanSize/2, m_gridSize);
+
+				for ( int y=yStart;y<yEnd;y++)
+				{
+					sstrSubTable += "<tr>\n";
+					for ( int x=xStart;x<xEnd;x++)
+					{
+						size_t nIndex = getIndex(x,y);
+						Spectra *sp = m_pNet->beginRead( nIndex );
+
+						sstrSubTable += "<td>";
+						// insert link
+						if ( sp->m_Index>=0 && !sp->isEmpty() )
+						{
+							assert(sp->m_Index<static_cast<int>(m_numSpectra));
+
+							std::string sstrPlanDirectory = "../"+Spectra::plateToString(sp->getPlate()) +"/";
+							std::string sstrImagePlan = sstrPlanDirectory + sp->getFileName();
+
+							sstrSubTable += "<a href=\"";
+							sstrSubTable += sstrImagePlan+".html";
+							sstrSubTable += "\" target=\"_blank\">";
+							sstrSubTable += "<img src=\"";
+							sstrSubTable += sstrImagePlan;
+							sstrSubTable += ".png\">";
+						}
+						else
+						{
+							// insert image
+							sstrSubTable += "<img src=\"../empty.png\">";
+						}
+
+						m_pNet->endRead( nIndex );
+
+						sstrSubTable += "</td>\n";
+					}
+					sstrSubTable += "</tr>\n";
+				}
+				sstrSubTable += "</tbody>";
+				sstrSubTable += "</table>";
+
+				sstrTable += sstrSubTable;
+			}
+
 			sstrTable += "</tr>\n";
 
 
@@ -1243,20 +1292,20 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 						sstrTable += "<a href=\"";
 
 						std::string sstrPlanDirectory = Spectra::plateToString(sp->getPlate()) + std::string("/");
+						std::string sstrImagePlan = sstrPlanDirectory + sp->getFileName();
 
 						if ( _fullExport )
 						{
-							sstrTable += sstrPlanDirectory+sp->getFileName()+".html";
+							sstrTable += sstrImagePlan+".html";
 						}
 						else
 						{
 							sstrTable += sp->getURL();
 						}
 						sstrTable += "\" target=\"_blank\">";
-						std::string sstrImagePlan = sstrPlanDirectory + sp->getFileName();
 						sstrTable += "<img src=\"";
 						sstrTable += sstrImagePlan;
-						sstrTable += ".png\"></td>";
+						sstrTable += ".png\">";
 
 						if (( (x>=(xStart+OutputPlanSizeTemp) && x<(xEnd-OutputPlanSizeTemp)) || 
 							  (xS==2 && x<OutputPlanSizeTemp) ||
@@ -1271,7 +1320,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 					else
 					{
 						// insert image
-						sstrTable += "<img src=\"empty.png\"></td>";
+						sstrTable += "<img src=\"empty.png\">";
 					}
 
 					m_pNet->endRead( nIndex );
@@ -1301,7 +1350,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 				sstrMainTable += "\" target=\"_blank\">";
 				sstrMainTable += "<img src=\"";
 				sstrMainTable += sstrLastImageInPlan;
-				sstrMainTable += ".png\"></td>";
+				sstrMainTable += ".png\">";
 				sstrMainTable += "</td>\n";
 			}
 		}
