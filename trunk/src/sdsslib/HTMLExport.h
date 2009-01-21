@@ -36,6 +36,8 @@ namespace HTMLExport
 	std::string textLink(const std::string &_sstrText, const std::string &_sstrLink );
 	std::string imageLink(const std::string &_sstrImage, const std::string &_sstrLink );
 
+	std::string beginTable();
+	std::string endTable();
 	std::string beginTableRow();
 	std::string endTableRow();
 	std::string beginTableCell();

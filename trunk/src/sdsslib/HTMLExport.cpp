@@ -101,6 +101,16 @@ std::string imageLink(const std::string &_sstrImage, const std::string &_sstrLin
 	return sstrImageLink;
 }
 
+std::string beginTable()
+{
+	return  std::string("<table width=\"200\" height=\"200\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" align=\"center\">\n");
+}
+
+std::string endTable()
+{
+	return  std::string("</table>\n");
+}
+
 std::string beginTableRow()
 {
 	return  std::string("<tr>\n");

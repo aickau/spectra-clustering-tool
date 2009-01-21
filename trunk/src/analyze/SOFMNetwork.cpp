@@ -1070,6 +1070,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 			const float error = it->first;
 
 			sstrTable += HTMLExport::beginTableRow();
+
 			sstrTable += HTMLExport::beginTableCell();
 			sstrTable += HTMLExport::imageLink( std::string("http://cas.sdss.org/dr6/en/get/specById.asp?id=")+Helpers::numberToString<__int64>(b->m_SpecObjID), b->getURL() );
 			sstrTable += HTMLExport::lineBreak();
@@ -1093,28 +1094,26 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 				sstrTable += "distance " + Helpers::numberToString<int>(xD) + "," + Helpers::numberToString<int>(yD);
 			}
 			sstrTable += HTMLExport::endTableCell();
-
-
+		
 			{
 				// sub table
-				std::string sstrSubTable("");
+				std::string sstrSubTable(HTMLExport::beginTable());
 
 				int xStart = MAX(xpB - s_outputPlanSize/2, 0);
-				int xEnd   = MIN(xpB + s_outputPlanSize/2, m_gridSize);
+				int xEnd   = MIN(xpB + s_outputPlanSize/2+1, m_gridSize);
 				int yStart = MAX(ypB - s_outputPlanSize/2, 0);
-				int yEnd   = MIN(ypB + s_outputPlanSize/2, m_gridSize);
+				int yEnd   = MIN(ypB + s_outputPlanSize/2+1, m_gridSize);
 
 				for ( int y=yStart;y<yEnd;y++)
 				{
 					sstrSubTable += HTMLExport::beginTableRow();
+					sstrSubTable += HTMLExport::beginTableCell();
+					sstrSubTable += HTMLExport::image( "../empty.png" );
+					sstrSubTable += HTMLExport::endTableCell();
 					for ( int x=xStart;x<xEnd;x++)
 					{
 						size_t nIndex = getIndex(x,y);
 						Spectra *sp = m_pNet->beginRead( nIndex );
-
-						sstrSubTable += HTMLExport::beginTableCell();
-						sstrSubTable += HTMLExport::endTableCell();
-
 						sstrSubTable += HTMLExport::beginTableCell();
 						// insert link
 						if ( sp->m_Index>=0 && !sp->isEmpty() )
@@ -1136,10 +1135,12 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 					}
 					sstrSubTable += HTMLExport::endTableRow();
 				}
+				sstrSubTable += HTMLExport::endTable();
 				sstrTable += HTMLExport::beginTableCell();
 				sstrTable += sstrSubTable;
 				sstrTable += HTMLExport::endTableCell();
 			}
+
 
 			sstrTable += HTMLExport::endTableRow();
 
@@ -1155,7 +1156,6 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		fon<<sstrMainHTMLDoc;
 
 		m_pSourceVFS->endRead( i );
-		//break;
 	}
 }
 
