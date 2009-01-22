@@ -106,6 +106,12 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 	// test end
 */
 
+	Helpers::print( std::string("Spectra VFS cache line size ") + Helpers::numberToString( SpectraVFS::CACHELINESIZE ) + " spectra.\n", &m_logFile );
+	Helpers::print( std::string("Spectra VFS number of cache lines ") + Helpers::numberToString( SpectraVFS::CACHELINES ) + ".\n", &m_logFile );
+	Helpers::print( std::string("That allows us to pack ") + Helpers::numberToString( SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE ) + " spectra into main memory.\n", &m_logFile );
+	Helpers::print( std::string("We can eat up ") + Helpers::numberToString( static_cast<float>(2*SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE*sizeof(Spectra))/(1024.f*1024.f*1024.f) ) + " GB of main memory for clustering .\n", &m_logFile );
+
+
 	calcMinMaxInputDS();
 
 
@@ -586,6 +592,8 @@ void SOFMNetwork::searchBestMatchLocal( const std::vector<size_t> &_spectraIndex
 		m_pSourceVFS->endRead(spectraIndex);
 	}
 
+	Helpers::print( std::string("complete search for all on framers.\n"), &m_logFile );
+
 	// do global search for all on-framers
 	searchBestMatchComplete( _spectraIndexList, _spectraIndexListOffset, _pBestMatchBatch, _numBestMatchElements, true );
 }
@@ -683,10 +691,12 @@ void SOFMNetwork::process()
 
 		if (bFullSearch) 
 		{
+			Helpers::print( "using complete search.\n" );
 			searchBestMatchComplete( spectraIndexList, j, bestMatch, jInc );
 		}
 		else
 		{
+			Helpers::print( "using local search.\n" );
 			searchBestMatchLocal( spectraIndexList, j, bestMatch, jInc );
 		}
 
