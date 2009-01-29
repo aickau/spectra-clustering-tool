@@ -76,3 +76,8 @@
 #if _MSC_VER <= 1310
 #define sprintf_s sprintf
 #endif
+
+#pragma warning( disable : 4267 )
+#pragma warning( disable : 4244 )
+#pragma warning( disable : 4018 )
+#pragma warning( disable : 4305 )

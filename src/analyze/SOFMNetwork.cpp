@@ -1011,6 +1011,10 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 	const float compareInvariance = 0.1f;
 	const size_t numHiScoresEntries = 20;
 
+
+	float *pErrMap = new float[m_gridSizeSqr];
+	float *pRGBMap = new float[m_gridSizeSqr*3];
+
 	std::map<float,size_t> comparisonMap;
 	int plateOld = -1;	
 	for ( size_t i=0;i<m_numSpectra;i++ )
@@ -1023,11 +1027,29 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		const int ypA = a->m_Index / m_gridSize;
 
 		comparisonMap.clear();
+
+		// ..also generate a local comparison map
+		float maxErr = 0.0f;
+		for (size_t c=0;c<m_gridSizeSqr;c++) 
+		{
+			pErrMap[c] = 0.0f;
+		}
+
+
 		for ( size_t j=0;j<m_numSpectra;j++ )
 		{
 			Spectra *b = m_pSourceVFS->beginRead( j );
 			float err = a->compareSuperAdvanced( *b, compareInvariance ); 
 			comparisonMap.insert( std::pair<float, size_t>(err, j) );	
+
+			// fill comparison map
+			if ( b->m_Index >= 0 && b->m_Index < m_gridSizeSqr )
+			{
+				assert( pErrMap[b->m_Index] == 0.0f );
+				pErrMap[b->m_Index] = err;
+				maxErr = MAX( maxErr, err );
+			}
+
 			m_pSourceVFS->endRead( j );
 		}
 
@@ -1046,6 +1068,21 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		sstrFilename += a->getFileName();
 		sstrFilename += ".html";
 
+		// save local comparison map
+		std::string sstrComprarisonMapFilename( sstrDir ) ;
+		sstrComprarisonMapFilename += "LocalComparsion";
+		sstrComprarisonMapFilename += a->getFileName();
+		if ( maxErr > 0.0f )
+		{
+			for (size_t c=0;c<m_gridSizeSqr;c++) 
+			{
+				float scale  = log10f(pErrMap[c]+1.f)/log10f(maxErr);
+				intensityToRGB( scale,  &pRGBMap[c*3] );
+			}
+		}
+		SpectraHelpers::saveIntensityMap( pRGBMap, m_gridSize, m_gridSize, sstrComprarisonMapFilename );
+
+
 		sstrMainHTMLDoc = sstrHTMLDocTemplate;
 
 		// replace empty token.
@@ -1057,10 +1094,11 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 
 		std::string sstrTable("");
 
-		// insert icon
+		// insert icon and comparison map
 		sstrTable += HTMLExport::beginTableRow();
 		sstrTable += HTMLExport::beginTableCell();
 		sstrTable += HTMLExport::image(a->getFileName()+ ".png"); 
+		sstrTable += HTMLExport::image("LocalComparsion"+a->getFileName() + ".png"); 
 		sstrTable += HTMLExport::endTableCell();
 		sstrTable += HTMLExport::endTableRow();
 
@@ -1109,10 +1147,11 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 				// sub table
 				std::string sstrSubTable(HTMLExport::beginTable());
 
-				int xStart = MAX(xpB - s_outputPlanSize/2, 0);
-				int xEnd   = MIN(xpB + s_outputPlanSize/2+1, m_gridSize);
-				int yStart = MAX(ypB - s_outputPlanSize/2, 0);
-				int yEnd   = MIN(ypB + s_outputPlanSize/2+1, m_gridSize);
+				const int dim = static_cast<int>(s_outputPlanSize/2);
+				int xStart = MAX(xpB - dim, 0);
+				int xEnd   = MIN(xpB + dim+1, m_gridSize);
+				int yStart = MAX(ypB - dim, 0);
+				int yEnd   = MIN(ypB + dim+1, m_gridSize);
 
 				for ( int y=yStart;y<yEnd;y++)
 				{
@@ -1161,12 +1200,15 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 
 		Helpers::insertString( HTMLExport::HTML_TOKEN_TEMPLATE, sstrTable, sstrMainHTMLDoc );
 
-
 		std::ofstream fon(sstrFilename.c_str());
 		fon<<sstrMainHTMLDoc;
 
 		m_pSourceVFS->endRead( i );
 	}
+
+	delete[] pErrMap;
+	delete[] pRGBMap;
+
 }
 
 
