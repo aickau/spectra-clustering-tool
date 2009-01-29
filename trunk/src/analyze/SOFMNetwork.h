@@ -84,7 +84,7 @@ public:
 	// _fullExport if set to true generates UMatrix, DifferenceMaps and search result lists (containing top 100 similar spectra) for input each spectrum
 	void exportToHTML( const std::string &_sstrFilename, bool _fullExport = true );
 	
-	// Calculate U-matrix (Ultsch 1989) of the SOM for the current calculation step
+	// Calculate U-matrix (Ultsch 1989) of the SOM for the current calculation step. 
 	// sstrFilenName path + filename (no extension)
 	// _bUseLogScale use logarithmic scaling for matrix display
 	// _bShowEmpty show intensities for empty cells (no input data in there), otherwise empty cells are filled with black pixels

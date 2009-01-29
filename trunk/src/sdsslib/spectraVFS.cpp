@@ -416,9 +416,12 @@ void SpectraVFS::write( size_t _count, float _noize, const std::string &_sstrFil
 
 	Spectra spec;
 	spec.clear();
+	float freq = 0.00001f;
+
 	for ( size_t i=0;i<_count;i++)
 	{
-		spec.set( i, _noize );
+		spec.setSine( freq, 0.f, 1.f, _noize );
+		freq += 0.000000125f;
 
 		DWORD bytesWritten = 0;
 		WriteFile( f, &spec, sizeof(Spectra), &bytesWritten, NULL );
