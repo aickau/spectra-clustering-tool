@@ -572,7 +572,7 @@ loop1:
 
 	float error=errorv[0]+errorv[1]+errorv[2]+errorv[3];
 
-	size_t i=numSamples4;
+	int i=numSamples4;
 	for (i;i<Spectra::numSamples;i++)
 	{
 		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];

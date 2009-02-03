@@ -256,6 +256,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				AdditionalIncludeDirectories="../devil/include/;../"
 				PreprocessorDefinitions="WIN32;X64;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;$(NOINHERIT)"
 				RuntimeLibrary="2"
