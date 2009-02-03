@@ -178,7 +178,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib tinyxml_STL$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib tinyxmld_STL$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -353,6 +353,7 @@
 				RuntimeLibrary="2"
 				StructMemberAlignment="5"
 				EnableFunctionLevelLinking="true"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=""
 				AssemblerListingLocation=""
@@ -361,6 +362,7 @@
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -380,6 +382,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
 				SubSystem="2"
 				ProfileGuidedDatabase=""

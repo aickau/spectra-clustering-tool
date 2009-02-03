@@ -143,6 +143,8 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 		exportHistograms("export");
 
 		// initialize with input data
+		Helpers::print( std::string("Initializing network with input data.\n"), &m_logFile );
+
 		Rnd r(m_params.randomSeed);
 		for ( size_t i=0;i<m_gridSizeSqr;i++ )
 		{
@@ -180,6 +182,8 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 			exit(0);
 		}
 	}
+
+	Helpers::print( std::string("Initialization finished.\n"), &m_logFile );
 }
 
 
