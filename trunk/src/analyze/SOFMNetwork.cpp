@@ -624,7 +624,7 @@ void SOFMNetwork::process()
 	} else
 	if ( m_currentStep == 1 )
 	{
-		exportToHTML("export/first", false);
+		exportToHTML("export/first", true);
 	} else
 	if ( m_currentStep > 1 ) 
 	{
@@ -1044,6 +1044,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		{
 			Spectra *b = m_pSourceVFS->beginRead( j );
 			float err = a->compareSuperAdvanced( *b, compareInvariance ); 
+			//float err = a->compare( *b ); 
 			comparisonMap.insert( std::pair<float, size_t>(err, j) );	
 
 			// fill comparison map
@@ -1084,6 +1085,17 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 				intensityToRGB( scale,  &pRGBMap[c*3] );
 			}
 		}
+		// mark own position with red dot.
+		{
+			for ( int ty=-1;ty<=1;ty++)
+			{
+				for ( int tx=-1;tx<=1;tx++)
+				{
+					size_t o = (CALC_ADRESS_SAFE(xpA+tx,ypA+ty,m_gridSize,m_gridSize))*3;
+					pRGBMap[o] = 1.0f;	pRGBMap[o+1] = 0.0f;	pRGBMap[o+2] = 0.0f;
+				}
+			}
+		}
 		SpectraHelpers::saveIntensityMap( pRGBMap, m_gridSize, m_gridSize, sstrComprarisonMapFilename );
 
 
@@ -1102,7 +1114,6 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		sstrTable += HTMLExport::beginTableRow();
 		sstrTable += HTMLExport::beginTableCell();
 		sstrTable += HTMLExport::image(a->getFileName()+ ".png"); 
-		sstrTable += HTMLExport::image("LocalComparsion"+a->getFileName() + ".png"); 
 		sstrTable += HTMLExport::endTableCell();
 		sstrTable += HTMLExport::endTableRow();
 
@@ -1145,6 +1156,13 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 			{
 				sstrTable += "distance " + Helpers::numberToString<int>(xD) + "," + Helpers::numberToString<int>(yD);
 			}
+			sstrTable += HTMLExport::endTableCell();
+
+			sstrTable += HTMLExport::beginTableCell();
+			sstrTable += HTMLExport::image( "../empty.png" );
+			sstrTable += HTMLExport::endTableCell();
+			sstrTable += HTMLExport::beginTableCell();
+			sstrTable += HTMLExport::image("../"+Spectra::plateToString(b->getPlate()) +"/LocalComparsion"+b->getFileName() + ".png");
 			sstrTable += HTMLExport::endTableCell();
 		
 			{
@@ -1208,6 +1226,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		fon<<sstrMainHTMLDoc;
 
 		m_pSourceVFS->endRead( i );
+		return; // test.
 	}
 
 	delete[] pErrMap;

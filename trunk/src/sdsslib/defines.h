@@ -27,6 +27,7 @@
 #define CLAMP(x,min,max) MAX(MIN(x,max),min)
 
 #define CALC_ADRESS(x,y,xsize) ((x)+((y)*(xsize)))
+#define CALC_ADRESS_SAFE(x,y,xsize,ysize) ((CLAMP(x,0,xsize-1))+((CLAMP(y,0,ysize-1))*(xsize)))
 
 #define POINTER2INDEX(pointer,basepointer,type) (((unsigned int)(pointer)-(unsigned int)basepointer)/sizeof(type))
 
