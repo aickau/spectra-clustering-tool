@@ -1040,22 +1040,41 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		}
 
 
-		for ( size_t j=0;j<m_numSpectra;j++ )
+		for ( size_t j=0;j<m_numSpectra;j+=SpectraVFS::CACHELINESIZE )
 		{
-			Spectra *b = m_pSourceVFS->beginRead( j );
-			float err = a->compareSuperAdvanced( *b, compareInvariance ); 
-			//float err = a->compare( *b ); 
-			comparisonMap.insert( std::pair<float, size_t>(err, j) );	
+			Spectra *src[SpectraVFS::CACHELINESIZE];
+			float err[SpectraVFS::CACHELINESIZE];
 
-			// fill comparison map
-			if ( b->m_Index >= 0 && b->m_Index < m_gridSizeSqr )
+			const int numBatchElements = MIN( SpectraVFS::CACHELINESIZE, (MIN(m_numSpectra, j+SpectraVFS::CACHELINESIZE)-j));
+
+			// begin read for all src spectra
+			for ( int k=0;k<numBatchElements;k++)
 			{
-				assert( pErrMap[b->m_Index] == 0.0f );
-				pErrMap[b->m_Index] = err;
-				maxErr = MAX( maxErr, err );
+				src[k] = m_pSourceVFS->beginRead(j+k);
+			}
+			
+			#pragma omp parallel for
+			for ( int k=0;k<numBatchElements;k++)
+			{
+				err[k] = a->compareSuperAdvanced( *src[k], compareInvariance, true ); 
+				//float err[k] = a->compare( *src[k] ); 
 			}
 
-			m_pSourceVFS->endRead( j );
+			// end read for all src spectra, add error to comparison map
+			for ( int k=0;k<numBatchElements;k++)
+			{
+				comparisonMap.insert( std::pair<float, size_t>(err[k], j+k) );	
+
+				// fill comparison map
+				if ( src[k]->m_Index >= 0 && src[k]->m_Index < m_gridSizeSqr )
+				{
+					assert( pErrMap[src[k]->m_Index] == 0.0f );
+					pErrMap[src[k]->m_Index] = err[k];
+					maxErr = MAX( maxErr, err[k] );
+				}
+
+				m_pSourceVFS->endRead( j+k );
+			}
 		}
 
 		// create directory by plate

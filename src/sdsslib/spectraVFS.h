@@ -36,8 +36,11 @@ public:
 	static const size_t CACHELINESIZE = 16000;
 
 	// number of cachelines
-	static const size_t CACHELINES = 2; //80
-
+#ifdef X64
+	static const size_t CACHELINES = 80;
+#else
+	static const size_t CACHELINES = 2;
+#endif
 	// create VFS from a set of input fits files
 	// sstrDir directory where fits files can be located
 	// sstrFileName filename of VFS binary dump to write

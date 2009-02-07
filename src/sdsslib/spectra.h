@@ -105,7 +105,7 @@ public:
 
 	// super advanced compare using peak detectors and continuum spectra.
 	// _width 0..1
-	float compareSuperAdvanced(const Spectra &_spectra, float _width) const;
+	float compareSuperAdvanced(const Spectra &_spectra, float _width, bool _bOptimize=false) const;
 
 	// calculate extrema
 	void calcMinMax();
@@ -122,7 +122,10 @@ public:
 
 	// generate continuum subtracted spectrum
 	// _continuumSamples should be an order of magnitude smaller than Spectra::numSamples. 32 for instance is a good fit.
-	void getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<float> &_outSpectrum ) const;
+	// _outSpectrumMinusContinuum returns spectrum subtracted by the continuum
+	// _outContinuum returns the continuum itself, has _continuumSamples in 
+	void getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<float> &_outSpectrumMinusContinuum, std::vector<float> &_outContinuum ) const;
+
 
 	// get a list of detected peaks.
 	// _spectrumMinusContinuum continuum subtracted spectrum of the used spectrum
