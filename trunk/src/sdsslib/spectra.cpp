@@ -638,8 +638,41 @@ void genPeakSpectrum( const std::vector<float> &_peakArray, float _width, size_t
 	}
 }
 
+static
+void genGaussLUT(float *_pGaussLUT, int _GaussLUTSize, float _width)
+{
+	assert(_pGaussLUT != NULL);
 
-float Spectra::compareSuperAdvanced(const Spectra &_spectra, float _width) const
+	for ( int i=0;i<_GaussLUTSize;i++ ) {
+		_pGaussLUT[i] = MathHelpers::gauss1D( i-_GaussLUTSize/2, 1.f, 0.f, _width );
+	}
+}
+
+static
+void genPeakSpectrum2( const std::vector<float> &_peakArray, float *_pGaussLUT, int _GaussLUTSize, size_t _numSamples, std::vector<float> &_outPeakSpectrum )
+{
+	assert(_pGaussLUT != NULL);
+	_outPeakSpectrum.resize( _numSamples );
+	for ( size_t i=0;i<_numSamples;i++ ) {
+		_outPeakSpectrum[i] = 0.0f;
+	}
+
+	const size_t w=128;
+
+	for ( size_t j=0;j<_peakArray.size();j+=2) {
+		int beg = MAX(_peakArray[j+1]-w,0);
+		int end = MIN(_peakArray[j+1]+w,_numSamples-1);
+		for ( int i=beg;i<end;i++ ) {
+			// calc gaussian peak uses lookup table
+			int ind = CLAMP(i-_peakArray[j+1]+_GaussLUTSize/2,0,_GaussLUTSize);
+			_outPeakSpectrum[i] = MAX( _pGaussLUT[ind]*fabsf(_peakArray[j]), _outPeakSpectrum[i] );
+		}
+	}
+}
+
+
+
+float Spectra::compareSuperAdvanced(const Spectra &_spectra, float _width, bool _bOptimize) const
 {
 	const size_t continuumMaxSize = 32;
 	const size_t numPeaks = 20;
@@ -648,20 +681,16 @@ float Spectra::compareSuperAdvanced(const Spectra &_spectra, float _width) const
 	// map _width (0..1] to right range.
 	_width *= static_cast<float>(Spectra::numSamples/4);
 
-	// (1) generate continuum spectrum
+	// (1) generate continuum spectrum and generate spectrum minus continuum 
 	std::vector<float> continuum1;
 	std::vector<float> continuum2;
-	generateContinuum( continuumMaxSize, continuum1 );
-	_spectra.generateContinuum( continuumMaxSize, continuum2 );
-
-	// (2) generate spectrum minus continuum 
 	std::vector<float> spectrumMinusContinuum1;
 	std::vector<float> spectrumMinusContinuum2;
-	getSpectrumMinusContinuum( continuumMaxSize, spectrumMinusContinuum1 );
-	_spectra.getSpectrumMinusContinuum( continuumMaxSize, spectrumMinusContinuum2 );
+	getSpectrumMinusContinuum( continuumMaxSize, spectrumMinusContinuum1, continuum1 );
+	_spectra.getSpectrumMinusContinuum( continuumMaxSize, spectrumMinusContinuum2, continuum2 );
 
 
-	// (2) get peaks
+	// (2) detect peaks
 	std::vector<float> minPeaks1;
 	std::vector<float> maxPeaks1;
 	std::vector<float> minPeaks2;
@@ -669,27 +698,47 @@ float Spectra::compareSuperAdvanced(const Spectra &_spectra, float _width) const
 	getPeaks( spectrumMinusContinuum1, numPeaks, peakCutOffTreshold, minPeaks1, maxPeaks1 );
 	_spectra.getPeaks( spectrumMinusContinuum2, numPeaks, peakCutOffTreshold, minPeaks2, maxPeaks2 );
 
-
-	// widen peaks
+	// (3) generate artificial sprectra with smoothed peaks using gauss function
 	std::vector<float> minPeaksS1;
 	std::vector<float> maxPeaksS1;
 	std::vector<float> minPeaksS2;
 	std::vector<float> maxPeaksS2;
 
-	genPeakSpectrum( minPeaks1, _width, Spectra::numSamples, minPeaksS1 );
-	genPeakSpectrum( maxPeaks1, _width, Spectra::numSamples, maxPeaksS1 );
-	genPeakSpectrum( minPeaks2, _width, Spectra::numSamples, minPeaksS2 );
-	genPeakSpectrum( maxPeaks2, _width, Spectra::numSamples, maxPeaksS2 );
+
+	// uses optimized version
+	if ( _width > 24.f && _width < 25.f && _bOptimize)
+	{
+		static const int gaussLUTSize = 256;
+		static float gaussLUT[gaussLUTSize];
+		static bool bInitLUT = true;
+		if (bInitLUT)
+		{
+			genGaussLUT(gaussLUT, gaussLUTSize, _width );
+			bInitLUT = false;
+		}
+
+		genPeakSpectrum2( minPeaks1, gaussLUT, gaussLUTSize, Spectra::numSamples, minPeaksS1 );
+		genPeakSpectrum2( maxPeaks1, gaussLUT, gaussLUTSize, Spectra::numSamples, maxPeaksS1 );
+		genPeakSpectrum2( minPeaks2, gaussLUT, gaussLUTSize, Spectra::numSamples, minPeaksS2 );
+		genPeakSpectrum2( maxPeaks2, gaussLUT, gaussLUTSize, Spectra::numSamples, maxPeaksS2 );
+	}
+	else
+	{
+		genPeakSpectrum( minPeaks1, _width, Spectra::numSamples, minPeaksS1 );
+		genPeakSpectrum( maxPeaks1, _width, Spectra::numSamples, maxPeaksS1 );
+		genPeakSpectrum( minPeaks2, _width, Spectra::numSamples, minPeaksS2 );
+		genPeakSpectrum( maxPeaks2, _width, Spectra::numSamples, maxPeaksS2 );
+	}
 
 	float errMinPeaks = MathHelpers::getError( &minPeaksS1[0], &minPeaksS2[0], Spectra::numSamples );
 	float errMaxPeaks = MathHelpers::getError( &maxPeaksS1[0], &maxPeaksS2[0], Spectra::numSamples );
 	float errContinuum = MathHelpers::getError( &continuum1[0], &continuum2[0], continuum1.size() );
 
-	double errTotal = sqrt((errMinPeaks+errMaxPeaks)*errContinuum);
+	// combined error, min+max peaks+continuum
+	double errTotal = sqrtf((errMinPeaks+errMaxPeaks)*errContinuum);
 
 	return static_cast<float>(errTotal);
 }
-
 
 
 
@@ -741,19 +790,20 @@ void Spectra::generateContinuum( size_t _continuumSamples, std::vector<float> &_
 		continuumSize = MathHelpers::fold1D( continuum, continuumSize );
 	} while ( continuumSize >= _continuumSamples );
 
-	_outContinuum.clear();
+	_outContinuum.resize(continuumSize);
 	for ( size_t i=0;i<continuumSize;i++ ) {
-		_outContinuum.push_back( continuum[i] );
+		_outContinuum[i] = continuum[i] ;
 	}
 }
 
-void Spectra::getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<float> &_outSpectrum ) const
-{
-	_outSpectrum.clear();
-	std::vector<float> continuum; 
-	generateContinuum( _continuumSamples, continuum );
 
-	const float continuumSizef = static_cast<float>(continuum.size());
+
+void Spectra::getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<float> &_outSpectrumMinusContinuum, std::vector<float> &_outContinuum ) const
+{
+	_outSpectrumMinusContinuum.resize(Spectra::m_SamplesRead);
+	generateContinuum( _continuumSamples, _outContinuum );
+
+	const float continuumSizef = static_cast<float>(_outContinuum.size());
 	float c=0.0f;
 	const float cInc=(continuumSizef-1.f)/static_cast<float>(Spectra::numSamples);
 	for ( size_t i=0;i<static_cast<size_t>(Spectra::m_SamplesRead);i++ )
@@ -761,7 +811,7 @@ void Spectra::getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<f
 		const float c0 = floorf(c); 
 		const size_t i0 = static_cast<size_t>(c0);
 		const float c1 = c - c0;
-		_outSpectrum.push_back( m_Amplitude[i] - MathHelpers::lerp( continuum[i0], continuum[i0+1], c1 ) );
+		_outSpectrumMinusContinuum[i] = m_Amplitude[i] - MathHelpers::lerp( _outContinuum[i0], _outContinuum[i0+1], c1 );
 		c+=cInc;
 	}
 }
