@@ -624,7 +624,7 @@ void SOFMNetwork::process()
 	} else
 	if ( m_currentStep == 1 )
 	{
-		exportToHTML("export/first", true);
+		exportToHTML("export/first", false);
 	} else
 	if ( m_currentStep > 1 ) 
 	{
@@ -1245,7 +1245,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		fon<<sstrMainHTMLDoc;
 
 		m_pSourceVFS->endRead( i );
-		return; // test.
+		//return; // for testing.
 	}
 
 	delete[] pErrMap;
