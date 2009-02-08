@@ -3,12 +3,12 @@
 <SETTINGS>
 	<STEP current="1" total="100"/>
 	<GRIDSIZE value="2"/>
-	<RANDOMSEED value="26"/>
+	<RANDOMSEED value="15"/>
 	<LEARNRATE begin="0.25" end="0.01"/>
 	<RADIUS begin="1" end="0.5"/>
 	<SPECTRUM file="sofmnet.bin"/>
 	<EXPORT>
-		<SUBPAGES value="0"/>
+		<SUBPAGES value="1"/>
 		<WAITFORUSER value="0"/>
 	</EXPORT>
 </SETTINGS>
