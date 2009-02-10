@@ -47,6 +47,7 @@ void Helpers::print( const std::string &_sstrText, std::ofstream *_logStream )
 	{
 		(*_logStream) << sstrPrefix;
 		(*_logStream) << _sstrText;
+		_logStream->flush();		// slower, but more secure for log outputs
 	}
 }
 

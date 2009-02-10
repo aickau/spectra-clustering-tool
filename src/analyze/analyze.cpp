@@ -48,7 +48,7 @@ SOFMNetwork *g_pSOFM=NULL;
 
 int g_CurrentSpectraIndex=0;
 
-size_t g_Mode = 0;
+size_t g_Mode = 1;	// immediately start with clustering..
 bool g_DisableOutput=false;
 
 size_t g_numSpectra = 0;
