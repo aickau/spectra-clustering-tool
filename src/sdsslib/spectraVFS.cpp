@@ -31,6 +31,8 @@
 
 #include "memory.h"
 
+//#define SPECTRAVFS_ASYNC_IO
+
 static
 __int64 HiLowtoUInt64( unsigned __int32 _nLowerPart, unsigned __int32 _nHigherPart )
 {
@@ -51,6 +53,7 @@ SpectraVFS::SpectraVFS( const std::string &_sstrFilename, bool _readOnly )
 ,m_nNumberOfSpectra(0)
 ,m_FileHandle(NULL)
 ,m_nTimeStamp(0)
+,m_logFile(std::string(_sstrFilename+std::string(".log")).c_str())
 {
 	for ( size_t i=0;i<CACHELINES;i++)
 	{
@@ -64,7 +67,11 @@ SpectraVFS::SpectraVFS( const std::string &_sstrFilename, bool _readOnly )
 	m_IOHandle.reset();
 
 	DWORD accessMode = GENERIC_READ | ((_readOnly) ? 0 : GENERIC_WRITE);
+#ifdef SPECTRAVFS_ASYNC_IO
 	m_FileHandle = CreateFile( m_sstrDumpFilename.c_str(), accessMode, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL );
+#else
+	m_FileHandle = CreateFile( m_sstrDumpFilename.c_str(), accessMode, 0, NULL, OPEN_EXISTING, 0, NULL );
+#endif
 
 	if (m_FileHandle == INVALID_HANDLE_VALUE)
 	{
@@ -442,7 +449,11 @@ SpectraVFS::IOHandle::IOHandle( OVERLAPPED &_overlapped )
 
 void SpectraVFS::IOHandle::set( unsigned __int32 _offsetLow, unsigned __int32 _offsetHigh )
 {
+#ifdef SPECTRAVFS_ASYNC_IO
 	m_overlapped.hEvent = (HANDLE)1;
+#else
+	m_overlapped.hEvent = (HANDLE)0;
+#endif
 	m_overlapped.Offset = _offsetLow;
 	m_overlapped.OffsetHigh = _offsetHigh;
 }
@@ -483,17 +494,38 @@ void SpectraVFS::Read( size_t _nSpectraIndex, Spectra *_pDestination, bool bAsyn
 		nBytesToRead = (m_nNumberOfSpectra-_nSpectraIndex)*SPECTRASIZE;
 	}
 
+	DWORD ndwBytesToRead = static_cast<DWORD>(nBytesToRead);
+
 	unsigned __int64 nOffset = static_cast<__int64>(_nSpectraIndex)*SPECTRASIZE;
 	unsigned __int32 nOffsetLow, nOffsetHigh;
 	UInt64toHiLow( nOffset, nOffsetLow, nOffsetHigh );
-
 	m_IOHandle.set( nOffsetLow, nOffsetHigh );
 
-	ReadFileEx( m_FileHandle, _pDestination, nBytesToRead, &m_IOHandle.m_overlapped, &SpectraVFS::ReadFinished );
+	BOOL bReadSuccess = FALSE;
+
+#ifdef SPECTRAVFS_ASYNC_IO
+	bReadSuccess = ReadFileEx( m_FileHandle, _pDestination, ndwBytesToRead, &m_IOHandle.m_overlapped, &SpectraVFS::ReadFinished );
 	
 	if ( !bAsyncRead )
 	{
 		WaitForIO( m_IOHandle );
+	}
+#else
+	DWORD ndwBytesRead;
+
+	bReadSuccess = ReadFile( m_FileHandle, _pDestination, ndwBytesToRead, &ndwBytesRead, &m_IOHandle.m_overlapped );
+
+	if ( ndwBytesRead != ndwBytesToRead )
+	{
+		Helpers::print( std::string("SpectraVFS::Read Error: not all bytes read.\n"), &m_logFile );
+		assert(0);
+	}
+#endif
+
+	if ( bReadSuccess == FALSE )
+	{	
+		DWORD err = GetLastError();
+		Helpers::print( std::string("SpectraVFS::Read Error:")+Helpers::numberToString<DWORD>(err)+std::string("\n"), &m_logFile );
 	}
 }
 
@@ -506,13 +538,15 @@ void CALLBACK SpectraVFS::ReadFinished(DWORD dwErrorCode, DWORD dwNumberOfBytesT
 
 void SpectraVFS::WaitForIO( IOHandle &_handle )
 {
-//	Timer t;
+#ifdef SPECTRAVFS_ASYNC_IO
+	//	Timer t;
 	while ( _handle.isSet() )
 	{
 		SleepEx(1,true);
 	}
-//	float time = t.GetElapsedSecs(); 
-//	printf("%f sec\n", time );
+	//	float time = t.GetElapsedSecs(); 
+	//	printf("%f sec\n", time );
+#endif
 }
 
 
@@ -536,6 +570,8 @@ void SpectraVFS::Write(  size_t _nSpectraIndex, Spectra *_pSource )
 		nBytesToWrite = (m_nNumberOfSpectra-_nSpectraIndex)*SPECTRASIZE;
 	}
 
+	DWORD ndwBytesToWrite = static_cast<DWORD>(nBytesToWrite);
+
 	unsigned __int64 nOffset = static_cast<__int64>(_nSpectraIndex)*SPECTRASIZE;
 	unsigned __int32 nOffsetLow, nOffsetHigh;
 	UInt64toHiLow( nOffset, nOffsetLow, nOffsetHigh );
@@ -543,6 +579,24 @@ void SpectraVFS::Write(  size_t _nSpectraIndex, Spectra *_pSource )
 	IOHandle writeHandle;
 	writeHandle.set( nOffsetLow, nOffsetHigh );
 
-	WriteFileEx( m_FileHandle, _pSource, nBytesToWrite, &writeHandle.m_overlapped, &SpectraVFS::ReadFinished );
+	BOOL bWriteSuccess = FALSE;
+
+#ifdef SPECTRAVFS_ASYNC_IO
+	bWriteSuccess = WriteFileEx( m_FileHandle, _pSource, ndwBytesToWrite, &writeHandle.m_overlapped, &SpectraVFS::ReadFinished );
 	WaitForIO( writeHandle );
+#else
+	DWORD ndwBytesWritten;
+	bWriteSuccess = WriteFile( m_FileHandle, _pSource, ndwBytesToWrite, &ndwBytesWritten, &writeHandle.m_overlapped );
+	if ( ndwBytesWritten != ndwBytesToWrite )
+	{
+		Helpers::print( std::string("SpectraVFS::Write Error: not all bytes written.\n"), &m_logFile );
+		assert(0);
+	}
+#endif
+
+	if ( bWriteSuccess == FALSE )
+	{
+		DWORD err = GetLastError();
+		Helpers::print( std::string("SpectraVFS::Write Error:")+Helpers::numberToString<DWORD>(err)+std::string("\n"), &m_logFile );
+	}
 }

@@ -25,6 +25,8 @@
 #pragma warning(disable : 4244)					// conversion double 2 float
 #pragma warning(disable : 4305)					// truncation const double 2 float
 
+#undef max
+#undef min
 
 class Vec2f
 {
