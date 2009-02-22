@@ -22,6 +22,8 @@
 #include <vector>
 #include <string>
 
+#include "sdsslib/debug.h"
+
 #define SPT_DEFAULTFILTER (Spectra::SPT_SPEC_UNKNOWN|Spectra::SPT_SPEC_QSO|Spectra::SPT_SPEC_HIZ_QSO|Spectra::SPT_GAL_EM)
 
 // actually can hold only one spectrum so the name is a bit misleading here
@@ -173,6 +175,7 @@ public:
 #endif
 	char pad[8];						// for padding to multiple of 16 byte boundaries
 
+
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 	// helper functions
 	//////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,5 +196,7 @@ public:
 	static std::string spectraFilterToString( unsigned int spectraFilter );
 
 };
+
+STATIC_ASSERT((sizeof(Spectra)%16)==0);		// check if spectra is multiple of 16 bytes
 
 #endif
