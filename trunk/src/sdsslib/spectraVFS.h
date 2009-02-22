@@ -21,6 +21,7 @@
 
 #include <Windows.h>
 #include <string>
+#include <fstream>
 
 #include "sdsslib/debug.h"
 #include "spectra.h"
@@ -151,6 +152,7 @@ private:
 	CacheTag m_TagTable[CACHELINES];									// tag RAM to track spectra cache lines
 	size_t m_nTimeStamp;												// global timestamp
 	IOHandle m_IOHandle;												// used for async IO operations
+	std::ofstream m_logFile;											// error logfile 
 };
 
 #endif
