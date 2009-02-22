@@ -22,6 +22,7 @@
 #include <Windows.h>
 #include <string>
 
+#include "sdsslib/debug.h"
 #include "spectra.h"
 
 
@@ -97,6 +98,7 @@ private:
 	static const size_t TOTALCACHESIZE = CACHELINESIZE*CACHELINES;		// number of spectra should be stored in heap 
 	static const size_t TOTALCACHELINEBYTES = CACHELINESIZE*SPECTRASIZE;
 
+	STATIC_ASSERT(TOTALCACHELINEBYTES < 0x80000000);					// should be smaller than 2^31
 
 	struct CacheTag
 	{
