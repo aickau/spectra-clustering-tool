@@ -344,16 +344,92 @@ void SpectraVFS::flush()
 	}
 }
 
+struct S82
+{
+	__int64 specObjID;
+	double z;
+	double M_i;
+};
 
+#include <map>
 
 
 void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter )
 {
 	std::vector<std::string> fileList;
 
-	size_t numSpectra = FileHelpers::getFileList( _sstrDir, fileList );
-
 	std::ofstream flog("dump_log.txt");
+
+
+	// s 82 datastructure
+	std::map<__int64,S82> s82;
+
+	std::ifstream fin("S82belt.csv");
+	if( !fin ) 
+	{
+		Helpers::print( std::string("S82belt.csv not found.\n"), &flog );
+
+		exit(0);
+	}
+	std::string sstrHui;
+	getline(fin,sstrHui);
+	int count =0;
+	while( getline(fin,sstrHui) ) 
+	{
+		std::istringstream sstrStream(sstrHui);
+		int mjd_spec,plate,fiberID;
+		int FIRSTmag,scienceprimary;
+
+		S82 s82t;
+
+		if (sstrStream) {
+			sstrStream >> s82t.specObjID;	
+		}
+
+		if (sstrStream) {
+			sstrStream >> mjd_spec;	
+		}
+		if (sstrStream) {
+			sstrStream >> plate;	
+		}
+		if (sstrStream) {
+			sstrStream >> fiberID;	
+		}
+		if (sstrStream) {
+			sstrStream >> s82t.z;	
+		}
+		if (sstrStream) {
+			sstrStream >> s82t.M_i;	
+		}
+		if (sstrStream) {
+			sstrStream >> FIRSTmag;	
+		}
+
+		if (sstrStream) {
+			sstrStream >> scienceprimary;	
+		}
+
+
+		s82.insert(std::make_pair<__int64,S82>(s82t.specObjID,s82t));
+		count++;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	size_t numSpectra = FileHelpers::getFileList( _sstrDir, fileList );
 
 	HANDLE f = CreateFile( _sstrFileName.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL );
 
@@ -367,10 +443,18 @@ void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFil
 
 		if ( bResult )
 		{
-			if ( (spec.m_Type & _spectraFilter) > 0 )
+			std::map<__int64,S82>::iterator it = s82.find(spec.m_SpecObjID);
+
+			if ( (spec.m_Type & _spectraFilter) > 0 && it != s82.end() )
 			{
+				spec.m_RealZ = it->second.z;
+				spec.m_Mi = it->second.M_i;	
 				DWORD bytesWritten = 0;
 				bResult = (WriteFile( f, &spec, sizeof(Spectra), &bytesWritten, NULL ) > 0) ? true : false;
+				if ( bResult)
+				{
+					c++;
+				}
 			}
 		}
 		if ( !bResult )
@@ -378,10 +462,6 @@ void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFil
 			flog<<"failed to load ";
 			flog<<fileList.at(i);
 			flog<<"\n";
-		}
-		else
-		{
-			c++;
 		}
 	}
 	flog<<c;

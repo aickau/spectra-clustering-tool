@@ -170,6 +170,10 @@ public:
 	__int64 m_SpecObjID;	
 	SpectraType m_Type;
 	double m_Z;
+	double m_RealZ;
+	double m_Mi;						// absolute brightness
+	double m_coeff0;
+	double m_coeff1;
 #ifdef _USE_SPECTRALINES
 	SpectraLines m_Lines[numSpectraLines];
 #endif
