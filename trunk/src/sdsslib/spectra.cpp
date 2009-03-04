@@ -74,6 +74,11 @@ void Spectra::clear()
 	m_Type = SPT_NOT_SET;
 	m_Z = 0.0;
 
+	m_RealZ= 0.0;
+	m_Mi=0.0;					
+	m_coeff0=0.0;
+	m_coeff1=0.0;
+
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		m_Amplitude[i] = 0.0f;
@@ -335,6 +340,9 @@ bool Spectra::loadFromFITS(std::string &filename)
 	fits_read_key( f, TINT, "SPEC_CLN", &m_Type, NULL, &status );
 	m_Type = static_cast<SpectraType>(1<<m_Type);
 	m_SpecObjID = Spectra::calcSpecObjID( plateID, mjd, fiber, 0 );
+
+	fits_read_key( f, TDOUBLE, "COEFF0", &m_coeff0, NULL, &status );
+	fits_read_key( f, TDOUBLE, "COEFF1", &m_coeff1, NULL, &status );
 
 	// read spectral data
 	fits_get_img_size(f, 2, size, &status );
