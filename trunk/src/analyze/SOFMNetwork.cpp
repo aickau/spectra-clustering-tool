@@ -84,8 +84,12 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 ,m_params( Parameters::defaultParameters )
 ,m_Min(FLT_MAX)
 ,m_Max(-FLT_MAX)
+,m_minMi(FLT_MAX)
+,m_maxMi(-FLT_MAX)
 ,m_logFile("sofm_log.txt")
 {
+	Helpers::print( std::string("SDSS Analyze (Arjen's custom build version)\n"), &m_logFile );
+	
 	std::string sstrSOFMFileName("");
 	if ( !readSettings("settings.xml", sstrSOFMFileName) )
 	{
@@ -113,6 +117,27 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 
 
 	calcMinMaxInputDS();
+
+	m_minMi = FLT_MAX;
+	m_maxMi = -FLT_MAX;
+
+	const size_t numSpectra = m_pSourceVFS->getNumSpectra();
+
+	// calc min/max of m_i
+	for ( size_t i=0;i<numSpectra;i++ )
+	{
+		Spectra *a = m_pSourceVFS->beginRead( i );
+
+		if ( m_minMi > a->m_Mi ) 
+		{
+			m_minMi = a->m_Mi;
+		}
+		if ( m_maxMi < a->m_Mi) 
+		{
+			m_maxMi = a->m_Mi;
+		}
+		m_pSourceVFS->endRead( i );
+	}
 
 
 	if ( !bContinueComputation )
@@ -399,16 +424,34 @@ void SOFMNetwork::renderIcons()
 		sstrFilename += a->getFileName();
 		sstrFilename += ".png";
 		float localmax = fabs(a->m_Max);
-		float redness = localmax;
+/*		float redness = localmax;
 		if (redness != 0.f)
 		{
 			redness = MathHelpers::logf(redness,globalmax);
 			redness *= redness*2.f;
 		}
+*/
+		//		redness = (float)i*2.f/(float)m_numSpectra;
 
-//		redness = (float)i*2.f/(float)m_numSpectra;
 
-		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, 100, 100, localmax, redness );
+		// -22 minimum absolute brightness, -30 maximum brightness, we map that linear 0..2
+		float redness = CLAMP(a->m_Mi,-30.f,-22.f)+30.f;
+		redness /=4.f;
+		redness = 2.f-redness;	
+
+		// map z-redness to 0..2
+		float z_redness	= CLAMP(a->m_RealZ,0.5f,5.f);
+		z_redness /= 2.5f;
+
+		if ( a->m_RealZ >= 0.5 && a->m_RealZ <=0.6f)
+			z_redness= (a->m_RealZ-0.5f)*20.f;
+
+		if ( a->m_RealZ >= 1.5 && a->m_RealZ <=1.6f)
+			z_redness= (a->m_RealZ-1.5f)*20.f;
+		if ( a->m_RealZ >= 3.6 && a->m_RealZ <=3.8f)
+			z_redness= (a->m_RealZ-3.6f)*10.f;
+
+		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, 100, 100, localmax, redness, z_redness );
 
 		m_pSourceVFS->endRead( i );
 	}
@@ -515,7 +558,7 @@ void SOFMNetwork::searchBestMatchComplete( const std::vector<size_t> &_spectraIn
 			{
 				Spectra &currentSpectra = *src[k];
 
-				const float errMin = a->compare( currentSpectra );
+				const float errMin = a->compareSuperAdvanced( currentSpectra, 0.1f, true );
 				
 				if (errMin < currentBestMatch.error && a->isEmpty() )
 				{
@@ -691,7 +734,7 @@ void SOFMNetwork::process()
 		// retrieve best match neuron for a cache line batch of source spectra
 		Timer t;
 
-		const bool bFullSearch = ((m_currentStep % MAX((m_params.numSteps/s_globalSearchFraction),1)) == 0) || (m_currentStep<5);
+		const bool bFullSearch = true;// ((m_currentStep % MAX((m_params.numSteps/s_globalSearchFraction),1)) == 0) || (m_currentStep<5);
 
 		if (bFullSearch) 
 		{
@@ -1285,6 +1328,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 		generateHTMLInfoPages( sstrName );
 	}
 	
+	sstrInfo += std::string("Arjens custom build version.")+HTMLExport::lineBreak();
 	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+HTMLExport::lineBreak();
 	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+HTMLExport::lineBreak();
 	sstrInfo += std::string("grid size: ")+Helpers::numberToString( m_gridSize )+HTMLExport::lineBreak();

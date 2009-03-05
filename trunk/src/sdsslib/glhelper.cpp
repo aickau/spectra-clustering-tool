@@ -560,13 +560,27 @@ void GLHelper::DrawQuad(float uwidth, float vheight, bool upsidedown)
 	};
 
 	float p[] = {
-		-aspect,-1.0f,0.f,
-		aspect,-1.0f,0.f,
-		aspect,1.0f,0.f,
-		-aspect,1.0f,0.f
+		-aspect,-1.0f,-10.f,
+		aspect,-1.0f,-10.f,
+		aspect,1.0f,-10.f,
+		-aspect,1.0f,-10.f
 	};
 
 	DrawQuad(p, t);
+}
+
+
+
+void GLHelper::DrawQuad(float _width, float _height, float _z)
+{
+	float p[] = {
+		-_width,-_height,_z,
+		_width,-_height,_z,
+		_width,_height,_z,
+		-_width,_height,_z
+	};
+
+	DrawQuad(p);
 }
 
 

@@ -238,7 +238,7 @@ void drawSpectra(Spectra &_spectra,
 
 
 
-void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yMax, float _redness )
+void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yMax, float _redness, float _z )
 {
 	if ( FileHelpers::fileExists(_sstrFilename) )
 		return;
@@ -269,6 +269,12 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 
 	glClearColor(_redness,g,0,0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
+
+	float gz = MAX(_z-1.f, 0.f);
+	glColor3f(gz,gz,_z);
+	GLHelper::DrawQuad(w4/8.f,h4/8.f, -10.f);
+	
+	glColor3f(1,1,1);
 	_spectra.calcMinMax();
 	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/_spectra.m_Max );
 
@@ -328,7 +334,7 @@ void combineSpectra( std::string &_sstrDumpFilename, const std::string &_sstrFil
 	int scrWidth, scrHeight;
 	GLHelper::GetViewportSize(scrWidth, scrHeight);
 
-	renderSpectraIconToDisk(accumSpectra, _sstrFilename, scrWidth, scrHeight, 1.f, 0.0f );
+	renderSpectraIconToDisk(accumSpectra, _sstrFilename, scrWidth, scrHeight, 1.f, 0.0f, 0.f );
 
 }
 

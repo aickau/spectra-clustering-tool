@@ -48,7 +48,7 @@ SOFMNetwork *g_pSOFM=NULL;
 
 int g_CurrentSpectraIndex=0;
 
-size_t g_Mode = 1;	// immediately start with clustering..
+size_t g_Mode = 0;	// immediately start with clustering..
 bool g_DisableOutput=false;
 
 size_t g_numSpectra = 0;
@@ -77,7 +77,7 @@ int InitGL( const std::string &sstrCmdLine )
 	std::string sstrSourceSpectraFileName("allSpectra.bin");
 
 
-	_cprintf("Welcome to SDSS Analyze!\n\n\n");
+	_cprintf("Welcome to SDSS Analyze (Arjen's custom build version)!\n\n\n");
 
 	if ( sstrCmdLine.empty() )
 	{
@@ -262,13 +262,14 @@ void DrawGLScene()
 
 	SetWindowText( fr_hWnd, captiontext );
 	g_Mode = g_Mode % 2;
-/*
+
+	/*
 	if (g_Mode==1)
 	{
 		if ( up==1)up=0;
 		else return;
-	}
-*/
+	}*/
+
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 

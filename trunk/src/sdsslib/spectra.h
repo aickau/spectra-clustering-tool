@@ -170,8 +170,8 @@ public:
 	__int64 m_SpecObjID;	
 	SpectraType m_Type;
 	double m_Z;
-	double m_RealZ;
-	double m_Mi;						// absolute brightness
+	double m_RealZ;						// 0..5
+	double m_Mi;						// absolute brightness. MI:= -22 = minimum, maximum = -30
 	double m_coeff0;
 	double m_coeff1;
 #ifdef _USE_SPECTRALINES
