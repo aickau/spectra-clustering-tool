@@ -180,6 +180,7 @@ public:
 	// drawing
 	static void			DrawQuad(bool upsidedown=false);
 	static void			DrawQuad(float uwidth, float vheight, bool upsidedown=false);
+	static void			DrawQuad(float _width, float _height, float _z);
 	static void			DrawQuad(float *points);
 	static void			DrawQuadn(float *points, float *normals);
 	static void			DrawQuad(float *points, float *texcoords);

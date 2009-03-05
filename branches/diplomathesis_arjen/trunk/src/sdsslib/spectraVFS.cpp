@@ -354,7 +354,7 @@ struct S82
 #include <map>
 
 
-void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter )
+void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter, int _zrange )
 {
 	std::vector<std::string> fileList;
 
@@ -415,20 +415,6 @@ void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFil
 	}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	size_t numSpectra = FileHelpers::getFileList( _sstrDir, fileList );
 
 	HANDLE f = CreateFile( _sstrFileName.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL );
@@ -449,11 +435,21 @@ void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFil
 			{
 				spec.m_RealZ = it->second.z;
 				spec.m_Mi = it->second.M_i;	
-				DWORD bytesWritten = 0;
-				bResult = (WriteFile( f, &spec, sizeof(Spectra), &bytesWritten, NULL ) > 0) ? true : false;
-				if ( bResult)
+
+				// ignore if in wrong z range..
+				if ( spec.m_RealZ >= 0.5f && spec.m_RealZ <= 0.6f && _zrange == 0 || 
+					spec.m_RealZ >= 1.5f && spec.m_RealZ <= 1.6f && _zrange == 1 || 
+					spec.m_RealZ >= 3.6f && spec.m_RealZ <= 3.8f && _zrange == 2 )
 				{
-					c++;
+					// hack: read again, since we need m_RealZ for correct loading..
+					spec.loadFromFITS( fileList.at(i) );
+
+					DWORD bytesWritten = 0;
+					bResult = (WriteFile( f, &spec, sizeof(Spectra), &bytesWritten, NULL ) > 0) ? true : false;
+					if ( bResult)
+					{
+						c++;
+					}
 				}
 			}
 		}

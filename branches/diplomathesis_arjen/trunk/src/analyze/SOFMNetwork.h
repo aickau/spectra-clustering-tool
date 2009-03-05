@@ -108,6 +108,10 @@ public:
 	float			m_Min;
 	float			m_Max;
 
+	float 			m_minMi;
+	float 			m_maxMi;
+
+
 protected:
 
 	struct BestMatch

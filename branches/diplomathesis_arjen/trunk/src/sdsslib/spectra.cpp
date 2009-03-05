@@ -301,7 +301,7 @@ bool Spectra::saveToCSV(std::string &filename)
 
 	return true;
 }
-
+#define _ZBACKCALC
 
 bool Spectra::loadFromFITS(std::string &filename)
 {
@@ -363,6 +363,61 @@ bool Spectra::loadFromFITS(std::string &filename)
 
 
 #ifdef _ZBACKCALC
+
+	// Arjen says:
+	// to convert pixel no. to wavelength (in the observers frame), use the following equation:
+	// wavelenght = 10^(coeff0+coeff1*pixel)
+	// where coeff0 and coeff1 are in the fits file. pixel is the pixel number.
+	// use wavelenght_0 = (wavelenght/(1+z)) to shift spectra into rest frame for a few redshift bins (low, moderate, high), which are:
+	//  0.5 < z < 0.6  : 2779 spectra, cut to 2535-5750 angstroems in the wavelenght_0 rest frame
+	//	1.5 < z < 1.6  : 4662             "   1520-3535              "         
+	//	3.6 < z < 3.8  : 771              "    830-1910              "           
+
+	float pixelNum = 1.f;
+	for (size_t i=0;i<elementsToRead;i++)
+	{
+		float wavelength = powf(10.f, m_coeff0+m_coeff1*pixelNum);
+		float wavelength_0 = wavelength/(1.f+m_RealZ);
+
+		float waveMin0, waveMax0;
+
+		//spectrum[c] = 
+		if ( m_RealZ >= 0.5f && m_RealZ <= 0.6f )
+		{
+			// low
+			waveMin0 = 2535.f;
+			waveMax0 = 5750.f;
+		}
+		else 
+		if ( m_RealZ >= 1.5f && m_RealZ <= 1.6f )
+		{
+			// medium
+			waveMin0 = 1520.f;
+			waveMax0 = 3535.f;
+		}
+		else 
+		if ( m_RealZ >= 3.6f && m_RealZ <= 3.8f )
+		{
+			// max
+			waveMin0 = 830.f;
+			waveMax0 = 1910.f;
+		}
+		else
+		{
+			continue;
+		}
+
+		wavelength_0 = CLAMP( wavelength_0, waveMin0, waveMax0);
+		size_t i0 = Spectra::waveLengthToIndex( wavelength_0, waveMin0, waveMax0, numSamples );
+		m_Amplitude[i0] = spectrum[i];
+
+		pixelNum+=1.f;
+	}
+	m_SamplesRead = numSamples;
+
+	
+/*
+	old z-back calc:
 	// fold the spectrum to reduce noize
 	const size_t sampleReductionRatio = 4;
 	for ( size_t j=0;j<sampleReductionRatio;j++ )
@@ -408,6 +463,8 @@ bool Spectra::loadFromFITS(std::string &filename)
 
 		w+=d; 
 	}
+
+	*/
 #else // _ZBACKCALC
 	const size_t sampleReductionRatio = 2;
 	for ( int j=0;j<sampleReductionRatio;j++ )
@@ -482,7 +539,8 @@ bool Spectra::loadFromFITS(std::string &filename)
 
 	calcMinMax();
 
-	return ((m_SamplesRead > numSamples/2) && (status == 0));	
+	//return ((m_SamplesRead > numSamples/2) && (status == 0));	
+	return (status == 0);
 }
 
 
