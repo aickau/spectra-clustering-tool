@@ -54,7 +54,7 @@ void main(int argc, char* argv[])
 		_cprintf( "1 for z=1.5..1.6\n");
 		_cprintf( "2 for z=3.6..3.8\n");
 
-		_cprintf( "example: dump.exe F:/SDSS_ANALYZE/fits/spectro/data/ allSpectra.bin 25\n\n\n");
+		_cprintf( "example: dump.exe F:/SDSS_ANALYZE/fits/spectro/data/* allSpectra.bin 25\n\n\n");
 	}
 
 	std::string sstrDataDir = DATADIR;

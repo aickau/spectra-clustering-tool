@@ -179,6 +179,22 @@ void drawSpectra(Spectra &_spectra,
 	float xscale=static_cast<float>(_width-10)/static_cast<float>(Spectra::numSamples);
 	float yscale=_yscale*static_cast<float>(_height*0.75);
 
+	// write colors
+	float color[Spectra::numSamples*3];
+	size_t c = 0;
+	for ( size_t i=0;i<Spectra::numSamples;i++) {
+		if ( _spectra.m_badPixels[i] )
+		{
+			color[c] = 1.f; color[c+1] = 0.f; color[c+2] = 0.f;
+		}
+		else
+		{
+			color[c] = 1.f; color[c+1] = 1.f; color[c+2] = 1.f;
+		}
+		c += 3;
+	}
+
+	//GLHelper::DrawDiagramColored( &_spectra.m_Amplitude[0], color, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
 	GLHelper::DrawDiagram( &_spectra.m_Amplitude[0], _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
 
 #ifdef _USE_SPECTRALINES
@@ -240,8 +256,8 @@ void drawSpectra(Spectra &_spectra,
 
 void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yMax, float _redness, float _z )
 {
-	if ( FileHelpers::fileExists(_sstrFilename) )
-		return;
+//	if ( FileHelpers::fileExists(_sstrFilename) )
+//		return;
 
 	size_t saa = 8;
 
