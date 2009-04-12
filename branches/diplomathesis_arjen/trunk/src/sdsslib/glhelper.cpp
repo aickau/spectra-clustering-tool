@@ -688,6 +688,35 @@ void GLHelper::DrawDiagram( float *_values, size_t _numValues, size_t _strideInB
 }
 
 
+void GLHelper::DrawDiagramColored( float *_values, float *_colorRGB, size_t _numValues, size_t _strideInBytes, size_t _offsetInBytes, 
+								   float _xoffset, float _yoffset, float _xscale, float _yscale )
+{
+	assert( _values != NULL );
+	assert( _colorRGB != NULL );
+	if ( _strideInBytes == 0 )
+	{
+		_strideInBytes = 4;
+	}
+	char *p = reinterpret_cast<char*>(_values)+_offsetInBytes;
+	char *p2 = reinterpret_cast<char*>(_colorRGB)+_offsetInBytes;
+	glBegin(GL_LINE_STRIP);
+	for ( size_t i=0;i<_numValues;i++)
+	{
+		float *v = reinterpret_cast<float*>( p );
+		float *c = reinterpret_cast<float*>( p2 );
+		glColor3fv( c );  
+		glVertex3f(static_cast<float>(i)*_xscale+_xoffset, -*v*_yscale+_yoffset, DEFAULT_Z );
+		p += _strideInBytes;
+		p2 += _strideInBytes*3;
+	}
+	glEnd();
+	glColor3f( 1.f,1.f,1.f );  
+}
+
+
+
+
+
 
 void GLHelper::Fog(float dense, float *color)
 {

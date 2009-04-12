@@ -197,6 +197,10 @@ public:
                                      float _xoffset=0.0f, float _yoffset=0.0f, float _xscale=1.f, float _yscale=1.f );
 
 
+	static void			DrawDiagramColored( float *_values, float *_colorRGB, size_t _numValues, size_t _strideInBytes=4, size_t _offsetInBytes=0, 
+										   float _xoffset=0.0f, float _yoffset=0.0f, float _xscale=1.f, float _yscale=1.f );
+
+
 	// projection 
 	static void			GetModelViewMatrix(float *mout);
 	static void			GetProjectionMatrix(float *mout);

@@ -82,6 +82,8 @@ void Spectra::clear()
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		m_Amplitude[i] = 0.0f;
+		m_stdDev[i] = 0.0f;		
+		m_badPixels[i] = false;		
 	}
 
 #ifdef _USE_SPECTRALINES
@@ -130,6 +132,9 @@ void Spectra::set(const Spectra &_spectra)
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		m_Amplitude[i] = _spectra.m_Amplitude[i];
+		m_stdDev[i] = _spectra.m_stdDev[i];		
+		m_badPixels[i] = _spectra.m_badPixels[i];		
+
 	}
 #ifdef _USE_SPECTRALINES
 	for (size_t i=0;i<Spectra::numSpectraLines;i++)
@@ -182,6 +187,9 @@ void Spectra::set( size_t type, float _noize )
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		float x=static_cast<float>(i)*0.01f;
+		m_stdDev[i] = 0.0f;		
+		m_badPixels[i] = false;		
+
 
 		if ( type == 0 )
 		{
@@ -231,6 +239,8 @@ void Spectra::setSine( float _frequency, float _phase, float _amplitude, float _
 	{
 		float x=_phase+static_cast<float>(i)*_frequency;
 		m_Amplitude[i] = sinf(x)*_amplitude+(r.randomFloat()-0.5f)*_noize;
+		m_stdDev[i] = 0.0f;		
+		m_badPixels[i] = false;		
 	}
 	m_SamplesRead = Spectra::numSamples;
 	calcMinMax();
@@ -255,6 +265,9 @@ void Spectra::setRect( float _width, float _phase, float _amplitude )
 		{
 			m_Amplitude[i] = 0.0f;
 		}
+		m_stdDev[i] = 0.0f;		
+		m_badPixels[i] = false;		
+
 		x += xInc;
 	}
 
@@ -289,6 +302,7 @@ bool Spectra::saveToCSV(std::string &filename)
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
+		// TODO: add m_stdDev, m_badPixels and wavelength
 		std::string sstrLine("0.0, ");
 		sstrLine += Helpers::numberToString<float>( m_Amplitude[i] );
 		sstrLine += ", 0.0, 0.0\n";
@@ -348,6 +362,8 @@ bool Spectra::loadFromFITS(std::string &filename)
 	fits_get_img_size(f, 2, size, &status );
 	const size_t spectrumMaxSize = 3900; 
 	float spectrum[spectrumMaxSize];
+	float noize[spectrumMaxSize];
+	unsigned long maskarray[spectrumMaxSize];
 	
 	size_t elementsToRead = size[0];
 	assert( elementsToRead <= spectrumMaxSize );
@@ -358,8 +374,18 @@ bool Spectra::loadFromFITS(std::string &filename)
 	// the second row is the continuum subtracted spectrum, 
 	// the third row is the noise in the spectrum (standard deviation, in the same units as the spectrum), 
 	// the forth row is the mask array. The spectra are binned log-linear. Units are 10^(-17) erg/cm/s^2/Ang.
+	
+	// read spectrum
 	long adress[2]={1,1};
 	fits_read_pix( f, TFLOAT, adress, elementsToRead, NULL, (void*)spectrum, NULL, &status );
+
+	// read noize
+	adress[1] = 3;
+	fits_read_pix( f, TFLOAT, adress, elementsToRead, NULL, (void*)noize, NULL, &status );
+
+	// mask array
+	adress[1] = 4;
+	fits_read_pix( f, TLONG, adress, elementsToRead, NULL, (void*)maskarray, NULL, &status );
 
 
 #ifdef _ZBACKCALC
@@ -410,6 +436,9 @@ bool Spectra::loadFromFITS(std::string &filename)
 		wavelength_0 = CLAMP( wavelength_0, waveMin0, waveMax0);
 		size_t i0 = Spectra::waveLengthToIndex( wavelength_0, waveMin0, waveMax0, numSamples );
 		m_Amplitude[i0] = spectrum[i];
+		m_stdDev[i0] = noize[i];
+		const unsigned int mask = (!SpectraMask::SP_MASK_OK) && (!SpectraMask::SP_MASK_EMLINE);
+		m_badPixels[i0] = (maskarray[i] & mask) != 0; // pixel ok only if SP_MASK_OK or SP_MASK_EMLINE is set.
 
 		pixelNum+=1.f;
 	}
@@ -559,6 +588,7 @@ void Spectra::calcMinMax()
 
 void Spectra::normalize()
 {
+	/*
 	calcMinMax();
 
 	float delta( m_Max-m_Min);
@@ -574,7 +604,29 @@ void Spectra::normalize()
 	{
 		m_Amplitude[i] /= delta;
 	}
+	*/
+	// normalize by flux:
+	float flux = 0.f;
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		if ( !m_badPixels[i] )
+		{
+			flux += m_Amplitude[i];
+		}
+	}
+
+	if ( flux <= 0.0f )
+		return;
+
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		if ( !m_badPixels[i] )
+		{
+			m_Amplitude[i] /= flux;
+		}
+	}
 }
+
 
 ISSE_ALIGN float errorv[4];
 extern "C" void spectraCompareX64(const float *a0, const float *a1, float *errout, size_t numsamples);
