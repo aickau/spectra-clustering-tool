@@ -135,6 +135,9 @@ public:
 	// _width 0..1
 	float compareSuperAdvanced(const Spectra &_spectra, float _width, bool _bOptimize=false) const;
 
+	// compare two spectra using Arjens method.
+	float compareArjen( const Spectra &_spectra );
+
 	// calculate extrema
 	void calcMinMax();
 
@@ -189,10 +192,11 @@ public:
 	bool isEmpty() const;
 
 	float m_Amplitude[numSamples];		// amplitude in 10^(-17) erg/cm/s^2/Ang
-	float m_stdDev[numSamples];			// standard deviation for each pixel
-	bool m_badPixels[numSamples];		// is set to true if the given amplitude is bad
+	float m_StdDev[numSamples];			// standard deviation for each pixel
+	bool m_BadPixels[numSamples];		// is set to true if the given amplitude is bad
 	float m_Min;
 	float m_Max;
+	double m_Flux;						// flux of spectrum before normalization
 	__int32 m_Index;					// index to map to other spectra, e.g. used in kohonnen mapping
 	__int16 m_SamplesRead;
 	__int64 m_SpecObjID;	
@@ -200,12 +204,12 @@ public:
 	double m_Z;
 	double m_RealZ;						// 0..5
 	double m_Mi;						// absolute brightness. MI:= -22 = minimum, maximum = -30
-	double m_coeff0;					// coeff0 to get pixel number to wavelength: 10^(coeff0+coeff1*pixel_number)
-	double m_coeff1;					// coeff1 to get pixel number to wavelength: 10^(coeff0+coeff1*pixel_number)
+	double m_Coeff0;					// coeff0 to get pixel number to wavelength: 10^(coeff0+coeff1*pixel_number)
+	double m_Coeff1;					// coeff1 to get pixel number to wavelength: 10^(coeff0+coeff1*pixel_number)
 #ifdef _USE_SPECTRALINES
 	SpectraLines m_Lines[numSpectraLines];
 #endif
-//	char pad[8];						// for padding to multiple of 16 byte boundaries
+	char pad[8];						// for padding to multiple of 16 byte boundaries
 
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////

@@ -183,7 +183,7 @@ void drawSpectra(Spectra &_spectra,
 	float color[Spectra::numSamples*3];
 	size_t c = 0;
 	for ( size_t i=0;i<Spectra::numSamples;i++) {
-		if ( _spectra.m_badPixels[i] )
+		if ( _spectra.m_BadPixels[i] )
 		{
 			color[c] = 1.f; color[c+1] = 0.f; color[c+2] = 0.f;
 		}

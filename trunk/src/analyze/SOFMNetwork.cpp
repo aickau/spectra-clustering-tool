@@ -98,18 +98,6 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 		exit(0);
 	}
 
-/*	// test begin
-	float f = 0.001f;
-	for ( size_t i=0;i<m_numSpectra;i++ )
-	{
-		Spectra *a = m_pSourceVFS->beginWrite( i );
-		a->setSine( f );
-		f += 0.0000125f;
-		m_pSourceVFS->endWrite( i );
-	}
-	// test end
-*/
-
 	Helpers::print( std::string("Spectra VFS cache line size ") + Helpers::numberToString( SpectraVFS::CACHELINESIZE ) + " spectra.\n", &m_logFile );
 	Helpers::print( std::string("Spectra VFS number of cache lines ") + Helpers::numberToString( SpectraVFS::CACHELINES ) + ".\n", &m_logFile );
 	Helpers::print( std::string("That allows us to pack ") + Helpers::numberToString( SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE ) + " spectra into main memory.\n", &m_logFile );
@@ -207,6 +195,16 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 			exit(0);
 		}
 	}
+
+	Helpers::print( std::string("Normalizing input data.\n"), &m_logFile );
+	for ( size_t i=0;i<m_numSpectra;i++ )
+	{
+		Spectra *a = m_pSourceVFS->beginWrite( i );
+		a->normalize();
+		m_pSourceVFS->endWrite( i );
+	}
+
+	calcMinMaxInputDS();
 
 	Helpers::print( std::string("Initialization finished.\n"), &m_logFile );
 }
@@ -558,7 +556,7 @@ void SOFMNetwork::searchBestMatchComplete( const std::vector<size_t> &_spectraIn
 			{
 				Spectra &currentSpectra = *src[k];
 
-				const float errMin = a->compareSuperAdvanced( currentSpectra, 0.1f, true );
+				const float errMin = a->compareArjen( currentSpectra ); 
 				
 				if (errMin < currentBestMatch.error && a->isEmpty() )
 				{
@@ -1103,7 +1101,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 			#pragma omp parallel for
 			for ( int k=0;k<numBatchElements;k++)
 			{
-				err[k] = a->compareSuperAdvanced( *src[k], compareInvariance, true ); 
+				err[k] = a->compareArjen( *src[k] ); 
 				//float err[k] = a->compare( *src[k] ); 
 			}
 
