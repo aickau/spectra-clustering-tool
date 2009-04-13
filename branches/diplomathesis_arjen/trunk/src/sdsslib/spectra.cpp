@@ -68,6 +68,7 @@ void Spectra::clear()
 {
 	m_Min = 0.0f;
 	m_Max = 1.f;
+	m_Flux = 0.0;
 	m_SamplesRead = 0;
 	m_Index = -1;
 	m_SpecObjID = 0;
@@ -76,14 +77,14 @@ void Spectra::clear()
 
 	m_RealZ= 0.0;
 	m_Mi=0.0;					
-	m_coeff0=0.0;
-	m_coeff1=0.0;
+	m_Coeff0=0.0;
+	m_Coeff1=0.0;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		m_Amplitude[i] = 0.0f;
-		m_stdDev[i] = 0.0f;		
-		m_badPixels[i] = false;		
+		m_StdDev[i] = 0.0f;		
+		m_BadPixels[i] = false;		
 	}
 
 #ifdef _USE_SPECTRALINES
@@ -124,6 +125,7 @@ void Spectra::set(const Spectra &_spectra)
 	m_SamplesRead = _spectra.m_SamplesRead;
 	m_Min = _spectra.m_Min;
 	m_Max = _spectra.m_Max;
+	m_Flux = _spectra.m_Flux;
 	m_Index = _spectra.m_Index;
 	m_SpecObjID = _spectra.m_SpecObjID;
 	m_Type = _spectra.m_Type;
@@ -132,8 +134,8 @@ void Spectra::set(const Spectra &_spectra)
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		m_Amplitude[i] = _spectra.m_Amplitude[i];
-		m_stdDev[i] = _spectra.m_stdDev[i];		
-		m_badPixels[i] = _spectra.m_badPixels[i];		
+		m_StdDev[i] = _spectra.m_StdDev[i];		
+		m_BadPixels[i] = _spectra.m_BadPixels[i];		
 
 	}
 #ifdef _USE_SPECTRALINES
@@ -187,8 +189,8 @@ void Spectra::set( size_t type, float _noize )
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		float x=static_cast<float>(i)*0.01f;
-		m_stdDev[i] = 0.0f;		
-		m_badPixels[i] = false;		
+		m_StdDev[i] = 0.0f;		
+		m_BadPixels[i] = false;		
 
 
 		if ( type == 0 )
@@ -239,8 +241,8 @@ void Spectra::setSine( float _frequency, float _phase, float _amplitude, float _
 	{
 		float x=_phase+static_cast<float>(i)*_frequency;
 		m_Amplitude[i] = sinf(x)*_amplitude+(r.randomFloat()-0.5f)*_noize;
-		m_stdDev[i] = 0.0f;		
-		m_badPixels[i] = false;		
+		m_StdDev[i] = 0.0f;		
+		m_BadPixels[i] = false;		
 	}
 	m_SamplesRead = Spectra::numSamples;
 	calcMinMax();
@@ -265,8 +267,8 @@ void Spectra::setRect( float _width, float _phase, float _amplitude )
 		{
 			m_Amplitude[i] = 0.0f;
 		}
-		m_stdDev[i] = 0.0f;		
-		m_badPixels[i] = false;		
+		m_StdDev[i] = 0.0f;		
+		m_BadPixels[i] = false;		
 
 		x += xInc;
 	}
@@ -355,8 +357,8 @@ bool Spectra::loadFromFITS(std::string &filename)
 	m_Type = static_cast<SpectraType>(1<<m_Type);
 	m_SpecObjID = Spectra::calcSpecObjID( plateID, mjd, fiber, 0 );
 
-	fits_read_key( f, TDOUBLE, "COEFF0", &m_coeff0, NULL, &status );
-	fits_read_key( f, TDOUBLE, "COEFF1", &m_coeff1, NULL, &status );
+	fits_read_key( f, TDOUBLE, "COEFF0", &m_Coeff0, NULL, &status );
+	fits_read_key( f, TDOUBLE, "COEFF1", &m_Coeff1, NULL, &status );
 
 	// read spectral data
 	fits_get_img_size(f, 2, size, &status );
@@ -402,7 +404,7 @@ bool Spectra::loadFromFITS(std::string &filename)
 	float pixelNum = 1.f;
 	for (size_t i=0;i<elementsToRead;i++)
 	{
-		float wavelength = powf(10.f, m_coeff0+m_coeff1*pixelNum);
+		float wavelength = powf(10.f, m_Coeff0+m_Coeff1*pixelNum);
 		float wavelength_0 = wavelength/(1.f+m_RealZ);
 
 		float waveMin0, waveMax0;
@@ -436,9 +438,9 @@ bool Spectra::loadFromFITS(std::string &filename)
 		wavelength_0 = CLAMP( wavelength_0, waveMin0, waveMax0);
 		size_t i0 = Spectra::waveLengthToIndex( wavelength_0, waveMin0, waveMax0, numSamples );
 		m_Amplitude[i0] = spectrum[i];
-		m_stdDev[i0] = noize[i];
-		const unsigned int mask = (!SpectraMask::SP_MASK_OK) && (!SpectraMask::SP_MASK_EMLINE);
-		m_badPixels[i0] = (maskarray[i] & mask) != 0; // pixel ok only if SP_MASK_OK or SP_MASK_EMLINE is set.
+		m_StdDev[i0] = noize[i];
+		const unsigned int mask = (!static_cast<unsigned int>(SpectraMask::SP_MASK_OK)) && (!static_cast<unsigned int>(SpectraMask::SP_MASK_EMLINE));
+		m_BadPixels[i0] = (maskarray[i] & mask) != 0; // pixel ok only if SP_MASK_OK or SP_MASK_EMLINE is set.
 
 		pixelNum+=1.f;
 	}
@@ -606,25 +608,26 @@ void Spectra::normalize()
 	}
 	*/
 	// normalize by flux:
-	float flux = 0.f;
+	m_Flux = 0.f;
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
-		if ( !m_badPixels[i] )
+		if ( !m_BadPixels[i] )
 		{
-			flux += m_Amplitude[i];
+			m_Flux += static_cast<double>(m_Amplitude[i]);
 		}
 	}
 
-	if ( flux <= 0.0f )
+	if ( m_Flux <= 0.0 )
 		return;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
-		if ( !m_badPixels[i] )
+		if ( !m_BadPixels[i] )
 		{
-			m_Amplitude[i] /= flux;
+			m_Amplitude[i] /= m_Flux;
 		}
 	}
+	calcMinMax();
 }
 
 
@@ -856,6 +859,28 @@ float Spectra::compareSuperAdvanced(const Spectra &_spectra, float _width, bool 
 	double errTotal = sqrtf((errMinPeaks+errMaxPeaks)*errContinuum);
 
 	return static_cast<float>(errTotal);
+}
+
+
+float Spectra::compareArjen( const Spectra &_spectra )
+{
+	float error=0.0f;
+	float scale = .05f * (m_Flux + _spectra.m_Flux);
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		if ( !m_BadPixels[i] && !_spectra.m_BadPixels[i] )
+		{
+			float d = (m_Amplitude[i]-_spectra.m_Amplitude[i])*scale;
+			float dev = (m_StdDev[i] + _spectra.m_StdDev[i]);
+			float e = d*d;
+			if ( dev > 0.0f )
+			{
+				e /= dev*dev;
+			}
+			error += e;
+		}
+	}
+	return error;
 }
 
 
