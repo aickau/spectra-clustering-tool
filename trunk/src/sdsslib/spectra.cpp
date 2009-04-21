@@ -510,6 +510,27 @@ void Spectra::normalize()
 	}
 }
 
+
+
+void Spectra::normalizeByFlux()
+{
+	float flux = 0.f;
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		flux += static_cast<double>(m_Amplitude[i]);
+	}
+
+	if ( flux <= 0.0 )
+		return;
+
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{	
+		m_Amplitude[i] /= flux;
+	}
+	calcMinMax();
+}
+
+
 ISSE_ALIGN float errorv[4];
 extern "C" void spectraCompareX64(const float *a0, const float *a1, float *errout, size_t numsamples);
 

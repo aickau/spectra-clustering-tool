@@ -180,6 +180,7 @@ public:
 	// drawing
 	static void			DrawQuad(bool upsidedown=false);
 	static void			DrawQuad(float uwidth, float vheight, bool upsidedown=false);
+	static void			DrawQuad(float _width, float _height, float _z);
 	static void			DrawQuad(float *points);
 	static void			DrawQuadn(float *points, float *normals);
 	static void			DrawQuad(float *points, float *texcoords);
@@ -194,6 +195,10 @@ public:
 
 	static void			DrawDiagram( float *_values, size_t _numValues, size_t _strideInBytes=4, size_t _offsetInBytes=0, 
                                      float _xoffset=0.0f, float _yoffset=0.0f, float _xscale=1.f, float _yscale=1.f );
+
+
+	static void			DrawDiagramColored( float *_values, float *_colorRGB, size_t _numValues, size_t _strideInBytes=4, size_t _offsetInBytes=0, 
+										   float _xoffset=0.0f, float _yoffset=0.0f, float _xscale=1.f, float _yscale=1.f );
 
 
 	// projection 
