@@ -622,6 +622,10 @@ void SOFMNetwork::process()
 	{
 		exportToHTML("export/quarter", false);
 	} else
+	if ( m_currentStep == m_params.numSteps*3/4 )
+	{
+		exportToHTML("export/threequarter", false);
+	} else
 	if ( m_currentStep == 1 )
 	{
 		exportToHTML("export/first", false);
