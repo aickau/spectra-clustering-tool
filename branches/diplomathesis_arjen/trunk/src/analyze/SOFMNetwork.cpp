@@ -617,7 +617,7 @@ void SOFMNetwork::searchBestMatchLocal( const std::vector<size_t> &_spectraIndex
 				const size_t spectraIndex = getIndex( x, y );
 				Spectra *a = m_pNet->beginRead( spectraIndex );
 
-				const float errMin = a->compare( currentSpectra );
+				const float errMin = a->compareArjen( currentSpectra );
 
 				if (errMin < currentBestMatch.error && a->isEmpty() )
 				{
@@ -780,7 +780,7 @@ void SOFMNetwork::process()
 				// this cell in our cluster is already occupied by another neuron/spectra match
 				// check errors  
 				Spectra *b = m_pSourceVFS->beginRead(a->m_Index);
-				const float errorOld = a->compare( *b );
+				const float errorOld = a->compareArjen( *b );
 				m_pSourceVFS->endRead(a->m_Index);
 
 				if ( errorOld < currentBestMatch.error )
@@ -830,7 +830,7 @@ void SOFMNetwork::process()
 		for ( size_t i = 0;i < m_gridSizeSqr;i++)
 		{
 			Spectra *a = m_pNet->beginRead( i );
-			float minErr =a->compare( currentSpectra );
+			float minErr =a->compareArjen( currentSpectra );
 
 			if ( minErr < min && a->isEmpty() )
 			{
@@ -919,10 +919,10 @@ void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogS
 					backupBottom.normalize();
 				}
 
-				pUMatrix[i] += backupCenter.compare( backupLeft );
-				pUMatrix[i] += backupCenter.compare( backupRight );
-				pUMatrix[i] += backupCenter.compare( backupTop );
-				pUMatrix[i] += backupCenter.compare( backupBottom );
+				pUMatrix[i] += backupCenter.compareArjen( backupLeft );
+				pUMatrix[i] += backupCenter.compareArjen( backupRight );
+				pUMatrix[i] += backupCenter.compareArjen( backupTop );
+				pUMatrix[i] += backupCenter.compareArjen( backupBottom );
 
 				maxErr = MAX( maxErr, pUMatrix[i] );
 			}
@@ -1004,7 +1004,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 				backupSource.normalize();
 				backupNet.normalize();
 			}
-			pUMatrix[i] = backupNet.compare( backupSource );
+			pUMatrix[i] = backupNet.compareArjen( backupSource );
 			maxErr = MAX( maxErr, pUMatrix[i] );
 			m_pSourceVFS->endRead( spNet->m_Index );
 		}
@@ -1102,7 +1102,6 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 			for ( int k=0;k<numBatchElements;k++)
 			{
 				err[k] = a->compareArjen( *src[k] ); 
-				//float err[k] = a->compare( *src[k] ); 
 			}
 
 			// end read for all src spectra, add error to comparison map
