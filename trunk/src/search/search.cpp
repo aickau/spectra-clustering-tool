@@ -23,7 +23,9 @@
 #include <iostream>
 #include <fstream>
 #include <conio.h>
+#include <omp.h>
 
+#include "sdsslib/defines.h"
 #include "sdsslib/helpers.h"
 #include "sdsslib/filehelpers.h"
 #include "sdsslib/spectra.h"
@@ -169,7 +171,7 @@ void main(int argc, char* argv[])
 		_cprintf("%i spectra found.\n",numSpectra);
 	}
 
-	size_t numCompareSpectra = FileHelpers::getFileList( std::string(COMPAREDIR+"*.fit"), g_compareFileList );
+	const size_t numCompareSpectra = FileHelpers::getFileList( std::string(COMPAREDIR+"*.fit"), g_compareFileList );
 
 	if ( numCompareSpectra == 0 )
 	{
@@ -189,49 +191,85 @@ void main(int argc, char* argv[])
 		_cprintf("error: out of memory allocating %i comparison spectra.\n", numCompareSpectra);
 	}
 
-	for ( size_t j=0;j<numCompareSpectra;j++ )
+	for ( size_t i=0;i<numCompareSpectra;i++ )
 	{
 
-		bool bSuccess = compareSpectra[j].loadFromFITS( g_compareFileList.at(j) );
+		bool bSuccess = compareSpectra[i].loadFromFITS( g_compareFileList.at(i) );
 		if ( !bSuccess )
 		{
-			_cprintf("error: loading compare fits file %s .\n", g_compareFileList.at(j).c_str() );
+			_cprintf("error: loading compare fits file %s .\n", g_compareFileList.at(i).c_str() );
 		}
 		if ( bNormalize )
 		{
-			compareSpectra[j].normalize();
+			compareSpectra[i].normalize();
 		}
 	}
 
-	for ( size_t i=0;i<numSpectra;i++ )
+	Spectra *src[SpectraVFS::CACHELINESIZE];
+	float (*err)[SpectraVFS::CACHELINESIZE];
+	err = new float[numCompareSpectra][SpectraVFS::CACHELINESIZE];
+
+	int j=0;
+	while (j<numSpectra)
 	{
-		Spectra *a = vfs.beginRead(i);
-		if ((a->m_Type & spectraFilter) > 0)
+		const int jInc = MIN( SpectraVFS::CACHELINESIZE, (MIN(numSpectra, j+SpectraVFS::CACHELINESIZE)-j));
+
+		// begin read for all src spectra
+		for ( int k=0;k<jInc;k++)
 		{
-			if ( bNormalize )
+			src[k] = vfs.beginRead(j+k);
+		}
+ 
+#pragma omp parallel for
+		for ( int k=0;k<jInc;k++)
+		{
+			if ((src[k]->m_Type & spectraFilter) > 0)
 			{
-				a->normalize();
-			}
-			for ( size_t j=0;j<numCompareSpectra;j++ )
-			{
-				float err;
-				switch (compareFunc)
+				if ( bNormalize )
 				{
-					case 1: err = compareSpectra[j].compareAdvanced( *a, compareInvariance ); break;
-					case 2: err = compareSpectra[j].compareSuperAdvanced( *a, compareInvariance ); break;
-					default: err = compareSpectra[j].compare( *a ); break;
+					src[k]->normalize();
 				}
-				comparisonMap[j].insert( std::pair<float, size_t>(err, i) );
+				for ( size_t l=0;l<numCompareSpectra;l++ )
+				{
+					switch (compareFunc)
+					{
+					case 1: err[l][k] = compareSpectra[l].compareAdvanced( *src[k], compareInvariance ); break;
+					case 2: err[l][k] = compareSpectra[l].compareSuperAdvanced( *src[k], compareInvariance ); break;
+					default: err[l][k] = compareSpectra[l].compare( *src[k] ); break;
+					}
+				}
+			}
+			else
+			{
+				// spectra not used, flag error as not used
+				for ( size_t l=0;l<numCompareSpectra;l++ )
+				{
+					err[l][k] = -1.f;
+				}
 			}
 		}
 
-		vfs.endRead(i);
 
-		if ( i%SpectraVFS::CACHELINESIZE == 0 )
+		// end read for all src spectra
+		for ( int k=0;k<jInc;k++)
 		{
-			vfs.prefetch( i + SpectraVFS::CACHELINESIZE );
+			for ( size_t l=0;l<numCompareSpectra;l++ )
+			{
+				// only insert if used
+				if ( err[l][k] >= 0.0f )
+				{
+					comparisonMap[l].insert( std::pair<float, size_t>(err[l][k], j+k) );
+				}
+			}
+			vfs.endRead(j+k);
 		}
+
+
+
+		j+= jInc;
 	}
+
+	delete[] err;
 
 
 	for ( size_t j=0;j<numCompareSpectra;j++ )
