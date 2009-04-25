@@ -170,6 +170,21 @@ std::string FileHelpers::getFileName(const std::string &_sstrFilename)
 	return sstrFileName.substr( nIndex+1, std::string::npos );
 }
 
+std::string FileHelpers::getFileNameMinusExtension(const std::string &_sstrFilename)
+{
+	// remove path
+	std::string sstrFileName(getFileName(_sstrFilename));
+
+	size_t nIndex( sstrFileName.find_last_of('.') );
+	if ( nIndex == std::string::npos )
+	{
+		return sstrFileName;
+	}
+	std::string sstrRetVal( _sstrFilename.substr( 0, nIndex ) );
+
+	return sstrRetVal;
+}
+
 
 
 
