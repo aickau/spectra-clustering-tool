@@ -48,6 +48,9 @@ namespace FileHelpers
 	// extract filename and extension (minus path)
 	std::string getFileName(const std::string &_sstrFilename);
 
+	// extract filename without extension, without path.
+	std::string getFileNameMinusExtension(const std::string &_sstrFilename);
+
 	// extract path, e.g c:\hui\blah.txt -> c:/hui or c:/hui/blah/ -> c:/hui/blah
 	std::string getFilePath(const std::string &_sstrFilename);
 
