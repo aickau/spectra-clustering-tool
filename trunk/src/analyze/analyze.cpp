@@ -74,7 +74,8 @@ int InitGL( const std::string &sstrCmdLine )
 	//SpectraVFS::write(30,75.0f, std::string("allspectra3.bin") );
 
 	bool bContinue = false;
-	std::string sstrSourceSpectraFileName("allSpectra.bin");
+	std::string sstrSourceSpectraFilename("allSpectra.bin");
+	std::string sstrSelectionListFilename("");
 
 
 	_cprintf("Welcome to SDSS Analyze!\n\n\n");
@@ -82,9 +83,10 @@ int InitGL( const std::string &sstrCmdLine )
 	if ( sstrCmdLine.empty() )
 	{
 		_cprintf( "No parameters specified. Using default settings.\n\n");
-		_cprintf( "usage: sdss.exe <source spectra filename>\n");
+		_cprintf( "usage: sdss.exe <source spectra filename> [<selectionlist>]\n");
 		_cprintf( "usage: sdss.exe /c\n");
 		_cprintf( "example: sdss.exe allSpectra.bin\n\n");
+		_cprintf( "example: sdss.exe allSpectra.bin selection.txt\n\n");
 		_cprintf( "example: sdss.exe /c\n continues computation.\n\n");
 
 	}
@@ -97,14 +99,18 @@ int InitGL( const std::string &sstrCmdLine )
 		std::istringstream sstrStream(sstrCmdLine);
 
 		if (sstrStream) {
-			sstrStream >> sstrSourceSpectraFileName;	
+			sstrStream >> sstrSourceSpectraFilename;	
+		}
+
+		if (sstrStream) {
+			sstrStream >> sstrSelectionListFilename;
 		}
 	}
 	_cprintf( "Reading dump file " );
-	_cprintf( sstrSourceSpectraFileName.c_str() );
+	_cprintf( sstrSourceSpectraFilename.c_str() );
 	_cprintf( "\n" );
 
-	g_pVFSSource = new SpectraVFS( sstrSourceSpectraFileName, false );
+	g_pVFSSource = new SpectraVFS( sstrSourceSpectraFilename, false );
 	g_numSpectra = g_pVFSSource->getNumSpectra();
 
 	if ( g_numSpectra == 0 )
@@ -118,10 +124,61 @@ int InitGL( const std::string &sstrCmdLine )
 		_cprintf("%i spectra found.\n",g_numSpectra);
 	}
 
+	SpectraVFS *pVFSFiltered=NULL;
 
+	if ( !sstrSelectionListFilename.empty() )
+	{
+		std::ifstream fin(sstrSelectionListFilename.c_str());
+		_cprintf( "Reading selection list %s\n", sstrSelectionListFilename.c_str() );
+
+		if( fin ) 
+		{
+			// read selection list
+			std::set<std::string> FITSFilenameSet;
+			std::string sstrFITSFilename;
+			while( getline(fin,sstrFITSFilename) ) 
+			{
+				FITSFilenameSet.insert(sstrFITSFilename);
+			}
+
+			if ( !FITSFilenameSet.empty() )
+			{
+				HANDLE f = CreateFile( std::string("filter.bin").c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL );
+
+				for (size_t i=0;i<g_numSpectra;i++)
+				{
+					Spectra *a = g_pVFSSource->beginRead(i);
+
+					std::set<std::string>::iterator it( FITSFilenameSet.find( a->getFileName() ) );
+					if (it != FITSFilenameSet.end() )
+					{
+						DWORD bytesWritten = 0;
+						WriteFile( f, a, sizeof(Spectra), &bytesWritten, NULL );
+					}
+
+					g_pVFSSource->endRead(i);
+				}
+
+				CloseHandle(f);
+				pVFSFiltered = new SpectraVFS( "filter.bin", false );
+			}
+		}
+		else
+		{
+			_cprintf( "Selection list not found, using unfiltered dump.\n" );
+		}
+	}
 
 	// init network
-	g_pSOFM = new SOFMNetwork( g_pVFSSource, bContinue );
+	if ( pVFSFiltered != NULL && pVFSFiltered->getNumSpectra() > 0 )
+	{
+		_cprintf( "Using %i out of %i spectra.\n", pVFSFiltered->getNumSpectra(), g_pVFSSource->getNumSpectra() );
+		g_pSOFM = new SOFMNetwork( pVFSFiltered, bContinue );
+	}
+	else
+	{
+		g_pSOFM = new SOFMNetwork( g_pVFSSource, bContinue );
+	}
 
 
 	//g_QTCluster = new QTClustering( g_pVFSSource, QTClustering::Parameters(8.f, 0.0f, 2 ) );
