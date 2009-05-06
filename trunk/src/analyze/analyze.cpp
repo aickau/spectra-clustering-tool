@@ -143,6 +143,7 @@ int InitGL( const std::string &sstrCmdLine )
 
 			if ( !FITSFilenameSet.empty() )
 			{
+				// create filtered dump
 				HANDLE f = CreateFile( std::string("filter.bin").c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL );
 
 				for (size_t i=0;i<g_numSpectra;i++)

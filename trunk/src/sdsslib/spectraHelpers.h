@@ -24,6 +24,7 @@
 
 class Spectra;
 
+// some spectra helper functions which do very specific tasks for drawing, presentation, etc.
 namespace SpectraHelpers
 {
 	// init system
