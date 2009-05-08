@@ -127,6 +127,12 @@ public:
 	// compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 	float compare(const Spectra &_spectra) const;
 
+	// compare two spectra using the Bhattacharyya distance 
+	// it is a statistical distance measure which works with probability distributions
+	// make sure to normalize comparing spectra by flux!
+	// see http://en.wikipedia.org/wiki/Bhattacharyya_distance
+	float compareBhattacharyya(const Spectra &_spectra) const;
+
 	// compare spectra using a more advanced error measure taking neighboring samples into account.
 	// _width 0..1
 	float compareAdvanced(const Spectra &_spectra, float _width) const;

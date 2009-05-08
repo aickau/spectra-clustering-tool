@@ -26,7 +26,7 @@
 
 typedef char _TCHAR;
 
-#define DATADIR std::string("c:/prj/sdss_svn2/trunk/data/*")
+#define DATADIR std::string("/data/*")
 //#define DATADIR std::string("G:/SDSS_ANALYZE/fits/spectro/data/*")
 #define DUMPFILE std::string("allSpectra.bin")
  
@@ -57,7 +57,7 @@ void main(int argc, char* argv[])
 		_cprintf( "example: dump.exe sofmnet.bin\n\n\n");
 	}
 
-	std::string sstrDataDir = DATADIR;
+	std::string sstrDataDir = FileHelpers::getCurrentDirectory()+DATADIR;
 	std::string sstrDumpFile = DUMPFILE;
 	unsigned int spectraFilter = 0x0fffff;//SPT_DEFAULTFILTER;
 

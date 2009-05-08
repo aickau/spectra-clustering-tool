@@ -44,6 +44,11 @@ void lowercase( std::string &_sstr )
 	}
 }
 
+void FileHelpers::convertSeperators( std::string &_sstrFilePath )
+{
+	std::replace( _sstrFilePath.begin(), _sstrFilePath.end(), '\\', '/' );
+}
+
 
 bool FileHelpers::isFilePathValid(const std::string &_sstrFilePath )
 {
@@ -85,7 +90,9 @@ std::string FileHelpers::getCurrentDirectory()
 {
 	char dir[MAX_PATH+2];
 	GetCurrentDirectory(MAX_PATH, dir);
-	return std::string(dir);
+	std::string sstrDir(dir);
+	convertSeperators(sstrDir);
+	return sstrDir;
 }
 
 
@@ -161,7 +168,7 @@ std::string FileHelpers::getFileExtension(const std::string &_sstrFilename)
 std::string FileHelpers::getFileName(const std::string &_sstrFilename)
 {
 	std::string sstrFileName(_sstrFilename);
-	std::replace( sstrFileName.begin(), sstrFileName.end(), '\\', '/' );
+	convertSeperators(sstrFileName); 
 	size_t nIndex( sstrFileName.find_last_of('/') );
 	if ( nIndex == std::string::npos )
 	{
@@ -191,7 +198,7 @@ std::string FileHelpers::getFileNameMinusExtension(const std::string &_sstrFilen
 std::string FileHelpers::getFilePath(const std::string &_sstrFilename)
 {
 	std::string sstrFileName(_sstrFilename);
-	std::replace( sstrFileName.begin(), sstrFileName.end(), '\\', '/' );
+	convertSeperators(sstrFileName); 
 	size_t nIndex( sstrFileName.find_last_of('/') );
 	if ( nIndex == std::string::npos )
 	{
