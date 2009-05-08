@@ -604,6 +604,18 @@ loop1:
 
 
 
+float Spectra::compareBhattacharyya(const Spectra &_spectra) const
+{
+	float bc=0.0f;
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		float d = sqrtf(fabsf(m_Amplitude[i]*_spectra.m_Amplitude[i]));
+		bc += d;
+	}
+	return -logf(bc);
+}
+
+
 float Spectra::compareAdvanced(const Spectra &_spectra, float _width) const
 {
 	assert(_width>=0.0f);
@@ -760,8 +772,6 @@ float Spectra::compareSuperAdvanced(const Spectra &_spectra, float _width, bool 
 
 	return static_cast<float>(errTotal);
 }
-
-
 
 
 void Spectra::dft()

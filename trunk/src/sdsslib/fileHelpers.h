@@ -25,11 +25,17 @@
 
 namespace FileHelpers
 {
+	// convert file path to forward slashes
+	// read the entire history here: http://en.wikipedia.org/wiki/Backslash
+	// e.g. converts c:\hui\ to c:/hui/
+	void convertSeperators( std::string &_sstrFilePath );
+
 	// check if a given file path (directory plus optional file name) 
 	// is syntactically correct (it is not necessary that the given path exists).
 	bool isFilePathValid(const std::string &_sstrFilePath);
 
-	// get currently set directory
+	// get currently set directory without a trailing seperator.
+	// e.g. c:/hui
 	std::string getCurrentDirectory();
 
 	// check if directory exits.
