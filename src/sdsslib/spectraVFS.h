@@ -47,7 +47,9 @@ public:
 	// sstrDir directory where fits files can be located
 	// sstrFileName filename of VFS binary dump to write
 	// _spectraFilter only write specific spectra, can be any combination of Spectra::SpectraType.
-	static void write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter=0x0ffffffff );
+	// _logStream to write log output into.
+	// returns the number of written spectra.
+	static size_t write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter=0x0ffffffff, std::ofstream *_logStream=NULL );
 
 	// create grid based VFS with random noize spectra
 	// _minPeak, _maxPeak = global minimum and maximum peaks in the generated spectra 

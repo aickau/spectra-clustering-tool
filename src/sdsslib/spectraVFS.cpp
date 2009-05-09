@@ -346,14 +346,11 @@ void SpectraVFS::flush()
 
 
 
-
-void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter )
+size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter, std::ofstream *_logStream )
 {
 	std::vector<std::string> fileList;
 
 	size_t numSpectra = FileHelpers::getFileList( _sstrDir, fileList );
-
-	std::ofstream flog("dump_log.txt");
 
 	HANDLE f = CreateFile( _sstrFileName.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL );
 
@@ -375,23 +372,16 @@ void SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFil
 		}
 		if ( !bResult )
 		{
-			flog<<"failed to load ";
-			flog<<fileList.at(i);
-			flog<<"\n";
+			Helpers::print( "failed to load "+fileList.at(i)+"\n", _logStream );
 		}
 		else
 		{
 			c++;
 		}
 	}
-	flog<<c;
-	flog<<" spectra written, each ";
-	flog<<sizeof(Spectra);
-	flog<<" bytes, which gives a total size of ";
-	flog<<static_cast<__int64>(sizeof(Spectra)*c);
-	flog<<" bytes.\n";
-
 	CloseHandle(f);
+
+	return c;
 }
 
 void SpectraVFS::write( size_t _gridSize, float _minPeak, float _maxPeak, const std::string &_sstrFileName )
