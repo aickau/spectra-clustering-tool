@@ -19,10 +19,15 @@
 
 #include <Windows.h>
 #include <conio.h>
+
+#include "tclap/CmdLine.h"
+
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/spectra.h"
 #include "sdsslib/helpers.h"
 #include "sdsslib/filehelpers.h"
+#include "sdsslib/sdssSoftwareVersion.h"
+
 
 typedef char _TCHAR;
 
@@ -34,69 +39,78 @@ typedef char _TCHAR;
 
 void main(int argc, char* argv[])
 {
-	_cprintf("Welcome to SDSS Dump!\n\n\n");
-	_cprintf("reads SDSS fits files from a given directory (and subdirectories) and dumps the data to a binary file.\n");
-	_cprintf("reads binary dump files and extracts text tables out of it.\n\n");
+	std::ofstream logFile("dump_log.txt");
 
-	if ( argc < 2 )
-	{
-		_cprintf( "No parameters specified. Using default settings.\n\n");
-		_cprintf( "usage: dump.exe <datadir/*> [<outputfilename.bin>] [<filter>]\n");
-		_cprintf( "usage: dump.exe <inputfilename.bin>\n");
-		_cprintf( "where <filter> is any added combination of:\n");
-		_cprintf( "  SPEC_UNKNOWN =   1\n");
-		_cprintf( "  SPEC_STAR    =   2\n");
-		_cprintf( "  SPEC_GALAXY  =   4\n");
-		_cprintf( "  SPEC_QSO     =   8\n");
-		_cprintf( "  SPEC_HIZ_QSO =  16\n");
-		_cprintf( "  SPEC_SKY     =  32\n");
-		_cprintf( "  STAR_LATE    =  64\n");
-		_cprintf( "  GAL_EM       = 128\n\n\n");
-
-		_cprintf( "example: dump.exe F:/SDSS_ANALYZE/fits/spectro/data/allSpectra.bin 25\n");
-		_cprintf( "example: dump.exe sofmnet.bin\n\n\n");
-	}
+	Helpers::print("Welcome to SDSS Dump!\n\n\n", &logFile);
+	Helpers::print("Reads SDSS fits files from a given directory (and subdirectories) and dumps the data to a binary file.\n", &logFile);
+	Helpers::print("Reads binary dump files and extracts text tables out of it.\n\n", &logFile);
 
 	std::string sstrDataDir = FileHelpers::getCurrentDirectory()+DATADIR;
 	std::string sstrDumpFile = DUMPFILE;
 	unsigned int spectraFilter = 0x0fffff;//SPT_DEFAULTFILTER;
+	std::string sstrInputDumpFile("");
 
-	bool bReverseRead = false;
 
-	if ( argc > 1 )
-	{
-		sstrDataDir = std::string(argv[1]);
+	try {  
 
-		if ( FileHelpers::getFileExtension( sstrDataDir ) == ".bin" )
-		{
-			bReverseRead = true;
-		}
+		std::string sstrExamples("examples:\n");
+		sstrExamples += std::string("dump.exe -d F:/SDSS_ANALYZE/fits/spectro/data/* -o allSpectra.bin -f 25\n");
+		sstrExamples += std::string("dump.exe -i sofmnet.bin\n");
+
+
+		TCLAP::CmdLine cmd(sstrExamples, ' ', SDSSVERSIONSTRING);
+
+		std::string sstrFilterDesc = std::string("where <filter> is any added combination of:\n");
+		sstrFilterDesc +=  std::string( "  SPEC_UNKNOWN =   1\n");
+		sstrFilterDesc +=  std::string( "  SPEC_STAR    =   2\n");
+		sstrFilterDesc +=  std::string( "  SPEC_GALAXY  =   4\n");
+		sstrFilterDesc +=  std::string( "  SPEC_QSO     =   8\n");
+		sstrFilterDesc +=  std::string( "  SPEC_HIZ_QSO =  16\n");
+		sstrFilterDesc +=  std::string( "  SPEC_SKY     =  32\n");
+		sstrFilterDesc +=  std::string( "  STAR_LATE    =  64\n");
+		sstrFilterDesc +=  std::string( "  GAL_EM       = 128\n\n\n");
+
+		TCLAP::ValueArg<std::string> dataDirArg("d", "datadir", "example: F:/SDSS_ANALYZE/fits/spectro/data/*", false, sstrDataDir, "datadir/*");
+		TCLAP::ValueArg<std::string> outputFilenameArg("o", "outputdumpfile", "example: allSpectra.bin", false, sstrDumpFile, "outputfilename.bin");
+		TCLAP::ValueArg<unsigned int> filterArg("f", "filter", sstrFilterDesc, false, spectraFilter, "dump only FITS files with the given filter type");
+		TCLAP::ValueArg<std::string> inputFilenameArg("i", "inputdumpfile", "example: sofmnet.bin", false, sstrInputDumpFile, "dumpfile for reverse reads, then other parameters are ignored.");
+
+		cmd.add( dataDirArg );
+		cmd.add( outputFilenameArg );
+		cmd.add( filterArg );
+		cmd.add( inputFilenameArg );
+
+		cmd.parse( argc, argv );
+
+		sstrDataDir = dataDirArg.getValue();
+		sstrDumpFile = outputFilenameArg.getValue();
+		spectraFilter = filterArg.getValue();
+		sstrInputDumpFile = inputFilenameArg.getValue();
 	}
-	if ( argc > 2 )
-	{
-		sstrDumpFile = std::string(argv[2]);
+	catch (TCLAP::ArgException &e)  
+	{ 
+		std::cout << "error: " << e.error() << " for arg " << e.argId() << "\n"; 
 	}
 
-	if ( argc > 3 )
-	{
-		spectraFilter = Helpers::stringToNumber<unsigned int>( std::string(argv[3]) );
-	}
+
+	bool bReverseRead = !sstrInputDumpFile.empty();
 
 	if ( !bReverseRead )
 	{
-		_cprintf( "Creating binary dump with following parameters:\n");
-		_cprintf( "datadir: %s\n", sstrDataDir.c_str() );
-		_cprintf( "dumpfile: %s\n", sstrDumpFile.c_str() );
-		_cprintf( "filter: %s\n", Spectra::spectraFilterToString(spectraFilter).c_str() );
-		_cprintf( "each spectrum contains %i bytes.\n\n", sizeof(Spectra) );
-
-		SpectraVFS::write( sstrDataDir, sstrDumpFile, spectraFilter );
+		Helpers::print( "Creating binary dump with following parameters:\n", &logFile);
+		Helpers::print( "datadir: "+sstrDataDir+"\n", &logFile );
+		Helpers::print( "dumpfile: "+sstrDumpFile+"\n", &logFile );
+		Helpers::print( "filter: "+Spectra::spectraFilterToString(spectraFilter)+"\n", &logFile );
+		Helpers::print( "each spectrum contains" + Helpers::numberToString<size_t>(sizeof(Spectra)) + "bytes.\n\n", &logFile );
+		
+		Helpers::print( "starting dump...\n", &logFile );
+		size_t writtenSpectra = SpectraVFS::write( sstrDataDir, sstrDumpFile, spectraFilter, &logFile );
+		Helpers::print( "...finished writing "+ Helpers::numberToString<size_t>(writtenSpectra) +" spectra.\n", &logFile );
 	}
 	else
 	{
-		sstrDumpFile = sstrDataDir;
-		_cprintf( "Filename extraction from dumpfile with following parameters:\n");
-		_cprintf( "dumpfile: %s\n", sstrDumpFile.c_str() );
+		Helpers::print( "Filename extraction from dumpfile with following parameters:\n", &logFile);
+		Helpers::print( "dumpfile: "+sstrDumpFile+"\n", &logFile );
 
 		SpectraVFS vfs(sstrDumpFile, true);
 
