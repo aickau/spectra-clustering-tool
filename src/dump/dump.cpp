@@ -72,8 +72,8 @@ void main(int argc, char* argv[])
 
 		TCLAP::ValueArg<std::string> dataDirArg("d", "datadir", "example: F:/SDSS_ANALYZE/fits/spectro/data/*", false, sstrDataDir, "datadir/*");
 		TCLAP::ValueArg<std::string> outputFilenameArg("o", "outputdumpfile", "example: allSpectra.bin", false, sstrDumpFile, "outputfilename.bin");
-		TCLAP::ValueArg<unsigned int> filterArg("f", "filter", sstrFilterDesc, false, spectraFilter, "dump only FITS files with the given filter type");
-		TCLAP::ValueArg<std::string> inputFilenameArg("i", "inputdumpfile", "example: sofmnet.bin", false, sstrInputDumpFile, "dumpfile for reverse reads, then other parameters are ignored.");
+		TCLAP::ValueArg<unsigned int> filterArg("f", "filter", sstrFilterDesc, false, spectraFilter, "Dump only FITS files with the given filter type.");
+		TCLAP::ValueArg<std::string> inputFilenameArg("i", "inputdumpfile", "example: sofmnet.bin. If inputdumpfile is specified, then all other arguments are ignored.", false, sstrInputDumpFile, "dumpfile for reverse reads, then other parameters are ignored.");
 
 		cmd.add( dataDirArg );
 		cmd.add( outputFilenameArg );
@@ -89,7 +89,7 @@ void main(int argc, char* argv[])
 	}
 	catch (TCLAP::ArgException &e)  
 	{ 
-		std::cout << "error: " << e.error() << " for arg " << e.argId() << "\n"; 
+		Helpers::print( "error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
 	}
 
 

@@ -25,6 +25,8 @@
 #include <conio.h>
 #include <omp.h>
 
+#include "tclap/CmdLine.h"
+
 #include "sdsslib/defines.h"
 #include "sdsslib/helpers.h"
 #include "sdsslib/filehelpers.h"
@@ -33,6 +35,7 @@
 #include "sdsslib/memory.h"
 #include "sdsslib/spectrahelpers.h"
 #include "sdsslib/HTMLExport.h"
+#include "sdsslib/sdssSoftwareVersion.h"
 
 #define COMPAREDIR std::string("compare/")
 
@@ -45,32 +48,9 @@ std::vector<std::string> g_compareFileList;
 
 void main(int argc, char* argv[])
 {
-	_cprintf("Welcome to SDSS Search!\n\n\n");
-
-	_cprintf("order spectra relative to a set of reference spectra by their absolute error.\n\n");
-
-	if ( argc < 2 )
-	{
-		_cprintf( "No parameters specified. Using default settings.\n\n");
-		_cprintf( "usage: search.exe <dumpfile.bin> [spectra filter] [compare function] [comparison invariance] [normalize] [reverse order]\n");
-		_cprintf( "spectra filter is defined as follows:\n" );
-		_cprintf( "SPEC_UNKNOWN = 1\n" );
-		_cprintf( "SPEC_STAR    = 2\n" );
-		_cprintf( "SPEC_GALAXY  = 4\n" );
-		_cprintf( "SPEC_QSO     = 8\n" );
-		_cprintf( "SPEC_HIZ_QSO = 16\n" );
-		_cprintf( "SPEC_SKY     = 32\n" );
-		_cprintf( "STAR_LATE    = 64\n" );   
-		_cprintf( "GAL_EM       = 128\n" );     
-		_cprintf( "filters can be combined by adding the values, to disable filtering use 255.\n" );                 
-		_cprintf( "if no filter is specified it uses SPEC_UNKNOWN|SPEC_QSO|SPEC_HIZ_QSO|GAL_EM as default filter\n\n" );  
-		_cprintf( "compare function is defined as follows:\n" );
-		_cprintf( "simple (euclidean squared over all samples) = 0\n" );
-		_cprintf( "advanced (takes neighborhood into account)  = 1\n" );
-		_cprintf( "super advanced (uses peak detection)        = 2\n\n" );
-		_cprintf( "example: search.exe allSpectra.bin 255 2 0.1 1 0\n\n\n");
-
-	}
+	std::ofstream logFile("search_log.txt");
+	Helpers::print("Welcome to SDSS Search!\n\n\n", &logFile);
+	Helpers::print("Order spectra relative to a set of reference spectra by their absolute error.\n\n", &logFile);
 
 	std::string sstrDumpFile(DUMPFILE);
 	unsigned int spectraFilter = SPT_DEFAULTFILTER;
@@ -79,48 +59,59 @@ void main(int argc, char* argv[])
 	bool bNormalize = false;
 	bool bReverseOrder = false;
 
-	if (argc > 1)
-	{
-		sstrDumpFile = std::string(argv[1]);
+
+	try {  
+
+		std::string sstrExamples("examples:\n");
+		sstrExamples += std::string("search.exe -i allSpectra.bin -n\n");
+		sstrExamples += std::string("search.exe -i allSpectra.bin -f 255 -c 2 -v 0.1\n");
+
+		TCLAP::CmdLine cmd(sstrExamples, ' ', SDSSVERSIONSTRING);
+
+		std::string sstrFilterDesc("Spectra filter is any added combination of:\n");
+		sstrFilterDesc +=  std::string( "  SPEC_UNKNOWN =   1\n");
+		sstrFilterDesc +=  std::string( "  SPEC_STAR    =   2\n");
+		sstrFilterDesc +=  std::string( "  SPEC_GALAXY  =   4\n");
+		sstrFilterDesc +=  std::string( "  SPEC_QSO     =   8\n");
+		sstrFilterDesc +=  std::string( "  SPEC_HIZ_QSO =  16\n");
+		sstrFilterDesc +=  std::string( "  SPEC_SKY     =  32\n");
+		sstrFilterDesc +=  std::string( "  STAR_LATE    =  64\n");
+		sstrFilterDesc +=  std::string( "  GAL_EM       = 128\n\n\n");
+
+		std::string sstrCompareFuncDesc( "compare function is defined as follows:\n" );
+		sstrCompareFuncDesc +=  std::string( "simple (euclidean squared over all samples) = 0\n" );
+		sstrCompareFuncDesc +=  std::string( "advanced (takes neighborhood into account)  = 1\n" );
+		sstrCompareFuncDesc +=  std::string( "super advanced (uses peak detection)        = 2\n\n" );
+
+
+		TCLAP::ValueArg<std::string> dumpFilenameArg("i", "inputdumpfile", "example: allSpectra.bin", false, sstrDumpFile, "input dump file that contains all spectra to compare with.");
+		TCLAP::ValueArg<unsigned int> filterArg("f", "filter", sstrFilterDesc, false, spectraFilter, "use only spectra for comparison with the given filter type");
+		TCLAP::ValueArg<unsigned int> compareFuncArg("c", "comparefunc", sstrCompareFuncDesc, false, compareFunc, "compare function to use (0=simple, 1=advanced, 2=superadvanced)");
+		TCLAP::ValueArg<float> compareInvarianceArg("v", "compareinvariance", "Percentage to take the neighboring samples of spectra for comparison into account. 0=no neighboring samples are taken into account, 1=all samples are taken into account. Only used if compare function is not set to simple", false, compareInvariance, "compare invariance (0..1)");
+		TCLAP::SwitchArg normalizeArg("n","normalize","Normalize spectra", false);
+		TCLAP::SwitchArg reverseArg("r","reverse","Reverse order", false);
+
+		cmd.add( dumpFilenameArg );
+		cmd.add( filterArg );
+		cmd.add( compareFuncArg );
+		cmd.add( compareInvarianceArg );
+		cmd.add( normalizeArg );
+		cmd.add( reverseArg );
+
+		cmd.parse( argc, argv );
+
+		sstrDumpFile = dumpFilenameArg.getValue();
+		spectraFilter = (filterArg.getValue() > 0) ? filterArg.getValue() : 255;
+		compareFunc = CLAMP( compareFuncArg.getValue(), 0, 2 );
+		compareInvariance = CLAMP(compareInvarianceArg.getValue(),0.f,1.f);
+		bNormalize = normalizeArg.getValue();
+		bReverseOrder = reverseArg.getValue();
+	}
+	catch (TCLAP::ArgException &e)  
+	{ 
+		Helpers::print( "error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
 	}
 
-	if (argc > 2)
-	{
-		int filter = Helpers::stringToNumber<int>(std::string(argv[2]));
-		if ( filter > 0) 
-		{
-			spectraFilter = filter;
-		}
-	}
-
-	if (argc > 3)
-	{
-		int compare = Helpers::stringToNumber<int>(std::string(argv[3]));
-		if ( compare >= 0 && compare <= 2) 
-		{
-			compareFunc = compare;
-		}
-	}
-
-
-	if (argc > 3)
-	{
-		float val = Helpers::stringToNumber<float>(std::string(argv[4]));
-		if (val>=0.f || val<=1.f)
-		{
-			compareInvariance = val;
-		}
-	}
-
-	if (argc > 5)
-	{
-		bNormalize = (argv[5][0] == '1') ? true : false;
-	}
-
-	if (argc > 6)
-	{
-		bReverseOrder = (argv[6][0] == '1') ? true : false;
-	}
 
 	std::string sstrCompareFunc;
 	switch (compareFunc){
@@ -129,13 +120,13 @@ void main(int argc, char* argv[])
 		default: sstrCompareFunc="simple";break;
 	}
 
-	_cprintf( "dump file: %s\n", sstrDumpFile.c_str() );
-	_cprintf( "filter: %s\n", Spectra::spectraFilterToString(spectraFilter).c_str() );
-	_cprintf( "compare function: %s\n", sstrCompareFunc.c_str() );
-	_cprintf( "comparison invariance: %f\n", compareInvariance );
-	_cprintf( "normalize: %i\n", bNormalize );
-	_cprintf( "reversed order: %i\n", bReverseOrder );
-	_cprintf( "each spectrum contains %i bytes.\n\n", sizeof(Spectra) );
+	Helpers::print( "dump file: "+sstrDumpFile+"\n", &logFile );
+	Helpers::print( "filter: "+Spectra::spectraFilterToString(spectraFilter)+"\n", &logFile );
+	Helpers::print( "compare function: "+sstrCompareFunc+"\n", &logFile );
+	Helpers::print( "comparison invariance: "+Helpers::numberToString<float>(compareInvariance)+"\n", &logFile );
+	Helpers::print( "normalize: "+Helpers::numberToString<bool>(bNormalize)+"\n", &logFile );
+	Helpers::print( "reversed order: "+Helpers::numberToString<bool>(bReverseOrder)+"\n" , &logFile );
+	Helpers::print( "each spectrum contains "+Helpers::numberToString<size_t>(sizeof(Spectra))+" bytes.\n\n", &logFile );
 
 	std::string sstrBaseInfo;
 	sstrBaseInfo += "creation date: ";
@@ -163,24 +154,24 @@ void main(int argc, char* argv[])
 
 	if ( numSpectra == 0 )
 	{
-		_cprintf("Error: No spectral data found.\n");
+		Helpers::print("Error: No spectral data found.\n", &logFile);
 		return;
 	}
 	else
 	{
-		_cprintf("%i spectra found.\n",numSpectra);
+		Helpers::print(Helpers::numberToString<size_t>(numSpectra)+" spectra found.\n", &logFile);
 	}
 
 	const size_t numCompareSpectra = FileHelpers::getFileList( std::string(COMPAREDIR+"*.fit"), g_compareFileList );
 
 	if ( numCompareSpectra == 0 )
 	{
-		_cprintf("Error: No comparison spectral data found.\n");
+		Helpers::print("Error: No comparison spectral data found.\n", &logFile);
 		return;
 	}
 	else
 	{
-		_cprintf("%i comparison spectra found.\n",numCompareSpectra);
+		Helpers::print(Helpers::numberToString<size_t>(numCompareSpectra)+" comparison spectra found.\n", &logFile);
 	}
 
 	Spectra *compareSpectra = static_cast<Spectra*>( Memory::memAlignedAlloc( sizeof(Spectra) * numCompareSpectra ) ); //new Spectra[numCompareSpectra];
@@ -188,7 +179,7 @@ void main(int argc, char* argv[])
 
 	if ( compareSpectra == NULL )
 	{
-		_cprintf("error: out of memory allocating %i comparison spectra.\n", numCompareSpectra);
+		Helpers::print("error: out of memory allocating "+Helpers::numberToString<size_t>(numCompareSpectra)+" comparison spectra.\n", &logFile);
 	}
 
 	for ( size_t i=0;i<numCompareSpectra;i++ )
@@ -197,7 +188,7 @@ void main(int argc, char* argv[])
 		bool bSuccess = compareSpectra[i].loadFromFITS( g_compareFileList.at(i) );
 		if ( !bSuccess )
 		{
-			_cprintf("error: loading compare fits file %s .\n", g_compareFileList.at(i).c_str() );
+			Helpers::print("error: loading compare fits file "+g_compareFileList.at(i)+".\n", &logFile );
 		}
 		if ( bNormalize )
 		{
@@ -279,7 +270,7 @@ void main(int argc, char* argv[])
 
 		if (!Helpers::insertString( HTMLExport::HTML_TOKEN_TITLE, sstrCompareFilename, sstrHTMLDoc ) )
 		{
-			printf("export failed. Wrong template.html ?!?\n");
+			Helpers::print("export failed. Wrong template.html ?!?\n", &logFile);
 			return;
 		}
 
@@ -315,7 +306,7 @@ void main(int argc, char* argv[])
 	
 		if (!Helpers::insertString( HTMLExport::HTML_TOKEN_TEMPLATE, sstrTable, sstrHTMLDoc ) )
 		{
-			printf("export failed. Wrong template.html ?!?\n");
+			Helpers::print("export failed. Wrong template.html ?!?\n", &logFile);
 			return;
 		}
 
@@ -332,7 +323,7 @@ void main(int argc, char* argv[])
 		sstrResultFilename += FileHelpers::getFileName(sstrCompareFilename);
 		sstrResultFilename += ".html";
 
-		printf( "\n\nExporting results to %s \n", sstrResultFilename.c_str() );
+		Helpers::print( "\n\nExporting results to "+sstrResultFilename+"\n", &logFile );
 
 		std::ofstream fon(sstrResultFilename.c_str());
 		fon<<sstrHTMLDoc;
