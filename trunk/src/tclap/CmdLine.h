@@ -23,7 +23,7 @@
 #ifndef TCLAP_CMDLINE_H
 #define TCLAP_CMDLINE_H
 
-#undef min
+#undef min  // MOD
 
 #include <tclap/SwitchArg.h>
 #include <tclap/MultiSwitchArg.h>
