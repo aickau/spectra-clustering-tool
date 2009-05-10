@@ -375,7 +375,7 @@ inline void CmdLine::add( Arg* a )
 
 inline void CmdLine::parse(int argc, char** argv)
 {
-	try {
+//	try { // MOD: disable auto exit, let the app handle the exception.
 
 	_progName = argv[0];
 
@@ -415,7 +415,7 @@ inline void CmdLine::parse(int argc, char** argv)
 	if ( requiredCount > _numRequired )
 		throw(CmdLineParseException("Too many arguments!"));
 
-	} catch ( ArgException e ) { _output->failure(*this,e); exit(1); }
+//	} catch ( ArgException e ) { _output->failure(*this,e); exit(1); } // MOD: disable auto exit, let the app handle the exception.
 }
 
 inline bool CmdLine::_emptyCombined(const std::string& s)

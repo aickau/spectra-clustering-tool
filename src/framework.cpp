@@ -23,7 +23,7 @@
 
 #include <string>
 
-extern int		InitGL( const std::string &sstrCmdLine );
+extern int		InitGL();
 extern void		DrawGLScene();
 extern void		KillGL();
 extern void		UpdateGLView(int, int);
@@ -259,12 +259,13 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, int freq, bool
 	SetFocus(fr_hWnd);									
 	UpdateGLView(width, height);					
 
-	if (!InitGL(std::string(lpCmdLine)))									
+	if (!InitGL())									
 	{
 		KillGLWindow();							
 		MessageBox(NULL,"Initialization Failed.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;								
 	}
+
 
 	int c;
 	for(c=0;c < FR_MAXKEYTABLE;c++)
