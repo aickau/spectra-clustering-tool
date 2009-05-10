@@ -63,7 +63,7 @@ public:
 
 
 	// _pSourceVFS is your input data which you want to cluster
-	SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation = false );
+	SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation = false, std::ofstream *_logStream=NULL );
 
 	~SOFMNetwork();
 
@@ -177,7 +177,7 @@ protected:
 
 	Rnd				m_Random;
 
-	std::ofstream	m_logFile;
+	std::ofstream	*m_pLogStream;
 };
 
 

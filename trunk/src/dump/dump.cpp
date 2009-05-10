@@ -73,7 +73,7 @@ void main(int argc, char* argv[])
 		TCLAP::ValueArg<std::string> dataDirArg("d", "datadir", "example: F:/SDSS_ANALYZE/fits/spectro/data/*", false, sstrDataDir, "datadir/*");
 		TCLAP::ValueArg<std::string> outputFilenameArg("o", "outputdumpfile", "example: allSpectra.bin", false, sstrDumpFile, "outputfilename.bin");
 		TCLAP::ValueArg<unsigned int> filterArg("f", "filter", sstrFilterDesc, false, spectraFilter, "Dump only FITS files with the given filter type.");
-		TCLAP::ValueArg<std::string> inputFilenameArg("i", "inputdumpfile", "example: sofmnet.bin. If inputdumpfile is specified, then all other arguments are ignored.", false, sstrInputDumpFile, "dumpfile for reverse reads, then other parameters are ignored.");
+		TCLAP::ValueArg<std::string> inputFilenameArg("i", "inputdumpfile", "example: sofmnet.bin. If inputdumpfile is specified, then all other arguments are ignored.", false, sstrInputDumpFile, "Dumpfile for reverse reads.");
 
 		cmd.add( dataDirArg );
 		cmd.add( outputFilenameArg );
@@ -91,7 +91,6 @@ void main(int argc, char* argv[])
 	{ 
 		Helpers::print( "error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
 	}
-
 
 	bool bReverseRead = !sstrInputDumpFile.empty();
 

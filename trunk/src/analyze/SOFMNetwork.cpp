@@ -75,7 +75,7 @@ SOFMNetwork::Parameters::Parameters( size_t _numSteps, size_t _randomSeed, float
 
 
 
-SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
+SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, std::ofstream *_logStream )
 :m_pSourceVFS(_pSourceVFS)
 ,m_numSpectra(_pSourceVFS->getNumSpectra())
 ,m_gridSize(0)
@@ -84,13 +84,13 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 ,m_params( Parameters::defaultParameters )
 ,m_Min(FLT_MAX)
 ,m_Max(-FLT_MAX)
-,m_logFile("sofm_log.txt")
+,m_pLogStream(_logStream)
 {
 	std::string sstrSOFMFileName("");
 	if ( !readSettings("settings.xml", sstrSOFMFileName) )
 	{
 		//error
-		Helpers::print( std::string("Error reading settings from settings.xml. Abortion.\n"), &m_logFile );
+		Helpers::print( std::string("Error reading settings from settings.xml. Abortion.\n"), m_pLogStream );
 		exit(0);
 	}
 
@@ -106,10 +106,10 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 	// test end
 */
 
-	Helpers::print( std::string("Spectra VFS cache line size ") + Helpers::numberToString( SpectraVFS::CACHELINESIZE ) + " spectra.\n", &m_logFile );
-	Helpers::print( std::string("Spectra VFS number of cache lines ") + Helpers::numberToString( SpectraVFS::CACHELINES ) + ".\n", &m_logFile );
-	Helpers::print( std::string("That allows us to pack ") + Helpers::numberToString( SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE ) + " spectra into main memory.\n", &m_logFile );
-	Helpers::print( std::string("We can eat up ") + Helpers::numberToString( static_cast<float>(2*SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE*sizeof(Spectra))/(1024.f*1024.f*1024.f) ) + " GB of main memory for clustering .\n", &m_logFile );
+	Helpers::print( std::string("Spectra VFS cache line size ") + Helpers::numberToString( SpectraVFS::CACHELINESIZE ) + " spectra.\n", m_pLogStream );
+	Helpers::print( std::string("Spectra VFS number of cache lines ") + Helpers::numberToString( SpectraVFS::CACHELINES ) + ".\n", m_pLogStream );
+	Helpers::print( std::string("That allows us to pack ") + Helpers::numberToString( SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE ) + " spectra into main memory.\n", m_pLogStream );
+	Helpers::print( std::string("We can eat up ") + Helpers::numberToString( static_cast<float>(2*SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE*sizeof(Spectra))/(1024.f*1024.f*1024.f) ) + " GB of main memory for clustering .\n", m_pLogStream );
 
 
 	calcMinMaxInputDS();
@@ -125,13 +125,13 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 			sstrString += std::string("  too small. Clamping to ");
 			sstrString += Helpers::numberToString(gridSizeMin);
 			sstrString += std::string(".\n\n");
-			Helpers::print( sstrString, &m_logFile );
+			Helpers::print( sstrString, m_pLogStream );
 			m_gridSize = gridSizeMin;
 		}
 		m_gridSizeSqr = m_gridSize*m_gridSize;
 
 		Helpers::print( std::string("Start clustering using ")+Helpers::numberToString(m_numSpectra)+
-			            std::string(" spectra. Grid size is ")+Helpers::numberToString(m_gridSize)+std::string(".\n"), &m_logFile );
+			            std::string(" spectra. Grid size is ")+Helpers::numberToString(m_gridSize)+std::string(".\n"), m_pLogStream );
 
 		// generate random filled cluster and load it.
 		std::string sstrNet("sofmnet.bin");
@@ -143,7 +143,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 		exportHistograms("export");
 
 		// initialize with input data
-		Helpers::print( std::string("Initializing network with input data.\n"), &m_logFile );
+		Helpers::print( std::string("Initializing network with input data.\n"), m_pLogStream );
 
 		Rnd r(m_params.randomSeed);
 		for ( size_t i=0;i<m_gridSizeSqr;i++ )
@@ -168,7 +168,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 
 		Helpers::print( std::string("Continue clustering at step ")+Helpers::numberToString(m_currentStep)+
 			            std::string(" using ")+Helpers::numberToString(m_numSpectra)+
-						std::string(" spectra. Grid size is ")+Helpers::numberToString(m_gridSize)+std::string(".\n"), &m_logFile );
+						std::string(" spectra. Grid size is ")+Helpers::numberToString(m_gridSize)+std::string(".\n"), m_pLogStream );
 
 		m_pNet = new SpectraVFS( sstrSOFMFileName, false );
 
@@ -178,12 +178,12 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 			m_gridSize*m_gridSize != m_gridSizeSqr )
 		{
 			// error
-			Helpers::print( std::string("Error reading ") + sstrSOFMFileName + std::string(". Abortion.\n"), &m_logFile );
+			Helpers::print( std::string("Error reading ") + sstrSOFMFileName + std::string(". Abortion.\n"), m_pLogStream );
 			exit(0);
 		}
 	}
 
-	Helpers::print( std::string("Initialization finished.\n"), &m_logFile );
+	Helpers::print( std::string("Initialization finished.\n"), m_pLogStream );
 }
 
 
@@ -277,12 +277,12 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	bSuccess &= p.getChildValue("SPECTRUM", "file", _sstrSOFMFileName );
 
 	if ( !bSuccess)
-		Helpers::print( std::string("Error: some setting value could not loaded.\n"), &m_logFile );
+		Helpers::print( std::string("Error: some setting value could not loaded.\n"), m_pLogStream );
 
 
 	//bSuccess &= ( spectraSize == sizeof(Spectra) );
 	//if ( !bSuccess)
-	//	Helpers::Print( std::string("Error: Given spectrum size matches not with spectrum size from dump file.\n"), &m_logFile );
+	//	Helpers::Print( std::string("Error: Given spectrum size matches not with spectrum size from dump file.\n"), m_pLogStream );
 
 	p.gotoChild();
 	
@@ -332,9 +332,9 @@ void SOFMNetwork::calcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax )
 
 void SOFMNetwork::calcMinMaxInputDS()
 {
-	Helpers::print( std::string("Calculating min/max of input.\n"), &m_logFile );
+	Helpers::print( std::string("Calculating min/max of input.\n"), m_pLogStream );
 	calcMinMax( *m_pSourceVFS, m_Min, m_Max );
-	Helpers::print( std::string("global min / max: ") + Helpers::numberToString(m_Min) + std::string(" / " ) + Helpers::numberToString(m_Max) + std::string("\n" ), &m_logFile );
+	Helpers::print( std::string("global min / max: ") + Helpers::numberToString(m_Min) + std::string(" / " ) + Helpers::numberToString(m_Max) + std::string("\n" ), m_pLogStream );
 }
 
 
@@ -346,7 +346,7 @@ void SOFMNetwork::exportHistograms( const std::string &_sstrExportDirectory )
 		sstrDir += "/";
 	}
 
-	Helpers::print( std::string("Exporting energy maps.\n"), &m_logFile );
+	Helpers::print( std::string("Exporting energy maps.\n"), m_pLogStream );
 	std::vector<float> energymap;
 	std::vector<float> toatalenergymap;
 	std::vector<float> zmap;
@@ -375,7 +375,7 @@ void SOFMNetwork::exportHistograms( const std::string &_sstrExportDirectory )
 
 void SOFMNetwork::renderIcons()
 {
-	Helpers::print( std::string("Rendering Icons.\n"), &m_logFile );
+	Helpers::print( std::string("Rendering Icons.\n"), m_pLogStream );
 
 	float globalmax = fabs(m_Max);
 	if (globalmax==0.0f) {
@@ -596,7 +596,7 @@ void SOFMNetwork::searchBestMatchLocal( const std::vector<size_t> &_spectraIndex
 		m_pSourceVFS->endRead(spectraIndex);
 	}
 
-	Helpers::print( std::string("complete search for all on framers.\n"), &m_logFile );
+	Helpers::print( std::string("complete search for all on framers.\n"), m_pLogStream );
 
 	// do global search for all on-framers
 	searchBestMatchComplete( _spectraIndexList, _spectraIndexListOffset, _pBestMatchBatch, _numBestMatchElements, true );
@@ -606,7 +606,7 @@ void SOFMNetwork::process()
 {
 	if ( m_currentStep > m_params.numSteps )
 	{
-		Helpers::print( std::string("Clustering finished (success).\n"), &m_logFile );
+		Helpers::print( std::string("Clustering finished (success).\n"), m_pLogStream );
 		exit(1);
 	}
 
@@ -637,7 +637,7 @@ void SOFMNetwork::process()
 
 	std::string sstrLog("Calculating step ");
 	sstrLog += Helpers::numberToString( m_currentStep ) + " / " + Helpers::numberToString( m_params.numSteps ) + "\n";
-	Helpers::print( sstrLog, &m_logFile );
+	Helpers::print( sstrLog, m_pLogStream );
 
 	const float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
 	const float lRate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
@@ -710,7 +710,7 @@ void SOFMNetwork::process()
 
 
 		double searchTime = t.getElapsedSecs();
-		Helpers::print( std::string("Best match search time: ")+Helpers::numberToString<float>(searchTime)+std::string("\n"), &m_logFile );
+		Helpers::print( std::string("Best match search time: ")+Helpers::numberToString<float>(searchTime)+std::string("\n"), m_pLogStream );
 
 		t.start();
 
@@ -766,7 +766,7 @@ void SOFMNetwork::process()
 			m_pSourceVFS->endWrite(spectraIndex);
 		}
 		double adaptionTime = t.getElapsedSecs();
-		Helpers::print( std::string("NW adaption time: ")+Helpers::numberToString<float>(adaptionTime)+std::string("\n"), &m_logFile );
+		Helpers::print( std::string("NW adaption time: ")+Helpers::numberToString<float>(adaptionTime)+std::string("\n"), m_pLogStream );
 
 
 		j += jInc;
@@ -817,8 +817,8 @@ void SOFMNetwork::process()
 
 
 	double collisionTime = t.getElapsedSecs();
-	Helpers::print( std::string("Collision NW adaption time: ")+Helpers::numberToString<float>(collisionTime)+std::string("\n"), &m_logFile );
-	Helpers::print( std::string("Flushing cluster table to disk.\n"), &m_logFile );
+	Helpers::print( std::string("Collision NW adaption time: ")+Helpers::numberToString<float>(collisionTime)+std::string("\n"), m_pLogStream );
+	Helpers::print( std::string("Flushing cluster table to disk.\n"), m_pLogStream );
 
 	m_pNet->flush();
 
@@ -1011,7 +1011,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 
 void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 {
-	Helpers::print( "Generating info pages for spectra\n", &m_logFile );
+	Helpers::print( "Generating info pages for spectra\n", m_pLogStream );
 
 	std::string sstrMainHTMLDoc;
 	std::string sstrHTMLDocTemplate = HTMLExport::loadHTMLTemplate();
@@ -1029,7 +1029,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 	{
 		Spectra *a = m_pSourceVFS->beginRead( i );
 
-		Helpers::print( std::string("Generating info page for spectrum\n")+a->getFileName()+std::string("\n"), &m_logFile );
+		Helpers::print( std::string("Generating info page for spectrum\n")+a->getFileName()+std::string("\n"), m_pLogStream );
 
 		const int xpA = a->m_Index % m_gridSize;
 		const int ypA = a->m_Index / m_gridSize;
@@ -1268,7 +1268,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	sstrLog += _sstrFilename;
 	sstrLog +="\n";
 
-	Helpers::print( sstrLog, &m_logFile );
+	Helpers::print( sstrLog, m_pLogStream );
 
 	std::string sstrHTMLDocTemplate = HTMLExport::loadHTMLTemplate();	
 	std::string sstrHTMLDoc;
@@ -1433,7 +1433,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 	if (!Helpers::insertString( HTMLExport::HTML_TOKEN_TEMPLATE, sstrMainTable, sstrMainHTMLDoc ) )
 	{
-		Helpers::print( std::string("export failed. Wrong template.html ?!?\n"), &m_logFile );
+		Helpers::print( std::string("export failed. Wrong template.html ?!?\n"), m_pLogStream );
 		return;
 	}
 
@@ -1444,7 +1444,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 	if ( m_params.waitForUser )
 	{
-		Helpers::print( std::string("export finished. waiting for user input.\n"), &m_logFile );
+		Helpers::print( std::string("export finished. waiting for user input.\n"), m_pLogStream );
 		_getch();
 	}
 }

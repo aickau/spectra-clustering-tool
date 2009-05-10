@@ -15,15 +15,17 @@
 //!
 //! \file  analyze.cpp
 
-#include "framework.h"	
-
 #include <string>
 #include <conio.h>
 #include <assert.h>
 #include <sstream>
+#include <Windows.h>
+#include <shellapi.h>
 
 #include "devil/include/il/il.h"
 #include "devil/include/il/ilu.h"
+
+#include "tclap/CmdLine.h"
 
 #include "sdsslib/spectra.h"
 #include "sdsslib/glhelper.h"
@@ -32,7 +34,9 @@
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/spectraHelpers.h"
 #include "sdsslib/helpers.h"
+#include "sdsslib/sdssSoftwareVersion.h"
 
+#include "framework.h"	
 #include "SOFMNetwork.h"
 #include "QTClustering.h"
 
@@ -45,6 +49,7 @@ int scr_width, scr_height;
 QTClustering *g_QTCluster;
 SOFMNetwork *g_pSOFM=NULL;
 
+std::ofstream logFile("sofm_log.txt");
 
 int g_CurrentSpectraIndex=0;
 
@@ -57,7 +62,7 @@ SpectraVFS *g_pVFSSource = NULL;
 
 
 
-int InitGL( const std::string &sstrCmdLine )		
+int InitGL()		
 {
 	AllocConsole();
 
@@ -73,55 +78,75 @@ int InitGL( const std::string &sstrCmdLine )
 
 	//SpectraVFS::write(30,75.0f, std::string("allspectra3.bin") );
 
-	bool bContinue = false;
+	// convert commandline
+	int argc;
+	std::string sstrCmdLine(GetCommandLine());
+	size_t commandlineSize = sstrCmdLine.size();
+	WCHAR *commandlinewc = new WCHAR[commandlineSize];
+	char *commandline = new char[commandlineSize];
+	mbstowcs( commandlinewc, GetCommandLine(), 16384 );
+	LPWSTR *argvwc = CommandLineToArgvW( commandlinewc, &argc );
+	char **argv = new char*[argc+1];
+	size_t c=0;
+	for (int i=0;i<argc;i++) {
+		argv[i] = commandline+c;
+		size_t len =  wcslen(argvwc[i]);
+		wcstombs(&commandline[c],argvwc[i], len);
+		c+= len+1;
+		commandline[c-1] = 0;
+	}
+	argv[argc] = NULL; // terminate with zero.
+
+	Helpers::print("Welcome to SDSS Analyze!\n\n\n", &logFile);
+
+
 	std::string sstrSourceSpectraFilename("allSpectra.bin");
 	std::string sstrSelectionListFilename("");
+	bool bContinue = false;
 
+	try {  
 
-	_cprintf("Welcome to SDSS Analyze!\n\n\n");
+		std::string sstrExamples("examples:\n");
+		sstrExamples += std::string("example: analyze.exe -i allSpectra.bin\n");
+		sstrExamples += std::string("analyze.exe -i allSpectra.bin -s selection.txt\n");
+		sstrExamples += std::string("analyze.exe -c\n");
 
-	if ( sstrCmdLine.empty() )
-	{
-		_cprintf( "No parameters specified. Using default settings.\n\n");
-		_cprintf( "usage: sdss.exe <source spectra filename> [<selectionlist>]\n");
-		_cprintf( "usage: sdss.exe /c\n");
-		_cprintf( "example: sdss.exe allSpectra.bin\n\n");
-		_cprintf( "example: sdss.exe allSpectra.bin selection.txt\n\n");
-		_cprintf( "example: sdss.exe /c\n continues computation.\n\n");
+		TCLAP::CmdLine cmd(sstrExamples, ' ', SDSSVERSIONSTRING);
 
+		TCLAP::ValueArg<std::string> dumpFilenameArg("i", "inputdumpfile", "example: allSpectra.bin", false, sstrSourceSpectraFilename, "input dump file that contains all spectra to compare with.");
+		TCLAP::ValueArg<std::string> selectionListFilenameArg("s", "selection", "Optional selection list of FITS files to cluster a small subset of input spectra.", false, sstrSelectionListFilename, "selectionlist.txt");
+		TCLAP::SwitchArg continueArg("c","continue","Continue computation.", false);
+
+		cmd.add( dumpFilenameArg );
+		cmd.add( selectionListFilenameArg );
+		cmd.add( continueArg );
+
+		cmd.parse( argc, argv );
+
+		sstrSourceSpectraFilename = dumpFilenameArg.getValue();
+		sstrSelectionListFilename = selectionListFilenameArg.getValue();
+		bContinue = continueArg.getValue();
 	}
-	else if(sstrCmdLine=="/c")
-	{
-		bContinue=true;
+	catch (TCLAP::ArgException &e)  
+	{ 
+		Helpers::print( "error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
 	}
-	else
-	{
-		std::istringstream sstrStream(sstrCmdLine);
 
-		if (sstrStream) {
-			sstrStream >> sstrSourceSpectraFilename;	
-		}
 
-		if (sstrStream) {
-			sstrStream >> sstrSelectionListFilename;
-		}
-	}
-	_cprintf( "Reading dump file " );
-	_cprintf( sstrSourceSpectraFilename.c_str() );
-	_cprintf( "\n" );
+	Helpers::print( "Reading dump file "+sstrSourceSpectraFilename+ "\n", &logFile );
 
 	g_pVFSSource = new SpectraVFS( sstrSourceSpectraFilename, false );
 	g_numSpectra = g_pVFSSource->getNumSpectra();
 
 	if ( g_numSpectra == 0 )
 	{
-		_cprintf("Error: No spectral data found.\n");
+		Helpers::print("Error: No spectral data found.\n", &logFile);
 		delete g_pVFSSource;
 		return false;
 	}
 	else
 	{
-		_cprintf("%i spectra found.\n",g_numSpectra);
+		Helpers::print(Helpers::numberToString<size_t>(g_numSpectra)+" spectra found.\n", &logFile);
 	}
 
 	SpectraVFS *pVFSFiltered=NULL;
@@ -129,7 +154,7 @@ int InitGL( const std::string &sstrCmdLine )
 	if ( !sstrSelectionListFilename.empty() )
 	{
 		std::ifstream fin(sstrSelectionListFilename.c_str());
-		_cprintf( "Reading selection list %s\n", sstrSelectionListFilename.c_str() );
+		Helpers::print( "Reading selection list "+sstrSelectionListFilename+"\n", &logFile );
 
 		if( fin ) 
 		{
@@ -166,14 +191,14 @@ int InitGL( const std::string &sstrCmdLine )
 		}
 		else
 		{
-			_cprintf( "Selection list not found, using unfiltered dump.\n" );
+			Helpers::print( "Selection list not found, using unfiltered dump.\n", &logFile );
 		}
 	}
 
 	// init network
 	if ( pVFSFiltered != NULL && pVFSFiltered->getNumSpectra() > 0 )
 	{
-		_cprintf( "Using %i out of %i spectra.\n", pVFSFiltered->getNumSpectra(), g_pVFSSource->getNumSpectra() );
+		Helpers::print( "Using "+Helpers::numberToString<size_t>(pVFSFiltered->getNumSpectra())+" out of "+Helpers::numberToString<size_t>(g_pVFSSource->getNumSpectra())+" spectra.\n", &logFile );
 		g_pSOFM = new SOFMNetwork( pVFSFiltered, bContinue );
 	}
 	else
