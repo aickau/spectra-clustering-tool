@@ -417,6 +417,13 @@ bool Spectra::loadFromFITS(std::string &filename)
 			waveMax0 = 5750.f;
 		}
 		else 
+		if ( m_RealZ >= 1.2f && m_RealZ <= 1.4f )
+		{
+			// medium
+			waveMin0 = 1728.f;
+			waveMax0 = 3833.f;
+		}
+		else 
 		if ( m_RealZ >= 1.5f && m_RealZ <= 1.6f )
 		{
 			// medium

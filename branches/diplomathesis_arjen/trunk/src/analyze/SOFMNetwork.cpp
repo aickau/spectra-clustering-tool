@@ -443,7 +443,8 @@ void SOFMNetwork::renderIcons()
 
 		if ( a->m_RealZ >= 0.5 && a->m_RealZ <=0.6f)
 			z_redness= (a->m_RealZ-0.5f)*20.f;
-
+		if ( a->m_RealZ >= 1.2 && a->m_RealZ <=1.4f)
+			z_redness= (a->m_RealZ-1.2f)*10.f;
 		if ( a->m_RealZ >= 1.5 && a->m_RealZ <=1.6f)
 			z_redness= (a->m_RealZ-1.5f)*20.f;
 		if ( a->m_RealZ >= 3.6 && a->m_RealZ <=3.8f)
