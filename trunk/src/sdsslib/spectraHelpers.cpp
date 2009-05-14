@@ -194,8 +194,12 @@ void drawSpectra(Spectra &_spectra,
 		c += 3;
 	}
 
+	float values[Spectra::numSamples];
+
+	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 6 );
+
 	//GLHelper::DrawDiagramColored( &_spectra.m_Amplitude[0], color, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
-	GLHelper::DrawDiagram( &_spectra.m_Amplitude[0], _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
+	GLHelper::DrawDiagram( values, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
 
 #ifdef _USE_SPECTRALINES
 	if ( _showSpectraLines )
