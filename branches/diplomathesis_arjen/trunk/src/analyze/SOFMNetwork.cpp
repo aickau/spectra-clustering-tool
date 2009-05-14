@@ -127,11 +127,20 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 		m_pSourceVFS->endRead( i );
 	}
 
+	Helpers::print( std::string("Normalizing input data.\n"), &m_logFile );
+	for ( size_t i=0;i<m_numSpectra;i++ )
+	{
+		Spectra *a = m_pSourceVFS->beginWrite( i );
+		a->normalize();
+		m_pSourceVFS->endWrite( i );
+	}
+
+
 
 	if ( !bContinueComputation )
 	{
-		size_t gridSizeMin = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1)));//*1.2
-		if ( m_gridSize < gridSizeMin )
+		size_t m_gridSize = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1)));//*1.2
+	/*	if ( m_gridSize < gridSizeMin )
 		{
 			std::string sstrString( std::string("Grid size ") );
 			sstrString += Helpers::numberToString(m_gridSize);
@@ -140,7 +149,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 			sstrString += std::string(".\n\n");
 			Helpers::print( sstrString, &m_logFile );
 			m_gridSize = gridSizeMin;
-		}
+		}*/
 		m_gridSizeSqr = m_gridSize*m_gridSize;
 
 		Helpers::print( std::string("Start clustering using ")+Helpers::numberToString(m_numSpectra)+
@@ -194,14 +203,6 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 			Helpers::print( std::string("Error reading ") + sstrSOFMFileName + std::string(". Abortion.\n"), &m_logFile );
 			exit(0);
 		}
-	}
-
-	Helpers::print( std::string("Normalizing input data.\n"), &m_logFile );
-	for ( size_t i=0;i<m_numSpectra;i++ )
-	{
-		Spectra *a = m_pSourceVFS->beginWrite( i );
-		a->normalize();
-		m_pSourceVFS->endWrite( i );
 	}
 
 	calcMinMaxInputDS();
