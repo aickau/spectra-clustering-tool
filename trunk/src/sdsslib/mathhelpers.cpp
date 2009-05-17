@@ -207,3 +207,34 @@ float MathHelpers::getError( const float *_values1, const float *_values2, const
 
 	return error;
 }
+
+void MathHelpers::smooth( const float *_valuesSrc, float *_valuesDst, size_t _numValues, size_t _numIterations )
+{
+	assert( _valuesSrc != NULL );
+	assert( _valuesDst != NULL );
+
+	if ( _numValues < 2 ) {
+		return;
+	}
+
+	// copy to destination
+	for ( size_t i=0;i<_numValues;i++ ) {
+		_valuesDst[i] = _valuesSrc[i];
+	}
+
+	for (size_t j=0;j<_numIterations;j++)
+	{
+		// first value
+		float bakVal = _valuesDst[0];
+		_valuesDst[0] = (_valuesDst[0]+_valuesDst[1])*0.5f;
+
+		for ( size_t i=1;i<_numValues-1;i++ ) {
+			float newVal = bakVal*0.25f+_valuesDst[i]*0.5f+_valuesDst[i+1]*0.25f;
+			bakVal = _valuesDst[i];
+			_valuesDst[i] = newVal;
+		}
+
+		// last value
+		_valuesDst[_numValues-1] = (bakVal+_valuesDst[_numValues-1])*0.5f;
+	}
+}
