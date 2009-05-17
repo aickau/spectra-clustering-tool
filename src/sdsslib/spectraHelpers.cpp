@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <fstream>
+#include <set>
 
 #include "devil/include/il/il.h"
 #include "devil/include/il/ilu.h"
@@ -179,7 +180,11 @@ void drawSpectra(Spectra &_spectra,
 	float xscale=static_cast<float>(_width-10)/static_cast<float>(Spectra::numSamples);
 	float yscale=_yscale*static_cast<float>(_height*0.75);
 
-	GLHelper::DrawDiagram( &_spectra.m_Amplitude[0], _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
+	float values[Spectra::numSamples];
+
+	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 6 );
+
+	GLHelper::DrawDiagram( values, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
 
 #ifdef _USE_SPECTRALINES
 	if ( _showSpectraLines )
@@ -240,6 +245,9 @@ void drawSpectra(Spectra &_spectra,
 
 void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yMax, float _redness )
 {
+	// take the n-biggest sample for resize
+	const size_t spectraCutOFF = 10;
+	
 	if ( FileHelpers::fileExists(_sstrFilename) )
 		return;
 
@@ -270,7 +278,32 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	glClearColor(_redness,g,0,0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 	_spectra.calcMinMax();
-	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/_spectra.m_Max );
+
+	// calc histogram
+	std::set<float> histogram;
+	for ( size_t i=0;i<_spectra.m_SamplesRead; i++ ) {
+		histogram.insert( _spectra.m_Amplitude[i] );
+	}
+
+	float scaleValue = _spectra.m_Max;
+	// take the 10-th. greatest value.
+	std::set<float>::reverse_iterator it = histogram.rbegin();
+	int i = 0;
+	while (it != histogram.rend() && i < spectraCutOFF)
+	{
+		it++;
+		i++;
+	}
+	if ( it != histogram.rend() )
+	{
+		scaleValue = *it;
+	}
+	if ( scaleValue == 0.0f )
+	{
+		scaleValue = 1.f;
+	}
+
+	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/scaleValue );
 
 	glReadPixels(0,getFBHeight()-h4,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 	iluScale(_width,_height,1);

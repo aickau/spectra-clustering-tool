@@ -83,6 +83,8 @@ namespace MathHelpers
 	// get overall difference between 2 float arrays
 	float getError( const float *_values1, const float *_values2, const size_t _numValues );
 
+	// smooth float array using direct neighbors, weights are 0.25, 0.5, 0.25
+	void smooth( const float *_valuesSrc, float *_valuesDst, size_t _numValues, size_t _numIterations=1);
 };
 
 inline
