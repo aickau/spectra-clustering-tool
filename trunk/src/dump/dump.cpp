@@ -100,7 +100,7 @@ void main(int argc, char* argv[])
 		Helpers::print( "datadir: "+sstrDataDir+"\n", &logFile );
 		Helpers::print( "dumpfile: "+sstrDumpFile+"\n", &logFile );
 		Helpers::print( "filter: "+Spectra::spectraFilterToString(spectraFilter)+"\n", &logFile );
-		Helpers::print( "each spectrum contains" + Helpers::numberToString<size_t>(sizeof(Spectra)) + "bytes.\n\n", &logFile );
+		Helpers::print( "each spectrum contains " + Helpers::numberToString<size_t>(sizeof(Spectra)) + " bytes.\n\n", &logFile );
 		
 		Helpers::print( "starting dump...\n", &logFile );
 		size_t writtenSpectra = SpectraVFS::write( sstrDataDir, sstrDumpFile, spectraFilter, &logFile );
