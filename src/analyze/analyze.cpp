@@ -32,6 +32,7 @@
 #include "sdsslib/defines.h"
 #include "sdsslib/random.h"
 #include "sdsslib/spectraVFS.h"
+#include "sdsslib/spectraWrite.h"
 #include "sdsslib/spectraHelpers.h"
 #include "sdsslib/helpers.h"
 #include "sdsslib/sdssSoftwareVersion.h"
@@ -169,23 +170,23 @@ int InitGL()
 			if ( !FITSFilenameSet.empty() )
 			{
 				// create filtered dump
-				HANDLE f = CreateFile( std::string("filter.bin").c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL );
-
-				for (size_t i=0;i<g_numSpectra;i++)
 				{
-					Spectra *a = g_pVFSSource->beginRead(i);
+					SpectraWrite w(std::string("filter.bin"));
 
-					std::set<std::string>::iterator it( FITSFilenameSet.find( a->getFileName() ) );
-					if (it != FITSFilenameSet.end() )
+					for (size_t i=0;i<g_numSpectra;i++)
 					{
-						DWORD bytesWritten = 0;
-						WriteFile( f, a, sizeof(Spectra), &bytesWritten, NULL );
-					}
+						Spectra *a = g_pVFSSource->beginRead(i);
 
-					g_pVFSSource->endRead(i);
+						std::set<std::string>::iterator it( FITSFilenameSet.find( a->getFileName() ) );
+						if (it != FITSFilenameSet.end() )
+						{
+							w.write(*a);
+						}
+
+						g_pVFSSource->endRead(i);
+					}
 				}
 
-				CloseHandle(f);
 				pVFSFiltered = new SpectraVFS( "filter.bin", false );
 			}
 		}

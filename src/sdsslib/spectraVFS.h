@@ -28,7 +28,7 @@
 
 
 // virtual file system for a large set of homogeneous spectra.
-// Only a small partion is hold in RAM (what in this context is called 'cached') using a LRU flavoured caching scheme. 
+// Only a small partition is hold in RAM (what in this context is called 'cached') using a LRU flavored caching scheme. 
 // Use CACHESIZE to configure RAM usage.
 class SpectraVFS
 {
@@ -37,7 +37,7 @@ public:
 	// number of spectra per cache line
 	static const size_t CACHELINESIZE = 16000;
 
-	// number of cachelines
+	// number of cache lines
 #ifdef X64
 	static const size_t CACHELINES = 80;
 #else
@@ -66,7 +66,7 @@ public:
 	// _readOnly if true no data can be written
 	SpectraVFS( const std::string &_sstrFilename, bool _bReadOnly=true );
 
-	~SpectraVFS();
+	virtual ~SpectraVFS();
 
 	// filename of vfs
 	std::string getFileName();

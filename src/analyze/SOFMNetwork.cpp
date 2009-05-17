@@ -94,17 +94,15 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		exit(0);
 	}
 
-/*	// test begin
-	float f = 0.001f;
+	// test begin
 	for ( size_t i=0;i<m_numSpectra;i++ )
 	{
 		Spectra *a = m_pSourceVFS->beginWrite( i );
-		a->setSine( f );
-		f += 0.0000125f;
+		a->normalizeByFlux();
 		m_pSourceVFS->endWrite( i );
 	}
 	// test end
-*/
+
 
 	Helpers::print( std::string("Spectra VFS cache line size ") + Helpers::numberToString( SpectraVFS::CACHELINESIZE ) + " spectra.\n", m_pLogStream );
 	Helpers::print( std::string("Spectra VFS number of cache lines ") + Helpers::numberToString( SpectraVFS::CACHELINES ) + ".\n", m_pLogStream );
@@ -695,7 +693,7 @@ void SOFMNetwork::process()
 		// retrieve best match neuron for a cache line batch of source spectra
 		Timer t;
 
-		const bool bFullSearch = ((m_currentStep % MAX((m_params.numSteps/s_globalSearchFraction),1)) == 0) || (m_currentStep<5);
+		const bool bFullSearch = true;//((m_currentStep % MAX((m_params.numSteps/s_globalSearchFraction),1)) == 0) || (m_currentStep<5);
 
 		if (bFullSearch) 
 		{
@@ -937,7 +935,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 
 	assert( !_sstrFilenName.empty() );
 
-	float *pUMatrix = new float[m_gridSizeSqr];
+	float *pDiffMatrix = new float[m_gridSizeSqr];
 	float *pRGBMap = new float[m_gridSizeSqr*3];
 
 	float maxErr = 0.0f;
@@ -951,7 +949,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 		if ( spNet->isEmpty() )
 		{
 			// mark empty cells
-			pUMatrix[i] = -1.f;
+			pDiffMatrix[i] = -1.f;
 		}
 		else
 		{
@@ -963,8 +961,8 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 				backupSource.normalize();
 				backupNet.normalize();
 			}
-			pUMatrix[i] = backupNet.compare( backupSource );
-			maxErr = MAX( maxErr, pUMatrix[i] );
+			pDiffMatrix[i] = backupNet.compare( backupSource );
+			maxErr = MAX( maxErr, pDiffMatrix[i] );
 			m_pSourceVFS->endRead( spNet->m_Index );
 		}
 		m_pNet->endRead( i );
@@ -975,18 +973,18 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 	{
 		for (size_t i=0;i<m_gridSizeSqr;i++) 
 		{
-			if ( pUMatrix[i] >= 0.0f )
+			if ( pDiffMatrix[i] >= 0.0f )
 			{
 				float scale;
 				if ( _bUseLogScale )
 				{
 					// logarithmic scale
-					scale  = log10f(pUMatrix[i]+1.f)/log10f(maxErr);
+					scale  = log10f(pDiffMatrix[i]+1.f)/log10f(maxErr);
 				}
 				else
 				{
 					// linear scale
-					scale  = pUMatrix[i] /= maxErr;
+					scale  = pDiffMatrix[i] /= maxErr;
 				}
 
 				intensityToRGB( scale, &pRGBMap[i*3] );
@@ -1004,7 +1002,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 
 	SpectraHelpers::saveIntensityMap( pRGBMap, m_gridSize, m_gridSize, _sstrFilenName );
 
-	delete[] pUMatrix;
+	delete[] pDiffMatrix;
 	delete[] pRGBMap;
 }
 

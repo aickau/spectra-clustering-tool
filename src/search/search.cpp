@@ -192,7 +192,7 @@ void main(int argc, char* argv[])
 		}
 		if ( bNormalize )
 		{
-			compareSpectra[i].normalize();
+			compareSpectra[i].normalizeByFlux();
 		}
 	}
 
@@ -218,7 +218,7 @@ void main(int argc, char* argv[])
 			{
 				if ( bNormalize )
 				{
-					src[k]->normalize();
+					src[k]->normalizeByFlux();
 				}
 				for ( size_t l=0;l<numCompareSpectra;l++ )
 				{

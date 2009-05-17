@@ -16,12 +16,15 @@
 //! \file  spectraVFS.cpp
 //! \brief virtual filesystem for spectra, uses main memory as cache
 
-#include "spectraVFS.h"
+#include "sdsslib/spectraVFS.h"
 
-#include "helpers.h"
-#include "filehelpers.h"
-#include "spectra.h"
-#include "Timer.h"
+#include "sdsslib/spectraWrite.h"
+#include "sdsslib/helpers.h"
+#include "sdsslib/filehelpers.h"
+#include "sdsslib/spectra.h"
+#include "sdsslib/Timer.h"
+#include "sdsslib/memory.h"
+
 
 #include <sstream>
 #include <iostream>
@@ -29,7 +32,6 @@
 #include <conio.h>
 #include <assert.h>
 
-#include "memory.h"
 
 //#define SPECTRAVFS_ASYNC_IO
 
@@ -352,7 +354,7 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 
 	size_t numSpectra = FileHelpers::getFileList( _sstrDir, fileList );
 
-	HANDLE f = CreateFile( _sstrFileName.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL );
+	SpectraWrite w(_sstrFileName);
 
 	Spectra spec;
 
@@ -366,8 +368,7 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 		{
 			if ( (spec.m_Type & _spectraFilter) > 0 )
 			{
-				DWORD bytesWritten = 0;
-				bResult = (WriteFile( f, &spec, sizeof(Spectra), &bytesWritten, NULL ) > 0) ? true : false;
+				bResult = w.write(spec);
 			}
 		}
 		if ( !bResult )
@@ -379,7 +380,6 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 			c++;
 		}
 	}
-	CloseHandle(f);
 
 	return c;
 }
@@ -389,7 +389,7 @@ void SpectraVFS::write( size_t _gridSize, float _minPeak, float _maxPeak, const 
 	size_t gridSizeSqr = _gridSize*_gridSize;
 	float strengthScale = static_cast<float>(gridSizeSqr)*2.f;
 
-	HANDLE f = CreateFile( _sstrFileName.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL );
+	SpectraWrite w(_sstrFileName);
 
 	Spectra spec;
 	spec.clear();
@@ -400,16 +400,14 @@ void SpectraVFS::write( size_t _gridSize, float _minPeak, float _maxPeak, const 
 		float strength = (static_cast<float>(x*x+y*y)*0.25f)/strengthScale;
 		spec.randomize( _minPeak*strength, _maxPeak*strength );
 
-		DWORD bytesWritten = 0;
-		WriteFile( f, &spec, sizeof(Spectra), &bytesWritten, NULL );
+		w.write(spec);
 	}
-	CloseHandle(f);
 }
 
 
 void SpectraVFS::write( size_t _count, float _noize, const std::string &_sstrFileName )
 {
-	HANDLE f = CreateFile( _sstrFileName.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL );
+	SpectraWrite w(_sstrFileName);
 
 	Spectra spec;
 	spec.clear();
@@ -420,10 +418,8 @@ void SpectraVFS::write( size_t _count, float _noize, const std::string &_sstrFil
 		spec.setSine( freq, 0.f, 1.f, _noize );
 		freq += 0.000000125f;
 
-		DWORD bytesWritten = 0;
-		WriteFile( f, &spec, sizeof(Spectra), &bytesWritten, NULL );
+		w.write(spec);
 	}
-	CloseHandle(f);
 }
 
 
