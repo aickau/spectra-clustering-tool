@@ -139,7 +139,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation )
 
 	if ( !bContinueComputation )
 	{
-		size_t m_gridSize = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1)));//*1.2
+		m_gridSize = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1)));//*1.2
 	/*	if ( m_gridSize < gridSizeMin )
 		{
 			std::string sstrString( std::string("Grid size ") );

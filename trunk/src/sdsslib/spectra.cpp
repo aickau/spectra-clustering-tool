@@ -878,12 +878,14 @@ float Spectra::compareArjen( const Spectra &_spectra )
 		if ( !m_BadPixels[i] && !_spectra.m_BadPixels[i] )
 		{
 			float d = (m_Amplitude[i]-_spectra.m_Amplitude[i])*scale;
-			float dev = (m_StdDev[i] + _spectra.m_StdDev[i]);
+			//float dev = (m_StdDev[i] + _spectra.m_StdDev[i]);
 			float e = d*d;
+	/* Temporarily disabled noise reduction in comparison.
 			if ( dev > 0.0f )
 			{
 				e /= dev*dev;
 			}
+	*/
 			error += e;
 		}
 	}
