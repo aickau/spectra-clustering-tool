@@ -94,14 +94,13 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		exit(0);
 	}
 
-	// test begin
+	// normalize input spectra by flux
 	for ( size_t i=0;i<m_numSpectra;i++ )
 	{
 		Spectra *a = m_pSourceVFS->beginWrite( i );
 		a->normalizeByFlux();
 		m_pSourceVFS->endWrite( i );
 	}
-	// test end
 
 
 	Helpers::print( std::string("Spectra VFS cache line size ") + Helpers::numberToString( SpectraVFS::CACHELINESIZE ) + " spectra.\n", m_pLogStream );
@@ -143,6 +142,10 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		// initialize with input data
 		Helpers::print( std::string("Initializing network with input data.\n"), m_pLogStream );
 
+		// for p:
+		ISSE_ALIGN Spectra multiplier;
+		bool bMult = multiplier.loadFromCSV("multiplier.csv");
+
 		Rnd r(m_params.randomSeed);
 		for ( size_t i=0;i<m_gridSizeSqr;i++ )
 		{
@@ -154,6 +157,10 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 				Spectra *a = m_pNet->beginWrite( i );
 				size_t spectraIndex = r.randomInt(m_numSpectra-1);
 				Spectra *b = m_pSourceVFS->beginRead( spectraIndex );
+				if ( bMult )
+				{
+					b->multiply(multiplier);
+				}
 				a->set( *b );
 				m_pSourceVFS->endRead( spectraIndex );
 				m_pNet->endWrite( i );
