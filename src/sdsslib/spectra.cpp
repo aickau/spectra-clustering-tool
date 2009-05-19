@@ -33,6 +33,7 @@
 
 #include "sdsslib/random.h"
 #include "sdsslib/helpers.h"
+#include "sdsslib/filehelpers.h"
 #include "sdsslib/mathhelpers.h"
 #include "sdsslib/defines.h"
 
@@ -269,6 +270,15 @@ void Spectra::add(const Spectra &_spectra)
 }
 
 
+void Spectra::multiply( const Spectra &_spectra)
+{
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		m_Amplitude[i] *= _spectra.m_Amplitude[i];
+	}
+}
+
+
 void Spectra::divide(float divisor)
 {
 	for (size_t i=0;i<Spectra::numSamples;i++)
@@ -278,7 +288,7 @@ void Spectra::divide(float divisor)
 }
 
 
-bool Spectra::saveToCSV(std::string &filename)
+bool Spectra::saveToCSV(const std::string &_filename)
 {
 	std::string sstrOutput("Wavelength(A),Flux,Error,Mask\n");
 
@@ -291,19 +301,71 @@ bool Spectra::saveToCSV(std::string &filename)
 		sstrOutput += sstrLine;
 	}
 	
-	std::ofstream fon(filename.c_str());
+	std::ofstream fon(_filename.c_str());
 	fon<<sstrOutput;
 
 	return true;
 }
 
 
-bool Spectra::loadFromFITS(std::string &filename)
+bool Spectra::loadFromCSV(const std::string &_filename)
+{
+	if ( FileHelpers::getFileExtension(_filename) != ".csv" )
+	{
+		return false;
+	}
+	clear();
+	std::ifstream fin(_filename.c_str());
+	std::string line;
+	fin >> line;
+
+	float x0,x1,x2,x3;
+	size_t c=0;
+
+	while( fin >> line && c < Spectra::numSamples ) 
+	{	
+		// w0
+		std::stringstream st0(line.c_str() );
+		st0 >> x0;
+
+		// w1
+		fin >> line;
+		std::stringstream st1(line.c_str() );
+		st1 >> x1;
+
+		// w2
+		fin >> line;
+		std::stringstream st2(line.c_str() );
+		st2 >> x2;
+
+		// w3
+		fin >> line;
+		std::stringstream st3(line.c_str() );
+		st3 >> x3;
+
+		m_Amplitude[c] = x1;
+
+		c++;
+	}
+
+	m_SpecObjID = 0;
+	m_SamplesRead = c;
+
+
+	calcMinMax();
+
+	return (m_SamplesRead>0);	
+}
+
+
+
+
+bool Spectra::loadFromFITS(const std::string &_filename)
 {
 	fitsfile *f;
 	int status = 0;
 
-	fits_open_file( &f, filename.c_str(), READONLY, &status );
+	fits_open_file( &f, _filename.c_str(), READONLY, &status );
 	if ( status != 0 )
 		return false;
 

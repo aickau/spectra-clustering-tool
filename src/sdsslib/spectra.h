@@ -114,15 +114,21 @@ public:
 
 	// add signals from other spectra
 	void add(const Spectra &_spectra);
+
+	// multiply signals with other spectra
+	void multiply( const Spectra &_spectra);
 	
 	// scale signals by divisor
 	void divide(float _divisor);
 
-	// save to ASCII CSV
-	bool saveToCSV(std::string &_filename);
+	// load from comma separated values 
+	bool loadFromCSV(const std::string &_filename);
 	
 	// load from SDSS .fit file
-	bool loadFromFITS(std::string &_filename);
+	bool loadFromFITS(const std::string &_filename);
+
+	// save to ASCII CSV
+	bool saveToCSV(const std::string &_filename);
 
 	// compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 	float compare(const Spectra &_spectra) const;
