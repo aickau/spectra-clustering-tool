@@ -174,11 +174,13 @@ void drawSpectra(Spectra &_spectra,
 {
 	if ( _spectra.m_SamplesRead <= 2 )
 		return;
+		
+	const float xAxisCenter = 0.9f;	// 0.9=at the bottom, 0.5=center, 0.1 = on the top
 
 	float xoffset=X2Win(_xp);
-	float yoffset=Y2Win(_yp)-_height*0.25f; 
+	float yoffset=Y2Win(_yp)-_height*(1.f-xAxisCenter); 
 	float xscale=static_cast<float>(_width-10)/static_cast<float>(Spectra::numSamples);
-	float yscale=_yscale*static_cast<float>(_height*0.75);
+	float yscale=_yscale*static_cast<float>(_height*xAxisCenter);
 
 	// write colors
 	float color[Spectra::numSamples*3];
@@ -196,11 +198,13 @@ void drawSpectra(Spectra &_spectra,
 	}
 
 	float values[Spectra::numSamples];
-
 	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 6 );
 
 	//GLHelper::DrawDiagramColored( &_spectra.m_Amplitude[0], color, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
 	GLHelper::DrawDiagram( values, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
+
+	// draw x-axis
+	GLHelper::DrawLine( xoffset, yoffset, xoffset+static_cast<float>(_width-10), yoffset );
 
 #ifdef _USE_SPECTRALINES
 	if ( _showSpectraLines )
@@ -259,7 +263,7 @@ void drawSpectra(Spectra &_spectra,
 
 
 
-void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yMax, float _redness, float _z )
+void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _redness, float _z )
 {
 	// take the n-biggest sample for resize
 	const size_t spectraCutOFF = 10;
@@ -299,33 +303,20 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	GLHelper::DrawQuad(w4/8.f,h4/8.f, -10.f);
 	
 	glColor3f(1,1,1);
-	_spectra.calcMinMax();
 
-	// calc histogram
-	std::set<float> histogram;
-	for ( size_t i=0;i<_spectra.m_SamplesRead; i++ ) {
-		histogram.insert( _spectra.m_Amplitude[i] );
-	}
 
-	float scaleValue = _spectra.m_Max;
-	// take the 10-th. greatest value.
-	std::set<float>::reverse_iterator it = histogram.rbegin();
-	int i = 0;
-	while (it != histogram.rend() && i < spectraCutOFF)
+	// determine maximum, smooth spectrum to remove outliers a bit
+	float ymin, ymax;
+	float values[Spectra::numSamples];
+	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 10 );
+	MathHelpers::getMinMax(values, _spectra.m_SamplesRead-1, 4, 0, ymin, ymax );
+
+	if (ymax==0.0f)
 	{
-		it++;
-		i++;
-	}
-	if ( it != histogram.rend() )
-	{
-		scaleValue = *it;
-	}
-	if ( scaleValue == 0.0f )
-	{
-		scaleValue = 1.f;
+		ymax = 1.f;
 	}
 
-	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/scaleValue );
+	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/ymax );
 
 	glReadPixels(0,getFBHeight()-h4,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 	iluScale(_width,_height,1);
@@ -383,7 +374,7 @@ void combineSpectra( std::string &_sstrDumpFilename, const std::string &_sstrFil
 	int scrWidth, scrHeight;
 	GLHelper::GetViewportSize(scrWidth, scrHeight);
 
-	renderSpectraIconToDisk(accumSpectra, _sstrFilename, scrWidth, scrHeight, 1.f, 0.0f, 0.f );
+	renderSpectraIconToDisk(accumSpectra, _sstrFilename, scrWidth, scrHeight, 0.0f, 0.f );
 
 }
 

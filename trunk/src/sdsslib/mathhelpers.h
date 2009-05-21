@@ -58,6 +58,8 @@ namespace MathHelpers
 	float gauss1D( float _x,  float _amplitude=1.f, float _phase=0.f, float _width=1.f );
 
 	// get global bounds of a given float array.
+	// _strideInBytess default = 4
+	// _offsetInBytes default = 0
 	void getMinMax( float *_values, const size_t _numValues, const size_t _strideInBytes, const size_t _offsetInBytes, float &_outMin, float &_outMax );
 
 	// get mean value and deviation of a given float array.

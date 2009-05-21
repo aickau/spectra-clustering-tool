@@ -130,6 +130,7 @@ void Spectra::set(const Spectra &_spectra)
 	m_SpecObjID = _spectra.m_SpecObjID;
 	m_Type = _spectra.m_Type;
 	m_Z = _spectra.m_Z;
+	m_RealZ = _spectra.m_RealZ;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
@@ -872,7 +873,7 @@ float Spectra::compareSuperAdvanced(const Spectra &_spectra, float _width, bool 
 float Spectra::compareArjen( const Spectra &_spectra )
 {
 	float error=0.0f;
-	float scale = .05f * (m_Flux + _spectra.m_Flux);
+	float scale = 1.f;//.05f * (m_Flux + _spectra.m_Flux);
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		if ( !m_BadPixels[i] && !_spectra.m_BadPixels[i] )

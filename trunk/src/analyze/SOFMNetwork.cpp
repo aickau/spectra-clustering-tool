@@ -378,9 +378,9 @@ void SOFMNetwork::exportHistograms( const std::string &_sstrExportDirectory )
 	for ( size_t i=0;i<m_numSpectra;i++ )
 	{
 		Spectra *a = m_pSourceVFS->beginRead( i );
-		energymap.push_back(a->m_Max);
+		energymap.push_back(-a->m_Mi-22.f);
 		toatalenergymap.push_back(a->getTotalEnergy());
-		zmap.push_back(a->m_Z);
+		zmap.push_back(a->m_RealZ);
 		m_pSourceVFS->endRead( i );
 	}
 
@@ -451,7 +451,7 @@ void SOFMNetwork::renderIcons()
 		if ( a->m_RealZ >= 3.6 && a->m_RealZ <=3.8f)
 			z_redness= (a->m_RealZ-3.6f)*10.f;
 
-		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, 100, 100, localmax, redness, z_redness );
+		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, 100, 100, redness, z_redness );
 
 		m_pSourceVFS->endRead( i );
 	}
@@ -774,7 +774,6 @@ void SOFMNetwork::process()
 			{
 				a->m_SpecObjID = currentSpectra.m_SpecObjID;
 				a->m_Index = spectraIndex;
-
 			}
 			else
 			{
@@ -847,6 +846,7 @@ void SOFMNetwork::process()
 		Spectra *a = m_pNet->beginWrite( bestMatch );
 		a->m_SpecObjID = currentSpectra.m_SpecObjID;
 		a->m_Index = spectraIndex;
+
 		m_pNet->endWrite( bestMatch );
 
 		// remember best match position to NW for faster search
@@ -947,12 +947,12 @@ void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogS
 			if ( _bUseLogScale )
 			{
 				// logarithmic scale
-				scale  = log10f(pUMatrix[i]+1.f)/log10f(maxErr);
+				scale  = log10f( pUMatrix[i]+1.f ) / log10f( maxErr+1.f );
 			}
 			else
 			{
 				// linear scale
-				scale  = pUMatrix[i] /= maxErr;;
+				scale  = pUMatrix[i] /= maxErr;
 			}
 
 			intensityToRGB( scale,  &pRGBMap[i*3] );
@@ -1024,7 +1024,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 				if ( _bUseLogScale )
 				{
 					// logarithmic scale
-					scale  = log10f(pUMatrix[i]+1.f)/log10f(maxErr);
+					scale  = log10f( pUMatrix[i]+1.f ) / log10f( maxErr+1.f );
 				}
 				else
 				{
