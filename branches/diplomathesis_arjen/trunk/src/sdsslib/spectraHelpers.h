@@ -33,6 +33,8 @@ namespace SpectraHelpers
 	int getDefaultFontID();
 
 	// Render diagram to disk.
+	// _strideInBytess default=4
+	// _offsetInBytes default = 0
 	void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, 
 		size_t _width, size_t _height, const std::string &sstrFilename );
 
@@ -53,10 +55,9 @@ namespace SpectraHelpers
 	// _spectra = spectrum to render
 	// _sstrFilename = filename including extension (.png, gif, jpg) 
 	// height and width in pixels
-	// yscale
 	// redness = [0..2] (0=black, 1=red, 2=yellow)
 	// z = [0..2] (0=black, 1=blue, 2=white
-	void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yscale, float _redness, float _z );
+	void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _redness, float _z );
 
 	// load spectra from dump and combine all spectra into one.
 	// _sstrDumpFilename path + filename to spectra dump.
