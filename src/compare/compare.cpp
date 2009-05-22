@@ -151,7 +151,7 @@ void main(int argc, char* argv[])
 					err2 += d2*d2;
 				}
 
-				sstrOutput += Helpers::numberToString<float>( err0 ) + "; " + Helpers::numberToString<float>( err1 ) + "; " + Helpers::numberToString<float>( err2 ) + ";\n";
+				sstrOutput += Helpers::numberToString<float>( err0 ) + "," + Helpers::numberToString<float>( err1 ) + "," + Helpers::numberToString<float>( err2 ) + "\n";
 
 				vfsSrc.endRead(spSOM->m_Index);
 			}
