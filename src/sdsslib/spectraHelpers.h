@@ -56,7 +56,7 @@ namespace SpectraHelpers
 	// height and width in pixels
 	// yscale
 	// redness = [0..2] (0=black, 1=red, 2=yellow)
-	void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _yscale, float _redness );
+	void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _redness );
 
 	// load spectra from dump and combine all spectra into one.
 	// _sstrDumpFilename path + filename to spectra dump.
