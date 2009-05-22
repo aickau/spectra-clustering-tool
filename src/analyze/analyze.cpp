@@ -15,18 +15,6 @@
 //!
 //! \file  analyze.cpp
 
-#include <string>
-#include <conio.h>
-#include <assert.h>
-#include <sstream>
-#include <Windows.h>
-#include <shellapi.h>
-
-#include "devil/include/il/il.h"
-#include "devil/include/il/ilu.h"
-
-#include "tclap/CmdLine.h"
-
 #include "sdsslib/spectra.h"
 #include "sdsslib/glhelper.h"
 #include "sdsslib/defines.h"
@@ -40,6 +28,18 @@
 #include "framework.h"	
 #include "SOFMNetwork.h"
 #include "QTClustering.h"
+
+#include "devil/include/il/il.h"
+#include "devil/include/il/ilu.h"
+
+#include "tclap/CmdLine.h"
+
+#include <assert.h>
+#include <Windows.h>
+#include <shellapi.h>
+
+#include <string>
+
 
 
 extern HWND	fr_hWnd;
@@ -61,11 +61,9 @@ size_t g_numSpectra = 0;
 SpectraVFS *g_pVFSSource = NULL; 
 
 
-
-
 int InitGL()		
 {
-	AllocConsole();
+	Helpers::createConsole();
 
 	SpectraHelpers::init( fr_hDC );
 
@@ -268,7 +266,7 @@ void DrawNetwork( SOFMNetwork &network )
 		GLHelper::DrawLine( lb1, lb2 );
 	}
 
-	float yscale = 1.f/(network.m_Max*0.1-network.m_Min);
+	float yscale = 1.f/(network.m_Max*0.05-network.m_Min);
 
 	size_t yp=gridSize;
 	for ( size_t y=0;y<network.m_gridSize;y+=stepSize)
@@ -386,11 +384,11 @@ void DisableOutput()
 	g_DisableOutput = !g_DisableOutput;
 	if ( g_DisableOutput )
 	{
-		_cprintf("Graphic output disabled.\n");
+		Helpers::print("Graphic output disabled.\n");
 	}
 	else
 	{
-		_cprintf("Graphic output enabled.\n");
+		Helpers::print("Graphic output enabled.\n");
 	}
 }
 
