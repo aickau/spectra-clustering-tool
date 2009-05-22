@@ -53,6 +53,9 @@ namespace Helpers
 	// print text to console, optional to a log file.
 	void print( const std::string &_sstrText, std::ofstream *_logStream=NULL );
 
+	// allocate console window, set standard output to this console.
+	void createConsole();
+
 };
 
 

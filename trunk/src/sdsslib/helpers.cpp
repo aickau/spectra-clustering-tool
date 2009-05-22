@@ -18,9 +18,13 @@
 
 #include "helpers.h"
 
+#include <fstream>
+#include <iostream>
+
 #include <conio.h>
 #include <windows.h>
-#include <fstream>
+#include <fcntl.h>
+#include <io.h>
 
 
 
@@ -73,4 +77,17 @@ std::string Helpers::getCurentDateTimeStampString()
 	//sstrOutString += numberToString<WORD>(systime.wMilliseconds);
 
 	return sstrOutString;
+}
+
+
+void Helpers::createConsole()
+{
+	AllocConsole();
+	int outHandle;
+	FILE *outFile;
+	outHandle = _open_osfhandle( (long)GetStdHandle(STD_OUTPUT_HANDLE), _O_TEXT);
+	outFile = _fdopen( outHandle, "w" );
+	*stdout = *outFile;
+	setvbuf( stdout, NULL, _IONBF, 0 );
+	std::cout.sync_with_stdio();
 }
