@@ -152,12 +152,6 @@ protected:
 		size_t _numBestMatchElements, 
 		bool _bOnFrameOnly = false );
 
-	// search for best matching spectrum/neuron in the network using only a local window ( s_searchRadius )
-	void searchBestMatchLocal( const std::vector<size_t> &_spectraIndexList, 
-		size_t _spectraIndexListOffset, 
-		BestMatch *_pBestMatchBatch, 
-		size_t _numBestMatchElements );
-
 	// adapt network for a given neuron/spectrum
 	// _spectrum source spectrum to adapt
 	// _bestMatchIndex index into network where it best matches
