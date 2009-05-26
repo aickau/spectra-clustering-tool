@@ -74,6 +74,7 @@ void Spectra::clear()
 	m_SpecObjID = 0;
 	m_Type = SPT_NOT_SET;
 	m_Z = 0.0;
+	m_flux = 0.0f;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
@@ -122,6 +123,7 @@ void Spectra::set(const Spectra &_spectra)
 	m_SpecObjID = _spectra.m_SpecObjID;
 	m_Type = _spectra.m_Type;
 	m_Z = _spectra.m_Z;
+	m_flux = _spectra.m_flux;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
@@ -553,6 +555,18 @@ void Spectra::calcMinMax()
 	}
 }
 
+
+void Spectra::calculateFlux()
+{
+	double flux = 0.0;
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		flux += static_cast<double>(m_Amplitude[i]);
+	}
+	m_flux = static_cast<float>(flux);
+}
+
+
 void Spectra::normalize()
 {
 	calcMinMax();
@@ -576,18 +590,14 @@ void Spectra::normalize()
 
 void Spectra::normalizeByFlux()
 {
-	float flux = 0.f;
-	for (size_t i=0;i<Spectra::numSamples;i++)
-	{
-		flux += static_cast<double>(m_Amplitude[i]);
-	}
+	calculateFlux();
 
-	if ( flux <= 0.0 )
+	if ( m_flux <= 0.0f )
 		return;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{	
-		m_Amplitude[i] /= flux;
+		m_Amplitude[i] /= (m_flux*0.001);
 	}
 	calcMinMax();
 }
@@ -1130,16 +1140,6 @@ std::string Spectra::getFileName() const
 	sstrFileName += ".fit";
 
 	return sstrFileName;
-}
-
-float Spectra::getTotalEnergy()
-{
-	float e = 0.f;
-	for (size_t i=0;i<Spectra::numSamples;i++)
-	{
-		e += m_Amplitude[i]*m_Amplitude[i];
-	}
-	return e;
 }
 
 
