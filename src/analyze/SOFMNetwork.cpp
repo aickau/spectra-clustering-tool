@@ -52,6 +52,19 @@ void intensityToRGB(float _intensity, float *_pRGB )
 }
 
 
+static 
+void setBestMatch( Spectra &_networkSpectrum, size_t _networkIndex, Spectra &_bestMatchSpectrum, size_t _bestMatchIndex )
+{
+	// set best matching related info.
+	_networkSpectrum.m_SpecObjID = _bestMatchSpectrum.m_SpecObjID;
+	_networkSpectrum.m_Index = _bestMatchIndex;
+
+	// remember best match position to NW for faster search
+	_bestMatchSpectrum.m_Index = _networkIndex;
+
+}
+
+
 //Parameters(100,1,0.5,0.1,0.5,1)
 //Parameters(100,26,1.0,0.001,0.5,1)
 //Parameters(100,26,0.15,0.05,10,1)
@@ -94,11 +107,13 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		exit(0);
 	}
 
-	// normalize input spectra by flux
+	// normalize input spectra
+	m_flux = 0.0f;
 	for ( size_t i=0;i<m_numSpectra;i++ )
 	{
 		Spectra *a = m_pSourceVFS->beginWrite( i );
-		a->normalizeByFlux();
+		a->	normalizeByFlux();
+		m_flux = MAX(a->m_flux, m_flux);
 		m_pSourceVFS->endWrite( i );
 	}
 
@@ -111,20 +126,9 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 
 	calcMinMaxInputDS();
 
-
 	if ( !bContinueComputation )
 	{
-		size_t gridSizeMin = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1)));//*1.2
-		if ( m_gridSize < gridSizeMin )
-		{
-			std::string sstrString( std::string("Grid size ") );
-			sstrString += Helpers::numberToString(m_gridSize);
-			sstrString += std::string("  too small. Clamping to ");
-			sstrString += Helpers::numberToString(gridSizeMin);
-			sstrString += std::string(".\n\n");
-			Helpers::print( sstrString, m_pLogStream );
-			m_gridSize = gridSizeMin;
-		}
+		m_gridSize = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1)));
 		m_gridSizeSqr = m_gridSize*m_gridSize;
 
 		Helpers::print( std::string("Start clustering using ")+Helpers::numberToString(m_numSpectra)+
@@ -145,6 +149,10 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		// for p:
 		ISSE_ALIGN Spectra multiplier;
 		bool bMult = multiplier.loadFromCSV("multiplier.csv");
+		if ( bMult ) 
+		{
+			Helpers::print( std::string("Multiplying input data with multiplier.csv.\n"), m_pLogStream );
+		}
 
 		Rnd r(m_params.randomSeed);
 		for ( size_t i=0;i<m_gridSizeSqr;i++ )
@@ -178,9 +186,9 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		m_pNet = new SpectraVFS( sstrSOFMFileName, false );
 
 		m_gridSizeSqr = m_pNet->getNumSpectra();
+		m_gridSize = sqrtf(m_gridSizeSqr);
 
-		if ( m_gridSizeSqr == 0 || 
-			m_gridSize*m_gridSize != m_gridSizeSqr )
+		if ( m_gridSizeSqr == 0 )
 		{
 			// error
 			Helpers::print( std::string("Error reading ") + sstrSOFMFileName + std::string(". Abortion.\n"), m_pLogStream );
@@ -272,7 +280,7 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 
 	bSuccess &= p.getChildValue("STEP", "current", m_currentStep );
 	bSuccess &= p.getChildValue("STEP", "total", m_params.numSteps );
-	bSuccess &= p.getChildValue("GRIDSIZE", "value", m_gridSize );
+//	bSuccess &= p.getChildValue("GRIDSIZE", "value", m_gridSize );
 	bSuccess &= p.getChildValue("RANDOMSEED", "value", m_params.randomSeed );
 	bSuccess &= p.getChildValue("LEARNRATE", "begin", m_params.lRateBegin );
 	bSuccess &= p.getChildValue("LEARNRATE", "end", m_params.lRateEnd );
@@ -353,27 +361,27 @@ void SOFMNetwork::exportHistograms( const std::string &_sstrExportDirectory )
 
 	Helpers::print( std::string("Exporting energy maps.\n"), m_pLogStream );
 	std::vector<float> energymap;
-	std::vector<float> toatalenergymap;
+	std::vector<float> peakmap;
 	std::vector<float> zmap;
 
 	for ( size_t i=0;i<m_numSpectra;i++ )
 	{
 		Spectra *a = m_pSourceVFS->beginRead( i );
-		energymap.push_back(a->m_Max);
-		toatalenergymap.push_back(a->getTotalEnergy());
+		energymap.push_back(a->m_flux);
+		peakmap.push_back(a->m_Max);
 		zmap.push_back(a->m_Z);
 		m_pSourceVFS->endRead( i );
 	}
 
 	std::sort( energymap.begin(), energymap.end() );
-	std::sort( toatalenergymap.begin(), toatalenergymap.end() );
+	std::sort( peakmap.begin(), peakmap.end() );
 	std::sort( zmap.begin(), zmap.end() );
 
 	const size_t width = 800;
 	const size_t height = 533;
 
 	SpectraHelpers::renderDiagramToDisk(&energymap[0], energymap.size(), 4, 0, width, height, sstrDir+std::string("energymap.png") );
-	SpectraHelpers::renderDiagramToDisk(&toatalenergymap[0], toatalenergymap.size(), 4, 0, width, height, sstrDir+std::string("toatalenergymap.png") );
+	SpectraHelpers::renderDiagramToDisk(&peakmap[0], peakmap.size(), 4, 0, width, height, sstrDir+std::string("peakmap.png") );
 	SpectraHelpers::renderDiagramToDisk(&zmap[0], zmap.size(), 4, 0, width, height, sstrDir+std::string("zmap.png") );
 }
 
@@ -403,17 +411,17 @@ void SOFMNetwork::renderIcons()
 		std::string sstrFilename(sstrDir);
 		sstrFilename += a->getFileName();
 		sstrFilename += ".png";
-		float localmax = fabs(a->m_Max);
+		float localmax = fabs(a->m_flux);
 		float redness = localmax;
 		if (redness != 0.f)
 		{
-			redness = MathHelpers::logf(redness,globalmax);
+			redness = MathHelpers::logf(localmax+1.f,m_flux+1.f);
 			redness *= redness*2.f;
 		}
 
 //		redness = (float)i*2.f/(float)m_numSpectra;
 
-		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, 100, 100, localmax, redness );
+		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, 100, 100, redness );
 
 		m_pSourceVFS->endRead( i );
 	}
@@ -447,6 +455,8 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 	const size_t ypBestMatch = _bestMatchIndex / m_gridSize;
 	const float sigmaSqr2 = _sigmaSqr*2.f;
 
+	// TODO: different boundary conditions
+
 	// adjust weights of the whole network
 	size_t c=0;
 	for ( size_t y=0;y<m_gridSize;y++)
@@ -459,7 +469,7 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 			const float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
 			const float tdistx2 = tdistx*tdistx;
 			const float tdistall = tdistx2+tdisty2;
-			//const float mexican_hat_term = 1.f-tdistall/sigmaSqr;
+			//const float mexican_hat_term = 1.f-tdistall/_sigmaSqr;
 			//const float hxy = exp(-(tdistall)/sigmaSqr2);							// original
 			//const float hxy = exp(-(tdistall)/sigmaSqr2)*mexican_hat_term;		// Mexican hat
 			const float hxy = exp(-sqrtf(tdistall)/sigmaSqr2);						// spike
@@ -513,7 +523,7 @@ void SOFMNetwork::searchBestMatchComplete( const std::vector<size_t> &_spectraIn
 		for ( int k=0;k<numElements;k++)
 		{
 			BestMatch &currentBestMatch = _pBestMatchBatch[k];
-			// perform comparision only if we are:
+			// perform comparison only if we are:
 			// a) on-frame 
 			// b) or for all spectra if on-onframe search mode is not activated.
 			if ( !_bOnFrameOnly || currentBestMatch.bOnFrame ) 
@@ -727,16 +737,10 @@ void SOFMNetwork::process()
 
 			Spectra *a = m_pNet->beginWrite( currentBestMatch.index );
 
-			// remember best match position to NW for faster search
-			currentSpectra.m_Index = currentBestMatch.index;
-
-
 			// set name of best match neuron
 			if ( a->isEmpty() )
 			{
-				a->m_SpecObjID = currentSpectra.m_SpecObjID;
-				a->m_Index = spectraIndex;
-
+				setBestMatch( *a, currentBestMatch.index, currentSpectra, spectraIndex );
 			}
 			else
 			{
@@ -757,8 +761,7 @@ void SOFMNetwork::process()
 				{
 					// new best match wins, put old match into collision list
 					spectraCollisionList.push_back( a->m_Index );
-					a->m_SpecObjID = currentSpectra.m_SpecObjID;
-					a->m_Index = spectraIndex;
+					setBestMatch( *a, currentBestMatch.index, currentSpectra, spectraIndex );
 				}
 			}
 			m_pNet->endWrite( currentBestMatch.index );
@@ -782,6 +785,9 @@ void SOFMNetwork::process()
 	Timer t;
 	// collision handling
 	// for each collision spectra..
+	float colllisionPercentage = (static_cast<float>(spectraCollisionList.size()) / static_cast<float>(m_numSpectra))*100.f;
+	Helpers::print( std::string("Handling ")+Helpers::numberToString<float>(colllisionPercentage)+std::string("%% collisions.\n"), m_pLogStream );
+
 	for ( size_t j=0;j<spectraCollisionList.size();j++)
 	{
 		const size_t spectraIndex = spectraCollisionList.at(j);
@@ -794,12 +800,16 @@ void SOFMNetwork::process()
 		for ( size_t i = 0;i < m_gridSizeSqr;i++)
 		{
 			Spectra *a = m_pNet->beginRead( i );
-			float minErr =a->compare( currentSpectra );
-
-			if ( minErr < min && a->isEmpty() )
+			if( a->isEmpty() )
 			{
-				min = minErr;
-				bestMatch = i;
+				float minErr = a->compare( currentSpectra );
+
+				if ( minErr < min )
+				{
+					min = minErr;
+					bestMatch = i;
+				}
+
 			}
 			m_pNet->endRead( i );
 		}
@@ -807,12 +817,8 @@ void SOFMNetwork::process()
 		//_cprintf(":");
 
 		Spectra *a = m_pNet->beginWrite( bestMatch );
-		a->m_SpecObjID = currentSpectra.m_SpecObjID;
-		a->m_Index = spectraIndex;
+		setBestMatch( *a, bestMatch, currentSpectra, spectraIndex );
 		m_pNet->endWrite( bestMatch );
-
-		// remember best match position to NW for faster search
-		currentSpectra.m_Index = bestMatch;
 
 		adaptNetwork( currentSpectra, bestMatch, adaptionThreshold, sigmaSqr, lRate );
 
@@ -909,12 +915,12 @@ void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogS
 			if ( _bUseLogScale )
 			{
 				// logarithmic scale
-				scale  = log10f(pUMatrix[i]+1.f)/log10f(maxErr);
+				scale  = log10f( pUMatrix[i]+1.f ) / log10f( maxErr+1.f );
 			}
 			else
 			{
 				// linear scale
-				scale  = pUMatrix[i] /= maxErr;;
+				scale  = pUMatrix[i] /= maxErr;
 			}
 
 			intensityToRGB( scale,  &pRGBMap[i*3] );
@@ -986,7 +992,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 				if ( _bUseLogScale )
 				{
 					// logarithmic scale
-					scale  = log10f(pDiffMatrix[i]+1.f)/log10f(maxErr);
+					scale  = log10f( pDiffMatrix[i]+1.f ) / log10f( maxErr+1.f );
 				}
 				else
 				{
@@ -1307,6 +1313,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	sstrInfo += std::string("UMatrix:")+HTMLExport::lineBreak()+HTMLExport::image( sstrUMatrix+std::string(".png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Difference map:")+HTMLExport::lineBreak()+HTMLExport::image( sstrDifferenceMap+std::string(".png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Energy histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("energymap.png") )+HTMLExport::lineBreak();
+	sstrInfo += std::string("Peak histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("peakmap.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Z histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("zmap.png") )+HTMLExport::lineBreak();
 
 	Helpers::insertString( HTMLExport::HTML_TOKEN_INFO, sstrInfo, sstrMainHTMLDoc );

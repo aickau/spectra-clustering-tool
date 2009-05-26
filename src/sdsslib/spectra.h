@@ -150,6 +150,9 @@ public:
 	// calculate extrema
 	void calcMinMax();
 
+	// calculates the surface of the spectrum
+	void calculateFlux();
+
 	// normalize to range -1..1
 	void normalize();
 
@@ -187,9 +190,6 @@ public:
 	// returns assembled filename
 	std::string getFileName() const;
 
-	// returns the squared sum of all samples
-	float getTotalEnergy();
-
 	int getMJD() const;
 
 	// 1..640
@@ -214,7 +214,8 @@ public:
 #ifdef _USE_SPECTRALINES
 	SpectraLines m_Lines[numSpectraLines];
 #endif
-	char pad[8];						// for padding to multiple of 16 byte boundaries
+	float m_flux;
+	char pad[4];						// for padding to multiple of 16 byte boundaries
 
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////
