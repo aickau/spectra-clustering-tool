@@ -528,123 +528,48 @@ void SOFMNetwork::searchBestMatchComplete( const std::vector<size_t> &_spectraIn
 	assert( _numBestMatchElements <= SpectraVFS::CACHELINESIZE );
 
 	const int numElements = static_cast<int>(_numBestMatchElements);
-	
-	for ( size_t i = 0;i < m_gridSizeSqr;i++)
+	// begin read for all src spectra
+	for ( int k=0;k<_numBestMatchElements;k++)
 	{
-		Spectra *a = m_pNet->beginRead( i );
+		BestMatch &currentBestMatch = _pBestMatchBatch[k];
 
-		Spectra *src[SpectraVFS::CACHELINESIZE];
-
-		// begin read for all src spectra
-		for ( int k=0;k<_numBestMatchElements;k++)
-		{
-			// skip spectra that are not on-frame if we are in on-frame search mode
-			if ( _bOnFrameOnly && !_pBestMatchBatch[k].bOnFrame ) {
-				continue;
-			}
-			const size_t spectraIndex = _spectraIndexList[_spectraIndexListOffset+k];
-			src[k] = m_pSourceVFS->beginRead(spectraIndex);
+		// skip spectra that are not on-frame if we are in on-frame search mode
+		if ( _bOnFrameOnly && !currentBestMatch.bOnFrame ) {
+			continue;
 		}
+		const size_t spectraIndex = _spectraIndexList[_spectraIndexListOffset+k];
 
+		Spectra *src = m_pSourceVFS->beginRead(spectraIndex);
 
-#pragma omp parallel for
-		for ( int k=0;k<numElements;k++)
+		for ( size_t i = 0;i < m_gridSizeSqr;i++)
 		{
-			BestMatch &currentBestMatch = _pBestMatchBatch[k];
-			// perform comparision only if we are:
-			// a) on-frame 
-			// b) or for all spectra if on-onframe search mode is not activated.
-			if ( !_bOnFrameOnly || currentBestMatch.bOnFrame ) 
-			{
-				Spectra &currentSpectra = *src[k];
+			Spectra *a = m_pNet->beginRead( i );
 
-				const float errMin = a->compareArjen( currentSpectra ); 
-				
-				if (errMin < currentBestMatch.error && a->isEmpty() )
+			if ( a->isEmpty() )
+			{
+				const float errMin = a->compare( *src );
+
+				if (errMin < currentBestMatch.error )
 				{
 					currentBestMatch.error = errMin;
 					currentBestMatch.index = i;
 				}
+
 			}
+
+			m_pNet->endRead( i );
 		}
 
-		// end read for all src spectra
-		for ( int k=0;k<numElements;k++)
-		{
-			if ( _bOnFrameOnly && !_pBestMatchBatch[k].bOnFrame ) {
-				continue;
-			}
-			const size_t spectraIndex = _spectraIndexList[_spectraIndexListOffset+k];
-			m_pSourceVFS->endRead(spectraIndex);
-		}
+		// mark spectra as not empty
+		Spectra *a = m_pNet->beginRead( currentBestMatch.index );
+		a->m_SpecObjID = src->m_SpecObjID;
+		m_pNet->endRead( currentBestMatch.index );
 
-		m_pNet->endRead( i );
+
+		m_pSourceVFS->endRead(spectraIndex);
 	}
 }
  
-void SOFMNetwork::searchBestMatchLocal( const std::vector<size_t> &_spectraIndexList, 
-									   size_t _spectraIndexListOffset, 
-									   BestMatch *_pBestMatchBatch, 
-									   size_t _numBestMatchElements )
-{
-	assert( _pBestMatchBatch != NULL );
-	assert( _numBestMatchElements <= SpectraVFS::CACHELINESIZE );
-
-	const int numElements = static_cast<int>(_numBestMatchElements);
-
-	Spectra *src[SpectraVFS::CACHELINESIZE];
-	for ( int k=0;k<_numBestMatchElements;k++)
-	{
-		const size_t spectraIndex = _spectraIndexList[_spectraIndexListOffset+k];
-		src[k] = m_pSourceVFS->beginRead(spectraIndex);
-	}
-
-	for ( int k=0;k<_numBestMatchElements;k++)
-	{
-		BestMatch &currentBestMatch = _pBestMatchBatch[k];
-		Spectra &currentSpectra = *src[k];
-
-		const int xpBestMatchOld = currentSpectra.m_Index % m_gridSize;
-		const int ypBestMatchOld = currentSpectra.m_Index / m_gridSize;
-
-		const int xMin = MAX( xpBestMatchOld-s_searchRadius, 0 );
-		const int yMin = MAX( ypBestMatchOld-s_searchRadius, 0 );
-		const int xMax = MIN( xpBestMatchOld+s_searchRadius, m_gridSize );
-		const int yMax = MIN( ypBestMatchOld+s_searchRadius, m_gridSize );
-
-		for ( int y=xMin;y<yMax;y++ )
-		{
-			for ( int x=xMin;x<xMax;x++ )
-			{
-				const size_t spectraIndex = getIndex( x, y );
-				Spectra *a = m_pNet->beginRead( spectraIndex );
-
-				const float errMin = a->compareArjen( currentSpectra );
-
-				if (errMin < currentBestMatch.error && a->isEmpty() )
-				{
-					currentBestMatch.error = errMin;
-					currentBestMatch.index = spectraIndex;
-					currentBestMatch.bOnFrame = (x==xMin) || (x==(xMax-1)) || (y==yMin) || (y==yMax-1); // are we sitting on the border of the search frame ?
-				}
-
-				m_pNet->endRead( spectraIndex );
-			}
-		}
-	}
-
-	for ( int k=0;k<_numBestMatchElements;k++)
-	{
-		const size_t spectraIndex = _spectraIndexList[_spectraIndexListOffset+k];
-		m_pSourceVFS->endRead(spectraIndex);
-	}
-
-	Helpers::print( std::string("complete search for all on framers.\n"), &m_logFile );
-
-	// do global search for all on-framers
-	searchBestMatchComplete( _spectraIndexList, _spectraIndexListOffset, _pBestMatchBatch, _numBestMatchElements, true );
-}
-
 void SOFMNetwork::process()
 {
 	if ( m_currentStep > m_params.numSteps )
@@ -738,18 +663,8 @@ void SOFMNetwork::process()
 		// retrieve best match neuron for a cache line batch of source spectra
 		Timer t;
 
-		const bool bFullSearch = true;// ((m_currentStep % MAX((m_params.numSteps/s_globalSearchFraction),1)) == 0) || (m_currentStep<5);
-
-		if (bFullSearch) 
-		{
-			Helpers::print( "using complete search.\n" );
-			searchBestMatchComplete( spectraIndexList, j, bestMatch, jInc );
-		}
-		else
-		{
-			Helpers::print( "using local search.\n" );
-			searchBestMatchLocal( spectraIndexList, j, bestMatch, jInc );
-		}
+		Helpers::print( "using complete search.\n" );
+		searchBestMatchComplete( spectraIndexList, j, bestMatch, jInc );
 
 
 		double searchTime = t.getElapsedSecs();
@@ -769,35 +684,9 @@ void SOFMNetwork::process()
 			currentSpectra.m_Index = currentBestMatch.index;
 
 
-			// set name of best match neuron
-			if ( a->isEmpty() )
-			{
-				a->m_SpecObjID = currentSpectra.m_SpecObjID;
-				a->m_Index = spectraIndex;
-			}
-			else
-			{
-				// collision handling
-				// this cell in our cluster is already occupied by another neuron/spectra match
-				// check errors  
-				Spectra *b = m_pSourceVFS->beginRead(a->m_Index);
-				const float errorOld = a->compareArjen( *b );
-				m_pSourceVFS->endRead(a->m_Index);
+			a->m_SpecObjID = currentSpectra.m_SpecObjID;
+			a->m_Index = spectraIndex;
 
-				if ( errorOld < currentBestMatch.error )
-				{
-					// old best match wins and holds its cell-
-					// put current best match in collision list for further processing
-					spectraCollisionList.push_back( spectraIndex );
-				}
-				else
-				{
-					// new best match wins, put old match into collision list
-					spectraCollisionList.push_back( a->m_Index );
-					a->m_SpecObjID = currentSpectra.m_SpecObjID;
-					a->m_Index = spectraIndex;
-				}
-			}
 			m_pNet->endWrite( currentBestMatch.index );
 
 
@@ -813,54 +702,6 @@ void SOFMNetwork::process()
 
 		j += jInc;
 	}
-
-	//_cprintf( "=" );
-
-	Timer t;
-	// collision handling
-	// for each collision spectra..
-	for ( size_t j=0;j<spectraCollisionList.size();j++)
-	{
-		const size_t spectraIndex = spectraCollisionList.at(j);
-		Spectra &currentSpectra = *m_pSourceVFS->beginWrite(spectraIndex);
-
-		// retrieve first best match neuron
-		float min = FLT_MAX;
-		size_t bestMatch = 0;
-		
-		for ( size_t i = 0;i < m_gridSizeSqr;i++)
-		{
-			Spectra *a = m_pNet->beginRead( i );
-			float minErr =a->compareArjen( currentSpectra );
-
-			if ( minErr < min && a->isEmpty() )
-			{
-				min = minErr;
-				bestMatch = i;
-			}
-			m_pNet->endRead( i );
-		}
-
-		//_cprintf(":");
-
-		Spectra *a = m_pNet->beginWrite( bestMatch );
-		a->m_SpecObjID = currentSpectra.m_SpecObjID;
-		a->m_Index = spectraIndex;
-
-		m_pNet->endWrite( bestMatch );
-
-		// remember best match position to NW for faster search
-		currentSpectra.m_Index = bestMatch;
-
-		adaptNetwork( currentSpectra, bestMatch, adaptionThreshold, sigmaSqr, lRate );
-
-		m_pSourceVFS->endWrite(spectraIndex);
-		//_cprintf(".");
-	}
-
-
-	double collisionTime = t.getElapsedSecs();
-	Helpers::print( std::string("Collision NW adaption time: ")+Helpers::numberToString<float>(collisionTime)+std::string("\n"), &m_logFile );
 	Helpers::print( std::string("Flushing cluster table to disk.\n"), &m_logFile );
 
 	m_pNet->flush();
