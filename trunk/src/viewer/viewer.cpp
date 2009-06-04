@@ -53,12 +53,12 @@ void setCaptionText( const std::string &_sstrFileName )
 }
 
 
-int InitGL( const std::string &sstrCmdLine )		
+int InitGL( )		
 {
 	std::string sstrCurrentDir( FileHelpers::getCurrentDirectory() );
 	std::string sstrFileName("");
 
-	sstrFileName = sstrCmdLine;
+	sstrFileName = GetCommandLine();
 	/*
 	std::istringstream sstrStream(sstrCmdLine);
 	if (sstrStream) {

@@ -490,7 +490,62 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 	}
 }
 
+
 void SOFMNetwork::searchBestMatchComplete( const std::vector<size_t> &_spectraIndexList, 
+										  size_t _spectraIndexListOffset, 
+										  BestMatch *_pBestMatchBatch, 
+										  size_t _numBestMatchElements, 
+										  bool _bOnFrameOnly )
+{
+	assert( _pBestMatchBatch != NULL );
+	assert( _numBestMatchElements <= SpectraVFS::CACHELINESIZE );
+
+	const int numElements = static_cast<int>(_numBestMatchElements);
+
+	// begin read for all src spectra
+	for ( int k=0;k<_numBestMatchElements;k++)
+	{
+		BestMatch &currentBestMatch = _pBestMatchBatch[k];
+
+		// skip spectra that are not on-frame if we are in on-frame search mode
+		if ( _bOnFrameOnly && !currentBestMatch.bOnFrame ) {
+			continue;
+		}
+		const size_t spectraIndex = _spectraIndexList[_spectraIndexListOffset+k];
+
+		Spectra *src = m_pSourceVFS->beginRead(spectraIndex);
+
+		for ( size_t i = 0;i < m_gridSizeSqr;i++)
+		{
+			Spectra *a = m_pNet->beginRead( i );
+
+			if ( a->isEmpty() )
+			{
+				const float errMin = a->compare( *src );
+
+				if (errMin < currentBestMatch.error )
+				{
+					currentBestMatch.error = errMin;
+					currentBestMatch.index = i;
+				}
+
+			}
+
+			m_pNet->endRead( i );
+		}
+
+		// mark spectra as not empty
+		Spectra *a = m_pNet->beginRead( currentBestMatch.index );
+		a->m_SpecObjID = src->m_SpecObjID;
+		m_pNet->endRead( currentBestMatch.index );
+
+
+		m_pSourceVFS->endRead(spectraIndex);
+	}
+}
+
+
+void SOFMNetwork::searchBestMatchCompleteP( const std::vector<size_t> &_spectraIndexList, 
 										  size_t _spectraIndexListOffset, 
 										  BestMatch *_pBestMatchBatch, 
 										  size_t _numBestMatchElements, 
@@ -738,11 +793,11 @@ void SOFMNetwork::process()
 			Spectra *a = m_pNet->beginWrite( currentBestMatch.index );
 
 			// set name of best match neuron
-			if ( a->isEmpty() )
+//			if ( a->isEmpty() )
 			{
 				setBestMatch( *a, currentBestMatch.index, currentSpectra, spectraIndex );
 			}
-			else
+/*			else
 			{
 				// collision handling
 				// this cell in our cluster is already occupied by another neuron/spectra match
@@ -763,7 +818,7 @@ void SOFMNetwork::process()
 					spectraCollisionList.push_back( a->m_Index );
 					setBestMatch( *a, currentBestMatch.index, currentSpectra, spectraIndex );
 				}
-			}
+			}*/
 			m_pNet->endWrite( currentBestMatch.index );
 
 
@@ -779,7 +834,7 @@ void SOFMNetwork::process()
 
 		j += jInc;
 	}
-
+/*
 	//_cprintf( "=" );
 
 	Timer t;
@@ -830,7 +885,7 @@ void SOFMNetwork::process()
 	double collisionTime = t.getElapsedSecs();
 	Helpers::print( std::string("Collision NW adaption time: ")+Helpers::numberToString<float>(collisionTime)+std::string("\n"), m_pLogStream );
 	Helpers::print( std::string("Flushing cluster table to disk.\n"), m_pLogStream );
-
+*/
 	m_pNet->flush();
 
 	m_currentStep++;
