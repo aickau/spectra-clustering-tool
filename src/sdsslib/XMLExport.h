@@ -110,6 +110,16 @@ namespace XMLExport
 	//! /param sstrOut output XML document string
 	XMLPARSERAPI void xmlAddAttributeArray( const std::string *psstrAttributeNames, const float *pValues, size_t nValues, std::string &sstrOut );
 
+	//! add comment line.
+	//! /param sstrComment text.
+	//! /param sstrOut output XML document string
+	XMLPARSERAPI void xmlSingleComment( const std::string &sstrComment, std::string &sstrOut );
+
+	//! add xml header.
+	//! /param sstrOut output XML document string, should be empty, since header should be in the first line.
+	XMLPARSERAPI void xmlHeader( std::string &sstrOut );
+
+
 	//@}	
 };
 
