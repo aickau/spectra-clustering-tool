@@ -39,6 +39,7 @@ QTClustering::QTClustering( SpectraVFS *_pSourceVFS, const Parameters &_params )
 :m_pSourceVFS(_pSourceVFS)
 ,m_numSpectra(_pSourceVFS->getNumSpectra())
 ,m_params(_params)
+,m_cachedCluster(~0)
 ,m_logFile("analyze_log.txt")
 {
 }
@@ -47,8 +48,93 @@ QTClustering::~QTClustering()
 {
 }
 
+size_t QTClustering::getNumberOfClusters() const
+{
+	return m_ClusterMap.size() + 1;
+}
+
+
+size_t QTClustering::getNumberOfSpectraForCluster( size_t _clusterIndex ) const
+{
+	if ( _clusterIndex == 0 )
+	{
+		return m_Unclassified.size();
+	}
+	if ( _clusterIndex >= getNumberOfClusters() )
+	{
+		assert(0);
+		return 0;
+	}
+
+	return m_ClusterMap[_clusterIndex-1].size();
+}
+
+
+size_t QTClustering::getSpectra( size_t _clusterIndex, size_t _index )
+{
+	if ( _clusterIndex == 0 )
+	{
+	}
+	if ( _clusterIndex >= getNumberOfClusters() )
+	{
+		assert(0);
+		return ~0;
+	}
+
+	rebuildIndexCache(_clusterIndex);
+	return m_indexCache[_index];
+
+}
+
+
+void QTClustering::reset()
+{
+	m_ClusterMap.clear();
+	m_Unclassified.clear();
+}
+
+void QTClustering::rebuildIndexCache( size_t _clusterIndex )
+{
+	if ( _clusterIndex != m_cachedCluster && _clusterIndex < getNumberOfClusters() )
+	{
+		size_t nSpectraCount = getNumberOfSpectraForCluster(_clusterIndex);
+		m_indexCache.resize(nSpectraCount);
+		size_t c = 0;
+
+		// for unclassified spectra
+		if ( _clusterIndex==0 )
+		{
+			std::set<unsigned int>::iterator it = m_Unclassified.begin();
+			std::set<unsigned int>::iterator itEnd = m_Unclassified.end();
+			while ( it != itEnd )
+			{
+				size_t index = *it;
+				m_indexCache[c] = static_cast<unsigned int>(index);
+				it++;
+				c++;
+			}
+		} 
+		else
+		{
+			Candidates &currentCluster = m_ClusterMap[_clusterIndex-1];
+
+			Candidates::iterator itC = currentCluster.begin();
+			Candidates::iterator itCEnd = currentCluster.end();
+			while ( itC != itCEnd )
+			{
+				size_t index = (*itC).second;
+				m_indexCache[c] = static_cast<unsigned int>(index);
+				itC++;
+				c++;
+			}
+		}
+	}
+
+}
+
 void QTClustering::process()
 {
+	reset();
 	// for each spectrum we store a cluster map
 	Candidates *pClusterMap = new Candidates[m_numSpectra];
 

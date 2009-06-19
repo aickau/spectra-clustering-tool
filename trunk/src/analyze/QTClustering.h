@@ -51,6 +51,18 @@ public:
 	// _pSourceVFS is your input data which you want to cluster
 	QTClustering( SpectraVFS *_pSourceVFS, const Parameters &_params );
 	~QTClustering();
+ 
+	// cluster count, which should be at least 2 (one for unclassifieds, one cluster)
+	size_t getNumberOfClusters() const;
+
+	// _clusterIndex = 0 contains unclassified spectra
+	size_t getNumberOfSpectraForCluster( size_t _clusterIndex ) const;
+	
+	// returns index to a spectrum of the given cluster
+	// within the cluster spectra with lower index come first
+	// _clusterIndex 0..number of cluster
+	// _spectraIndex 0..number of spectra of the cluster
+	size_t getSpectra( size_t _clusterIndex, size_t _index );
 
 	// process clustering
 	void process();
@@ -61,6 +73,10 @@ public:
 
 
 private:
+
+	void reset();
+	void rebuildIndexCache( size_t _clusterIndex );
+
 	Parameters					m_params;
 	SpectraVFS					*m_pSourceVFS;
 	size_t						m_numSpectra;
@@ -70,6 +86,9 @@ private:
 
 	std::vector<Candidates>		m_ClusterMap;					// all clustered spectra go here
 	std::set<unsigned int>		m_Unclassified;					// all unclassified spectra.
+
+	std::vector<unsigned int>	m_indexCache;					// cache for faster access by index.
+	size_t						m_cachedCluster;				// index to cluster that is cached.
 
 	std::ofstream				m_logFile;
 };
