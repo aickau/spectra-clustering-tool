@@ -364,6 +364,11 @@ LRESULT CALLBACK WndProc(HWND hWnd,	UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd,uMsg,wParam,lParam);
 }
 
+// todo, check how
+//void main(int argc, char* argv[])
+//{
+//	WinMain();
+//};
 
 
 int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)			

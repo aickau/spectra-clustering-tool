@@ -47,7 +47,8 @@ public:
 	class Parameters
 	{
 	public:
-		Parameters( size_t _numSteps, size_t _randomSeed, float _lRateBegin, float _lRateEnd, float _radiusBegin, float _radiusEnd );
+		Parameters( size_t _numSteps, size_t _randomSeed, float _lRateBegin, float _lRateEnd, float _radiusBegin, float _radiusEnd);
+
 		size_t numSteps;											// number of learn steps. reasonable: 10..500
 		size_t randomSeed;											// zero is not allowed
 		float lRateBegin;											// learn rate begin 0.0 .. 1.0
@@ -56,6 +57,9 @@ public:
 		float radiusEnd;											// radius end (0.0 .. grid size)
 		bool exportSubPage;											// if true add subpages to HTML output
 		bool waitForUser;											// if true wait for user input after each calculation step
+		bool localSearch;											// if true uses local search for BMUs if possible (faster computation).
+		Spectra::SpectraNormalization normaliziationType;			// type of normalization of spectra
+		
 
 		static Parameters defaultParameters;
 	};
@@ -63,7 +67,7 @@ public:
 
 
 	// _pSourceVFS is your input data which you want to cluster
-	SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation = false, std::ofstream *_logStream=NULL );
+	SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, std::ofstream *_logStream );
 
 	~SOFMNetwork();
 
@@ -124,6 +128,10 @@ protected:
 
 	// calculate min/max values for the input data set.
 	void calcMinMaxInputDS();
+
+	// calculate flux values for the input data set and normalize
+	void calcFluxAndNormalizeInputDS( Spectra::SpectraNormalization _normalizationType );
+
 
 	// render icons for input data set to disk.
 	void renderIcons();

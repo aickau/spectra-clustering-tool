@@ -184,7 +184,7 @@ void drawSpectra(Spectra &_spectra,
 
 	float values[Spectra::numSamples];
 
-	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 6 );
+	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 2 );
 
 	GLHelper::DrawDiagram( values, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
 

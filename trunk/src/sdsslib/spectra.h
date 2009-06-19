@@ -80,6 +80,13 @@ public:
 		SP_MASK_EMLINE       =  0x40000000  //  Emission line detected here                         
 	};
 
+	enum SpectraNormalization
+	{
+		SN_NONE,
+		SN_AMPLITUDE,
+		SN_FLUX
+	};
+
 	// emission and absorption lines info
 	struct SpectraLines
 	{
@@ -235,7 +242,10 @@ public:
 	static size_t waveLengthToIndex( float _waveLength, float _waveBegin, float _waveEnd, int _numSamples );
 
 	// returns any ORed combination of SpectraTypes as filter
-	static std::string spectraFilterToString( unsigned int spectraFilter );
+	static std::string spectraFilterToString( unsigned int _spectraFilter );
+
+	static std::string spectraNormalizationToString( SpectraNormalization _type );	 
+	static SpectraNormalization spectraNormalizationFromString( const std::string &_sstrSpectraNormalization );
 
 };
 
