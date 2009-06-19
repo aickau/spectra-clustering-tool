@@ -198,11 +198,11 @@ int InitGL()
 	if ( pVFSFiltered != NULL && pVFSFiltered->getNumSpectra() > 0 )
 	{
 		Helpers::print( "Using "+Helpers::numberToString<size_t>(pVFSFiltered->getNumSpectra())+" out of "+Helpers::numberToString<size_t>(g_pVFSSource->getNumSpectra())+" spectra.\n", &logFile );
-		g_pSOFM = new SOFMNetwork( pVFSFiltered, bContinue );
+		g_pSOFM = new SOFMNetwork( pVFSFiltered, bContinue, &logFile );
 	}
 	else
 	{
-		g_pSOFM = new SOFMNetwork( g_pVFSSource, bContinue );
+		g_pSOFM = new SOFMNetwork( g_pVFSSource, bContinue, &logFile );
 	}
 
 
@@ -266,7 +266,7 @@ void DrawNetwork( SOFMNetwork &network )
 		GLHelper::DrawLine( lb1, lb2 );
 	}
 
-	float yscale = 1.f/(network.m_Max*0.05-network.m_Min);
+	float yscale = 1.f/(network.m_Max-network.m_Min);
 
 	size_t yp=gridSize;
 	for ( size_t y=0;y<network.m_gridSize;y+=stepSize)
@@ -296,6 +296,32 @@ void DrawNetwork( SOFMNetwork &network )
 			xp++;
 		}
 	}
+/* qt cluster vis
+	size_t nc = network.m_QTCluster->getNumberOfClusters();
+	for (size_t i=0;i<nc;i++)
+	{
+		size_t sc = network.m_QTCluster->getNumberOfSpectraForCluster(i);
+		for (size_t j=0;j<sc;j++)
+		{
+			size_t spi = network.m_QTCluster->getSpectra(i,j);
+			size_t yp=spi/network.m_gridSize;
+			size_t xp=spi%network.m_gridSize;
+
+			float lp[3] = {xp*w,yp*h+h*0.5f,-10};
+
+			glColor3f(1,1,1);
+			if ( i==0 )
+			{
+				GLHelper::Print(SpectraHelpers::getDefaultFontID(), lp, "uc" );
+			}
+			else
+			{
+				GLHelper::Print(SpectraHelpers::getDefaultFontID(), lp, "c%i", i );
+			}
+
+		}
+	}
+*/
 }
 
 

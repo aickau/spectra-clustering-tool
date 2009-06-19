@@ -83,6 +83,8 @@ SOFMNetwork::Parameters::Parameters( size_t _numSteps, size_t _randomSeed, float
 ,radiusEnd(_radiusEnd)
 ,exportSubPage(false)
 ,waitForUser(false)
+,localSearch(false)
+,normaliziationType(Spectra::SN_FLUX)
 {
 }
 
@@ -107,27 +109,23 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		exit(0);
 	}
 
-	// normalize input spectra
-	m_flux = 0.0f;
-	for ( size_t i=0;i<m_numSpectra;i++ )
-	{
-		Spectra *a = m_pSourceVFS->beginWrite( i );
-		a->	normalizeByFlux();
-		m_flux = MAX(a->m_flux, m_flux);
-		m_pSourceVFS->endWrite( i );
-	}
-
-
+	// write som info to our log
 	Helpers::print( std::string("Spectra VFS cache line size ") + Helpers::numberToString( SpectraVFS::CACHELINESIZE ) + " spectra.\n", m_pLogStream );
 	Helpers::print( std::string("Spectra VFS number of cache lines ") + Helpers::numberToString( SpectraVFS::CACHELINES ) + ".\n", m_pLogStream );
 	Helpers::print( std::string("That allows us to pack ") + Helpers::numberToString( SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE ) + " spectra into main memory.\n", m_pLogStream );
 	Helpers::print( std::string("We can eat up ") + Helpers::numberToString( static_cast<float>(2*SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE*sizeof(Spectra))/(1024.f*1024.f*1024.f) ) + " GB of main memory for clustering .\n", m_pLogStream );
+	Helpers::print( std::string("We are using ") +(m_params.localSearch ? "local" : "global") + " search .\n", m_pLogStream );
+	Helpers::print( std::string("Spectra normalization is set to ") +Spectra::spectraNormalizationToString(m_params.normaliziationType) + ".\n", m_pLogStream );
 
 
+	calcFluxAndNormalizeInputDS( m_params.normaliziationType );
 	calcMinMaxInputDS();
 
 	if ( !bContinueComputation )
 	{
+		//
+		// start new computation 
+		//
 		m_gridSize = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1)));
 		m_gridSizeSqr = m_gridSize*m_gridSize;
 
@@ -178,6 +176,9 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 	}
 	else
 	{
+		//
+		// continue old computation 
+		//
 
 		Helpers::print( std::string("Continue clustering at step ")+Helpers::numberToString(m_currentStep)+
 			            std::string(" using ")+Helpers::numberToString(m_numSpectra)+
@@ -208,7 +209,10 @@ SOFMNetwork::~SOFMNetwork()
 
 void SOFMNetwork::writeSettings( const std::string &_sstrFileName )
 {
-	std::string sstrXML("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+	std::string sstrXML;
+	XMLExport::xmlHeader(sstrXML);
+
+	XMLExport::xmlSingleComment("Analyzer config file, SDSS sorting prototype - Stage I, Copyright (c) 2009", sstrXML);
 
 	XMLExport::xmlElementBegin( "SETTINGS", 0, sstrXML );
 	XMLExport::xmlElementEndBegin( sstrXML );
@@ -243,16 +247,27 @@ void SOFMNetwork::writeSettings( const std::string &_sstrFileName )
 	XMLExport::xmlElementBegin( "EXPORT", 1, sstrXML );
 	XMLExport::xmlElementEndBegin( sstrXML );
 
-	XMLExport::xmlSingleElementBegin( "SUBPAGES", 2, sstrXML );
-	XMLExport::xmlAddAttribute( "value", (int)m_params.exportSubPage, sstrXML );
-	XMLExport::xmlSingleElementEnd( sstrXML );
+		XMLExport::xmlSingleElementBegin( "SUBPAGES", 2, sstrXML );
+		XMLExport::xmlAddAttribute( "value", (int)m_params.exportSubPage, sstrXML );
+		XMLExport::xmlSingleElementEnd( sstrXML );
 
-	XMLExport::xmlSingleElementBegin( "WAITFORUSER", 2, sstrXML );
-	XMLExport::xmlAddAttribute( "value", (int)m_params.waitForUser, sstrXML );
-	XMLExport::xmlSingleElementEnd( sstrXML );
-
+		XMLExport::xmlSingleElementBegin( "WAITFORUSER", 2, sstrXML );
+		XMLExport::xmlAddAttribute( "value", (int)m_params.waitForUser, sstrXML );
+		XMLExport::xmlSingleElementEnd( sstrXML );
 
 	XMLExport::xmlElementEnd( "EXPORT", 1, sstrXML );
+	
+	XMLExport::xmlSingleElementBegin( "SEARCHMODE", 1, sstrXML );
+	XMLExport::xmlAddAttribute( "value", m_params.localSearch ?  "local" : "global", sstrXML );
+	XMLExport::xmlSingleElementEnd( sstrXML );
+	XMLExport::xmlSingleComment("local / global", sstrXML);
+
+	XMLExport::xmlSingleElementBegin( "NORMALIZATION", 1, sstrXML );
+	XMLExport::xmlAddAttribute( "value", Spectra::spectraNormalizationToString(m_params.normaliziationType), sstrXML );
+	XMLExport::xmlSingleElementEnd( sstrXML );
+	XMLExport::xmlSingleComment("amplitude / flux / none", sstrXML);
+
+	
 	XMLExport::xmlElementEnd( "SETTINGS", 0, sstrXML );
 
 	std::ofstream fon(_sstrFileName.c_str());
@@ -264,12 +279,18 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	XMLParser p;
 
 	//what we read:
-	//		<STEP current="3" total="100"/>
-	//		<GRIDSIZE x="29" y="29"/>
-	//		<RANDOMSEED value="26"/>
-	//		<LEARNRATE begin="0.25" end="0.01"/>
-	//		<RADIUS begin="1" end="0.5"/>
-	//		<SPECTRUM size="3952" file="sofmnet.bin"/>
+	//	<STEP current="1" total="100"/>
+	//	<GRIDSIZE value="2"/>
+	//	<RANDOMSEED value="15"/>
+	//	<LEARNRATE begin="0.25" end="0.01"/>
+	//	<RADIUS begin="1" end="0.5"/>
+	//	<SPECTRUM file="sofmnet.bin"/>
+	//	<EXPORT>
+	//		<SUBPAGES value="0"/>
+	//		<WAITFORUSER value="0"/>
+	//	</EXPORT>
+	//	<SEARCHMODE value="local"> 		<!-- local, global -->
+	//	<NORMALIZATION value="flux">	<!-- none, amplitude, flux -->
 	if (!p.loadXMLFromFile( _sstrFileName ))
 	{
 		return false;
@@ -277,6 +298,9 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 
 	bool bSuccess = true;
 	size_t spectraSize = 0;
+
+	std::string sstrSearchMode;
+	std::string sstrNormalizationType;
 
 	bSuccess &= p.getChildValue("STEP", "current", m_currentStep );
 	bSuccess &= p.getChildValue("STEP", "total", m_params.numSteps );
@@ -288,14 +312,14 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	bSuccess &= p.getChildValue("RADIUS", "end", m_params.radiusEnd );
 //	bSuccess &= p.getChildValue("SPECTRUM", "size", spectraSize );
 	bSuccess &= p.getChildValue("SPECTRUM", "file", _sstrSOFMFileName );
+	bSuccess &= p.getChildValue("SEARCHMODE", "value", sstrSearchMode );
+	bSuccess &= p.getChildValue("NORMALIZATION", "value", sstrNormalizationType );
 
-	if ( !bSuccess)
-		Helpers::print( std::string("Error: some setting value could not loaded.\n"), m_pLogStream );
+	sstrSearchMode = Helpers::lowerCase( sstrSearchMode );
+	sstrNormalizationType = Helpers::lowerCase( sstrNormalizationType );
+	m_params.localSearch = (sstrSearchMode == "local");
 
-
-	//bSuccess &= ( spectraSize == sizeof(Spectra) );
-	//if ( !bSuccess)
-	//	Helpers::Print( std::string("Error: Given spectrum size matches not with spectrum size from dump file.\n"), m_pLogStream );
+	m_params.normaliziationType = Spectra::spectraNormalizationFromString( sstrNormalizationType );
 
 	p.gotoChild();
 	
@@ -308,10 +332,20 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	} while (p.gotoSibling());
 
 	size_t sp=0;
-	p.getChildValue("SUBPAGES", "value", sp );
+	bSuccess &= p.getChildValue("SUBPAGES", "value", sp );
 	m_params.exportSubPage = (sp>0);
-	p.getChildValue("WAITFORUSER", "value", sp );
+	bSuccess &= p.getChildValue("WAITFORUSER", "value", sp );
 	m_params.waitForUser = (sp>0);
+
+	if ( !bSuccess)
+	{
+		Helpers::print( std::string("Error: some setting value could not loaded.\n"), m_pLogStream );
+		Helpers::print( p.getParserErrorLog() +"\n", m_pLogStream );
+	}
+	//bSuccess &= ( spectraSize == sizeof(Spectra) );
+	//if ( !bSuccess)
+	//	Helpers::Print( std::string("Error: Given spectrum size matches not with spectrum size from dump file.\n"), m_pLogStream );
+
 
 	return bSuccess;
 }
@@ -349,6 +383,48 @@ void SOFMNetwork::calcMinMaxInputDS()
 	calcMinMax( *m_pSourceVFS, m_Min, m_Max );
 	Helpers::print( std::string("global min / max: ") + Helpers::numberToString(m_Min) + std::string(" / " ) + Helpers::numberToString(m_Max) + std::string("\n" ), m_pLogStream );
 }
+
+void SOFMNetwork::calcFluxAndNormalizeInputDS( Spectra::SpectraNormalization _normalizationType )
+{
+	Helpers::print( std::string("Calculating flux of input.\n"), m_pLogStream );
+	
+	// normalize input spectra and calculate overall flux
+	if ( _normalizationType == Spectra::SN_FLUX )
+	{
+		Helpers::print( std::string("..and normalize by flux.\n"), m_pLogStream );
+		m_flux = 0.0f;
+		for ( size_t i=0;i<m_numSpectra;i++ )
+		{
+			Spectra *a = m_pSourceVFS->beginWrite( i );
+			a->	normalizeByFlux();
+			m_flux = MAX(a->m_flux, m_flux);
+			m_pSourceVFS->endWrite( i );
+		}
+	}
+	else if ( _normalizationType == Spectra::SN_AMPLITUDE )
+	{
+		Helpers::print( std::string("..and normalize by amplitude.\n"), m_pLogStream );
+		for ( size_t i=0;i<m_numSpectra;i++ )
+		{
+			Spectra *a = m_pSourceVFS->beginWrite( i );
+			a->normalize();
+			m_flux = MAX(a->m_flux, m_flux);
+			m_pSourceVFS->endWrite( i );
+		}
+	}
+	else
+	{
+		for ( size_t i=0;i<m_numSpectra;i++ )
+		{
+			Spectra *a = m_pSourceVFS->beginWrite( i );
+			a->calculateFlux();
+			m_flux = MAX(a->m_flux, m_flux);
+			m_pSourceVFS->endWrite( i );
+		}
+	}
+	Helpers::print( std::string("global flux is: ") + Helpers::numberToString(m_flux) + std::string("\n" ), m_pLogStream );
+}
+
 
 
 
@@ -705,6 +781,7 @@ void SOFMNetwork::process()
 		exportToHTML("export/current", false);
 	}
 
+
 	std::string sstrLog("Calculating step ");
 	sstrLog += Helpers::numberToString( m_currentStep ) + " / " + Helpers::numberToString( m_params.numSteps ) + "\n";
 	Helpers::print( sstrLog, m_pLogStream );
@@ -765,7 +842,8 @@ void SOFMNetwork::process()
 		// retrieve best match neuron for a cache line batch of source spectra
 		Timer t;
 
-		const bool bFullSearch = true;//((m_currentStep % MAX((m_params.numSteps/s_globalSearchFraction),1)) == 0) || (m_currentStep<5);
+		const bool bSearchFullWhenLocalMode = ((m_currentStep % MAX((m_params.numSteps/s_globalSearchFraction),1)) == 0) || (m_currentStep<5);
+		const bool bFullSearch = m_params.localSearch ? bSearchFullWhenLocalMode : true;
 
 		if (bFullSearch) 
 		{

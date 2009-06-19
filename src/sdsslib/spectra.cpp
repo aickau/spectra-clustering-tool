@@ -569,6 +569,8 @@ void Spectra::calculateFlux()
 
 void Spectra::normalize()
 {
+	calculateFlux();
+
 	calcMinMax();
 
 	float delta( m_Max-m_Min);
@@ -1239,40 +1241,64 @@ size_t Spectra::waveLengthToIndex( float _waveLength, float _waveBegin, float _w
 }
 
 
-std::string Spectra::spectraFilterToString( unsigned int spectraFilter )
+std::string Spectra::spectraFilterToString( unsigned int _spectraFilter )
 {
 	std::string sstrOutString;
-	if ( spectraFilter & Spectra::SPT_SPEC_UNKNOWN )
+	if ( _spectraFilter & Spectra::SPT_SPEC_UNKNOWN )
 	{
 		sstrOutString += "SPEC_UNKNOWN ";
 	}
-	if ( spectraFilter & Spectra::SPT_SPEC_STAR )
+	if ( _spectraFilter & Spectra::SPT_SPEC_STAR )
 	{
 		sstrOutString += "SPEC_STAR ";
 	}
-	if ( spectraFilter & Spectra::SPT_SPEC_GALAXY )
+	if ( _spectraFilter & Spectra::SPT_SPEC_GALAXY )
 	{
 		sstrOutString += "SPEC_GALAXY ";
 	}
-	if ( spectraFilter & Spectra::SPT_SPEC_QSO )
+	if ( _spectraFilter & Spectra::SPT_SPEC_QSO )
 	{
 		sstrOutString += "SPEC_QSO ";
 	}
-	if ( spectraFilter & Spectra::SPT_SPEC_HIZ_QSO )
+	if ( _spectraFilter & Spectra::SPT_SPEC_HIZ_QSO )
 	{
 		sstrOutString += "SPEC_HIZ_QSO ";
 	}
-	if ( spectraFilter & Spectra::SPT_SPEC_SKY )
+	if ( _spectraFilter & Spectra::SPT_SPEC_SKY )
 	{
 		sstrOutString += "SPEC_SKY ";
 	}
-	if ( spectraFilter & Spectra::SPT_STAR_LATE )
+	if ( _spectraFilter & Spectra::SPT_STAR_LATE )
 	{
 		sstrOutString += "STAR_LATE ";
 	}
-	if ( spectraFilter & Spectra::SPT_GAL_EM )
+	if ( _spectraFilter & Spectra::SPT_GAL_EM )
 	{
 		sstrOutString += "GAL_EM ";
 	}
 	return sstrOutString;
+}
+
+std::string Spectra::spectraNormalizationToString( SpectraNormalization _type )
+{
+	switch(_type)
+	{
+		case SN_AMPLITUDE : return std::string("amplitude");
+		case SN_FLUX : return std::string("flux");
+		default:;
+	}
+	return std::string("none");
+}
+
+
+Spectra::SpectraNormalization Spectra::spectraNormalizationFromString( const std::string &_sstrSpectraNormalization )
+{
+	if ( _sstrSpectraNormalization == "amplitude" ) {
+		return Spectra::SN_AMPLITUDE;
+	}
+	else if ( _sstrSpectraNormalization == "flux" ) {
+		return Spectra::SN_FLUX;
+	} 
+
+	return Spectra::SN_NONE;
 }

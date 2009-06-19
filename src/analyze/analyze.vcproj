@@ -419,6 +419,14 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="resources"
+			>
+			<File
+				RelativePath="..\..\settings.xml"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\analyze.cpp"
 			>
