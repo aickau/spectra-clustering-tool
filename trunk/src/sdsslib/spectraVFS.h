@@ -22,6 +22,7 @@
 #include <Windows.h>
 #include <string>
 #include <fstream>
+#include <set>
 
 #include "sdsslib/debug.h"
 #include "spectra.h"
@@ -49,7 +50,7 @@ public:
 	// _spectraFilter only write specific spectra, can be any combination of Spectra::SpectraType.
 	// _logStream to write log output into.
 	// returns the number of written spectra.
-	static size_t write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter=0x0ffffffff, std::ofstream *_logStream=NULL );
+	static size_t write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter=0x0ffffffff, std::ofstream *_logStream=NULL, std::set<std::string> *pFITSFilenameSet=NULL );
 
 	// create grid based VFS with random noize spectra
 	// _minPeak, _maxPeak = global minimum and maximum peaks in the generated spectra 

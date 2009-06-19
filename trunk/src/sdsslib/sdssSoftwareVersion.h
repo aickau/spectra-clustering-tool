@@ -16,4 +16,4 @@
 //! \file  sdssSoftwareVersion.h
 //! \brief holds the version string
 
-#define SDSSVERSIONSTRING std::string("0.12 - Philipps special version with multiplier, No Multithreading, Rev. 72")
+#define SDSSVERSIONSTRING std::string("0.13, No Multithreading, Rev. 78")

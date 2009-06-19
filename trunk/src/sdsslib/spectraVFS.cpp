@@ -348,7 +348,7 @@ void SpectraVFS::flush()
 
 
 
-size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter, std::ofstream *_logStream )
+size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter, std::ofstream *_logStream, std::set<std::string> *pFITSFilenameSet )
 {
 	std::vector<std::string> fileList;
 
@@ -361,6 +361,16 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 	size_t c = 0;
 	for ( size_t i=0;i<numSpectra;i++ )
 	{
+		if ( pFITSFilenameSet && !pFITSFilenameSet->empty())
+		{
+			std::string sstrFilename(FileHelpers::getFileName(fileList.at(i)));
+			std::set<std::string>::iterator it = pFITSFilenameSet->find(sstrFilename);
+			if ( it == pFITSFilenameSet->end() )
+			{
+				Helpers::print( "skipping "+fileList.at(i)+"\n", _logStream );
+				continue;
+			}
+		}
 		spec.clear();
 		bool bResult = spec.loadFromFITS( fileList.at(i) );
 

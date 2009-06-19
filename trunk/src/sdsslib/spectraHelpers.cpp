@@ -391,5 +391,30 @@ void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstr
 	_sstrOutTable += HTMLExport::endTableRow();
 }
 
+bool readSelectionList( const std::string &_sstrSelectionListFilename, std::set<std::string> &_outFITSFilenameSet )
+{
+	if ( _sstrSelectionListFilename.empty() )
+	{
+		// no filename
+		return false;
+	}
 
-};
+	std::ifstream fin(_sstrSelectionListFilename.c_str());
+
+	if( !fin ) 
+	{
+		// could not open file
+		return false;
+	}
+
+	// read selection list
+	std::string sstrFITSFilename;
+	while( getline(fin,sstrFITSFilename) ) 
+	{
+		_outFITSFilenameSet.insert(sstrFITSFilename);
+	}
+
+	return true;
+}
+
+}
