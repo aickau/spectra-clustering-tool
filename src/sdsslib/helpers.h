@@ -44,6 +44,12 @@ namespace Helpers
 		return num;
 	}
 
+	// make string upper case
+	std::string upperCase( const std::string &_sstrString );
+
+	// make string lower case
+	std::string lowerCase( const std::string &_sstrString );
+
 	// returns current date and time as string.
 	std::string getCurentDateTimeStampString();
 
