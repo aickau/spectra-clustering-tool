@@ -22,6 +22,8 @@
 #include <sstream>
 #include <assert.h>
 
+static const std::string XMLHEADER("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+
 namespace XMLExport
 {
  
@@ -125,5 +127,17 @@ void xmlAddAttributeArray( const std::string *psstrAttributeNames, const float *
 	sstrOut += strStream.str();
 }
 
+
+void xmlSingleComment( const std::string &sstrComment, std::string &sstrOut )
+{
+	sstrOut += "<!-- ";
+	sstrOut += sstrComment;
+	sstrOut += " -->";
+}
+
+void xmlHeader( std::string &sstrOut )
+{
+	sstrOut += XMLHEADER;
+}
 
 }
