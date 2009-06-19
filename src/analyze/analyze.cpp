@@ -152,45 +152,35 @@ int InitGL()
 
 	if ( !sstrSelectionListFilename.empty() )
 	{
-		std::ifstream fin(sstrSelectionListFilename.c_str());
-		Helpers::print( "Reading selection list "+sstrSelectionListFilename+"\n", &logFile );
+		std::set<std::string> FITSFilenameSet;
 
-		if( fin ) 
+		bool bSuccess = SpectraHelpers::readSelectionList(sstrSelectionListFilename, FITSFilenameSet);
+
+		if ( bSuccess && !FITSFilenameSet.empty() )
 		{
-			// read selection list
-			std::set<std::string> FITSFilenameSet;
-			std::string sstrFITSFilename;
-			while( getline(fin,sstrFITSFilename) ) 
+			// create filtered dump
 			{
-				FITSFilenameSet.insert(sstrFITSFilename);
-			}
+				SpectraWrite w(std::string("filter.bin"));
 
-			if ( !FITSFilenameSet.empty() )
-			{
-				// create filtered dump
+				for (size_t i=0;i<g_numSpectra;i++)
 				{
-					SpectraWrite w(std::string("filter.bin"));
+					Spectra *a = g_pVFSSource->beginRead(i);
 
-					for (size_t i=0;i<g_numSpectra;i++)
+					std::set<std::string>::iterator it( FITSFilenameSet.find( a->getFileName() ) );
+					if (it != FITSFilenameSet.end() )
 					{
-						Spectra *a = g_pVFSSource->beginRead(i);
-
-						std::set<std::string>::iterator it( FITSFilenameSet.find( a->getFileName() ) );
-						if (it != FITSFilenameSet.end() )
-						{
-							w.write(*a);
-						}
-
-						g_pVFSSource->endRead(i);
+						w.write(*a);
 					}
-				}
 
-				pVFSFiltered = new SpectraVFS( "filter.bin", false );
+					g_pVFSSource->endRead(i);
+				}
 			}
+
+			pVFSFiltered = new SpectraVFS( "filter.bin", false );
 		}
 		else
 		{
-			Helpers::print( "Selection list not found, using unfiltered dump.\n", &logFile );
+			Helpers::print( "Selection list not found or empty, using unfiltered dump.\n", &logFile );
 		}
 	}
 

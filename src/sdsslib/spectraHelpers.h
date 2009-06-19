@@ -21,6 +21,7 @@
 
 #include <windows.h>
 #include <string>
+#include <set>
 
 class Spectra;
 
@@ -66,6 +67,10 @@ namespace SpectraHelpers
 	// write spectrum image and sdss link into HTML table entry
 	void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstrOutTable );
 
+	// \param _sstrSelectionListFilename path+filename to a text file with FITS file names.
+	// \param _outFITSFilenameSet set where FITS file names are inserted, file names are only inserted, exisitng items will not get deleted.
+	// \return true on successful load, otherwise false
+	bool readSelectionList( const std::string &_sstrSelectionListFilename, std::set<std::string> &_outFITSFilenameSet );
 };
 
 
