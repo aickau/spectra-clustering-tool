@@ -20,6 +20,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 #include <conio.h>
 #include <windows.h>
@@ -38,6 +39,21 @@ bool Helpers::insertString( const std::string &sstrTag, const std::string &sstrI
 	sstrValue = sstrValue.erase(insertpos, sstrTag.size());
 	sstrValue.insert( insertpos, sstrInsertValue );
 	return true;
+}
+
+
+std::string Helpers::upperCase( const std::string &_sstrString )
+{
+	std::string temp( _sstrString );
+	std::transform( temp.begin(), temp.end(), temp.begin(), toupper );
+	return temp;
+}
+
+std::string Helpers::lowerCase( const std::string &_sstrString )
+{
+	std::string temp( _sstrString );
+	std::transform( temp.begin(), temp.end(), temp.begin(), tolower );
+	return temp;				
 }
 
 
