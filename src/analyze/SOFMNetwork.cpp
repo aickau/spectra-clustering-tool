@@ -869,36 +869,9 @@ void SOFMNetwork::process()
 			Spectra &currentSpectra = *m_pSourceVFS->beginWrite(spectraIndex);
 
 			Spectra *a = m_pNet->beginWrite( currentBestMatch.index );
-
 			// set name of best match neuron
-//			if ( a->isEmpty() )
-			{
-				setBestMatch( *a, currentBestMatch.index, currentSpectra, spectraIndex );
-			}
-/*			else
-			{
-				// collision handling
-				// this cell in our cluster is already occupied by another neuron/spectra match
-				// check errors  
-				Spectra *b = m_pSourceVFS->beginRead(a->m_Index);
-				const float errorOld = a->compare( *b );
-				m_pSourceVFS->endRead(a->m_Index);
-
-				if ( errorOld < currentBestMatch.error )
-				{
-					// old best match wins and holds its cell-
-					// put current best match in collision list for further processing
-					spectraCollisionList.push_back( spectraIndex );
-				}
-				else
-				{
-					// new best match wins, put old match into collision list
-					spectraCollisionList.push_back( a->m_Index );
-					setBestMatch( *a, currentBestMatch.index, currentSpectra, spectraIndex );
-				}
-			}*/
+			setBestMatch( *a, currentBestMatch.index, currentSpectra, spectraIndex );
 			m_pNet->endWrite( currentBestMatch.index );
-
 
 			//_cprintf(":");
 
@@ -912,58 +885,7 @@ void SOFMNetwork::process()
 
 		j += jInc;
 	}
-/*
-	//_cprintf( "=" );
 
-	Timer t;
-	// collision handling
-	// for each collision spectra..
-	float colllisionPercentage = (static_cast<float>(spectraCollisionList.size()) / static_cast<float>(m_numSpectra))*100.f;
-	Helpers::print( std::string("Handling ")+Helpers::numberToString<float>(colllisionPercentage)+std::string("%% collisions.\n"), m_pLogStream );
-
-	for ( size_t j=0;j<spectraCollisionList.size();j++)
-	{
-		const size_t spectraIndex = spectraCollisionList.at(j);
-		Spectra &currentSpectra = *m_pSourceVFS->beginWrite(spectraIndex);
-
-		// retrieve first best match neuron
-		float min = FLT_MAX;
-		size_t bestMatch = 0;
-		
-		for ( size_t i = 0;i < m_gridSizeSqr;i++)
-		{
-			Spectra *a = m_pNet->beginRead( i );
-			if( a->isEmpty() )
-			{
-				float minErr = a->compare( currentSpectra );
-
-				if ( minErr < min )
-				{
-					min = minErr;
-					bestMatch = i;
-				}
-
-			}
-			m_pNet->endRead( i );
-		}
-
-		//_cprintf(":");
-
-		Spectra *a = m_pNet->beginWrite( bestMatch );
-		setBestMatch( *a, bestMatch, currentSpectra, spectraIndex );
-		m_pNet->endWrite( bestMatch );
-
-		adaptNetwork( currentSpectra, bestMatch, adaptionThreshold, sigmaSqr, lRate );
-
-		m_pSourceVFS->endWrite(spectraIndex);
-		//_cprintf(".");
-	}
-
-
-	double collisionTime = t.getElapsedSecs();
-	Helpers::print( std::string("Collision NW adaption time: ")+Helpers::numberToString<float>(collisionTime)+std::string("\n"), m_pLogStream );
-	Helpers::print( std::string("Flushing cluster table to disk.\n"), m_pLogStream );
-*/
 	m_pNet->flush();
 
 	m_currentStep++;
