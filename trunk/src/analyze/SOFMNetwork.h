@@ -118,9 +118,9 @@ protected:
 
 	struct BestMatch
 	{
+		void reset();
 		size_t index;
 		float error;	
-		bool bOnFrame;
 	};
 
 	// calculate min/max values for a given SpectraVFS
@@ -147,28 +147,22 @@ protected:
 
 	// search for best matching spectrum/neuron in the network
 	// this version will perform a brute-force full search in the entire network
-	// _spectraIndexList list with indices to source spectra
-	// _spectraIndexListOffset base offset to to index list
-	// _pBestMatchBatch pointer to array where best match info is written in make sure this is initialized correctly.
-	// _numBestMatchElements number of best match elements to process
-	// _bOnFrameOnly if set to true, only for those that have the on-frame flag set in the BestMatch datastructure
-	void searchBestMatchComplete( const std::vector<size_t> &_spectraIndexList, 
-		size_t _spectraIndexListOffset, 
-		BestMatch *_pBestMatchBatch,
-		size_t _numBestMatchElements, 
-		bool _bOnFrameOnly = false );
-
-	void searchBestMatchCompleteP( const std::vector<size_t> &_spectraIndexList, 
-		size_t _spectraIndexListOffset, 
-		BestMatch *_pBestMatchBatch,
-		size_t _numBestMatchElements, 
-		bool _bOnFrameOnly = false );
+	// _src source spectra
+	// returns best spectra in the network
+	BestMatch searchBestMatchComplete( const Spectra &_src );
 
 	// search for best matching spectrum/neuron in the network using only a local window ( s_searchRadius )
-	void searchBestMatchLocal( const std::vector<size_t> &_spectraIndexList, 
-		size_t _spectraIndexListOffset, 
-		BestMatch *_pBestMatchBatch, 
-		size_t _numBestMatchElements );
+	// _src source spectra
+	// returns best spectra in the network
+	BestMatch searchBestMatchLocal( const Spectra &_src, const int _searchRadius );
+
+	// one to many spectra comparison.
+	// _a source spectrum
+	// _pB array of source spectra
+	// _nCount number of Bs to compare with
+	// _pOutErrors array of errors with _nCount elements
+	void compareSpectra(const Spectra &_a, Spectra *_pB, size_t _nCount, float *_pOutErrors );
+
 
 	// adapt network for a given neuron/spectrum
 	// _spectrum source spectrum to adapt
