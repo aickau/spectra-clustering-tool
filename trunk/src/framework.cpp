@@ -364,14 +364,9 @@ LRESULT CALLBACK WndProc(HWND hWnd,	UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd,uMsg,wParam,lParam);
 }
 
-// todo, check how
-//void main(int argc, char* argv[])
-//{
-//	WinMain();
-//};
 
 
-int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)			
+int WINAPI WMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)			
 {
 	BOOL	done = FALSE;								
 	MSG		msg;									
@@ -434,3 +429,10 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	KillGLWindow();								
 	return (msg.wParam);						
 }
+
+
+void main(int argc, char* argv[])
+{
+	// we use void main as entry point to get console print feedback to caller window
+	WMain(GetModuleHandle(NULL), NULL, GetCommandLine(), SW_SHOW);
+};
