@@ -43,18 +43,38 @@
 
 
 static
-void intensityToRGB(float _intensity, float *_pRGB )
+void intensityToRGB(float _intensity, float *_pRGB, bool _bRed=false )
 {
 	_intensity *= 3.f;
-	_pRGB[2] = MIN(_intensity,1.f);
-	_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
-	_pRGB[0] = CLAMP(_intensity-2.f,0.f,1.f);
+	if ( _intensity >= 0.0f )
+	{
+		_pRGB[2] = MIN(_intensity,1.f);
+		_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
+		_pRGB[0] = CLAMP(_intensity-2.f,0.f,1.f);
+	}
+	else
+	{
+		_intensity = -_intensity;
+		_pRGB[0] = MIN(_intensity,1.f);
+		_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
+		_pRGB[2] = CLAMP(_intensity-2.f,0.f,1.f);
+	}
+
+	if ( _bRed )
+	{
+		float c = _pRGB[2];
+		_pRGB[2] = _pRGB[0];
+		_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
+		_pRGB[0] = c;
+
+	}
 }
 
 
 static 
 void setBestMatch( Spectra &_networkSpectrum, size_t _networkIndex, Spectra &_bestMatchSpectrum, size_t _bestMatchIndex )
 {
+	assert( _networkSpectrum.isEmpty() );
 	// set best matching related info.
 	_networkSpectrum.m_SpecObjID = _bestMatchSpectrum.m_SpecObjID;
 	_networkSpectrum.m_Index = _bestMatchIndex;
@@ -636,6 +656,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	BestMatch bestMatch;
 	bestMatch.reset();
 	bool bOnFrame = false;
+	bool bFound = false;
 
 	const int xpBestMatchOld = _src.m_Index % m_gridSize;
 	const int ypBestMatchOld = _src.m_Index / m_gridSize;
@@ -645,7 +666,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	const int xMax = MIN( xpBestMatchOld+_searchRadius, m_gridSize );
 	const int yMax = MIN( ypBestMatchOld+_searchRadius, m_gridSize );
 
-	for ( int y=xMin;y<yMax;y++ )
+	for ( int y=yMin;y<yMax;y++ )
 	{
 		for ( int x=xMin;x<xMax;x++ )
 		{
@@ -659,6 +680,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 				bestMatch.error = errMin;
 				bestMatch.index = spectraIndex;
 				bOnFrame = (x==xMin) || (x==(xMax-1)) || (y==yMin) || (y==yMax-1); // are we sitting on the border of the search frame ?
+				bFound = true;
 			}
 
 			m_pNet->endRead( spectraIndex );
@@ -666,7 +688,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	}
 
 	// are we sitting on the border, do a global search
-	if ( bOnFrame )
+	if ( bOnFrame || !bFound )
 	{
 		bestMatch = searchBestMatchComplete( _src );
 	}
@@ -981,6 +1003,76 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 }
 
 
+void SOFMNetwork::calcZMap( const std::string &_sstrFilenName, bool _bUseLogScale )
+{
+	if ( m_pNet == NULL || m_pNet->getNumSpectra() == 0 )
+	{
+		return;
+	}
+	if ( m_pSourceVFS == NULL || m_pSourceVFS->getNumSpectra() == 0 )
+	{
+	}
+
+	assert( !_sstrFilenName.empty() );
+
+	float *pZMatrix = new float[m_gridSizeSqr];
+	float *pRGBMap = new float[m_gridSizeSqr*3];
+
+	float maxZ = 0.0f;
+
+	// get maximum z
+	for ( size_t i=0;i<m_numSpectra;i++ )
+	{
+		Spectra *a = m_pSourceVFS->beginRead( i );
+		if (maxZ < a->m_Z)
+		{
+			maxZ = a->m_Z;
+		}
+		m_pSourceVFS->endRead( i );
+	}
+
+	// get z from net
+	for (size_t i=0;i<m_gridSizeSqr;i++) 
+	{
+		Spectra *spNet = m_pNet->beginRead( i );
+
+		if ( spNet->isEmpty() )
+		{
+			// mark empty cells
+			pZMatrix[i] = -1.f;
+			pRGBMap[i*3]   = 0.5f;
+			pRGBMap[i*3+1] = 0.5f;
+			pRGBMap[i*3+2] = 0.5f;
+		}
+		else
+		{
+			Spectra *spSource = m_pSourceVFS->beginRead( spNet->m_Index );
+			pZMatrix[i] = spSource->m_Z;
+			float scale;
+			if ( _bUseLogScale )
+			{
+				// logarithmic scale
+				scale  = log10f( pZMatrix[i]+1.f ) / log10f( maxZ+1.f );
+			}
+			else
+			{
+				// linear scale
+				scale  = pZMatrix[i] /= maxZ;
+			}
+			m_pSourceVFS->endRead( spNet->m_Index );
+			intensityToRGB( scale, &pRGBMap[i*3], true );			
+		}
+		m_pNet->endRead( i );
+	}
+
+	SpectraHelpers::saveIntensityMap( pRGBMap, m_gridSize, m_gridSize, _sstrFilenName );
+
+	delete[] pZMatrix;
+	delete[] pRGBMap;
+}
+
+
+
 void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 {
 	Helpers::print( "Generating info pages for spectra\n", m_pLogStream );
@@ -1253,8 +1345,10 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 	const std::string sstrUMatrix =  "UMatrix_" + sstrName;
 	const std::string sstrDifferenceMap = "DifferenceMap_" + sstrName;
+	const std::string sstrZMap = "ZMap_" + sstrName;
 	calcUMatrix( sstrDirectory+sstrUMatrix, true, false, false );
 	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false);
+	calcZMap( sstrDirectory+sstrZMap, true );
 
 	if ( _fullExport )
 	{
@@ -1273,6 +1367,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	sstrInfo += std::string("spectrum size in bytes: ")+Helpers::numberToString( sizeof(Spectra) )+HTMLExport::lineBreak();
 	sstrInfo += std::string("UMatrix:")+HTMLExport::lineBreak()+HTMLExport::image( sstrUMatrix+std::string(".png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Difference map:")+HTMLExport::lineBreak()+HTMLExport::image( sstrDifferenceMap+std::string(".png") )+HTMLExport::lineBreak();
+	sstrInfo += std::string("Z map:")+HTMLExport::lineBreak()+HTMLExport::image( sstrZMap+std::string(".png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Energy histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("energymap.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Peak histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("peakmap.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Z histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("zmap.png") )+HTMLExport::lineBreak();
