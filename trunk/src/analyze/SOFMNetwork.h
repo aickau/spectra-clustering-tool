@@ -98,9 +98,13 @@ public:
 	// Calculate difference map of the SOM codebook vectors and the input data assigned to a neuron  for the current calculation step. 
 	// sstrFilenName path + filename (no extension)
 	// _bUseLogScale use logarithmic scaling for matrix display
-	// _bShowEmpty show intensities for empty cells (no input data in there), otherwise empty cells are filled with black pixels
 	// _bNormalize normalize map for comparison
 	void calcDifferenceMap( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize );
+
+	// Calculate z map of th input data assigned to a neuron  for the current calculation step. 
+	// sstrFilenName path + filename (no extension)
+	// _bUseLogScale use logarithmic scaling for matrix display
+	void calcZMap( const std::string &_sstrFilenName, bool _bUseLogScale );
 
 
 	size_t			m_gridSize;
