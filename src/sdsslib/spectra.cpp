@@ -605,7 +605,6 @@ void Spectra::normalizeByFlux()
 }
 
 
-ISSE_ALIGN float errorv[4];
 extern "C" void spectraCompareX64(const float *a0, const float *a1, float *errout, size_t numsamples);
 
 float Spectra::compare(const Spectra &_spectra) const
@@ -618,6 +617,8 @@ float Spectra::compare(const Spectra &_spectra) const
 		error += d*d;
 	}
 */
+
+	ISSE_ALIGN float errorv[4];
 	
 	// optimized memory friendly version. make sure spectra is 16 bytes aligned
 	// this is 10x faster than compiler generated SSE code!
@@ -673,6 +674,7 @@ loop1:
 		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
 		error += d*d;
 	}
+	
 	return error;
 }
 
