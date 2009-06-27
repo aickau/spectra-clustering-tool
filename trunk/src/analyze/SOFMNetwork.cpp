@@ -614,6 +614,26 @@ void SOFMNetwork::compareSpectra(const Spectra &_a, Spectra *_pB, size_t _nCount
 	}
 }
 
+void SOFMNetwork::compareSpectra(const Spectra &_a, std::vector<Spectra*> &_pB, float *_pOutErrors )
+{
+	assert( _pOutErrors != NULL );
+	const int numElements = static_cast<int>(_pB.size());
+
+#pragma omp parallel for
+	for (int i=0;i<numElements;i++)
+	{
+		if ( _pB[i]->isEmpty() )
+		{
+			_pOutErrors[i] = _a.compare( *_pB[i] );
+		}
+		else
+		{
+			_pOutErrors[i] = FLT_MAX;
+		}
+	}
+}
+
+
 
 
 SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchComplete( const Spectra &_src )
@@ -660,35 +680,59 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	const int xpBestMatchOld = _src.m_Index % m_gridSize;
 	const int ypBestMatchOld = _src.m_Index / m_gridSize;
 
+	// calc boundaries
 	const int xMin = MAX( xpBestMatchOld-_searchRadius, 0 );
 	const int yMin = MAX( ypBestMatchOld-_searchRadius, 0 );
-	const int xMax = MIN( xpBestMatchOld+_searchRadius, m_gridSize );
-	const int yMax = MIN( ypBestMatchOld+_searchRadius, m_gridSize );
+	const int xMax = MIN( xpBestMatchOld+_searchRadius+1, m_gridSize );
+	const int yMax = MIN( ypBestMatchOld+_searchRadius+1, m_gridSize );
 
+	const size_t numSpectraToSearch( (xMax-xMin)*(yMax-yMin) );
+
+	// setup arrays
+	std::vector<Spectra*> searchSpectraVec;
+	std::vector<size_t> indexVec;
+	std::vector<float> errorVec;
+	searchSpectraVec.resize( numSpectraToSearch );
+	indexVec.resize( numSpectraToSearch );
+	errorVec.resize( numSpectraToSearch );
+
+	// read spectra from vfs
+	size_t c=0;
 	for ( int y=yMin;y<yMax;y++ )
 	{
 		for ( int x=xMin;x<xMax;x++ )
 		{
 			const size_t spectraIndex = getIndex( x, y );
-			Spectra *a = m_pNet->beginRead( spectraIndex );
-
-			const float errMin = a->compare( _src );
-
-			if (errMin < bestMatch.error && a->isEmpty() )
-			{
-				bestMatch.error = errMin;
-				bestMatch.index = spectraIndex;
-				bOnFrame = (x==xMin) || (x==(xMax-1)) || (y==yMin) || (y==yMax-1); // are we sitting on the border of the search frame ?
-				bFound = true;
-			}
-
-			m_pNet->endRead( spectraIndex );
+			indexVec[c] = spectraIndex;
+			searchSpectraVec[c] = m_pNet->beginRead( spectraIndex );
+			c++;
 		}
 	}
 
-	// are we sitting on the border, do a global search
-	if ( bOnFrame || !bFound )
+	// calculate errors/distances
+	compareSpectra( _src, searchSpectraVec, &errorVec[0] );
+
+	//end read, find bmu from error list
+	for ( size_t i=0;i<numSpectraToSearch;i++ )
 	{
+		const size_t spectraIndex = indexVec[i];
+		const float err = errorVec[i];
+
+		if (err < bestMatch.error )
+		{
+			bestMatch.error = err;
+			bestMatch.index = spectraIndex;
+			bFound = true;
+		}
+
+		m_pNet->endRead(spectraIndex);
+	}
+
+
+	if ( !bFound )
+	{
+		// all spectra where used in the given serach radius, use global search.
+		Helpers::print(".",NULL,false);
 		bestMatch = searchBestMatchComplete( _src );
 	}
 
@@ -739,6 +783,7 @@ void SOFMNetwork::process()
 	const float adaptionThreshold = m_params.lRateEnd*0.01f;
 	const float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
 	const float sigmaSqr = sigma*sigma;
+	const size_t searchRadius = static_cast<size_t>(((1.f-lPercent)*0.5f*static_cast<float>(m_gridSize)))+2;
 
 
 	// select random spectra from spectra dataset
@@ -769,7 +814,7 @@ void SOFMNetwork::process()
 		m_pNet->endWrite( i );
 	}
 
-	const bool bSearchFullWhenLocalMode = ((m_currentStep % MAX((m_params.numSteps/s_globalSearchFraction),1)) == 0) || (m_currentStep<5);
+	const bool bSearchFullWhenLocalMode = (m_currentStep<5); // ((m_currentStep % MAX((m_params.numSteps/s_globalSearchFraction),1)) == 0) || 
 	const bool bFullSearch = m_params.localSearch ? bSearchFullWhenLocalMode : true;
 
 	if (bFullSearch) 
@@ -778,7 +823,7 @@ void SOFMNetwork::process()
 	}
 	else
 	{
-		Helpers::print( "using local search.\n" );
+		Helpers::print( "using local search - search radius = "+Helpers::numberToString(searchRadius)+ "\n" );
 	}
 
 
@@ -799,7 +844,7 @@ void SOFMNetwork::process()
 		}
 		else
 		{
-			bmu = searchBestMatchLocal( currentSourceSpectra, s_searchRadius );
+			bmu = searchBestMatchLocal( currentSourceSpectra, searchRadius );
 		}
 
 		// mark best match neuron
@@ -1348,11 +1393,6 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	calcUMatrix( sstrDirectory+sstrUMatrix, true, false, false );
 	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false);
 	calcZMap( sstrDirectory+sstrZMap, true );
-
-	if ( _fullExport )
-	{
-		generateHTMLInfoPages( sstrName );
-	}
 	
 	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+HTMLExport::lineBreak();
 	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+HTMLExport::lineBreak();
@@ -1506,6 +1546,13 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 	std::ofstream fon(std::string(_sstrFilename+".html").c_str());
 	fon<<sstrMainHTMLDoc;
+
+	if ( _fullExport )
+	{
+		Helpers::print( "Export nearly complete, now creating info pages (You may abort here if you do not need them)...\n", m_pLogStream );
+		generateHTMLInfoPages( sstrName );
+	}
+
 
 	writeSettings("settings.xml");
 

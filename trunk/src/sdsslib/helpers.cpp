@@ -57,11 +57,15 @@ std::string Helpers::lowerCase( const std::string &_sstrString )
 }
 
 
-void Helpers::print( const std::string &_sstrText, std::ofstream *_logStream )
+void Helpers::print( const std::string &_sstrText, std::ofstream *_logStream, bool _bPrintPrefix )
 {
-	std::string sstrPrefix( Helpers::getCurentDateTimeStampString() );
-	sstrPrefix += "> ";
-	_cprintf( sstrPrefix.c_str() );
+	std::string sstrPrefix;
+	if ( _bPrintPrefix )
+	{
+		sstrPrefix = Helpers::getCurentDateTimeStampString();
+		sstrPrefix += "> ";
+		_cprintf( sstrPrefix.c_str() );
+	}
 	_cprintf( _sstrText.c_str() );
 	if ( _logStream != NULL )
 	{
