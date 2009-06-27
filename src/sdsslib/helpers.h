@@ -57,7 +57,8 @@ namespace Helpers
 	bool insertString( const std::string &sstrTag, const std::string &sstrInsertValue, std::string &sstrValue );
 	
 	// print text to console, optional to a log file.
-	void print( const std::string &_sstrText, std::ofstream *_logStream=NULL );
+	// _bPrintPrefix print out date and time stamp
+	void print( const std::string &_sstrText, std::ofstream *_logStream=NULL, bool _bPrintPrefix = true );
 
 	// allocate console window, set standard output to this console.
 	void createConsole();

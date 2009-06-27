@@ -38,10 +38,10 @@ public:
 	static const size_t s_outputPlanSize = 5;
 
 	// fraction of global search vs. local search
-	static const size_t s_globalSearchFraction = 10;
+	//static const size_t s_globalSearchFraction = 10;
 
 	// search radius in cells for local search
-	static const int s_searchRadius = 4;
+	//static const int s_searchRadius = 4;
 
 	// SOFM parameters
 	class Parameters
@@ -167,6 +167,11 @@ protected:
 	// _pOutErrors array of errors with _nCount elements
 	void compareSpectra(const Spectra &_a, Spectra *_pB, size_t _nCount, float *_pOutErrors );
 
+	// one to many spectra comparison.
+	// _a source spectrum
+	// _pB array of source spectra
+	// _pOutErrors array of errors with _nCount elements
+	void compareSpectra(const Spectra &_a, std::vector<Spectra*> &_pB, float *_pOutErrors );
 
 	// adapt network for a given neuron/spectrum
 	// _spectrum source spectrum to adapt
