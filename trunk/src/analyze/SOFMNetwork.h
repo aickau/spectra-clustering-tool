@@ -81,7 +81,7 @@ public:
 	// if a given cell contains a match (thus it is occupied by some input spectra) can be seen by its objectID
 	// For unoccupied cells: objectID=0.
 	// Also beware that the spectral data for matches is not equal to its original in the input (You always get the footprint). 
-	Spectra getSOFMSpectra( size_t _cellX, size_t _cellY );
+	void getSOFMSpectra( size_t _cellX, size_t _cellY, Spectra &_outSpectrum );
 
 	// export to HTML.
 	// _sstrFilename absolute or relative filename without (!) extension.
