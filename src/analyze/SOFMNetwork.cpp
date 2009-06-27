@@ -531,15 +531,14 @@ void SOFMNetwork::renderIcons()
 	}
 }
 
-Spectra SOFMNetwork::getSOFMSpectra( size_t _cellX, size_t _cellY )
+void SOFMNetwork::getSOFMSpectra( size_t _cellX, size_t _cellY, Spectra &_outSpectrum )
 {
 	assert( m_pNet != NULL );
 	assert( _cellX < m_gridSize );
 	assert( _cellY < m_gridSize );
 	size_t nIndex( _cellY*m_gridSize+_cellX );
-	Spectra resultSpectra =	*m_pNet->beginRead( nIndex );
+	_outSpectrum =	*m_pNet->beginRead( nIndex );
 	m_pNet->endRead( nIndex );
-	return resultSpectra;
 }
 
 

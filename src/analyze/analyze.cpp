@@ -256,7 +256,7 @@ void DrawNetwork( SOFMNetwork &network )
 		GLHelper::DrawLine( lb1, lb2 );
 	}
 
-	float yscale = 1.f/(network.m_Max-network.m_Min);
+	float maxAmplitude=-FLT_MAX;
 
 	size_t yp=gridSize;
 	for ( size_t y=0;y<network.m_gridSize;y+=stepSize)
@@ -265,7 +265,28 @@ void DrawNetwork( SOFMNetwork &network )
 		size_t xp=0;
 		for ( size_t x=0;x<network.m_gridSize;x+=stepSize)
 		{
-			Spectra &spectra(network.getSOFMSpectra(x,y));
+			ISSE_ALIGN Spectra spectra;
+			network.getSOFMSpectra(x,y,spectra);
+			spectra.calcMinMax();
+			if (maxAmplitude<spectra.m_Max)
+			{
+				maxAmplitude = spectra.m_Max;
+			}
+		}
+	}
+
+
+	float yscale = 1.f/fabsf(maxAmplitude*0.75f);
+
+	yp=gridSize;
+	for ( size_t y=0;y<network.m_gridSize;y+=stepSize)
+	{
+		yp--;
+		size_t xp=0;
+		for ( size_t x=0;x<network.m_gridSize;x+=stepSize)
+		{
+			ISSE_ALIGN Spectra spectra;
+			network.getSOFMSpectra(x,y,spectra);
 			if ( spectra.isEmpty() )
 			{
 				glColor3f(0.8,0.8,0);
