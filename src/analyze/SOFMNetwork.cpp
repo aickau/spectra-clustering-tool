@@ -819,11 +819,11 @@ void SOFMNetwork::process()
 
 	if (bFullSearch) 
 	{
-		Helpers::print( "using complete search.\n" );
+		Helpers::print( "using complete search.\n", m_pLogStream );
 	}
 	else
 	{
-		Helpers::print( "using local search - search radius = "+Helpers::numberToString(searchRadius)+ "\n" );
+		Helpers::print( "using local search - search radius = "+Helpers::numberToString(searchRadius)+ "\n", m_pLogStream );
 	}
 
 
@@ -858,8 +858,9 @@ void SOFMNetwork::process()
 		m_pSourceVFS->endWrite(spectraIndex);
 	}
 
+	Helpers::print( "writing network to disk.\n", m_pLogStream );
 	m_pNet->flush();
-
+	Helpers::print( "finished writing network to disk.\n", m_pLogStream );
 	m_currentStep++;
 }
 
