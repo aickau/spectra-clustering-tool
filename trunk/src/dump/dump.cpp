@@ -128,9 +128,9 @@ void main(int argc, char* argv[])
 	else
 	{
 		Helpers::print( "Filename extraction from dumpfile with following parameters:\n", &logFile);
-		Helpers::print( "dumpfile: "+sstrDumpFile+"\n", &logFile );
+		Helpers::print( "dumpfile: "+sstrInputDumpFile+"\n", &logFile );
 
-		SpectraVFS vfs(sstrDumpFile, true);
+		SpectraVFS vfs(sstrInputDumpFile, true);
 
 		std::string sstrOutFileName(FileHelpers::getFileNameMinusExtension(sstrDumpFile));
 		sstrOutFileName += ".txt";
