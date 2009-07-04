@@ -8,13 +8,14 @@
 //!
 //!      created by : Aick in der Au <aick.inderau@gmail.com>
 //!      created on : 1/19/2009
+//! code taken from : Takuji Nishimura
 //! additional docs : none
 //!  responsibility : 1. Aick in der Au
 //!                   2. 
 //! \endverbatim
 //!
 //! \file  random.cpp
-//! \brief Random number generation taken from mt19937-1.c credits: "Coded by Takuji Nishimura"
+//! \brief Random number generation taken from mt19937-1.c 
 //!        should give 2^19937-1 random numbers per seed
 
 #include "random.h"
