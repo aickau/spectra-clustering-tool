@@ -1,6 +1,26 @@
-#include <windows.h>
-#include <stdio.h>
-#include "glextensions.h"
+//! \verbatim
+//! ###########################################################################
+//! # SDSS sorting prototype - Stage I
+//! #
+//! # Copyright (c) 2009 Aick in der Au
+//! # All rights reserved.
+//! ###########################################################################
+//!
+//!      created by : Aick in der Au <aick.inderau@gmail.com>
+//!      created on : 7/4/2009
+//! additional docs : none
+//!  responsibility : 1. Aick in der Au
+//!                   2. 
+//! \endverbatim
+//!
+//! \file  glextensions.cpp
+//! \brief GL extension loader mechanism 
+
+#include "sdsslib/glextensions.h"
+
+#include <conio.h>
+
+
 
 int glMaxTextures = 0;
 int glMaxCombinersNV = 0;
@@ -120,53 +140,55 @@ void LoadExtension (char *name, void **dest, bool silent = true )
 {
 	*dest = wglGetProcAddress(name);	
 	if ( !silent ) {
-		printf ("  ");
-		printf (name);    
+		_cprintf ("  ");
+		_cprintf (name);    
 	}	
 	if (*dest) {
-		if ( !silent ) printf ("... loaded.\n");
+		if ( !silent ) _cprintf ("... loaded.\n");
 	} else {
-		if ( !silent ) printf ("... failed.\n");
+		if ( !silent ) _cprintf ("... failed.\n");
 		allExtensions = false;
 	}
 }
 
-bool LoadWGLExtensions ( bool silent ) 
+bool loadWGLExtensions ( bool _silent ) 
 {
 	allExtensions = true;
-	LoadExtension ("wglGetExtensionsStringARB", (void**)&wglGetExtensionsStringARB, silent );
-	LoadExtension ("wglGetPixelFormatAttribivARB", (void**)&wglGetPixelFormatAttribivARB, silent );
-	LoadExtension ("wglGetPixelFormatAttribfvARB", (void**)&wglGetPixelFormatAttribfvARB, silent );
-	LoadExtension ("wglChoosePixelFormatARB", (void**)&wglChoosePixelFormatARB, silent);
+	LoadExtension ("wglGetExtensionsStringARB", (void**)&wglGetExtensionsStringARB, _silent );
+	LoadExtension ("wglGetPixelFormatAttribivARB", (void**)&wglGetPixelFormatAttribivARB, _silent );
+	LoadExtension ("wglGetPixelFormatAttribfvARB", (void**)&wglGetPixelFormatAttribfvARB, _silent );
+	LoadExtension ("wglChoosePixelFormatARB", (void**)&wglChoosePixelFormatARB, _silent);
 
 	// swap control wgl ext
 	LoadExtension ("wglSwapIntervalEXT",		(void**)&wglSwapIntervalEXT);
 
 	// WGL_ARB_pixel_format
-	LoadExtension ("wglGetPixelFormatAttribivARB",		(void**)&wglGetPixelFormatAttribivARB, silent );
-	LoadExtension ("wglGetPixelFormatAttribfvARB",		(void**)&wglGetPixelFormatAttribfvARB, silent );
-	LoadExtension ("wglChoosePixelFormatARB",			(void**)&wglChoosePixelFormatARB, silent );
+	LoadExtension ("wglGetPixelFormatAttribivARB",		(void**)&wglGetPixelFormatAttribivARB, _silent );
+	LoadExtension ("wglGetPixelFormatAttribfvARB",		(void**)&wglGetPixelFormatAttribfvARB, _silent );
+	LoadExtension ("wglChoosePixelFormatARB",			(void**)&wglChoosePixelFormatARB, _silent );
 
 	// WGL_ARB_pbuffer
-	LoadExtension ("wglCreatePbufferARB", (void**)&wglCreatePbufferARB, silent );
-	LoadExtension ("wglGetPbufferDCARB", (void**)&wglGetPbufferDCARB, silent );
-	LoadExtension ("wglReleasePbufferDCARB", (void**)&wglReleasePbufferDCARB, silent );
-	LoadExtension ("wglDestroyPbufferARB", (void**)&wglDestroyPbufferARB, silent );
-	LoadExtension ("wglQueryPbufferARB", (void**)&wglQueryPbufferARB, silent );
+	LoadExtension ("wglCreatePbufferARB", (void**)&wglCreatePbufferARB, _silent );
+	LoadExtension ("wglGetPbufferDCARB", (void**)&wglGetPbufferDCARB, _silent );
+	LoadExtension ("wglReleasePbufferDCARB", (void**)&wglReleasePbufferDCARB, _silent );
+	LoadExtension ("wglDestroyPbufferARB", (void**)&wglDestroyPbufferARB, _silent );
+	LoadExtension ("wglQueryPbufferARB", (void**)&wglQueryPbufferARB, _silent );
 
 	// WGL_ARB_render_texture
-	LoadExtension ("wglBindTexImageARB",		(void**)&wglBindTexImageARB, silent );
-	LoadExtension ("wglReleaseTexImageARB",		(void**)&wglReleaseTexImageARB, silent );
+	LoadExtension ("wglBindTexImageARB",		(void**)&wglBindTexImageARB, _silent );
+	LoadExtension ("wglReleaseTexImageARB",		(void**)&wglReleaseTexImageARB, _silent );
 
 	// WGL_ARB_extensions_string
-	LoadExtension ("wglGetExtensionsStringARB",	(void**)&wglGetExtensionsStringARB, silent );
+	LoadExtension ("wglGetExtensionsStringARB",	(void**)&wglGetExtensionsStringARB, _silent );
 
 	return allExtensions;
 }
 
-bool LoadGLExtensions ( bool silent ) 
+bool GLExtensions::loadGLExtensions ( bool _silent ) 
 {
 	allExtensions = true;
+
+	loadWGLExtensions( _silent );
 
 	// blend equ ext
 	LoadExtension ("glBlendEquationEXT",		(void**)&glBlendEquationEXT);
@@ -218,6 +240,20 @@ bool LoadGLExtensions ( bool silent )
 	LoadExtension ("glMapBufferARB",			(void**)&glMapBufferARB);
 	LoadExtension ("glUnmapBufferARB",			(void**)&glUnmapBufferARB);
 
+	LoadExtension ("glGenFramebuffersEXT",		(void**)&glGenFramebuffersEXT);
+	LoadExtension ("glDeleteFramebuffersEXT",	(void**)&glDeleteFramebuffersEXT);
+	LoadExtension ("glBindFramebufferEXT",		(void**)&glBindFramebufferEXT);
+	LoadExtension ("glGenRenderbuffersEXT",		(void**)&glGenRenderbuffersEXT);
+	LoadExtension ("glDeleteRenderbuffersEXT",	(void**)&glDeleteRenderbuffersEXT);
+	LoadExtension ("glBindRenderbufferEXT",		(void**)&glBindRenderbufferEXT);
+	LoadExtension ("glRenderbufferStorageEXT",	(void**)&glRenderbufferStorageEXT);
+	LoadExtension ("glFramebufferRenderbufferEXT",(void**)&glFramebufferRenderbufferEXT);
+	LoadExtension ("glFramebufferTexture2DEXT",	(void**)&glFramebufferTexture2DEXT);
+	LoadExtension ("glCheckFramebufferStatusEXT",(void**)&glCheckFramebufferStatusEXT);
+					
+					
+					
+					
 
 	allExtensions &= IsExtensionSupported("GL_EXT_texture_filter_anisotropic");
 	allExtensions &= IsExtensionSupported("GL_ARB_multitexture");
@@ -249,12 +285,12 @@ bool LoadGLExtensions ( bool silent )
 
 	if ( IsExtensionSupported( "GL_NV_vertex_program" ) ) {
 		glHasVP10 = true;
-		if ( !silent ) printf ("  VP 1.0 found...");
+		if ( !_silent ) _cprintf ("  VP 1.0 found...");
 		if ( IsExtensionSupported( "GL_NV_vertex_program1_1" ) ) {
 			glHasVP11 = true;
-			if ( !silent ) printf ("VP 1.1 found. hooray!\n");
+			if ( !_silent ) _cprintf ("VP 1.1 found. hooray!\n");
 		} else {
-			if ( !silent ) printf ("but no VP 1.1.\n");
+			if ( !_silent ) _cprintf ("but no VP 1.1.\n");
 		}
 	}
 
