@@ -122,12 +122,15 @@ public:
 	// add signals from other spectra
 	void add(const Spectra &_spectra);
 
+	// add constant value to amplitudes
+	void add(float _value);
+
 	// multiply signals with other spectra
 	void multiply( const Spectra &_spectra);
-	
-	// scale signals by divisor
-	void divide(float _divisor);
 
+	// scale signals
+	void multiply(float _multiplier);
+	
 	// load from comma separated values 
 	bool loadFromCSV(const std::string &_filename);
 	

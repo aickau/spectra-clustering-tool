@@ -272,6 +272,15 @@ void Spectra::add(const Spectra &_spectra)
 }
 
 
+void Spectra::add(float _value)
+{
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		m_Amplitude[i] += _value;
+	}
+}
+
+
 void Spectra::multiply( const Spectra &_spectra)
 {
 	for (size_t i=0;i<Spectra::numSamples;i++)
@@ -281,13 +290,14 @@ void Spectra::multiply( const Spectra &_spectra)
 }
 
 
-void Spectra::divide(float divisor)
+void Spectra::multiply(float _multiplier)
 {
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
-		m_Amplitude[i] /= divisor;
+		m_Amplitude[i] *= _multiplier;
 	}
 }
+
 
 
 bool Spectra::saveToCSV(const std::string &_filename)
