@@ -208,11 +208,34 @@ std::string FileHelpers::getFilePath(const std::string &_sstrFilename)
 }
 
 
-void FileHelpers::writefile(const std::string &_sstrFilename, char *_buf, int _size)
+void FileHelpers::writeFile(const std::string &_sstrFilename, char *_buf, int _size)
 {
 	FILE *f;
 	f = fopen(_sstrFilename.c_str(),"wb");
-	fwrite(_buf,_size,1,f);
-	fclose(f);
+	if ( f ) 
+	{
+		fwrite(_buf,_size,1,f);
+		fclose(f);
+	}
 }
 
+
+bool FileHelpers::loadFileToString(const std::string &_sstrFilename, std::string &_sstrOutString )
+{
+	_sstrOutString = "";
+	std::ifstream fin(_sstrFilename.c_str());
+
+	if( !fin ) 
+	{
+		// could not open file
+		return false;
+	}
+
+	// read selection list
+	std::string sstrLine;
+	while( getline(fin, sstrLine) ) 
+	{
+		_sstrOutString += sstrLine + "\n";
+	}
+
+}

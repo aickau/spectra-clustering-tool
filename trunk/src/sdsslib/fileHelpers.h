@@ -62,7 +62,9 @@ namespace FileHelpers
 
 	bool fileExists(const std::string &_sstrFilename);
 
-	void writefile(const std::string &_sstrFilename, char *_buf, int _size);
+	void writeFile(const std::string &_sstrFilename, char *_buf, int _size);
+
+	bool loadFileToString(const std::string &_sstrFilename, std::string &_sstrOutString );
 }
 
 #endif
