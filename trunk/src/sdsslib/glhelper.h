@@ -163,7 +163,7 @@ public:
 	static void			SetCullMode( ECullMode cullmode );
 	static void			SetPropertyState(GLenum property, bool state);
 
-	static GLenum		GetInternalFormat(GLenum format);
+	static GLenum		GetInternalFormat(GLenum _format, GLenum _type );
 	static int			GetNumComponents(GLenum format);
 
 	// indexbinormal:index to binormal vertex shader attribute, indextangent:index to tangent vertex shader attribute 

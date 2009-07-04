@@ -361,6 +361,38 @@
 				>
 			</File>
 			<File
+				RelativePath=".\glFBO.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\glFBO.h"
+				>
+			</File>
+			<File
+				RelativePath=".\glhelper.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\glhelper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\glshaderprogram.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\glshaderprogram.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gltexture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\gltexture.h"
+				>
+			</File>
+			<File
 				RelativePath="..\wglext.h"
 				>
 			</File>
@@ -389,6 +421,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="shader"
+			>
+			<File
+				RelativePath=".\comparep.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\comparev.glsl"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\debug.cpp"
 			>
@@ -407,14 +451,6 @@
 		</File>
 		<File
 			RelativePath=".\fileHelpers.h"
-			>
-		</File>
-		<File
-			RelativePath=".\glhelper.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\glhelper.h"
 			>
 		</File>
 		<File
