@@ -171,19 +171,34 @@ void GLHelper::PrintStates()
 
 
 
-GLenum GLHelper::GetInternalFormat(GLenum format)
+GLenum GLHelper::GetInternalFormat(GLenum _format, GLenum _type )
 {
-	int internal_format=0;
-	switch (format)
+	int internalFormat=0;
+
+	if ( _type == GL_FLOAT )
 	{
-		case GL_RGB				: internal_format = GL_RGB8;				break;
-		case GL_RGBA			: internal_format = GL_RGBA8;				break;
-		case GL_ALPHA			: internal_format = GL_ALPHA8;				break;
-		case GL_LUMINANCE		: internal_format = GL_LUMINANCE8;			break;
-		case GL_LUMINANCE_ALPHA	: internal_format = GL_LUMINANCE8_ALPHA8;	break;
+		switch (_format)
+		{
+		case GL_RGB				: internalFormat = GL_RGB_FLOAT32_ATI;				break;
+		case GL_RGBA			: internalFormat = GL_RGBA_FLOAT32_ATI;				break;
+		case GL_ALPHA			: internalFormat = GL_ALPHA_FLOAT32_ATI;			break;
+		case GL_LUMINANCE		: internalFormat = GL_LUMINANCE_FLOAT32_ATI;		break;
+		case GL_LUMINANCE_ALPHA	: internalFormat = GL_LUMINANCE_ALPHA_FLOAT32_ATI;	break;
+		}
+	}
+	else
+	{
+		switch (_format)
+		{
+		case GL_RGB				: internalFormat = GL_RGB8;				break;
+		case GL_RGBA			: internalFormat = GL_RGBA8;				break;
+		case GL_ALPHA			: internalFormat = GL_ALPHA8;				break;
+		case GL_LUMINANCE		: internalFormat = GL_LUMINANCE8;			break;
+		case GL_LUMINANCE_ALPHA	: internalFormat = GL_LUMINANCE8_ALPHA8;	break;
+		}
 	}
 	
-	return internal_format;
+	return internalFormat;
 }
 
 
@@ -248,7 +263,7 @@ void GLHelper::RegTexture(unsigned int id, unsigned int sizex, unsigned int size
 	{
 		glTexParameteri(target1, GL_TEXTURE_MIN_FILTER, texmagfilter);
 		if (pt)
-			glTexImage2D(target2, 0, GetInternalFormat(format), sizex, sizey, 0, format, type, pt);
+			glTexImage2D(target2, 0, GetInternalFormat(format, type), sizex, sizey, 0, format, type, pt);
 	}
 }
 
