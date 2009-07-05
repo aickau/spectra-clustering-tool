@@ -112,12 +112,12 @@ void main(int argc, char* argv[])
 		Helpers::print("Warning: Source spectra greater than SOM map."+Helpers::numberToString<__int32>(numSpectraSRC)+" / "+Helpers::numberToString<size_t>(numSpectraSOM)+"\n", &logFile);
 		return;	
 	}
-
+ 
 	std::string sstrOutput;
-	static const std::string sstrEmptyLine("-1.0; -1.0; -1.0;\n");
+	static const std::string sstrEmptyLine("-1.0,-1.0,-1.0\n");
 	
+	Helpers::print("Starting compare.\n", &logFile);
 
-	size_t c = 0;
 	for ( size_t i=0;i<numSpectraSOM;i++ )
 	{
 		Spectra *spSOM = vfsSOM.beginRead(i);
@@ -143,9 +143,9 @@ void main(int argc, char* argv[])
 				size_t nRange = Spectra::numSamples/3;
 				for (size_t j=0;j<nRange;j++)
 				{
-					float d0 = (a.m_Amplitude[i]-spSRC->m_Amplitude[i]);
-					float d1 = (a.m_Amplitude[i+nRange]-spSRC->m_Amplitude[i+nRange]);
-					float d2 = (a.m_Amplitude[i+nRange*2]-spSRC->m_Amplitude[i+nRange*2]);
+					float d0 = (a.m_Amplitude[j]-spSRC->m_Amplitude[j]);
+					float d1 = (a.m_Amplitude[j+nRange]-spSRC->m_Amplitude[j+nRange]);
+					float d2 = (a.m_Amplitude[j+nRange*2]-spSRC->m_Amplitude[j+nRange*2]);
 					err0 += d0*d0;
 					err1 += d1*d1;
 					err2 += d2*d2;
@@ -158,12 +158,17 @@ void main(int argc, char* argv[])
 			
 		}
 		vfsSOM.endRead(i);
-		c += 3;
 	}
+
 
 	// write map to csv
 	std::ofstream fon(sstrOutFile.c_str());
 	fon<<sstrOutput;
+
+	if (!sstrOutput.empty())
+	{
+		Helpers::print("Success.\n", &logFile);
+	}
 
 	return;
 }
