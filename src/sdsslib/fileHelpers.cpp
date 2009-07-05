@@ -237,5 +237,5 @@ bool FileHelpers::loadFileToString(const std::string &_sstrFilename, std::string
 	{
 		_sstrOutString += sstrLine + "\n";
 	}
-
+	return true;
 }

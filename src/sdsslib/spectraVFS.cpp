@@ -348,7 +348,7 @@ void SpectraVFS::flush()
 
 
 
-size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter, std::ofstream *_logStream, std::set<std::string> *pFITSFilenameSet )
+size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter, std::ofstream *_logStream, std::map<std::string,float> *pFITSFilenameSet )
 {
 	std::vector<std::string> fileList;
 
@@ -361,18 +361,26 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 	size_t c = 0;
 	for ( size_t i=0;i<numSpectra;i++ )
 	{
+		float multiplier = 1.f;
 		if ( pFITSFilenameSet && !pFITSFilenameSet->empty())
 		{
 			std::string sstrFilename(FileHelpers::getFileName(fileList.at(i)));
-			std::set<std::string>::iterator it = pFITSFilenameSet->find(sstrFilename);
+			std::map<std::string,float>::iterator it = pFITSFilenameSet->find(sstrFilename);
 			if ( it == pFITSFilenameSet->end() )
 			{
 				Helpers::print( "skipping "+fileList.at(i)+"\n", _logStream );
 				continue;
 			}
+			multiplier = it->second;
 		}
 		spec.clear();
 		bool bResult = spec.loadFromFITS( fileList.at(i) );
+		
+		if ( multiplier != 1.f )
+		{
+			Helpers::print( "multiplying spectrum "+fileList.at(i)+" with "+ Helpers::numberToString<float>(multiplier)+"\n", _logStream );
+			spec.multiply(multiplier);
+		}
 
 		if ( bResult )
 		{
