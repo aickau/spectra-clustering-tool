@@ -1,3 +1,4 @@
-spSpec-51630-0266-637.fit
-spSpec-51630-0266-638.fit
-spSpec-51630-0266-640.fit
+spSpec-51630-0266-637.fit , 10
+spSpec-51630-0266-638.fit , .25
+spSpec-51630-0266-640.fit 
+

@@ -110,7 +110,7 @@ void main(int argc, char* argv[])
 		Helpers::print( "each spectrum contains " + Helpers::numberToString<size_t>(sizeof(Spectra)) + " bytes.\n\n", &logFile );
 
 
-		std::set<std::string> FITSFilenameSet;
+		std::map<std::string,float> FITSFilenameSet;
 		if ( !sstrSelectionListFilename.empty() )
 		{
 			bool bSuccess = SpectraHelpers::readSelectionList(sstrSelectionListFilename, FITSFilenameSet);

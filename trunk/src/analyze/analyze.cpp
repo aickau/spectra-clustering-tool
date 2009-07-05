@@ -60,10 +60,118 @@ bool g_DisableOutput=false;
 size_t g_numSpectra = 0;
 SpectraVFS *g_pVFSSource = NULL; 
 
+/*
+#include "sdsslib/gltexture.h"
+#include "sdsslib/glshaderprogram.h"
+#include "sdsslib/filehelpers.h"
+#include "sdsslib/glFBO.h"
+
+bool testGPUcompare( const Spectra &_src, SpectraVFS &_vfs )
+{
+	if ( _vfs.getNumSpectra() < 1 )
+	{
+		return false;
+	}
+	Spectra *a = _vfs.beginRead(0);
+	_vfs.endRead(0);
+
+
+	GLTexture t0;
+	GLTexture t1;
+
+	const size_t numSamples = 4; // Spectra::numSamples
+
+	float amp0[numSamples]={0.0f,1.0f,0.0,2.0f};
+	float amp1[numSamples]={-0.5f,0.0f,1.0,-1.0f};
+
+	size_t sx=1, sy=1;
+
+	GLFBO fbo(sx,sy);
+	GLHelper::PrintError();
+
+	fbo.attachRenderBuffer(GLFBO::RB_COLOR0);
+	GLHelper::PrintError();
+	fbo.attachRenderBuffer(GLFBO::RB_DEPTH);
+	GLHelper::PrintError();
+	fbo.bind();
+	GLHelper::PrintError();
+
+	t0.setTexture(numSamples/4, 1, GL_RGBA, GL_FLOAT, false, (void*)&amp0[0] );
+	GLHelper::PrintError();
+	t1.setTexture(numSamples/4, 1, GL_RGBA, GL_FLOAT, false,  (void*)&amp1[0] );
+
+
+	glMatrixMode(GL_PROJECTION);						
+	glLoadIdentity();			
+	glOrtho(0,sx, sy, 0, 1, 100);
+	glMatrixMode(GL_MODELVIEW);							
+	glLoadIdentity();			
+	GLHelper::PrintError();
+
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
+	GLHelper::PrintError();
+
+
+	std::string shaderSourceV;
+	std::string shaderSourceP;
+	FileHelpers::loadFileToString( "src/sdsslib/comparev.glsl", shaderSourceV );
+	FileHelpers::loadFileToString( "src/sdsslib/comparep.glsl", shaderSourceP );
+	
+	GLShaderProgram sh;
+	sh.create( shaderSourceV, shaderSourceP );
+	sh.bind();
+
+	
+	t0.bind(0);
+	t1.bind(1);
+
+	sh.setSampler( "t0", 0 );
+	sh.setSampler( "t1", 1 );
+
+	float x= 1;
+	float y= 1;
+
+	float p[] = {
+		0.0f, 0.0f,-2.f,
+		x,0.f,-2.f,
+		x,y,-2.f,
+		0.f,y,-2.f
+	};
+
+	float t[] = {
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.f, 1.0f
+	};
+
+	glColor3f(1,0,0);
+	GLHelper::DrawQuad(p,t);
+	GLHelper::PrintError();
+
+
+
+	t1.unbind(1);
+	t0.unbind(0);
+	sh.unbind();
+
+	GLHelper::PrintError();
+	float res[numSamples*4];
+	glReadPixels(0,sy-1,numSamples/4, 1, GL_RGBA, GL_FLOAT, &res[0] );
+	GLHelper::PrintError();
+
+	fbo.unbind();
+
+
+	return true;
+}
+*/
 
 int InitGL()		
 {
 	Helpers::createConsole();
+	GLExtensions::loadGLExtensions(false);
 
 	SpectraHelpers::init( fr_hDC );
 
@@ -152,12 +260,15 @@ int InitGL()
 
 	if ( !sstrSelectionListFilename.empty() )
 	{
-		std::set<std::string> FITSFilenameSet;
+		std::map<std::string,float> FITSFilenameSet;
+
+		Helpers::print("Reading "+sstrSelectionListFilename+".\n", &logFile);
 
 		bool bSuccess = SpectraHelpers::readSelectionList(sstrSelectionListFilename, FITSFilenameSet);
 
 		if ( bSuccess && !FITSFilenameSet.empty() )
 		{
+			size_t nCount = 0;
 			// create filtered dump
 			{
 				SpectraWrite w(std::string("filter.bin"));
@@ -166,14 +277,25 @@ int InitGL()
 				{
 					Spectra *a = g_pVFSSource->beginRead(i);
 
-					std::set<std::string>::iterator it( FITSFilenameSet.find( a->getFileName() ) );
+					std::map<std::string,float>::iterator it( FITSFilenameSet.find( a->getFileName() ) );
 					if (it != FITSFilenameSet.end() )
 					{
+						if ( it->second != 1.f )
+						{
+							Helpers::print( "multiplying spectrum "+a->getFileName()+" with "+ Helpers::numberToString<float>(it->second)+"\n", &logFile );
+							a->multiply(it->second);
+						}
 						w.write(*a);
+						nCount++;
 					}
 
 					g_pVFSSource->endRead(i);
 				}
+			}
+
+			if (nCount==0)
+			{
+				Helpers::print("No match between selection and dump found, using unfiltered dump.\n", &logFile);
 			}
 
 			pVFSFiltered = new SpectraVFS( "filter.bin", false );
@@ -194,7 +316,6 @@ int InitGL()
 	{
 		g_pSOFM = new SOFMNetwork( g_pVFSSource, bContinue, &logFile );
 	}
-
 
 	//g_QTCluster = new QTClustering( g_pVFSSource, QTClustering::Parameters(8.f, 0.0f, 2 ) );
 	//g_QTCluster->Process();
@@ -388,6 +509,11 @@ void DrawGLScene()
 		else return;
 	}
 */
+
+//	Spectra *a = g_pVFSSource->beginRead(1);
+//	testGPUcompare( *a, *g_pVFSSource );
+//	g_pVFSSource->endRead(1);
+
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 

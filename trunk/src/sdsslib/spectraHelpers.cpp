@@ -391,7 +391,7 @@ void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstr
 	_sstrOutTable += HTMLExport::endTableRow();
 }
 
-bool readSelectionList( const std::string &_sstrSelectionListFilename, std::set<std::string> &_outFITSFilenameSet )
+bool readSelectionList( const std::string &_sstrSelectionListFilename, std::map<std::string,float> &_outFITSFilenameSet )
 {
 	if ( _sstrSelectionListFilename.empty() )
 	{
@@ -408,10 +408,27 @@ bool readSelectionList( const std::string &_sstrSelectionListFilename, std::set<
 	}
 
 	// read selection list
-	std::string sstrFITSFilename;
-	while( getline(fin,sstrFITSFilename) ) 
+	std::string sstrLine;
+	while( getline(fin,sstrLine) ) 
 	{
-		_outFITSFilenameSet.insert(sstrFITSFilename);
+		std::string sstrFITSFilename;
+		std::string sstrSeperator;
+		float multiplier=1.f;
+
+		std::istringstream sstrStream(sstrLine);
+		if (sstrStream) 
+		{
+			sstrStream >> sstrFITSFilename;	
+		}
+		if (sstrStream) 
+		{
+			sstrStream >> sstrSeperator;	
+		}
+		if (sstrStream) 
+		{
+			sstrStream >> multiplier;	
+		}
+		_outFITSFilenameSet.insert(std::make_pair<std::string,float>(sstrFITSFilename,multiplier));
 	}
 
 	return true;
