@@ -36,7 +36,7 @@ void main(int argc, char* argv[])
 {
 	std::ofstream logFile("compare_log.txt");
 
-	Helpers::print("Welcome to SDSS Compare!\n\n\n", &logFile);
+	Helpers::print("Welcome to SDSS Compare "+SDSSVERSIONSTRING+" !\n\n\n", &logFile);
 	Helpers::print("Does a global comparison, one FITS file with a spectrum with many spectra from a given SOM.\n", &logFile);
 
 	std::string sstrSourceDumpFile("allSpectra.bin");

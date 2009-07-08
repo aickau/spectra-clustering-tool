@@ -204,7 +204,7 @@ int InitGL()
 	}
 	argv[argc] = NULL; // terminate with zero.
 
-	Helpers::print("Welcome to SDSS Analyze!\n\n\n", &logFile);
+	Helpers::print("Welcome to SDSS Analyze "+SDSSVERSIONSTRING+" !\n\n\n", &logFile);
 
 
 	std::string sstrSourceSpectraFilename("allSpectra.bin");
