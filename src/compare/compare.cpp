@@ -112,33 +112,38 @@ void main(int argc, char* argv[])
 		Helpers::print("Warning: Source spectra greater than SOM map."+Helpers::numberToString<__int32>(numSpectraSRC)+" / "+Helpers::numberToString<size_t>(numSpectraSOM)+"\n", &logFile);
 		return;	
 	}
- 
-	std::string sstrOutput;
-	static const std::string sstrEmptyLine("-1.0,-1.0,-1.0\n");
 	
 	Helpers::print("Starting compare.\n", &logFile);
 
+	float errMaxR = 0.0;
+	float errMaxG = 0.0;
+	float errMaxB = 0.0;
+
+	float *pErrors = new float[numSpectraSOM*3];
+
+	size_t c=0;
 	for ( size_t i=0;i<numSpectraSOM;i++ )
 	{
 		Spectra *spSOM = vfsSOM.beginRead(i);
 		if( spSOM->isEmpty()  )
 		{
-			sstrOutput += sstrEmptyLine;
+			pErrors[c+0] = -1.0f;
+			pErrors[c+1] = -1.0f;
+			pErrors[c+2] = -1.0f;
 		}
 		else
 		{
 			if (spSOM->m_Index>=numSpectraSRC)
 			{
-				Helpers::print("SOM index to source spectra out of range "+Helpers::numberToString<__int32>(spSOM->m_Index)+" / "+Helpers::numberToString<size_t>(numSpectraSRC)+"\n" );
-				sstrOutput += sstrEmptyLine;
+				Helpers::print("SOM index to source spectra out of range "+Helpers::numberToString<__int32>(spSOM->m_Index)+" / "+Helpers::numberToString<size_t>(numSpectraSRC)+"\n", &logFile );
 			}
 			else
 			{
 				Spectra *spSRC = vfsSrc.beginRead(spSOM->m_Index);
 
-				float err0 = 0.0f;
-				float err1 = 0.0f;
-				float err2 = 0.0f;
+				float errR = 0.0f;
+				float errG = 0.0f;
+				float errB = 0.0f;
 				
 				size_t nRange = Spectra::numSamples/3;
 				for (size_t j=0;j<nRange;j++)
@@ -146,19 +151,55 @@ void main(int argc, char* argv[])
 					float d0 = (a.m_Amplitude[j]-spSRC->m_Amplitude[j]);
 					float d1 = (a.m_Amplitude[j+nRange]-spSRC->m_Amplitude[j+nRange]);
 					float d2 = (a.m_Amplitude[j+nRange*2]-spSRC->m_Amplitude[j+nRange*2]);
-					err0 += d0*d0;
-					err1 += d1*d1;
-					err2 += d2*d2;
+					errR += d0*d0;
+					errG += d1*d1;
+					errB += d2*d2;
 				}
 
-				sstrOutput += Helpers::numberToString<float>( err0 ) + "," + Helpers::numberToString<float>( err1 ) + "," + Helpers::numberToString<float>( err2 ) + "\n";
+				errMaxR = MAX( errMaxR, errR );
+				errMaxG = MAX( errMaxG, errG );
+				errMaxB = MAX( errMaxB, errB );
+
+				pErrors[c+0] = errR;
+				pErrors[c+1] = errG;
+				pErrors[c+2] = errB;
 
 				vfsSrc.endRead(spSOM->m_Index);
 			}
 			
 		}
 		vfsSOM.endRead(i);
+		c+=3;
 	}
+
+	Helpers::print("MaxBand1 "+Helpers::numberToString<float>(errMaxR)+"    MaxBand2 "+Helpers::numberToString<float>(errMaxG)+"    MaxBand3 "+Helpers::numberToString<float>(errMaxB)+"\n", &logFile );
+
+
+	float errMax = MAX( MAX(errMaxR, errMaxG), errMaxB );
+
+	std::string sstrOutput;
+	static const std::string sstrEmptyLine("-1.0,-1.0,-1.0\n");
+
+	c=0;
+	for ( size_t i=0;i<numSpectraSOM;i++ )
+	{
+		if ( pErrors[c+0] >= 0.0f && errMax > 0.0f)
+		{
+			pErrors[c+0] /= errMax;
+			pErrors[c+1] /= errMax;
+			pErrors[c+2] /= errMax;
+			sstrOutput += Helpers::numberToString<float>( pErrors[c+0] ) + "," + Helpers::numberToString<float>( pErrors[c+1] ) + "," + Helpers::numberToString<float>( pErrors[c+2] ) + "\n";
+		}
+		else
+		{
+			sstrOutput += sstrEmptyLine;
+		}
+
+		c+=3;
+	}
+
+
+	delete[] pErrors;
 
 
 	// write map to csv
