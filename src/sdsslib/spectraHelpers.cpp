@@ -434,4 +434,108 @@ bool readSelectionList( const std::string &_sstrSelectionListFilename, std::map<
 	return true;
 }
 
+bool calcVectorField( SpectraVFS &_map1, SpectraVFS &_map2, std::vector<float>& _outVectorField )
+{
+	// check parameters
+	assert( _map1.getNumSpectra() > 0 );
+	assert( _map2.getNumSpectra() > 0 );
+	assert( _map1.getNumSpectra() == _map2.getNumSpectra() );
+
+	if ( _map1.getNumSpectra() <= 0 || 
+		 _map2.getNumSpectra() <= 0 ||  
+		 _map1.getNumSpectra() != _map2.getNumSpectra() )
+	{
+		return false;
+	}
+
+	const size_t nSize = _map1.getNumSpectra();
+	const size_t nSize2 = nSize*2; 
+	const size_t nGridSize = static_cast<int>(sqrtf(nSize));
+	if ( nGridSize*nGridSize != nSize )
+	{
+		assert(0);
+		return false;
+	}
+
+	
+	int *posField1 = new int[nSize2];
+	int *posField2 = new int[nSize2];
+
+	// clear
+	for (size_t i=0;i<nSize2;i++) 
+	{
+		posField1[i] = -1;
+		posField2[i] = -1;
+	}
+
+
+	// fill position fields
+	for (size_t i=0;i<nSize;i++) 
+	{
+		const int posX = i % nGridSize;
+		const int posY = i / nGridSize;
+
+		Spectra *sp1 = _map1.beginRead(i);
+		Spectra *sp2 = _map2.beginRead(i);
+
+		assert( sp1->m_Index < static_cast<int>(nSize) && sp1->m_Index >= -1 );
+		assert( sp2->m_Index < static_cast<int>(nSize) && sp1->m_Index >= -1 );
+
+		if ( sp1->m_Index != -1 )
+		{
+			posField1[sp1->m_Index*2+0] = posX;
+			posField1[sp1->m_Index*2+1] = posY;
+		}
+
+		if ( sp2->m_Index != -1 )
+		{
+			posField2[sp2->m_Index*2+0] = posX;
+			posField2[sp2->m_Index*2+1] = posY;
+		}
+
+		_map2.endRead(i);
+		_map1.endRead(i);
+	}
+
+	_outVectorField.resize(nSize*5);
+
+	size_t c=0;
+	for (size_t i=0;i<nSize2;i+=2) 
+	{
+		if ( posField2[i+0] >= 0 )
+		{
+			// field in use
+
+			assert( posField1[i+0] >= 0 );
+			assert( posField1[i+1] >= 0 );
+			assert( posField2[i+0] >= 0 );
+			assert( posField2[i+1] >= 0 );
+
+			const float dx = static_cast<float>(posField2[i+0]-posField1[i+0]);
+			const float dy = static_cast<float>(posField2[i+1]-posField1[i+1]);
+			_outVectorField[c+0] = static_cast<float>(posField1[i+0]);
+			_outVectorField[c+1] = static_cast<float>(posField1[i+1]);
+			_outVectorField[c+2] = dx;
+			_outVectorField[c+3] = dy;
+			_outVectorField[c+4] = sqrtf(dx*dx+dy*dy);
+		}
+		else
+		{
+			// field is empty
+			_outVectorField[c+0] = 0.f;
+			_outVectorField[c+1] = 0.f;
+			_outVectorField[c+2] = 0.f;
+			_outVectorField[c+3] = 0.f;
+			_outVectorField[c+4] = 0.f;
+		}
+		c+=5;
+	}
+ 
+	delete[] posField2;
+	delete[] posField1;
+
+	return true;
+}
+
+
 }

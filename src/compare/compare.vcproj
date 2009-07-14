@@ -66,10 +66,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib tinyxmld_STL$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../cfitsio;../sdsslib/lib"
+				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
 				SubSystem="1"
@@ -149,10 +149,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib tinyxmld_STL$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../cfitsio;../sdsslib/lib"
+				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
 				SubSystem="1"
@@ -228,10 +228,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib tinyxmld_STL$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="../cfitsio;../sdsslib/lib"
+				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
 				SubSystem="1"
@@ -310,10 +310,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
+				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib tinyxmld_STL$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="../cfitsio;../sdsslib/lib"
+				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
