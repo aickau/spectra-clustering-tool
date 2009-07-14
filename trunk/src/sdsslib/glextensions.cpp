@@ -81,6 +81,7 @@ PFNGLRENDERBUFFERSTORAGEEXTPROC		glRenderbufferStorageEXT	= NULL;
 PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC	glFramebufferRenderbufferEXT= NULL;
 PFNGLFRAMEBUFFERTEXTURE2DEXTPROC	glFramebufferTexture2DEXT	= NULL;
 PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC	glCheckFramebufferStatusEXT	= NULL;
+PFNGLGETRENDERBUFFERPARAMETERIVEXTPROC glGetRenderbufferParameterivEXT = NULL;
 
 
 // GL_ARB_vertex_buffer_object
@@ -252,6 +253,7 @@ bool GLExtensions::loadGLExtensions ( bool _silent )
 	LoadExtension ("glMapBufferARB",			(void**)&glMapBufferARB);
 	LoadExtension ("glUnmapBufferARB",			(void**)&glUnmapBufferARB);
 
+	// GL_EXT_framebuffer_object
 	LoadExtension ("glGenFramebuffersEXT",		(void**)&glGenFramebuffersEXT);
 	LoadExtension ("glDeleteFramebuffersEXT",	(void**)&glDeleteFramebuffersEXT);
 	LoadExtension ("glBindFramebufferEXT",		(void**)&glBindFramebufferEXT);
@@ -262,9 +264,9 @@ bool GLExtensions::loadGLExtensions ( bool _silent )
 	LoadExtension ("glFramebufferRenderbufferEXT",(void**)&glFramebufferRenderbufferEXT);
 	LoadExtension ("glFramebufferTexture2DEXT",	(void**)&glFramebufferTexture2DEXT);
 	LoadExtension ("glCheckFramebufferStatusEXT",(void**)&glCheckFramebufferStatusEXT);
+	LoadExtension ("glGetRenderbufferParameterivEXT",(void**)&glGetRenderbufferParameterivEXT);
 					
-					
-					
+									
 					
 
 	allExtensions &= IsExtensionSupported("GL_EXT_texture_filter_anisotropic");

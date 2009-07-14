@@ -122,7 +122,7 @@ public:
 	static void			Print(int fontid, float *position, const char *fmt, ...);
 
 	// GL error handling
-	static bool			PrintError(); // on success (no errors) returns true
+	static bool			PrintError(const char *_functionName=NULL); // on success (no errors) returns true
 	static void			PrintStates();
 
 	// texture 
@@ -214,6 +214,8 @@ public:
 
 };
 
+
+#define CHECK_GL(funcname) assert(GLHelper::PrintError(funcname));
 
 #endif
 

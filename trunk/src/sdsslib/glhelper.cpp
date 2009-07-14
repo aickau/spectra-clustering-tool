@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include <string>
+
 #define DEFAULT_Z -10.f
 
 int GLHelper::BuildFont(HDC hdc, char *fontname, int fontsize, bool bold, bool italic)								
@@ -92,18 +94,31 @@ void GLHelper::Print(int fontid, float *position, const char *fmt, ...)
 }
 
 
-bool GLHelper::PrintError() 
+bool GLHelper::PrintError(const char *_functionName) 
 {
+	std::string sstrErrorText("");
+	std::string sstrFunctionName("");
+	if ( _functionName )
+	{
+		sstrFunctionName = _functionName;
+	}
 	// gl errors
 	GLenum glerr = glGetError();
 	switch(glerr) {
-		case GL_INVALID_ENUM		: Debug::PrintConsole("GL Error: invalid enum\n");break;
-		case GL_INVALID_VALUE		: Debug::PrintConsole("GL Error: invalid value\n");break;
-		case GL_INVALID_OPERATION	: Debug::PrintConsole("GL Error: invalid operation\n");break;
-		case GL_STACK_OVERFLOW		: Debug::PrintConsole("GL Error: stack overflow\n");break;
-		case GL_STACK_UNDERFLOW		: Debug::PrintConsole("GL Error: stack underflow\n");break;
-		case GL_OUT_OF_MEMORY		: Debug::PrintConsole("GL Error: out of memory\n");break;
+		case GL_INVALID_ENUM		: sstrErrorText=std::string("GL Error: invalid enum");break;
+		case GL_INVALID_VALUE		: sstrErrorText=std::string("GL Error: invalid value");break;
+		case GL_INVALID_OPERATION	: sstrErrorText=std::string("GL Error: invalid operation");break;
+		case GL_STACK_OVERFLOW		: sstrErrorText=std::string("GL Error: stack overflow");break;
+		case GL_STACK_UNDERFLOW		: sstrErrorText=std::string("GL Error: stack underflow");break;
+		case GL_OUT_OF_MEMORY		: sstrErrorText=std::string("GL Error: out of memory");break;
 	}
+
+	if ( !sstrErrorText.empty() )
+	{
+		std::string sstrErrMsg(sstrFunctionName+" "+sstrErrorText);
+		Debug::PrintConsole(sstrErrMsg.c_str());
+	}
+
 
 	//ASSERT(glerr == GL_NO_ERROR);
 
