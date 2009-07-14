@@ -20,10 +20,14 @@
 #define _SPECTRAHELPERS_H
 
 #include <windows.h>
+
 #include <string>
 #include <map>
+#include <vector>
+
 
 class Spectra;
+class SpectraVFS;
 
 // some spectra helper functions which do very specific tasks for drawing, presentation, etc.
 namespace SpectraHelpers
@@ -71,6 +75,14 @@ namespace SpectraHelpers
 	// \param _outFITSFilenameSet set where FITS file names are inserted, file names are only inserted, exisitng items will not get deleted.
 	// \return true on successful load, otherwise false
 	bool readSelectionList( const std::string &_sstrSelectionListFilename, std::map<std::string,float> &_outFITSFilenameSet );
+
+	// calculate vector field of two different maps
+	// Booth maps must have the same dimension and must use the index to the source spectra
+	// \param _map1 SOM map1
+	// \param _map2 SOM map2
+	// \param [out] position, vector and distance field (index 0,1 initial position, 2,3 movement vector, 4 distance)
+	// \return true on success, otherwise false
+	bool calcVectorField( SpectraVFS &_map1, SpectraVFS &_map2, std::vector<float>& _outVectorField );
 };
 
 
