@@ -80,7 +80,7 @@ namespace SpectraHelpers
 	// Booth maps must have the same dimension and must use the index to the source spectra
 	// \param _map1 SOM map1
 	// \param _map2 SOM map2
-	// \param [out] position, vector and distance field (index 0,1 initial position, 2,3 movement vector, 4 distance)
+	// \param [out] position, velocity and distance field (index 0,1 initial position, 2,3 velocity vector, 4 distance)
 	// \return true on success, otherwise false
 	bool calcVectorField( SpectraVFS &_map1, SpectraVFS &_map2, std::vector<float>& _outVectorField );
 };

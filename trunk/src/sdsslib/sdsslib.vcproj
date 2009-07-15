@@ -433,6 +433,22 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="tclap"
+			>
+			<File
+				RelativePath="..\tclap\CmdLine.h"
+				>
+			</File>
+			<File
+				RelativePath="..\tclap\SwitchArg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\tclap\ValueArg.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\debug.cpp"
 			>

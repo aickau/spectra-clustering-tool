@@ -202,22 +202,50 @@ std::string FileHelpers::getFilePath(const std::string &_sstrFilename)
 	size_t nIndex( sstrFileName.find_last_of('/') );
 	if ( nIndex == std::string::npos )
 	{
-		return sstrFileName;
+		return "";//sstrFileName;
 	}
 	return sstrFileName.substr( 0, nIndex+1 );
 }
 
 
-void FileHelpers::writeFile(const std::string &_sstrFilename, char *_buf, int _size)
+void FileHelpers::writeFile(const std::string &_sstrFilename, char *_buf, int _size, bool _bWiteAsBinary )
 {
 	FILE *f;
-	f = fopen(_sstrFilename.c_str(),"wb");
+
+	std::string sstrMode;
+	if ( _bWiteAsBinary )
+	{
+		sstrMode = "wb";
+	}
+	else
+	{
+		sstrMode = "wt";
+	}
+
+	f = fopen( _sstrFilename.c_str(), sstrMode.c_str() );
 	if ( f ) 
 	{
 		fwrite(_buf,_size,1,f);
 		fclose(f);
 	}
 }
+
+bool FileHelpers::renameFile( const std::string &_sstrFilename, const std::string &_sstrNewFilename, bool _bOverwriteExisting )
+{
+	std::string sstrPath = getFilePath(_sstrFilename);
+	std::string sstrFullNewFileName;
+
+	if ( !sstrPath.empty() )
+	{
+		sstrFullNewFileName = sstrPath + "/";
+	}
+	sstrFullNewFileName += _sstrNewFilename;
+
+	DWORD dwFlags = (_bOverwriteExisting) ? MOVEFILE_REPLACE_EXISTING : 0;
+	bool bRetVal = MoveFileEx(_sstrFilename.c_str(), sstrFullNewFileName.c_str(), dwFlags );
+	return bRetVal;
+}
+
 
 
 bool FileHelpers::loadFileToString(const std::string &_sstrFilename, std::string &_sstrOutString )

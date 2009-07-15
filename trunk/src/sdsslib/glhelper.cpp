@@ -696,6 +696,17 @@ void GLHelper::DrawLine(float _l1x, float _l1y, float _l2x, float _l2y)
 }
 
 
+void GLHelper::DrawPoint( float _lx, float _ly, float _size )
+{
+	glPointSize( _size );
+	glBegin ( GL_POINTS );
+		glVertex3f( _lx,_ly, DEFAULT_Z );
+	glEnd();
+	glPointSize( 1.f );
+
+}
+
+
 
 
 void GLHelper::DrawDiagram( float *_values, size_t _numValues, size_t _strideInBytes, size_t _offsetInBytes, 
