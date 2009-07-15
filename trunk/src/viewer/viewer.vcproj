@@ -81,7 +81,7 @@
 				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
-				SubSystem="2"
+				SubSystem="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -174,7 +174,7 @@
 				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
-				SubSystem="2"
+				SubSystem="1"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -266,7 +266,7 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
-				SubSystem="2"
+				SubSystem="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -359,7 +359,7 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
-				SubSystem="2"
+				SubSystem="1"
 				TargetMachine="17"
 			/>
 			<Tool
