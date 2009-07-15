@@ -70,10 +70,10 @@ public:
 	virtual ~SpectraVFS();
 
 	// filename of vfs
-	std::string getFileName();
+	const std::string &getFileName() const;
 
 	// get number of spectra loaded. zero indicates some error, e.g. file not found or something.
-	size_t getNumSpectra();
+	size_t getNumSpectra() const;
 
 	// get spectrum for read access
 	// all changes that are made to the spectrum might get lost in some circumstances.
@@ -93,6 +93,9 @@ public:
 
 	// flush all open write commits
 	void flush();
+
+	// dump existing VFS to another file
+	void dumpToFile( const std::string _sstrFilename );
 
 
 private:

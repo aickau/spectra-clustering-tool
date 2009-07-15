@@ -139,13 +139,13 @@ SpectraVFS::~SpectraVFS()
 	}
 }
 
-std::string SpectraVFS::getFileName()
+const std::string &SpectraVFS::getFileName() const
 {
 	return m_sstrDumpFilename;
 }
 
 
-size_t SpectraVFS::getNumSpectra()
+size_t SpectraVFS::getNumSpectra() const
 {
 	return m_nNumberOfSpectra;
 }
@@ -345,6 +345,18 @@ void SpectraVFS::flush()
 		}
 	}
 }
+
+ void SpectraVFS::dumpToFile( const std::string _sstrFilename )
+ {
+	 SpectraWrite w(_sstrFilename);
+
+	 for ( size_t i=0;i<m_nNumberOfSpectra;i++ )
+	 {
+		 Spectra *a = beginRead( i );
+		 w.write(*a);
+		 endRead( i );
+	 }
+ }
 
 
 

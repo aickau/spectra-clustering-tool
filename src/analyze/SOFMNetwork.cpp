@@ -541,6 +541,11 @@ void SOFMNetwork::getSOFMSpectra( size_t _cellX, size_t _cellY, Spectra &_outSpe
 	m_pNet->endRead( nIndex );
 }
 
+SpectraVFS &SOFMNetwork::getNetwork()
+{
+	return *m_pNet;
+}
+
 
 
 void SOFMNetwork::reset( const Parameters &_params )
@@ -746,6 +751,11 @@ void SOFMNetwork::process()
 	{
 		Helpers::print( std::string("Clustering finished (success).\n"), m_pLogStream );
 		exit(1);
+	}
+
+	if ( m_currentStep > 1 )
+	{
+		m_pNet->dumpToFile(m_pNet->getFileName()+"old");
 	}
 
 	if ( m_currentStep == m_params.numSteps )
