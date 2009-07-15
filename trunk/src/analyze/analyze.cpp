@@ -60,7 +60,7 @@ bool g_DisableOutput=false;
 size_t g_numSpectra = 0;
 SpectraVFS *g_pVFSSource = NULL; 
 
-/*
+
 #include "sdsslib/gltexture.h"
 #include "sdsslib/glshaderprogram.h"
 #include "sdsslib/filehelpers.h"
@@ -166,7 +166,7 @@ bool testGPUcompare( const Spectra &_src, SpectraVFS &_vfs )
 
 	return true;
 }
-*/
+
 
 int InitGL()		
 {
@@ -363,6 +363,15 @@ void DrawNetwork( SOFMNetwork &network )
 	float h = scr_height/(gridSize);
 	glColor3f(1,0,0);
 
+	std::vector<float> vectorField;
+	SpectraVFS &mapNew(network.getNetwork());
+	SpectraVFS mapOld( mapNew.getFileName()+"old" );
+	bool bDrawVelocityField = false;
+	if ( mapOld.getNumSpectra() == mapNew.getNumSpectra() )
+	{
+		bDrawVelocityField = SpectraHelpers::calcVectorField( mapNew, mapOld, vectorField );
+	}
+
 	for ( size_t y=0;y<gridSize;y++)
 	{
 		float lb1[3] = {0,y*h,-10};
@@ -399,6 +408,8 @@ void DrawNetwork( SOFMNetwork &network )
 
 	float yscale = 1.f/fabsf(maxAmplitude*0.75f);
 
+	size_t vCount = 0;
+
 	yp=gridSize;
 	for ( size_t y=0;y<network.m_gridSize;y+=stepSize)
 	{
@@ -406,6 +417,22 @@ void DrawNetwork( SOFMNetwork &network )
 		size_t xp=0;
 		for ( size_t x=0;x<network.m_gridSize;x+=stepSize)
 		{
+
+			if ( bDrawVelocityField && vCount < 100)
+			{
+				size_t av = (y*network.m_gridSize+x)*5;
+				float sx1 = vectorField[av+0]*w+w/2;
+				float sy1 = vectorField[av+1]*h+h/2;
+				float sx2 = sx1+vectorField[av+2]*w;
+				float sy2 = sy1+vectorField[av+3]*h;
+
+				glColor3f(0.2,1.f,0);//(float)vCount/10.f
+				GLHelper::DrawLine( sx1, sy1, sx2, sy2 );
+				GLHelper::DrawPoint( sx1, sy1, 5.f );
+
+				vCount++;
+			}
+
 			ISSE_ALIGN Spectra spectra;
 			network.getSOFMSpectra(x,y,spectra);
 			if ( spectra.isEmpty() )
@@ -509,11 +536,11 @@ void DrawGLScene()
 		else return;
 	}
 */
-
-//	Spectra *a = g_pVFSSource->beginRead(1);
-//	testGPUcompare( *a, *g_pVFSSource );
-//	g_pVFSSource->endRead(1);
-
+/*
+	Spectra *a = g_pVFSSource->beginRead(1);
+	testGPUcompare( *a, *g_pVFSSource );
+	g_pVFSSource->endRead(1);
+*/
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 

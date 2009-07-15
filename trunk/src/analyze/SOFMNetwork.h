@@ -83,6 +83,8 @@ public:
 	// Also beware that the spectral data for matches is not equal to its original in the input (You always get the footprint). 
 	void getSOFMSpectra( size_t _cellX, size_t _cellY, Spectra &_outSpectrum );
 
+	SpectraVFS &getNetwork();
+
 	// export to HTML.
 	// _sstrFilename absolute or relative filename without (!) extension.
 	// _fullExport if set to true generates UMatrix, DifferenceMaps and search result lists (containing top 100 similar spectra) for input each spectrum
