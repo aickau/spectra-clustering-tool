@@ -506,10 +506,14 @@ bool calcVectorField( SpectraVFS &_map1, SpectraVFS &_map2, std::vector<float>& 
 		{
 			// field in use
 
-			assert( posField1[i+0] >= 0 );
-			assert( posField1[i+1] >= 0 );
-			assert( posField2[i+0] >= 0 );
-			assert( posField2[i+1] >= 0 );
+			if ( posField1[i+0] < 0 || posField1[i+1] < 0 || posField2[i+0] < 0 || posField2[i+1] < 0 )
+			{
+				// we found that maps do not match, abort.
+				delete[] posField2;
+				delete[] posField1;
+				_outVectorField.clear();
+				return false;
+			}
 
 			const float dx = static_cast<float>(posField2[i+0]-posField1[i+0]);
 			const float dy = static_cast<float>(posField2[i+1]-posField1[i+1]);

@@ -41,6 +41,9 @@ namespace FileHelpers
 	// check if directory exits.
 	bool exitsDirectory(const std::string &_sstrFilename);
 
+	// \return true if file exists, otherwise false.
+	bool fileExists(const std::string &_sstrFilename);
+
 	// get a list of files from a given directory.
 	// e.g. _sstrSearchDir = d:/hui/* - find all files in directory "d:/hui" and all subdirectories.
 	//      _sstrSearchDir = d:/hui/*.exe find all executables in in directory "d:/hui" and all subdirectories.
@@ -60,9 +63,16 @@ namespace FileHelpers
 	// extract path, e.g c:\hui\blah.txt -> c:/hui or c:/hui/blah/ -> c:/hui/blah
 	std::string getFilePath(const std::string &_sstrFilename);
 
-	bool fileExists(const std::string &_sstrFilename);
+	// write buffer to file.
+	// _bWiteAsBinary if set to true, file is written as binary otherwise as text. 
+	void writeFile(const std::string &_sstrFilename, char *_buf, int _size, bool _bWiteAsBinary=true );
 
-	void writeFile(const std::string &_sstrFilename, char *_buf, int _size);
+	// renames a given file.
+	// \param _sstrFilename path+filename+ext
+	// \param new filename+ext (minus path)
+	// \param _bOverwriteExisting if true existing files with _sstrNewFilename will be overwritten, otherwise operation fails.
+	// \return true on success, otherwise false
+	bool renameFile( const std::string &_sstrFilename, const std::string &_sstrNewFilename, bool _bOverwriteExisting=false );
 
 	bool loadFileToString(const std::string &_sstrFilename, std::string &_sstrOutString );
 }
