@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../"
+				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api/;../"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -68,7 +68,7 @@
 				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib tinyxmld_STL$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
+				AdditionalLibraryDirectories="../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
 				SubSystem="1"
@@ -126,7 +126,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../"
+				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api/;../"
 				PreprocessorDefinitions="WIN32;X64;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -151,7 +151,7 @@
 				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib tinyxmld_STL$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
+				AdditionalLibraryDirectories="../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
 				SubSystem="1"
@@ -207,7 +207,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../"
+				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api/;../"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN"
 				RuntimeLibrary="2"
 				StructMemberAlignment="5"
@@ -230,7 +230,7 @@
 				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib tinyxmld_STL$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
+				AdditionalLibraryDirectories="../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
 				SubSystem="1"
@@ -289,7 +289,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../"
+				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api/;../"
 				PreprocessorDefinitions="WIN32;X64;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN"
 				RuntimeLibrary="2"
 				StructMemberAlignment="5"
@@ -312,7 +312,7 @@
 				AdditionalDependencies="opengl32.lib glu32.lib IL$(PlatformName).lib ILU$(PlatformName).lib fits$(PlatformName).lib tinyxmld_STL$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="../devil/lib;../cfitsio;../sdsslib/lib;../tinyxml"
+				AdditionalLibraryDirectories="../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"

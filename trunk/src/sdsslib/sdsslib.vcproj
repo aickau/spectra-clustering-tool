@@ -49,7 +49,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../devil/include/;../"
+				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api;../"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN;$(NOINHERIT)"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../devil/include/;../"
+				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api;../"
 				PreprocessorDefinitions="WIN32;X64;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN;$(NOINHERIT)"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -189,7 +189,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../devil/include/;../"
+				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api;../"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN;$(NOINHERIT)"
 				RuntimeLibrary="2"
 				RuntimeTypeInfo="false"
@@ -258,7 +258,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				AdditionalIncludeDirectories="../devil/include/;../"
+				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api;../"
 				PreprocessorDefinitions="WIN32;X64;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN;$(NOINHERIT)"
 				RuntimeLibrary="2"
 				RuntimeTypeInfo="false"
@@ -337,11 +337,11 @@
 			Name="cfitsio"
 			>
 			<File
-				RelativePath="..\cfitsio\fitsio.h"
+				RelativePath="..\3rdparty\api\cfitsio\fitsio.h"
 				>
 			</File>
 			<File
-				RelativePath="..\cfitsio\longnam.h"
+				RelativePath="..\3rdparty\api\cfitsio\longnam.h"
 				>
 			</File>
 		</Filter>
@@ -401,23 +401,23 @@
 			Name="DevIL"
 			>
 			<File
-				RelativePath="..\devil\include\IL\devil_internal_exports.h"
+				RelativePath="..\3rdparty\api\devil\include\IL\devil_internal_exports.h"
 				>
 			</File>
 			<File
-				RelativePath="..\devil\include\IL\il.h"
+				RelativePath="..\3rdparty\api\devil\include\IL\il.h"
 				>
 			</File>
 			<File
-				RelativePath="..\devil\include\IL\ilu.h"
+				RelativePath="..\3rdparty\api\devil\include\IL\ilu.h"
 				>
 			</File>
 			<File
-				RelativePath="..\devil\include\IL\ilu_region.h"
+				RelativePath="..\3rdparty\api\devil\include\IL\ilu_region.h"
 				>
 			</File>
 			<File
-				RelativePath="..\devil\include\IL\ilut.h"
+				RelativePath="..\3rdparty\api\devil\include\IL\ilut.h"
 				>
 			</File>
 		</Filter>
@@ -437,17 +437,21 @@
 			Name="tclap"
 			>
 			<File
-				RelativePath="..\tclap\CmdLine.h"
+				RelativePath="..\3rdparty\api\tclap\CmdLine.h"
 				>
 			</File>
 			<File
-				RelativePath="..\tclap\SwitchArg.h"
+				RelativePath="..\3rdparty\api\tclap\SwitchArg.h"
 				>
 			</File>
 			<File
-				RelativePath="..\tclap\ValueArg.h"
+				RelativePath="..\3rdparty\api\tclap\ValueArg.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="zip"
+			>
 		</Filter>
 		<File
 			RelativePath=".\debug.cpp"

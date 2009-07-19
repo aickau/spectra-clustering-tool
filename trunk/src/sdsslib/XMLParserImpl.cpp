@@ -20,7 +20,7 @@
 #include <sstream>
 
 #define TIXML_USE_STL
-#include "../tinyxml/tinyxml.h"
+#include "tinyxml/tinyxml.h"
 
 
 

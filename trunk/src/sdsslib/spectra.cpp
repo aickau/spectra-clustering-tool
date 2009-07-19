@@ -26,8 +26,8 @@
 #include <math.h>
 #include <float.h>
 #include <assert.h>
-#include "../cfitsio/fitsio.h"
-#include "../cfitsio/longnam.h"
+#include "cfitsio/fitsio.h"
+#include "cfitsio/longnam.h"
 
 //#include "fftw/fftw3.h"
 
