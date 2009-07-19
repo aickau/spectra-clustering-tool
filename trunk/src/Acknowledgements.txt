@@ -4,6 +4,8 @@ The following libraries are used within this project:
 (2) fitslib for FITS file import 
 (3) DevIL for writing image data
 (4) TCLAP - Templatized C++ Command Line Parser Library
+(5) zlib - general purpose compression library
+(6) ziplib - IO for compress .zip files using zlib 
 
 
 
@@ -605,4 +607,75 @@ AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
 THE SOFTWARE.
 
+
+(5) 'zlib' general purpose compression library
+
+ (C) 1995-2004 Jean-loup Gailly and Mark Adler
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+  Jean-loup Gailly        Mark Adler
+  jloup@gzip.org          madler@alumni.caltech.edu
+
+If you use the zlib library in a product, we would appreciate *not*
+receiving lengthy legal documents to sign. The sources are provided
+for free but without warranty of any kind.  The library has been
+entirely written by Jean-loup Gailly and Mark Adler; it does not
+include third-party code.
+
+If you redistribute modified sources, we would appreciate that you include
+in the file ChangeLog history information documenting your changes. Please
+read the FAQ for more information on the distribution of modified source
+versions. 
+ 
+ 
+ 
+ (6) ziplib -- IO for compress .zip files using zlib 
+   Version 0.15 alpha, Mar 19th, 1998,
+
+   Copyright (C) 1998 Gilles Vollant
+
+   This unzip package allow creates .ZIP file, compatible with PKZip 2.04g
+     WinZip, InfoZip tools and compatible.
+   Encryption and multi volume ZipFile (span) are not supported.
+   Old compressions used by old PKZip 1.x are not supported
+
+  For uncompress .zip file, look at unzip.h
+
+   THIS IS AN ALPHA VERSION. AT THIS STAGE OF DEVELOPPEMENT, SOMES API OR STRUCTURE
+   CAN CHANGE IN FUTURE VERSION !!
+   I WAIT FEEDBACK at mail info@winimage.com
+   Visit also http://www.winimage.com/zLibDll/zip.htm for evolution
+
+   Condition of use and distribution are the same than zlib :
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
  
