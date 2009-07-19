@@ -138,9 +138,23 @@ void GLFBO::attachRenderBuffer( RenderBufferType _type )
 {
 	if ( m_renderBufferIDs[_type] == 0 )
 	{
+		GLint currentRenderbuffer;
+		glGetIntegerv( GL_RENDERBUFFER_BINDING_EXT, &currentRenderbuffer );
+
 		glGenRenderbuffersEXT(1, &m_renderBufferIDs[_type] );
 		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_renderBufferIDs[_type] );
-		glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, getComponentFromType(_type), m_width, m_height);
+
+		// get render buffer size
+		GLint width, height;
+		glGetRenderbufferParameterivEXT( GL_RENDERBUFFER_EXT, GL_RENDERBUFFER_WIDTH_EXT, &width );
+		glGetRenderbufferParameterivEXT( GL_RENDERBUFFER_EXT, GL_RENDERBUFFER_HEIGHT_EXT, &height );
+
+		if ( width != m_width || height != m_height )
+		{
+			glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, getComponentFromType(_type), m_width, m_height);
+		}
+
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, currentRenderbuffer );
 		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, getAttachmentFromType(_type), GL_RENDERBUFFER_EXT, m_renderBufferIDs[_type]);
 	}
 	else
