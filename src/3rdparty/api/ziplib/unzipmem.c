@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../zlib/zlib.h"
+#include "zlib/include/zlib.h"
 #include "unzipmem.h"
 
 #ifdef STDC

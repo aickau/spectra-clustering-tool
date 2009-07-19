@@ -8,9 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../zlib/zlib.h"
+#include "zlib/include/zlib.h"
 #include "zip.h"
-#include "../zlib/zutil.h"
+#include "zlib/include/zutil.h"
 
 #ifdef STDC
 #  include <stddef.h>
