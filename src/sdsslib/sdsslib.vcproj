@@ -93,8 +93,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			>
@@ -230,8 +230,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="0"
@@ -334,18 +334,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="cfitsio"
-			>
-			<File
-				RelativePath="..\3rdparty\api\cfitsio\fitsio.h"
-				>
-			</File>
-			<File
-				RelativePath="..\3rdparty\api\cfitsio\longnam.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="GL"
 			>
 			<File
@@ -398,30 +386,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="DevIL"
-			>
-			<File
-				RelativePath="..\3rdparty\api\devil\include\IL\devil_internal_exports.h"
-				>
-			</File>
-			<File
-				RelativePath="..\3rdparty\api\devil\include\IL\il.h"
-				>
-			</File>
-			<File
-				RelativePath="..\3rdparty\api\devil\include\IL\ilu.h"
-				>
-			</File>
-			<File
-				RelativePath="..\3rdparty\api\devil\include\IL\ilu_region.h"
-				>
-			</File>
-			<File
-				RelativePath="..\3rdparty\api\devil\include\IL\ilut.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="shader"
 			>
 			<File
@@ -434,24 +398,140 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="tclap"
+			Name="FileArchive"
 			>
-			<File
-				RelativePath="..\3rdparty\api\tclap\CmdLine.h"
-				>
-			</File>
-			<File
-				RelativePath="..\3rdparty\api\tclap\SwitchArg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\3rdparty\api\tclap\ValueArg.h"
-				>
-			</File>
 		</Filter>
 		<Filter
-			Name="zip"
+			Name="3rdParty"
 			>
+			<Filter
+				Name="cfitsio"
+				>
+				<File
+					RelativePath="..\3rdparty\api\cfitsio\fitsio.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\cfitsio\longnam.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="DevIL"
+				>
+				<File
+					RelativePath="..\3rdparty\api\devil\include\IL\devil_internal_exports.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\devil\include\IL\il.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\devil\include\IL\ilu.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\devil\include\IL\ilu_region.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\devil\include\IL\ilut.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="tclap"
+				>
+				<File
+					RelativePath="..\3rdparty\api\tclap\CmdLine.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\tclap\SwitchArg.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\tclap\ValueArg.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="ziplib"
+				>
+				<File
+					RelativePath="..\3rdparty\api\ziplib\unzip.c"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\ziplib\unzip.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\ziplib\unzipmem.c"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\ziplib\unzipmem.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\ziplib\zip.c"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\ziplib\zip.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="zlib"
+				>
+				<File
+					RelativePath="..\3rdparty\api\zlib\include\crc32.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\zlib\include\deflate.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\zlib\include\inffast.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\zlib\include\inffixed.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\zlib\include\inflate.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\zlib\include\inftrees.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\zlib\include\trees.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\zlib\include\zconf.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\zlib\include\zconf.in.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\zlib\include\zlib.h"
+					>
+				</File>
+				<File
+					RelativePath="..\3rdparty\api\zlib\include\zutil.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\debug.cpp"
