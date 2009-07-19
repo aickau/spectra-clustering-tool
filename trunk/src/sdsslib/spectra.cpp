@@ -1290,27 +1290,3 @@ std::string Spectra::spectraFilterToString( unsigned int _spectraFilter )
 	}
 	return sstrOutString;
 }
-
-std::string Spectra::spectraNormalizationToString( SpectraNormalization _type )
-{
-	switch(_type)
-	{
-		case SN_AMPLITUDE : return std::string("amplitude");
-		case SN_FLUX : return std::string("flux");
-		default:;
-	}
-	return std::string("none");
-}
-
-
-Spectra::SpectraNormalization Spectra::spectraNormalizationFromString( const std::string &_sstrSpectraNormalization )
-{
-	if ( _sstrSpectraNormalization == "amplitude" ) {
-		return Spectra::SN_AMPLITUDE;
-	}
-	else if ( _sstrSpectraNormalization == "flux" ) {
-		return Spectra::SN_FLUX;
-	} 
-
-	return Spectra::SN_NONE;
-}

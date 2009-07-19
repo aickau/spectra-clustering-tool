@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Analyzer config file, SDSS sorting prototype - Stage I, Copyright (c) 2009 -->
 <SETTINGS>
-	<STEP current="1" total="100"/>
+	<STEP current="1" total="200"/>
 	<GRIDSIZE value="2"/>
 	<RANDOMSEED value="15"/>
-	<LEARNRATE begin="0.25" end="0.01"/>
-	<RADIUS begin="1" end="0.5"/>
+	<LEARNRATE begin="0.25" end="0.005"/>
+	<RADIUS begin="1" end="0.25"/>
 	<SPECTRUM file="sofmnet.bin"/>
 	<EXPORT>
 		<SUBPAGES value="0"/>
 		<WAITFORUSER value="0"/>
 	</EXPORT>
-	<SEARCHMODE value="local"/><!-- local / global -->
+	<SEARCHMODE value="local"/><!-- localfast / local / global -->
 	<NORMALIZATION value="flux"/><!-- amplitude / flux / none -->
 </SETTINGS>

@@ -467,6 +467,10 @@
 			RelativePath=".\SOFMNetwork.h"
 			>
 		</File>
+		<File
+			RelativePath=".\SOFMNetworkSettings.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
