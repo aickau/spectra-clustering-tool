@@ -57,7 +57,10 @@ public:
 		float radiusEnd;											// radius end (0.0 .. grid size)
 		bool exportSubPage;											// if true add subpages to HTML output
 		bool waitForUser;											// if true wait for user input after each calculation step
-		bool localSearch;											// if true uses local search for BMUs if possible (faster computation).
+		std::string sstrSearchMode;									// search mode to control quality vs. computation time
+																	// SOFMNET_SETTINGS_SEARCHMODE_global     < uses global search for BMUs, best quality, runtime is O(n²)
+																	// SOFMNET_SETTINGS_SEARCHMODE_local      < uses local search for BMUs if possible.
+																	// SOFMNET_SETTINGS_SEARCHMODE_localfast  < uses very fast local search for BMUs if possible, runtime is O(n) 
 		Spectra::SpectraNormalization normaliziationType;			// type of normalization of spectra
 		
 
@@ -189,6 +192,11 @@ protected:
 	// generate HTML info pages for each source spectrum.
 	// _sstrMapBaseName base name of the exported HTML maps, see exportToHTML()
 	void generateHTMLInfoPages( const std::string &_sstrMapBaseName );
+
+	static std::string spectraNormalizationToString( Spectra::SpectraNormalization _type );	 
+	static Spectra::SpectraNormalization spectraNormalizationFromString( const std::string &_sstrSpectraNormalization );
+
+
 
 	SpectraVFS		*m_pNet;	
 

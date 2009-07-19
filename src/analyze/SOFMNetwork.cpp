@@ -38,8 +38,9 @@
 #include "sdsslib/XMLExport.h"
 #include "sdsslib/XMLParser.h"
 #include "sdsslib/HTMLExport.h"
+#include "sdsslib/sdssSoftwareVersion.h"
 
-
+#include "analyze/SOFMNetworkSettings.h"
 
 
 static
@@ -103,7 +104,7 @@ SOFMNetwork::Parameters::Parameters( size_t _numSteps, size_t _randomSeed, float
 ,radiusEnd(_radiusEnd)
 ,exportSubPage(false)
 ,waitForUser(false)
-,localSearch(false)
+,sstrSearchMode(SOFMNET_SETTINGS_SEARCHMODE_global)
 ,normaliziationType(Spectra::SN_FLUX)
 {
 }
@@ -113,6 +114,31 @@ void SOFMNetwork::BestMatch::reset()
 {
 	error = FLT_MAX;
 	index = 0;
+}
+
+
+std::string SOFMNetwork::spectraNormalizationToString( Spectra::SpectraNormalization _type )
+{
+	switch(_type)
+	{
+	case Spectra::SN_AMPLITUDE : return SOFMNET_SETTINGS_NORMALIZATION_amplitude;
+	case Spectra::SN_FLUX : return SOFMNET_SETTINGS_NORMALIZATION_flux;
+	default:;
+	}
+	return SOFMNET_SETTINGS_NORMALIZATION_none;
+}
+
+
+Spectra::SpectraNormalization SOFMNetwork::spectraNormalizationFromString( const std::string &_sstrSpectraNormalization )
+{
+	if ( _sstrSpectraNormalization == SOFMNET_SETTINGS_NORMALIZATION_amplitude ) {
+		return Spectra::SN_AMPLITUDE;
+	}
+	else if ( _sstrSpectraNormalization == SOFMNET_SETTINGS_NORMALIZATION_flux ) {
+		return Spectra::SN_FLUX;
+	} 
+
+	return Spectra::SN_NONE;
 }
 
 
@@ -142,8 +168,8 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 	Helpers::print( std::string("Spectra VFS number of cache lines ") + Helpers::numberToString( SpectraVFS::CACHELINES ) + ".\n", m_pLogStream );
 	Helpers::print( std::string("That allows us to pack ") + Helpers::numberToString( SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE ) + " spectra into main memory.\n", m_pLogStream );
 	Helpers::print( std::string("We can eat up ") + Helpers::numberToString( static_cast<float>(2*SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE*sizeof(Spectra))/(1024.f*1024.f*1024.f) ) + " GB of main memory for clustering .\n", m_pLogStream );
-	Helpers::print( std::string("We are using ") +(m_params.localSearch ? "local" : "global") + " search .\n", m_pLogStream );
-	Helpers::print( std::string("Spectra normalization is set to ") +Spectra::spectraNormalizationToString(m_params.normaliziationType) + ".\n", m_pLogStream );
+	Helpers::print( std::string("We are using ") + m_params.sstrSearchMode  + " search .\n", m_pLogStream );
+	Helpers::print( std::string("Spectra normalization is set to ") +spectraNormalizationToString(m_params.normaliziationType) + ".\n", m_pLogStream );
 
 
 	calcFluxAndNormalizeInputDS( m_params.normaliziationType );
@@ -240,58 +266,58 @@ void SOFMNetwork::writeSettings( const std::string &_sstrFileName )
 	std::string sstrXML;
 	XMLExport::xmlHeader(sstrXML);
 
-	XMLExport::xmlSingleComment("Analyzer config file, SDSS sorting prototype - Stage I, Copyright (c) 2009", sstrXML);
+	XMLExport::xmlSingleComment("Analyzer config file, SDSS sorting prototype - Stage I, Copyright (c) 2009 "+SDSSVERSIONSTRING, sstrXML);
 
-	XMLExport::xmlElementBegin( "SETTINGS", 0, sstrXML );
+	XMLExport::xmlElementBegin( SOFMNET_SETTINGS, 0, sstrXML );
 	XMLExport::xmlElementEndBegin( sstrXML );
 
-	XMLExport::xmlSingleElementBegin( "STEP", 1, sstrXML );
+	XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_STEP, 1, sstrXML );
 	XMLExport::xmlAddAttribute( "current", static_cast<unsigned int>(m_currentStep), sstrXML );
 	XMLExport::xmlAddAttribute( "total", static_cast<unsigned int>(m_params.numSteps), sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
 
-	XMLExport::xmlSingleElementBegin( "GRIDSIZE", 1, sstrXML );
+	XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_GRIDSIZE, 1, sstrXML );
 	XMLExport::xmlAddAttribute( "value", static_cast<unsigned int>(m_gridSize), sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
 
-	XMLExport::xmlSingleElementBegin( "RANDOMSEED", 1, sstrXML );
+	XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_RANDOMSEED, 1, sstrXML );
 	XMLExport::xmlAddAttribute( "value", static_cast<unsigned int>(m_params.randomSeed), sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
 
-	XMLExport::xmlSingleElementBegin( "LEARNRATE", 1, sstrXML );
+	XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_LEARNRATE, 1, sstrXML );
 	XMLExport::xmlAddAttribute( "begin", m_params.lRateBegin, sstrXML );
 	XMLExport::xmlAddAttribute( "end", m_params.lRateEnd, sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
 
-	XMLExport::xmlSingleElementBegin( "RADIUS", 1, sstrXML );
+	XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_RADIUS, 1, sstrXML );
 	XMLExport::xmlAddAttribute( "begin", m_params.radiusBegin, sstrXML );
 	XMLExport::xmlAddAttribute( "end", m_params.radiusEnd, sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
 
-	XMLExport::xmlSingleElementBegin( "SPECTRUM", 1, sstrXML );
+	XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_SPECTRUM, 1, sstrXML );
 	XMLExport::xmlAddAttribute( "file", m_pNet->getFileName(), sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
 
-	XMLExport::xmlElementBegin( "EXPORT", 1, sstrXML );
+	XMLExport::xmlElementBegin( SOFMNET_SETTINGS_EXPORT, 1, sstrXML );
 	XMLExport::xmlElementEndBegin( sstrXML );
 
-		XMLExport::xmlSingleElementBegin( "SUBPAGES", 2, sstrXML );
+		XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_EXPORT_SUBPAGES, 2, sstrXML );
 		XMLExport::xmlAddAttribute( "value", (int)m_params.exportSubPage, sstrXML );
 		XMLExport::xmlSingleElementEnd( sstrXML );
 
-		XMLExport::xmlSingleElementBegin( "WAITFORUSER", 2, sstrXML );
+		XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_EXPORT_WAITFORUSER, 2, sstrXML );
 		XMLExport::xmlAddAttribute( "value", (int)m_params.waitForUser, sstrXML );
 		XMLExport::xmlSingleElementEnd( sstrXML );
 
-	XMLExport::xmlElementEnd( "EXPORT", 1, sstrXML );
+	XMLExport::xmlElementEnd( SOFMNET_SETTINGS_EXPORT, 1, sstrXML );
 	
-	XMLExport::xmlSingleElementBegin( "SEARCHMODE", 1, sstrXML );
-	XMLExport::xmlAddAttribute( "value", m_params.localSearch ?  "local" : "global", sstrXML );
+	XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_SEARCHMODE, 1, sstrXML );
+	XMLExport::xmlAddAttribute( "value", m_params.sstrSearchMode, sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
-	XMLExport::xmlSingleComment("local / global", sstrXML);
+	XMLExport::xmlSingleComment("localfast / local / global", sstrXML);
 
-	XMLExport::xmlSingleElementBegin( "NORMALIZATION", 1, sstrXML );
-	XMLExport::xmlAddAttribute( "value", Spectra::spectraNormalizationToString(m_params.normaliziationType), sstrXML );
+	XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_NORMALIZATION, 1, sstrXML );
+	XMLExport::xmlAddAttribute( "value", spectraNormalizationToString(m_params.normaliziationType), sstrXML );
 	XMLExport::xmlSingleElementEnd( sstrXML );
 	XMLExport::xmlSingleComment("amplitude / flux / none", sstrXML);
 
@@ -317,7 +343,7 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	//		<SUBPAGES value="0"/>
 	//		<WAITFORUSER value="0"/>
 	//	</EXPORT>
-	//	<SEARCHMODE value="local"> 		<!-- local, global -->
+	//	<SEARCHMODE value="local"> 		<!-- localfast, local, global -->
 	//	<NORMALIZATION value="flux">	<!-- none, amplitude, flux -->
 	if (!p.loadXMLFromFile( _sstrFileName ))
 	{
@@ -331,38 +357,35 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	std::string sstrNormalizationType;
 
 	bSuccess &= p.getChildValue("STEP", "current", m_currentStep );
-	bSuccess &= p.getChildValue("STEP", "total", m_params.numSteps );
-//	bSuccess &= p.getChildValue("GRIDSIZE", "value", m_gridSize );
-	bSuccess &= p.getChildValue("RANDOMSEED", "value", m_params.randomSeed );
-	bSuccess &= p.getChildValue("LEARNRATE", "begin", m_params.lRateBegin );
-	bSuccess &= p.getChildValue("LEARNRATE", "end", m_params.lRateEnd );
-	bSuccess &= p.getChildValue("RADIUS", "begin", m_params.radiusBegin );
-	bSuccess &= p.getChildValue("RADIUS", "end", m_params.radiusEnd );
-//	bSuccess &= p.getChildValue("SPECTRUM", "size", spectraSize );
-	bSuccess &= p.getChildValue("SPECTRUM", "file", _sstrSOFMFileName );
-	bSuccess &= p.getChildValue("SEARCHMODE", "value", sstrSearchMode );
-	bSuccess &= p.getChildValue("NORMALIZATION", "value", sstrNormalizationType );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_STEP, "total", m_params.numSteps );
+//	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_GRIDSIZE, "value", m_gridSize );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_RANDOMSEED, "value", m_params.randomSeed );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_LEARNRATE, "begin", m_params.lRateBegin );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_LEARNRATE, "end", m_params.lRateEnd );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_RADIUS, "begin", m_params.radiusBegin );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_RADIUS, "end", m_params.radiusEnd );
+//	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_SPECTRUM, "size", spectraSize );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_SPECTRUM, "file", _sstrSOFMFileName );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_SEARCHMODE, "value", sstrSearchMode );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_NORMALIZATION, "value", sstrNormalizationType );
 
-	sstrSearchMode = Helpers::lowerCase( sstrSearchMode );
-	sstrNormalizationType = Helpers::lowerCase( sstrNormalizationType );
-	m_params.localSearch = (sstrSearchMode == "local");
-
-	m_params.normaliziationType = Spectra::spectraNormalizationFromString( sstrNormalizationType );
+	m_params.sstrSearchMode = Helpers::lowerCase( sstrSearchMode );
+	m_params.normaliziationType = spectraNormalizationFromString( Helpers::lowerCase( sstrNormalizationType ) );
 
 	p.gotoChild();
 	
 	do
 	{
-		if (p.getCurrentTag()=="EXPORT")
+		if (p.getCurrentTag()==SOFMNET_SETTINGS_EXPORT)
 		{
 			break;
 		}
 	} while (p.gotoSibling());
 
 	size_t sp=0;
-	bSuccess &= p.getChildValue("SUBPAGES", "value", sp );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_EXPORT_SUBPAGES, "value", sp );
 	m_params.exportSubPage = (sp>0);
-	bSuccess &= p.getChildValue("WAITFORUSER", "value", sp );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_EXPORT_WAITFORUSER, "value", sp );
 	m_params.waitForUser = (sp>0);
 
 	if ( !bSuccess)
@@ -793,7 +816,37 @@ void SOFMNetwork::process()
 	const float adaptionThreshold = m_params.lRateEnd*0.01f;
 	const float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
 	const float sigmaSqr = sigma*sigma;
-	const size_t searchRadius = static_cast<size_t>(((1.f-lPercent)*0.5f*static_cast<float>(m_gridSize)))+2;
+	bool bFullSearch = true;
+	size_t searchRadius = 1;
+
+	// determine search strategy for BMUs for the current learning step
+	if ( m_params.sstrSearchMode == SOFMNET_SETTINGS_SEARCHMODE_localfast )
+	{
+		// always use a constant search radius, never do a global search
+		bFullSearch = false;
+		searchRadius = 2;
+	}
+	else if ( m_params.sstrSearchMode == SOFMNET_SETTINGS_SEARCHMODE_local )
+	{
+		// global search for the first 5 steps, decreasing search radius for increasing number of learings teps
+		bFullSearch = (m_currentStep<5);
+		searchRadius = static_cast<size_t>(((1.f-lPercent)*0.5f*static_cast<float>(m_gridSize)))+2;
+	}
+	else // SOFMNET_SETTINGS_SEARCHMODE_global
+	{
+		// always use global search, never go local.
+		bFullSearch = true;
+	}
+
+
+	if (bFullSearch) 
+	{
+		Helpers::print( "using complete search.\n", m_pLogStream );
+	}
+	else
+	{
+		Helpers::print( "using local search - search radius = "+Helpers::numberToString(searchRadius)+ "\n", m_pLogStream );
+	}
 
 
 	// select random spectra from spectra dataset
@@ -823,20 +876,6 @@ void SOFMNetwork::process()
 		a->m_SpecObjID = 0;
 		m_pNet->endWrite( i );
 	}
-
-	const bool bSearchFullWhenLocalMode = (m_currentStep<5); // ((m_currentStep % MAX((m_params.numSteps/s_globalSearchFraction),1)) == 0) || 
-	const bool bFullSearch = m_params.localSearch ? bSearchFullWhenLocalMode : true;
-
-	if (bFullSearch) 
-	{
-		Helpers::print( "using complete search.\n", m_pLogStream );
-	}
-	else
-	{
-		Helpers::print( "using local search - search radius = "+Helpers::numberToString(searchRadius)+ "\n", m_pLogStream );
-	}
-
-
 
 	// for each training spectra..
 	for ( size_t j=0;j<m_numSpectra;j++ )

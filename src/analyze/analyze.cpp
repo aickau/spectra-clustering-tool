@@ -408,7 +408,7 @@ void DrawNetwork( SOFMNetwork &network )
 
 	float yscale = 1.f/fabsf(maxAmplitude*0.75f);
 
-	size_t vCount = 0;
+	size_t vecCount = 0;
 
 	yp=gridSize;
 	for ( size_t y=0;y<network.m_gridSize;y+=stepSize)
@@ -418,19 +418,21 @@ void DrawNetwork( SOFMNetwork &network )
 		for ( size_t x=0;x<network.m_gridSize;x+=stepSize)
 		{
 
-			if ( bDrawVelocityField && vCount < 100)
+			if ( bDrawVelocityField )
 			{
 				size_t av = (y*network.m_gridSize+x)*5;
-				float sx1 = vectorField[av+0]*w+w/2;
-				float sy1 = vectorField[av+1]*h+h/2;
-				float sx2 = sx1+vectorField[av+2]*w;
-				float sy2 = sy1+vectorField[av+3]*h;
+				if ( vectorField[av+2] != 0.0f && vectorField[av+3] != 0.0 )
+				{
+					float sx1 = vectorField[av+0]*w+w/2;
+					float sy1 = vectorField[av+1]*h+h/2;
+					float sx2 = sx1+vectorField[av+2]*w;
+					float sy2 = sy1+vectorField[av+3]*h;
 
-				glColor3f(0.2,1.f,0);//(float)vCount/10.f
-				GLHelper::DrawLine( sx1, sy1, sx2, sy2 );
-				GLHelper::DrawPoint( sx1, sy1, 5.f );
-
-				vCount++;
+					glColor3f((float)vecCount/(float)mapNew.getNumSpectra(), 1.0f, 0.f);
+					GLHelper::DrawLine( sx1, sy1, sx2, sy2 );
+					GLHelper::DrawPoint( sx1, sy1, 5.f );
+					vecCount++;
+				}
 			}
 
 			ISSE_ALIGN Spectra spectra;

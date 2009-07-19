@@ -247,9 +247,6 @@ public:
 	// returns any ORed combination of SpectraTypes as filter
 	static std::string spectraFilterToString( unsigned int _spectraFilter );
 
-	static std::string spectraNormalizationToString( SpectraNormalization _type );	 
-	static SpectraNormalization spectraNormalizationFromString( const std::string &_sstrSpectraNormalization );
-
 };
 
 STATIC_ASSERT((sizeof(Spectra)%16)==0);		// check if spectra is multiple of 16 bytes
