@@ -400,6 +400,14 @@
 		<Filter
 			Name="FileArchive"
 			>
+			<File
+				RelativePath=".\FileArchive.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FileArchive.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="3rdParty"
