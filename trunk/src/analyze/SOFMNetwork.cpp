@@ -823,7 +823,7 @@ void SOFMNetwork::process()
 	if ( m_params.sstrSearchMode == SOFMNET_SETTINGS_SEARCHMODE_localfast )
 	{
 		// always use a constant search radius, never do a global search
-		bFullSearch = false;
+		bFullSearch = (m_currentStep<1);
 		searchRadius = 2;
 	}
 	else if ( m_params.sstrSearchMode == SOFMNET_SETTINGS_SEARCHMODE_local )
