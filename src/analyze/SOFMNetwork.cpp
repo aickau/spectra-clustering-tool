@@ -42,6 +42,8 @@
 
 #include "analyze/SOFMNetworkSettings.h"
 
+//#define SDSS_SINETEST
+
 
 static
 void intensityToRGB(float _intensity, float *_pRGB, bool _bRed=false )
@@ -131,10 +133,11 @@ std::string SOFMNetwork::spectraNormalizationToString( Spectra::SpectraNormaliza
 
 Spectra::SpectraNormalization SOFMNetwork::spectraNormalizationFromString( const std::string &_sstrSpectraNormalization )
 {
-	if ( _sstrSpectraNormalization == SOFMNET_SETTINGS_NORMALIZATION_amplitude ) {
+	std::string sstrSpectraNormalization( Helpers::lowerCase( _sstrSpectraNormalization ) );
+	if ( sstrSpectraNormalization == SOFMNET_SETTINGS_NORMALIZATION_amplitude ) {
 		return Spectra::SN_AMPLITUDE;
 	}
-	else if ( _sstrSpectraNormalization == SOFMNET_SETTINGS_NORMALIZATION_flux ) {
+	else if ( sstrSpectraNormalization == SOFMNET_SETTINGS_NORMALIZATION_flux ) {
 		return Spectra::SN_FLUX;
 	} 
 
@@ -171,6 +174,16 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 	Helpers::print( std::string("We are using ") + m_params.sstrSearchMode  + " search .\n", m_pLogStream );
 	Helpers::print( std::string("Spectra normalization is set to ") +spectraNormalizationToString(m_params.normaliziationType) + ".\n", m_pLogStream );
 
+#ifdef SDSS_SINETEST
+	float freq = 0.001f;
+	for (size_t i=0;i<m_numSpectra;i++)
+	{
+		Spectra *a = _pSourceVFS->beginRead(i);
+		a->setSine(freq);
+		freq += 0.000025f;
+		_pSourceVFS->endRead(i);
+	}
+#endif // SDSS_SINETEST
 
 	calcFluxAndNormalizeInputDS( m_params.normaliziationType );
 	calcMinMaxInputDS();
@@ -370,7 +383,7 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_NORMALIZATION, "value", sstrNormalizationType );
 
 	m_params.sstrSearchMode = Helpers::lowerCase( sstrSearchMode );
-	m_params.normaliziationType = spectraNormalizationFromString( Helpers::lowerCase( sstrNormalizationType ) );
+	m_params.normaliziationType = spectraNormalizationFromString( sstrNormalizationType );
 
 	p.gotoChild();
 	
@@ -545,9 +558,9 @@ void SOFMNetwork::renderIcons()
 			redness = MathHelpers::logf(localmax+1.f,m_flux+1.f);
 			redness *= redness*2.f;
 		}
-
-//		redness = (float)i*2.f/(float)m_numSpectra;
-
+#ifdef SDSS_SINETEST
+		redness = (float)i*2.f/(float)m_numSpectra;
+#endif // SDSS_SINETEST
 		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, 100, 100, redness );
 
 		m_pSourceVFS->endRead( i );
