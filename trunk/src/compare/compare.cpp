@@ -273,9 +273,9 @@ void main(int argc, char* argv[])
 				errMaxG = MAX( errMaxG, errG );
 				errMaxB = MAX( errMaxB, errB );
 
-				pErrors[c+0] = errR;
+				pErrors[c+0] = errB;
 				pErrors[c+1] = errG;
-				pErrors[c+2] = errB;
+				pErrors[c+2] = errR;
 
 				vfsSrc.endRead(spSOM->m_Index);
 			}
