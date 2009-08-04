@@ -602,6 +602,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\randomNumbers.h"
+			>
+		</File>
+		<File
 			RelativePath=".\sdssSoftwareVersion.h"
 			>
 		</File>
