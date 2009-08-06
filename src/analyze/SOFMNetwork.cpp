@@ -603,12 +603,12 @@ void SOFMNetwork::exportNeighbourHoodFunction( const std::string &_sstrFilenName
 		const float lRate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
 		const float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin, lPercent);
 		const float sigmaSqr = sigma*sigma;
-		const float sigmaSqr2 = sigmaSqr*2.f;
+		const float sigmaSqr2 = sigmaSqr*(1.f/EULER);
 
 		for (size_t i=0;i<m_gridSize;i++)
 		{
-			const float tdistall = static_cast<float>(i*i);
-			const float hxy = exp(-sqrtf(tdistall)/sigmaSqr2);	
+			const float tdistall = static_cast<float>(i)/static_cast<float>(m_gridSize);
+			const float hxy = exp(-tdistall/sigmaSqr2);	
 			nbFunction[i+j*m_gridSize] = hxy*lRate;
 		}
 
@@ -628,7 +628,8 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 {
 	const size_t xpBestMatch = _bestMatchIndex % m_gridSize;
 	const size_t ypBestMatch = _bestMatchIndex / m_gridSize;
-	const float sigmaSqr2 = _sigmaSqr*2.f;
+	const float sigmaSqr2 = _sigmaSqr*(1.f/EULER);
+	const float fGridSizeSqr = static_cast<float>(m_gridSizeSqr);
 
 	// TODO: different boundary conditions
 
@@ -643,7 +644,9 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 		{
 			const float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
 			const float tdistx2 = tdistx*tdistx;
-			const float tdistall = tdistx2+tdisty2;
+			const float tdistall = (tdistx2+tdisty2)/fGridSizeSqr;					// normalize distance with gridsize
+
+			// calculate neighborhood function
 			//const float mexican_hat_term = 1.f-tdistall/_sigmaSqr;
 			//const float hxy = exp(-(tdistall)/sigmaSqr2);							// original
 			//const float hxy = exp(-(tdistall)/sigmaSqr2)*mexican_hat_term;		// Mexican hat
