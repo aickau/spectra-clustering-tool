@@ -90,7 +90,7 @@ int getDefaultFontID()
 }
 
 
-void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, 
+void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _numDiagrams, size_t _strideInBytes, size_t _offsetInBytes, 
 						 size_t _width, size_t _height, const std::string &_sstrFilename )
 {
 	assert(_values != NULL);
@@ -113,10 +113,15 @@ void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBy
 
 	MathHelpers::getMinMax( _values, _valueCount, _strideInBytes, _offsetInBytes , yMin, yMax );
 
+	float yo = static_cast<float>((_height*3.f)/4.f);
 	float xs = static_cast<float>(_width)/static_cast<float>(_valueCount);
-	float ys = static_cast<float>(_height*3.f/4.f)/yMax;
+	float ys = yo/yMax;
 
-	GLHelper::DrawDiagram( _values, _valueCount, _strideInBytes, _offsetInBytes, 0.0f, static_cast<float>((_height*3.f)/4.f), xs, ys );
+	for ( size_t i=0;i<_numDiagrams;i++)
+	{
+		GLHelper::DrawDiagram( &_values[_valueCount*i], _valueCount, _strideInBytes, _offsetInBytes, 0.0f, yo, xs, ys );
+	}
+	GLHelper::DrawLine( 0.f, yo, static_cast<float>(_width), yo );
 
 	float pos[]={10.f,10.f,-10};
 	std::stringstream sstream;
