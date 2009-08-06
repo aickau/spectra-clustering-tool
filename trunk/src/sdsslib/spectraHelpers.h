@@ -38,8 +38,11 @@ namespace SpectraHelpers
 	// get GL default font ID
 	int getDefaultFontID();
 
-	// Render diagram to disk.
-	void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _strideInBytes, size_t _offsetInBytes, 
+	// Render one or more diagrams to disk.
+	// _values pointer to float array, should be _valueCount*_numDiagrams in size
+	// _valueCount number of values per diagram
+	// _numDiagrams number of diagrams
+	void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _numDiagrams, size_t _strideInBytes, size_t _offsetInBytes, 
 		size_t _width, size_t _height, const std::string &sstrFilename );
 
 	// save a floating point map as RGB png image

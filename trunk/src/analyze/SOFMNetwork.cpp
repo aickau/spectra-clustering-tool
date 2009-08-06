@@ -206,7 +206,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		reset(m_params);
 
 		renderIcons();
-		exportHistograms("export");
+		exportHistograms("export/");
 
 		// initialize with input data
 		Helpers::print( std::string("Initializing network with input data.\n"), m_pLogStream );
@@ -495,9 +495,6 @@ void SOFMNetwork::calcFluxAndNormalizeInputDS( Spectra::SpectraNormalization _no
 void SOFMNetwork::exportHistograms( const std::string &_sstrExportDirectory )
 {
 	std::string sstrDir( FileHelpers::getFilePath(_sstrExportDirectory) );
-	if ( !sstrDir.empty() ) {
-		sstrDir += "/";
-	}
 
 	Helpers::print( std::string("Exporting energy maps.\n"), m_pLogStream );
 	std::vector<float> energymap;
@@ -520,10 +517,13 @@ void SOFMNetwork::exportHistograms( const std::string &_sstrExportDirectory )
 	const size_t width = 800;
 	const size_t height = 533;
 
-	SpectraHelpers::renderDiagramToDisk(&energymap[0], energymap.size(), 4, 0, width, height, sstrDir+std::string("energymap.png") );
-	SpectraHelpers::renderDiagramToDisk(&peakmap[0], peakmap.size(), 4, 0, width, height, sstrDir+std::string("peakmap.png") );
-	SpectraHelpers::renderDiagramToDisk(&zmap[0], zmap.size(), 4, 0, width, height, sstrDir+std::string("zmap.png") );
+	SpectraHelpers::renderDiagramToDisk(&energymap[0], energymap.size(), 1, 4, 0, width, height, sstrDir+std::string("energymap.png") );
+	SpectraHelpers::renderDiagramToDisk(&peakmap[0], peakmap.size(), 1, 4, 0, width, height, sstrDir+std::string("peakmap.png") );
+	SpectraHelpers::renderDiagramToDisk(&zmap[0], zmap.size(), 1, 4, 0, width, height, sstrDir+std::string("zmap.png") );
+	exportNeighbourHoodFunction( sstrDir+std::string("neighborhoodfunc.png") );
 }
+
+
 
 
 void SOFMNetwork::renderIcons()
@@ -589,6 +589,37 @@ void SOFMNetwork::reset( const Parameters &_params )
 	m_params = _params;
 	m_currentStep = 0;
 	m_Random.initRandom( m_params.randomSeed );
+}
+
+
+void SOFMNetwork::exportNeighbourHoodFunction( const std::string &_sstrFilenName )
+{
+	float lPercent = 0.f;
+	std::vector<float> nbFunction;
+	nbFunction.resize(m_gridSize*5);
+
+	for ( int j=0;j<5;j++)
+	{
+		const float lRate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
+		const float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin, lPercent);
+		const float sigmaSqr = sigma*sigma;
+		const float sigmaSqr2 = sigmaSqr*2.f;
+
+		for (size_t i=0;i<m_gridSize;i++)
+		{
+			const float tdistall = static_cast<float>(i*i);
+			const float hxy = exp(-sqrtf(tdistall)/sigmaSqr2);	
+			nbFunction[i+j*m_gridSize] = hxy*lRate;
+		}
+
+		lPercent += 0.25f;
+	}
+
+
+	const size_t width = 800;
+	const size_t height = 533;
+
+	SpectraHelpers::renderDiagramToDisk(&nbFunction[0], m_gridSize, 5, 4, 0, width, height, _sstrFilenName );
 }
 
 
@@ -1425,7 +1456,6 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 
 	delete[] pErrMap;
 	delete[] pRGBMap;
-
 }
 
 
@@ -1456,6 +1486,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	calcUMatrix( sstrDirectory+sstrUMatrix, true, false, false );
 	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false);
 	calcZMap( sstrDirectory+sstrZMap, true );
+
 	
 	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+HTMLExport::lineBreak();
 	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+HTMLExport::lineBreak();
@@ -1473,6 +1504,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	sstrInfo += std::string("Energy histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("energymap.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Peak histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("peakmap.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Z histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("zmap.png") )+HTMLExport::lineBreak();
+	sstrInfo += std::string("Neighborhood function:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("neighborhoodfunc.png") )+HTMLExport::lineBreak();
 
 	Helpers::insertString( HTMLExport::HTML_TOKEN_INFO, sstrInfo, sstrMainHTMLDoc );
 	Helpers::insertString( HTMLExport::HTML_TOKEN_TITLE, "", sstrMainHTMLDoc );

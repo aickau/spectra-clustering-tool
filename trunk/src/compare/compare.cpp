@@ -102,6 +102,7 @@ void main(int argc, char* argv[])
 	if ( !sstrMap1File.empty() && !sstrMap2File.empty() )
 	{
 		// difference map / vector field calculation
+		/////////////////////////////////////////////////////////////////////////////////////////////////////////////7
 
 		Helpers::print( "Found map files, performing vector field calculation.\n", &logFile );
 
@@ -161,6 +162,10 @@ void main(int argc, char* argv[])
 
 		return;
 	}
+
+	// global comparison: one spectra vs. an entire map, error in three bands
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////7
+
 
 	if ( normalize==0 )
 	{

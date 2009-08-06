@@ -30,6 +30,18 @@ class SpectraVFS;
 // Builds, processes and exports a Self Organizing Feature Map of a given training spectra data set which you want to cluster.
 // See T. Kohonen. Self-organized formation of topologically correct feature maps. Biological Cybernetics, 43:-69, 1982. 
 // .. or just use Google to get a hell lot of material which explain the algorithm.
+//
+// Good code names for a prototype:
+//
+// Arzamas-16
+// Chelyabinsk-70 
+// Krasnoyarsk-26
+// Tomsk-7
+// Penza-19
+// Semipalatinsk-16
+// Sverdlovsk-44
+// Zlatoust-36
+// Chita-46 
 class SOFMNetwork
 {
 public:
@@ -147,6 +159,10 @@ protected:
 
 	// export an energy and z histograms for the current input data set.
 	void exportHistograms( const std::string &_sstrExportDirectory );
+
+	// plot neighborhood functions for 0%, 25%, 50%, 75% and 100% of the learning process.
+	// x-axis = distance from BMU in grid cells, y-axis = network adaption
+	void exportNeighbourHoodFunction( const std::string &_sstrFilenName );
 	
 	// write SOM cluster settings to file
 	void writeSettings( const std::string &_sstrFileName );
