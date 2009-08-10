@@ -398,7 +398,8 @@ int WINAPI WMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, 
 		}
 		else										
 		{
-			if (fr_active)								
+			// enable this line if you want to pause computation on minimized window
+			//if (fr_active)								
 			{
 				if (fr_keys[KB_ESCAPE])				
 				{
