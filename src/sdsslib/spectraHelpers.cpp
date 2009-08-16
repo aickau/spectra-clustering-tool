@@ -546,5 +546,55 @@ bool calcVectorField( SpectraVFS &_map1, SpectraVFS &_map2, std::vector<float>& 
 	return true;
 }
 
+ 
+void foldSpectrum( float *_pSrcSpectrum, size_t _numSrcSamples, float *_pDstSpectrum, size_t _numDstSamples, size_t _numFoldIterations )
+{
+	assert( _pSrcSpectrum != NULL );
+	assert( _pDstSpectrum != NULL );
+	assert( _numSrcSamples > 1 );
+	assert( _numDstSamples >= 1 );
+	assert( _numDstSamples <= _numSrcSamples );
+	assert( _numFoldIterations >= 1 );
+
+	if ( _pSrcSpectrum == NULL || 
+		 _pDstSpectrum == NULL ||
+		 _numSrcSamples <= 1 ||
+		 _numDstSamples < 1 ||
+		 _numDstSamples > _numSrcSamples ||
+		 _numFoldIterations == 0 )
+	{
+		return;
+	}
+
+	// check if destination buffer is large enough.
+	const size_t numDstSamplesRequired = _numSrcSamples/static_cast<size_t>(powf(2.f, static_cast<float>(_numFoldIterations) ));
+	if ( numDstSamplesRequired > _numDstSamples )
+	{
+		assert(0); 
+		return;
+	}
+
+	size_t numSamples = _numSrcSamples;
+	for ( int j=0;j<_numFoldIterations;j++ )
+	{
+		size_t c=0;
+		for (size_t i=0;i<numSamples-1;i+=2)
+		{
+			_pSrcSpectrum[c] = (_pSrcSpectrum[i]+_pSrcSpectrum[i+1]) * 0.5f;
+			c++;
+		}
+		numSamples /= 2; 
+	}
+
+	memcpy( _pDstSpectrum, _pSrcSpectrum, sizeof(float)*numSamples );
+
+	// fill unread samples with 0.0
+	for ( size_t i=numSamples;i<_numDstSamples;i++)
+	{
+		_pDstSpectrum[i] = 0.0f;
+	}
+}
+
+
 
 }

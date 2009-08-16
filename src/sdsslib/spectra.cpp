@@ -36,6 +36,7 @@
 #include "sdsslib/filehelpers.h"
 #include "sdsslib/mathhelpers.h"
 #include "sdsslib/defines.h"
+#include "sdsslib/spectrahelpers.h"
 
 
 // spectra read from SDSS FITS have a wavelength of 3800..9200 Angström
@@ -319,7 +320,6 @@ bool Spectra::saveToCSV(const std::string &_filename)
 	return true;
 }
 
-
 bool Spectra::loadFromCSV(const std::string &_filename)
 {
 	if ( FileHelpers::getFileExtension(_filename) != ".csv" )
@@ -328,40 +328,82 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	}
 	clear();
 	std::ifstream fin(_filename.c_str());
-	std::string line;
-	fin >> line;
+	std::string sstrTemp;
+	getline(fin, sstrTemp, '\n');
+
+	// The first line can contain additional information:
+	// specObjID, plate, mjd, fiber ID, type, z
+
+	std::istringstream sstr;
+	sstr.str(sstrTemp);
+	__int64 specObjID=0;
+	int plate=-1, mjd=-1, fiberID=-1, type=-1;
+	double z=-100000.0;
+
+	sstr >> specObjID;
+	sstr >> mjd;
+	sstr >> plate;
+	sstr >> fiberID;
+	sstr >> type;
+	sstr >> z;
+
+	if ( specObjID > 0 )
+	{
+		// use specobj diretly
+		m_SpecObjID = specObjID;
+	}
+	else
+	{
+		// try to calculate it form the other data.
+		if ( plate>-1 && mjd>-1 && fiberID>-1 && type>-1 )
+		{
+			m_SpecObjID = Spectra::calcSpecObjID( plate,mjd,fiberID,type );
+		}
+	}
+
+	if ( z > -100000.0 )
+	{
+		m_Z = z;
+	}
+
+
+	const size_t spectrumMaxSize = 3900; 
+	float spectrum[spectrumMaxSize];
+
 
 	float x0,x1,x2,x3;
 	size_t c=0;
 
-	while( fin >> line && c < Spectra::numSamples ) 
+	while( fin >> sstrTemp && c < spectrumMaxSize ) 
 	{	
-		// w0
-		std::stringstream st0(line.c_str() );
+		// row 0: Wavelength(A)
+		std::stringstream st0(sstrTemp.c_str() );
 		st0 >> x0;
 
-		// w1
-		fin >> line;
-		std::stringstream st1(line.c_str() );
+		// row 1: Flux
+		fin >> sstrTemp;
+		std::stringstream st1(sstrTemp.c_str() );
 		st1 >> x1;
 
-		// w2
-		fin >> line;
-		std::stringstream st2(line.c_str() );
+		// row: 2: Error
+		fin >> sstrTemp;
+		std::stringstream st2(sstrTemp.c_str() );
 		st2 >> x2;
 
-		// w3
-		fin >> line;
-		std::stringstream st3(line.c_str() );
+		// row 3: Mask
+		fin >> sstrTemp;
+		std::stringstream st3(sstrTemp.c_str() );
 		st3 >> x3;
 
-		m_Amplitude[c] = x1;
+		spectrum[c] = x1;
 
 		c++;
 	}
 
+	SpectraHelpers::foldSpectrum( spectrum, c, m_Amplitude, numSamples, 2 );
+
 	m_SpecObjID = 0;
-	m_SamplesRead = c;
+	m_SamplesRead = c/4;
 
 
 	calcMinMax();
@@ -475,25 +517,9 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 		w+=d; 
 	}
 #else // _ZBACKCALC
-	const size_t sampleReductionRatio = 2;
-	for ( int j=0;j<sampleReductionRatio;j++ )
-	{
-		size_t c=0;
-		for (size_t i=0;i<elementsToRead-1;i+=2)
-		{
-			spectrum[c] = (spectrum[i]+spectrum[i+1]) * 0.5f;
-			c++;
-		}
-		elementsToRead /= 2; 
-	}
 
-	memcpy( m_Amplitude, spectrum, sizeof(float)*elementsToRead );
-
-	// fill unread samples with 0.0
-	for ( size_t i=elementsToRead;i<numSamples;i++)
-	{
-		m_Amplitude[i] = 0.0f;
-	}
+	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, m_Amplitude, numSamples, 2 );
+	elementsToRead /= 4; 
 	m_SamplesRead = static_cast<__int16>(elementsToRead);
 #endif // _ZBACKCALC
 #ifdef _USE_SPECTRALINES
