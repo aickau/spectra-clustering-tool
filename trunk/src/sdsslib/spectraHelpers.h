@@ -86,6 +86,15 @@ namespace SpectraHelpers
 	// \param [out] position, velocity and distance field (index 0,1 initial position, 2,3 velocity vector, 4 distance)
 	// \return true on success, otherwise false
 	bool calcVectorField( SpectraVFS &_map1, SpectraVFS &_map2, std::vector<float>& _outVectorField );
+
+	// Fold a source spectrum by a given factor. For each iteration the spectrum size divides by two.
+	// \param _pSrcSpectrum pointer to source spectrum. the data of the source spectrum is destroyed since we store intermediate information for folding in there.
+	// \param _numSrcSamples number of samples/pixels of the source spectrum
+	// \param _pDstSpectrum destination spectrum
+	// \param _numDstSamples number of samples of the destination spectrum, must be at least the size of _numSrcSamples / (2^numFoldIterations)
+	//        if the number of destination samples is greater than _numSrcSamples / (2^numFoldIterations) the rest is filled with zeros.
+	// \param _numFoldIterations number of foldings. 
+	void foldSpectrum( float *_pSrcSpectrum, size_t _numSrcSamples, float *_pDstSpectrum, size_t _numDstSamples, size_t _numFoldIterations=1 );
 };
 
 

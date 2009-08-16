@@ -386,11 +386,25 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 			multiplier = it->second;
 		}
 		spec.clear();
-		bool bResult = spec.loadFromFITS( fileList.at(i) );
+
+		const std::string sstrFilename( fileList.at(i) );
+		const std::string sstrExtension = FileHelpers::getFileExtension( sstrFilename );
+
+
+		bool bResult = false; // be pessimistic:)
+		
+		if ( sstrExtension == ".fit" )
+		{
+			spec.loadFromFITS( sstrFilename );
+		}
+		else if ( sstrExtension == ".csv" )
+		{
+			spec.loadFromCSV( sstrFilename );
+		}
 		
 		if ( multiplier != 1.f )
 		{
-			Helpers::print( "multiplying spectrum "+fileList.at(i)+" with "+ Helpers::numberToString<float>(multiplier)+"\n", _logStream );
+			Helpers::print( "multiplying spectrum "+sstrFilename+" with "+ Helpers::numberToString<float>(multiplier)+"\n", _logStream );
 			spec.multiply(multiplier);
 		}
 

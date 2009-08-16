@@ -131,10 +131,21 @@ public:
 	// scale signals
 	void multiply(float _multiplier);
 	
-	// load from comma separated values 
+	// load spectrum from comma separated values, we aussume ~3900 samples.
+	// spectrum should look like this:
+	//
+	//
+	//	Wavelength(A),Flux,Error,Mask
+	//	3830.01081226449, -1.97607004642487, 0, 83886080
+	//	3830.01081226449, -1.97607004642487, 0, 83886080
+	//  .. omitting next ~3900 lines.
+	//	3833.54000759044, 1.56192994117737, 1.66190469264984, 0
+	//
 	bool loadFromCSV(const std::string &_filename);
 	
 	// load from SDSS .fit file
+	// FITS file description see http://www.sdss.org/DR6/dm/flatFiles/spSpec.html
+	// general info here: http://www.sdss.org/DR6/dm/flatFiles/FILES.html
 	bool loadFromFITS(const std::string &_filename);
 
 	// save to ASCII CSV
