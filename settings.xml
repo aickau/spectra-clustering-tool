@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Analyzer config file, SDSS sorting prototype - Stage I, Copyright (c) 2009 0.154, Rev. 117 -->
+<!-- Analyzer config file, SDSS sorting prototype - Stage I, Copyright (c) 2009 0.156 - arthospec branch, Rev. 129 -->
 <SETTINGS>
 	<STEP current="1" total="200"/>
 	<GRIDSIZE value="2"/>
@@ -11,6 +11,6 @@
 		<SUBPAGES value="0"/>
 		<WAITFORUSER value="0"/>
 	</EXPORT>
-	<SEARCHMODE value="localfast"/><!-- localfast / local / global -->
-	<NORMALIZATION value="flux"/><!-- amplitude / flux / none -->
+	<SEARCHMODE value="global"/><!-- localfast / local / global -->
+	<NORMALIZATION value="none"/><!-- amplitude / flux / none -->
 </SETTINGS>

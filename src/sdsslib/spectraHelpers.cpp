@@ -297,7 +297,7 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	// determine maximum, smooth spectrum to remove outliers a bit
 	float ymin, ymax;
 	float values[Spectra::numSamples];
-	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 10 );
+	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 1 );
 	MathHelpers::getMinMax(values, _spectra.m_SamplesRead-1, 4, 0, ymin, ymax );
 
 	if (ymax==0.0f)
