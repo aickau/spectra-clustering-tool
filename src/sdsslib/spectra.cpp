@@ -322,12 +322,21 @@ bool Spectra::saveToCSV(const std::string &_filename)
 
 bool Spectra::loadFromCSV(const std::string &_filename)
 {
+	static size_t nCounter = 1;
 	if ( FileHelpers::getFileExtension(_filename) != ".csv" )
 	{
 		return false;
 	}
 	clear();
-	std::ifstream fin(_filename.c_str());
+	std::string sstrCSV;
+	const bool bSuccess = FileHelpers::loadFileToString( _filename, sstrCSV );
+	if ( !bSuccess )
+	{
+		return false;
+	}
+
+
+	std::stringstream fin(sstrCSV.c_str());
 	std::string sstrTemp;
 	getline(fin, sstrTemp, '\n');
 
@@ -347,6 +356,13 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	sstr >> type;
 	sstr >> z;
 
+	m_Type = SPT_SPEC_UNKNOWN;
+	if ( type > 0 )
+	{
+		m_Type = type;
+	}
+
+
 	if ( specObjID > 0 )
 	{
 		// use specobj diretly
@@ -358,6 +374,11 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 		if ( plate>-1 && mjd>-1 && fiberID>-1 && type>-1 )
 		{
 			m_SpecObjID = Spectra::calcSpecObjID( plate,mjd,fiberID,type );
+		}
+		else
+		{
+			m_SpecObjID = Spectra::calcSpecObjID( nCounter/640, 0, nCounter%640, 0 );
+			nCounter++;
 		}
 	}
 
@@ -371,14 +392,15 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	float spectrum[spectrumMaxSize];
 
 
-	float x0,x1,x2,x3;
+	//float x0,x2,x3;
+	float x1;
 	size_t c=0;
 
 	while( fin >> sstrTemp && c < spectrumMaxSize ) 
 	{	
 		// row 0: Wavelength(A)
-		std::stringstream st0(sstrTemp.c_str() );
-		st0 >> x0;
+//		std::stringstream st0(sstrTemp.c_str() );
+//		st0 >> x0;
 
 		// row 1: Flux
 		fin >> sstrTemp;
@@ -387,13 +409,13 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 
 		// row: 2: Error
 		fin >> sstrTemp;
-		std::stringstream st2(sstrTemp.c_str() );
-		st2 >> x2;
+//		std::stringstream st2(sstrTemp.c_str() );
+//		st2 >> x2;
 
 		// row 3: Mask
 		fin >> sstrTemp;
-		std::stringstream st3(sstrTemp.c_str() );
-		st3 >> x3;
+//		std::stringstream st3(sstrTemp.c_str() );
+//		st3 >> x3;
 
 		spectrum[c] = x1;
 
@@ -402,9 +424,7 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 
 	SpectraHelpers::foldSpectrum( spectrum, c, m_Amplitude, numSamples, 2 );
 
-	m_SpecObjID = 0;
 	m_SamplesRead = c/4;
-
 
 	calcMinMax();
 
