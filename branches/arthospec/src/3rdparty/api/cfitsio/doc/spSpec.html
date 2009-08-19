@@ -1,0 +1,1373 @@
+<html><head><title>Survey Interface File for Spectroscopic Output 1-d Spectrum</title></head><body>
+
+<h1>1D Spectro Image</h1>
+
+<strong>File Format:</strong>
+FITS image
+ <p>
+<strong>Name:</strong>
+<em>spSpec-mmmmm-pppp-fff.fit</em>,
+where <em>mmmmm</em> is the mjd, <em>pppp</em> is the plate id number and <em>fff</em> is the fiber id
+number.
+ </p><p>
+<strong>Produced by:</strong>
+spectro1d
+ </p><p>
+<strong>Used by:</strong>
+opdb, sdbx
+ </p><p>
+<strong>Archived?</strong>
+Yes.
+
+</p><h2>Description</h2>
+Line measurements and redshift determinations, as well as the spectrum, for a
+single object, summing over all of its exposures through a given
+mapped plate. Each file contains the following HDUs:
+
+<ul>
+  <li><a href="#spec">Primary HDU image</a>: spectrum, continuum-subtracted spectrum,
+      noise in spectrum, <a href="#specmask">mask array</a>.</li>
+  <li><a href="#hdu2">HDU 1 and 2</a>: Line detections and
+      measurements. <strong>Under most circumstances, the line
+      measurements in HDU 2 should be used.</strong></li>
+  <li><a href="#emz">HDU 3</a>: Emission-line redshift measurements</li>
+  <li><a href="#xcorz">HDU 4</a>: Cross-correlation redshift
+      measurement</li>
+  <li><a href="#lineindex">HDU 5</a>: Line index measurements</li>
+  <li><a href="#maskres">HDU 6</a>: Mask and per-pixel resolution</li>
+</ul>
+
+<a name="spec"></a>      
+<h2>Primary Header</h2>
+The spectrum.  The first row is the spectrum, the second row is the continuum 
+subtracted spectrum, the third row is the noise in the spectrum (standard
+deviation, in the same units as the spectrum), the forth row 
+is the <a href="#specmask">mask array</a>.  The spectra are binned log-linear.
+Units are 10^(-17) erg/cm/s^2/Ang.
+<pre>
+
+SIMPLE  =                    T                                                  
+BITPIX  =                  -32                                                  
+NAXIS   =                    2                                                  
+NAXIS1  =                 3849                                                  
+NAXIS2  =                    4                                                  
+TAI     =        4474845874.54 / 1st row - Number of seconds since Nov 17 1858  
+RA      =            261.30167 / 1st row - Right ascension of telescope boresigh
+DEC     =            60.926492 / 1st row - Declination of telescope boresight (d
+EQUINOX =              2000.00 /                                                
+RADECSYS= 'FK5     '           /                                                
+AZ      =        212.819513333 / 1st row - Azimuth  (encoder) of tele (0=N?) (de
+ALT     =        48.0575580000 / 1st row - Altitude (encoder) of tele        (de
+AIRMASS =              1.28831 /                                                
+FOCUS   = -999999999999.999999 / 1st row - Focus piston (microns?)              
+DATE-OBS= '2000-09-05'         / 1st row - TAI date                             
+TAIHMS  = '04:27:02.14'        / 1st row - TAI time (HH:MM:SS.SS) (TAI-UT = appr
+TIMESYS = 'tai     '           / TAI, not UTC                                   
+TAI-BEG =        4474843863.00 / Exposure Start Time                            
+TAI-END =        4474846879.00 / Exposure End Time                              
+MJD     =                51792 / MJD of observation                             
+MJDLIST = '51792   '           /                                                
+VERSION = 'v3_17_5_4'          / version of IOP                                 
+CAMVER  = 'SPEC2 v4_5'         / Camera code version                            
+OBSERVER= 'sjnk    '                                                            
+OBSCOMM = 'science '                                                            
+TELESCOP= 'SDSS 2.5-M'         / Sloan Digital Sky Survey                       
+NEXP    =                   12 / Number of exposures in this file               
+EXPID00 = 'b1-51792-00006429-00006426-00006427' / ID string for exposure 0      
+EXPID01 = 'b1-51792-00006430-00006426-00006427' / ID string for exposure 1      
+EXPID02 = 'b1-51792-00006431-00006437-00006427' / ID string for exposure 2      
+EXPID03 = 'b2-51792-00006429-00006426-00006427' / ID string for exposure 3      
+EXPID04 = 'b2-51792-00006430-00006426-00006427' / ID string for exposure 4      
+EXPID05 = 'b2-51792-00006431-00006437-00006427' / ID string for exposure 5      
+EXPID06 = 'r1-51792-00006429-00006426-00006438' / ID string for exposure 6      
+EXPID07 = 'r1-51792-00006430-00006426-00006438' / ID string for exposure 7      
+EXPID08 = 'r1-51792-00006431-00006437-00006438' / ID string for exposure 8      
+EXPID09 = 'r2-51792-00006429-00006426-00006438' / ID string for exposure 9      
+EXPID10 = 'r2-51792-00006430-00006426-00006438' / ID string for exposure 10     
+EXPID11 = 'r2-51792-00006431-00006437-00006438' / ID string for exposure 11     
+EXPT_B1 =              2700.00 / b1 camera exposure time (seconds)              
+EXPT_B2 =              2700.00 / b2 camera exposure time (seconds)              
+EXPT_R1 =              2700.00 / r1 camera exposure time (seconds)              
+EXPT_R2 =              2700.00 / r2 camera exposure time (seconds)              
+EXPTIME =              2700.00 / Minimum of exposure times for all cameras      
+SPCOADD = 'Fri Jun 28 15:25:10 2002' / SPCOADD finished                         
+FLAVOR  = 'science '           / Flavor of this sequence (e.g., dome flat, etc.)
+QUALITY = 'unknown '           / night/image quality                            
+RADEG   = 2.61302400000000E+02 / Right Ascension. (degrees)                     
+DECDEG  = 6.09272200000000E+01 / Declination. (degrees)                         
+PLATEID =                  354 / Plate Id                                       
+TILEID  =                  153 / Tile Id                                        
+CARTID  =                    2 /Cartridge used in this plugging                 
+REDDEN  = '0.1724 0.1269 0.0920 0.0698 0.0495' / Median reddening vector for pla
+MAPID   =              5179001 / Map Id                                         
+NAME    = '0354-51790-01'      / Name of target; PlateId-MJD-Mapper ReRun       
+NGUIDE  =              27.0000 / Number of guider frames during exposure        
+SEEING20=              1.40667 / 20% seeing during exposure (arcsec)            
+SEEING50=              1.50333 / 50% seeing during exposure (arcsec)            
+SEEING80=              1.65667 / 80% seeing during exposure (arcsec)            
+RMSOFF20=       0.308173333333 / 20% RMS offset of guide fibers (arcsec)        
+RMSOFF50=       0.430279000000 / 50% RMS offset of guide fibers (arcsec)        
+RMSOFF80=       0.549163333333 / 80% RMS offset of guide fibers (arcsec)        
+COLBIN  =                    1 / Binning factor perpendicular to the columns    
+ROWBIN  =                    1 / Binning factor perpendicular to the rows       
+PROGRAM = 'binning 1   1 '     / Identifying name for CCD program               
+SECFOCUS= -3.0000000000000E+02 / Secondary Mirror Position as reported by TCC   
+GUIDEIMG= '/data/spectro/guider/gimg0084.fits' / Last archived guider image     
+WTIME   =        968128309.000 / weatherData(timeStamp)                         
+AIRTEMP =        16.8000000000 / weatherData(airtemp)                           
+DEWPOINT=      -0.433333333333 / weatherData(dewpoint)                          
+DEWDEP  =        17.2333333333 / weatherData(dewpointDep)                       
+DUSTA   =        85468.0000000 / weatherData(dusta)                             
+DUSTB   =        957.333333333 / weatherData(dustb)                             
+DUSTC   =        99940.0000000 / weatherData(dustc)                             
+DUSTD   =        955.333333333 / weatherData(dustd)                             
+GUSTD   = 1.32300000000000E+02 / weatherData(gustd)                             
+GUSTS   =        21.7000000000 / weatherData(gusts)                             
+HUMIDITY=        30.9333333333 / weatherData(humidity)                          
+HUMIDOUT=        30.6666666667 / weatherData(humidout)                          
+PRESSURE=        21.7000000000 / weatherData(pressure)                          
+WINDD   =        132.000000000 / weatherData(windd)                             
+WINDS   =        17.5333333333 / weatherData(winds)                             
+TEMP01  =       -93.6200000000 / CCD 01 Temperature                             
+TEMP02  =       -93.3600000000 / CCD 02 Temperature                             
+TEMP03  =       -92.5800000000 / CCD 03 Temperature                             
+TEMP04  =       -92.8400000000 / CCD 04 Temperature                             
+AZ_OFF  = 0.00000000000000E+00 / Azimuth Offset (Diamond Pointing)              
+ALT_OFF = 0.00000000000000E+00 / Altitude Offset (Diamond Pointing)             
+VERSIDL = '5.4     '           / Version of IDL                                 
+VERSUTIL= 'v4_9_7  '           / Version of idlutils                            
+VERSREAD= 'v4_9_8  '           / Version of idlspec2d for pre-processing raw dat
+VERS2D  = 'v4_9_8  '           / Version of idlspec2d for 2D reduction          
+VERSCOMB= 'v4_9_8  '           / Version of idlspec2d for combining multiple spe
+VERSLOG = 'Unknown '           / Version of SPECLOG product                     
+VERSFLAT= 'v1_4    '           / Version of SPECFLAT product                    
+OPBC    = 'opBC-50000.par'     /                                                
+OPCONFIG= 'opConfig-50000.par' /                                                
+OPECALIB= 'opECalib-51577.par' /                                                
+XSIGMA  =       0.947553247927 /                                                 
+XSIGMIN =       0.842633000000 /                                                
+XSIGMAX =        1.11480998993 /                                                
+WSIGMA  =       0.937792500000 /                                                
+WSIGMIN =       0.898409000000 /                                                
+WSIGMAX =       0.988289000000 /                                                
+PLUGFILE= 'plPlugMapM-0354-51790-01.par' /                                      
+LAMPLIST= 'lamphgcdne.dat'     /                                                
+SKYLIST = 'skylines.dat'       /                                                
+HELIO_RV=        3.38344063555 / Heliocentric correction (added to velocities)  
+VACUUM  =                    T / Wavelengths are in vacuum                      
+SFLATTEN=                    T / Superflat has been applied                     
+PSFSKY  =                    3 / Order of PSF skysubtraction                    
+SKYCHI2 =       0.967572500439 / Mean chi^2 of sky-subtraction                  
+SCHI2MIN=       0.931639000000 /                                                
+SCHI2MAX=        1.01598000526 /                                                
+PREJECT =             0.200000 / Profile area rejection threshold               
+SPEC1_G =              19.9614 /(S/N)^2 for spec  1 at mag 20.20                
+SPEC1_R =              30.2269 /(S/N)^2 for spec  1 at mag 20.25                
+SPEC1_I =              25.6335 /(S/N)^2 for spec  1 at mag 19.90                
+SPEC2_G =              18.0590 /(S/N)^2 for spec  2 at mag 20.20                
+SPEC2_R =              28.4687 /(S/N)^2 for spec  2 at mag 20.25                
+SPEC2_I =              23.9591 /(S/N)^2 for spec  2 at mag 19.90                
+LOWREJ  =                    5 / Extraction: low rejection                      
+HIGHREJ =                    8 / Extraction: high rejection                     
+SCATPOLY=                    5 / Extraction: Order of scattered light polynomial
+PROFTYPE=                    3 / Extraction profile: 1=Gaussian                 
+NFITPOLY=                    1 / Extraction: Number of parameters in each profil
+XCHI2   =              1.38691 / Extraction: Mean chi^2                         
+XCHI2MIN=              1.20964 /                                                
+XCHI2MAX=              1.66991 /                                                
+ROFFSET1=          -0.00763309 /Mean r-band mag difference (spectro - photo)    
+RSIGMA1 =             0.190664 /Stddev of r-band mag difference (spectro - photo
+GROFF1  =            0.0870182 /Mean (g-r) color difference (spectro - photo)   
+GRSIGMA1=             0.453493 /Stddev of (g-r) color difference (spectro - phot
+ROFFSET2=           -0.0414150 /Mean r-band mag difference (spectro - photo)    
+RSIGMA2 =             0.163316 /Stddev of r-band mag difference (spectro - photo
+GROFF2  =            0.0145647 /Mean (g-r) color difference (spectro - photo)   
+GRSIGMA2=             0.336159 /Stddev of (g-r) color difference (spectro - phot
+NWORDER =                    2 / Linear-log10 coefficients                      
+WFITTYPE= 'LOG-LINEAR'         / Linear-log10 dispersion                        
+UNAME   = 'fnpc73  '           /                                                
+SMEARUSE=                    T / Smear image used?                              
+SFD_USED=                    T / SFD dust maps used?                            
+XYGRSIG1=            0.0621177 / Sigma of (g-r) offsets as a fcn of plate x/y   
+XYGRSIG2=            0.0191772 / Sigma of (g-r) offsets as a fcn of plate x/y   
+MPGRSIG1=            0.0445317 / Sigma of (g-r)_model - (g-r)_photo Spec 1      
+MPGRSIG2=            0.0306900 / Sigma of (g-r)_model - (g-r)_photo Spec 2      
+MPGROFF1=            0.0247127 / Mean of (g-r)_model - (g-r)_photo of Spec 1    
+MPGROFF2=           0.00158501 / Mean of (g-r)_model - (g-r)_photo of Spec 2    
+FBADPIX =            0.0189197 / Fraction of bad pixels                         
+FBADPIX1=            0.0178169 / Fraction of bad pixels on spectro-1            
+FBADPIX2=            0.0200191 / Fraction of bad pixels on spectro-2            
+WAT0_001= 'system=linear'      /                                                
+WAT1_001= 'wtype=linear label=Wavelength units=Angstroms' /                     
+CRPIX1  =                    1 / Starting pixel (1-indexed)                     
+CTYPE1  = 'LINEAR  '           /                                                
+DC-FLAG =                    1 / Log-linear flag                                
+PIXMIN  = 0.00000000000000E+00 / Place Holder                                   
+PIXMAX  = 2.04700000000000E+03 / Place Holder                                   
+ARRAY1  = 'SPECTRUM'           / units of (10^-17 erg/s/cm^2/A                  
+ARRAY2  = 'CONTINUUM-SUBTRACTED SPECTRUM' / units of (10^-17 erg/s/cm^2/A       
+ARRAY3  = 'ERROR   '           / units of (10^-17 erg/s/cm^2/A                  
+ARRAY4  = 'MASK    '           / mask bit array                                 
+SN_G    = 8.04687000000000E+00 / Median S/N ration ig g'                        
+MAG_G   = 1.95412000000000E+01 / Synthetic magnitude in g'                      
+SN_R    = 1.08943000000000E+01 / Median S/N ratio in r'                         
+MAG_R   = 1.92726000000000E+01 / Synthetic magnitude in r'                     
+SN_I    = 8.89338000000000E+00 / Median S/N ratio in i'                         
+MAG_I   = 1.91939000000000E+01 / Synthetic magnitude in i'                      
+SCI_SN  = 5.64089000000000E+00 / Science signal to noise ratio                  
+SMEAR_SN= 1.21036000000000E+00 / Smear signal to noise ratio                    
+SM_LEG_0= 3.19574000000000E+00 / 1st legendre coeff. for smear correct          
+SM_LEG_1= -2.1375500000000E+00 / 2nd legendre coeff. for smear correct          
+SM_LEG_2= 1.38465000000000E+00 / 3rd legendre coeff. for smear correct          
+OBJID   = ' 1359 0 4 56 265'   / run rerun camcol field objID                   
+MAG     = ' 19.9526 19.4762 19.3762 19.1735 19.2537' / fiber Mags               
+OBJTYPE = 'QSO     '           / object Type                                    
+RAOBJ   = 2.61528710000000E+02 / RA(deg) of object                              
+DECOBJ  = 6.07020680000000E+01 / DEC(deg) of object                             
+XFOCAL  = 2.40806440000000E+01 / Primary Target Flag                            
+YFOCAL  = -4.8912450000000E+01 / Secondary Target Flag                          
+PRIMTARG=              1048580 / fiber ID                                       
+SECTARGE=                    0 / fiber ID                                       
+FIBERID =                  153 / fiber ID                                       
+SPECID  =                    1 / spectrograph ID                                
+NGOOD   =                 3838 / Number of Good Pixels                          
+VERS_1D = 'v5_7_2  '           / Version of Spectro1d                           
+BESTTEMP=                   20 / Best cross-correlation template                
+BUNIT   = '1.0E-17 erg/cm^2/s/Ang' / Oct 2002 Version                           
+COEFF0  = 3.57920000000000E+00 / Center wavelength (log10) of first pi          
+COEFF1  = 1.00000000000000E-04 / Log10 dispersion per pixel                     
+CRVAL1  = 3.57920000000000E+00 / Iraf zero point                                
+CD1_1   = 1.00000000000000E-04 / Iraf dispersion                                
+1D_PDATE= '10/20/02:05:04:36'  / 1D Processing/last Modification date           
+SPEC_CLN=                    1 / Spectral Classn                      <a href="#specclass">(allowed values are given below)</a>
+VEL_DIS = -9.9990000000000E+03 / Velocity dispersion (km/s)                     
+VEL_DISE= -9.9990000000000E+03 / Error on Velocity Dispersion (km/s)            
+Z       = -3.7987600000000E-05 / Final redshift                                 
+Z_ERR   = 3.97400000000000E-04 / Redshift error                                 
+Z_CONF  = 5.68167000000000E-01 / Redshift confidence                            
+Z_STATUS=                    5 / Redshift Status                      <a href="#zstatus">(for legal values see below)</a>     
+Z_WARNIN=                 4128 / Redshift Warning Flags               <a href="#zwarning">(for legal values see below)</a>
+ECLASS  = -3.0499700000000E-01 / galaxy classification parameter                
+ECOEFF1 = 9.58722000000000E-01 / 1st expansion coefficient                      
+ECOEFF2 = -2.0545700000000E-01 / 2nd expansion coefficient                      
+ECOEFF3 = 1.80952000000000E-01 / 3rd expansion coefficient                      
+ECOEFF4 = -2.4917800000000E-02 / 4th expansion coefficient                      
+ECOEFF5 = -7.2626400000000E-02 / 5th expansion coefficient                      
+EXTEND  =                    T / Binary tables follow                           
+END                                                                             
+</pre>
+
+<h3><a name="specmask">Flags used in mask array</a></h3>
+
+Each pixel in the MASK array (row 4) is a bit mask, with the
+following legal values:
+<pre> SP_MASK_OK           =  0x000,      
+ SP_MASK_NOPLUG       =  0x001,      /*  Fiber not listed in plugmap file                     */
+ SP_MASK_BADTRACE     =  0x002,      /*  Bad trace from routine TRACE320CRUDE                 */
+ SP_MASK_BADFLAT      =  0x004,      /*  Low counts in fiberflat                              */
+ SP_MASK_BADARC       =  0x008,      /*  Bad arc solution                                     */
+ SP_MASK_MANYBADCOL   =  0x010,      /*  More than 10% pixels are bad columns                 */
+ SP_MASK_MANYREJECT   =  0x020,      /*  More than 10% pixels are rejected in extraction      */
+ SP_MASK_LARGESHIFT   =  0x040,      /*  Large spatial shift between flat and object position */
+ SP_MASK_NEARBADPIX   =  0x10000,    /*  Bad pixel within 3 pixels of trace                   */
+ SP_MASK_LOWFLAT      =  0x20000,    /*  Flat field less than 0.5                             */
+ SP_MASK_FULLREJECT   =  0x40000,    /*  Pixel fully rejected in extraction                   */
+ SP_MASK_PARTIALREJ   =  0x80000,    /*  Some pixels rejected in extraction                   */
+ SP_MASK_SCATLIGHT    =  0x100000,   /*  Scattered light significant                          */
+ SP_MASK_CROSSTALK    =  0x200000,   /*  Cross-talk significant                               */
+ SP_MASK_NOSKY        =  0x400000,   /*  Sky level unknown at this wavelength                 */
+ SP_MASK_BRIGHTSKY    =  0x800000,   /*  Sky level &gt; flux + 10*(flux error)                   */
+ SP_MASK_NODATA       =  0x1000000,  /*  No data available in combine B-spline                */
+ SP_MASK_COMBINEREJ   =  0x2000000,  /*  Rejected in combine B-spline                         */
+ SP_MASK_BADFLUXFACTOR=  0x4000000,  /*  Low flux-calibration or flux-correction factor       */
+ SP_MASK_BADSKYCHI    =  0x8000000,  /*  Chi^2 &gt; 4 in sky residuals at this wavelength        */
+ SP_MASK_REDMONSTER   =  0x10000000, /*  Contiguous region of bad chi^2 in sky residuals      */
+ SP_MASK_EMLINE       =  0x40000000  /*  Emission line detected here                         */
+</pre>
+
+<h3><a name="specclass"> Spectra classification:</a></h3> 
+
+The keyword SPEC_CLN stores the enumarated type. The following values are used:
+<pre> SPEC_UNKNOWN = 0
+ SPEC_STAR    = 1
+ SPEC_GALAXY  = 2
+ SPEC_QSO     = 3
+ SPEC_HIZ_QSO = 4 /* high redshift QSO, z&gt;2.3, Ly-alpha finding code is triggered */ 
+ SPEC_SKY     = 5 
+ STAR_LATE    = 6 /* star dominated by molecular bands, Type M or later           */
+ GAL_EM       = 7 /* emission line galaxy -- not set by the code                  */
+</pre>
+
+<h3><a name="zstatus">Redshift status:</a></h3>
+
+The keyword Z_STATUS stores a value indicating the status of the redshift 
+determination:
+<pre> NOT_MEASURED   =  0   /* Not yet measured                                            */
+ FAILED         =  1   /* Redshift measurement failed                                 */
+ INCONSISTENT   =  2   /* Xcorr &amp; emz redshifts both high-confidence but inconsistent */
+ XCORR_EMLINE   =  3   /* Xcorr plus consistent emz redshift measurement              */
+ XCORR_HIC      =  4   /* z determined from x-corr with high confidence               */
+ XCORR_LOC      =  5   /* z determined from x-corr with low confidence                */
+ EMLINE_XCORR   =  6   /* Emz plus consistent xcorr redshift measurement              */
+ EMLINE_HIC     =  7   /* z determined from em-lines with high confidence             */
+ EMLINE_LOC     =  8   /* z determined from em-lines with low confidence              */
+ MANUAL_HIC     =  9   /* z determined "by hand" with high confidence                 */
+ MANUAL_LOC     = 10   /* z determined "by hand" with low confidence                  */
+ XCORR_4000BREAK= 11   /* Xcorr redshift determined when EW(4000break) &gt; 0.95         */ 
+ ABLINE_CAII    = 12   /* Redshift determined from average of CaII triplet fits       */
+ </pre>
+
+<h3><a name="zwarning">Redshift warning flags:</a></h3>
+
+The keword Z_WARNIN is a mask bit, with the following legal values:
+<pre> Z_WARNING_OK       =  0x000,    /* no warnings                                      */
+ Z_WARNING_NO_SPEC  =  0x001,    /* no spec                                          */
+ Z_WARNING_NO_BLUE  =  0x002,    /* no blueside                                      */
+ Z_WARNING_NO_RED   =  0x004,    /* no redside                                       */
+ Z_WARNING_NOT_GAL  =  0x010,    /* classification does not match galaxy target      */
+ Z_WARNING_NOT_QSO  =  0x020,    /* classification does not match qso target         */
+ Z_WARNING_NOT_STAR =  0x040,    /* classification does not match star target        */
+ Z_WARNING_GAL_COEF =  0x080,    /* strange galaxy coefficients                      */
+ Z_WARNING_EMAB_INC =  0x100,    /* emission and absorbtion redshifts inconsistent  */
+ Z_WARNING_AB_INC   =  0x200,    /* absorbtion redshifts inconsistent ,multiple peaks*/
+ Z_WARNING_EM_INC   =  0x400,    /* emission redshifts inconsistent                 */
+ Z_WARNING_HIZ      =  0x800,    /* redshift is   high                               */
+ Z_WARNING_LOC      =  0x1000,   /* confidence is low                                */
+ Z_WARNING_LOW_SNG  =  0x2000,   /* signal to noise is low in g'                     */
+ Z_WARNING_LOW_SNR  =  0x4000,   /* signal to noise is low in r'                     */
+ Z_WARNING_LOW_SNI  =  0x8000,   /* signal to noise is low in i'                     */
+ Z_WARNING_4000break = 0x10000,  /* EW(4000break) &gt; 0.95                             */
+ Z_WARNING_CL_MAN   = 0x20000,   /* classification set manually */
+ Z_WARNING_Z_MAN    = 0x40000    /* redshift set manually */
+</pre>
+
+<a name="hdu2"></a>
+<h2>Line HDUs (HDU 1 and 2)</h2>
+
+<p>These HDUs list the measured properties of individual emission/absorption lines
+in the spectrum.  There are two HDUs of this type.
+The first HDU of this type (HDU 1) lists all lines found
+automatically by the wavelet filter, with no apriori knowledge of the redshift.
+The second HDU of this type (HDU 2) lists all lines measured based on their
+expected positions from the highest-confidence emission line
+redshift. <strong>Under most circumstances, the line measurements in
+HDU 2 should be used.</strong></p>
+
+<p>The following lines are measured, those with positive weights are used to estimate
+the emission line redshifts for galaxies or qso's:</p>
+
+<table border="1">
+  <tbody><tr>
+    <th>restWave</th><th>meanOffset</th><th>galWeight</th><th>qsoWeight</th><th>Name</th>
+  </tr><tr>
+    <td>1033.82</td><td>0.0</td><td>0.0</td><td>1.0</td><td>OVI</td>
+  </tr><tr>
+    <td>1215.67</td><td>0.0</td><td>0.0</td><td>9.0</td><td>Ly\\d\\ga</td>
+  </tr><tr>
+    <td>1240.81</td><td>-1.41</td><td>0.0</td><td>3.0</td><td>NV</td>
+  </tr><tr>
+    <td>1305.53</td><td>0.0</td><td>0.0</td><td>0.0</td><td>OI</td>
+  </tr><tr>
+    <td>1335.31</td><td>0.0</td><td>0.0</td><td>0.0</td><td>CII</td>
+  </tr><tr>
+    <td>1399.8</td><td>0.0</td><td>0.0</td><td>1.0</td><td>SiIV+OIV</td><td></td>
+  </tr><tr>
+    <td>1549.48</td><td>-3.62</td><td>0.0</td><td>8.0</td><td>CIV</td>
+  </tr><tr>
+    <td>1640.4</td><td>0.0</td><td>0.0</td><td>0.0</td><td>HeII</td>
+  </tr><tr>
+    <td>1665.85</td><td>0.0</td><td>0.0</td><td>0.0</td><td>OIII</td>
+  </tr><tr>
+    <td>1857.4</td><td>0.0</td><td>0.0</td><td>0.0</td><td>AlIII</td>
+  </tr><tr>
+    <td>1908.734</td><td>0.0</td><td>0.0</td><td>7.0</td><td>CIII</td>
+  </tr><tr>
+    <td>2326.0</td><td>0.0</td><td>0.0</td><td>0.5</td><td>CII</td>
+  </tr><tr>
+    <td>2439.5</td><td>0.0</td><td>0.0</td><td>0.0</td><td>NeIV</td>
+  </tr><tr>
+    <td>2799.117</td><td>1.203</td><td>1.0</td><td>8.0</td><td>MgII</td>
+  </tr><tr>
+    <td>3346.79</td><td>0.0</td><td>0.0</td><td>0.0</td><td>NeV</td>
+  </tr><tr>
+    <td>3426.85</td><td>0.0</td><td>0.0</td><td>0.0</td><td>NeV</td>
+  </tr><tr>
+    <td>3727.092</td><td>1.208</td><td>5.0</td><td>1.0</td><td>OII</td>
+  </tr><tr>
+    <td>3729.875</td><td>0.0</td><td>0.0</td><td>0.0</td><td>OII</td>
+  </tr><tr>
+    <td>3798.976</td><td>0.0</td><td>-1.0</td><td>0.0</td><td>H\\d\\gh</td>
+  </tr><tr>
+    <td>3836.47</td><td>0.0</td><td>-1.0</td><td>0.0</td><td>H\\d\\gy</td>
+  </tr><tr>
+    <td>3889.0</td><td>0.0</td><td>-1.0</td><td>0.0</td><td>HeI</td>
+  </tr><tr>
+    <td>3934.777</td><td>0.0</td><td>-1.0</td><td>0.0</td><td>K</td>
+  </tr><tr>
+    <td>3969.588</td><td>0.0</td><td>-1.0</td><td>0.0</td><td>H</td>
+  </tr><tr>
+    <td>4072.3</td><td>0.0</td><td>0.0</td><td>0.0</td><td>SII</td>
+  </tr><tr>
+    <td>4102.89</td><td>0.0</td><td>0.5</td><td>2.0</td><td>H\\d\\gd</td>
+  </tr><tr>
+    <td>4305.61</td><td>0.0</td><td>-1.0</td><td>0.0</td><td>G</td>
+  </tr><tr>
+    <td>4341.68</td><td>0.0</td><td>1.0</td><td>3.0</td><td>H\\d\\gg</td>
+  </tr><tr>
+    <td>4364.436</td><td>0.0</td><td>0.0</td><td>0.0</td><td>OIII</td>
+  </tr><tr>
+    <td>4862.68</td><td>0.0</td><td>2.0</td><td>4.0</td><td>H\\d\\gb</td>
+  </tr><tr>
+    <td>4960.295</td><td>0.0</td><td>2.0</td><td>2.0</td><td>OIII</td>
+  </tr><tr>
+    <td>5008.240</td><td>0.0</td><td>3.0</td><td>2.0</td><td>OIII</td>
+  </tr><tr>
+    <td>5176.7</td><td>0.0</td><td>-1.0</td><td>0.0</td><td>Mg</td>
+  </tr><tr>
+    <td>5895.6</td><td>0.0</td><td>-1.0</td><td>0.0</td><td>Na</td>
+  </tr><tr>
+    <td>6302.046</td><td>0.0</td><td>0.0</td><td>0.0</td><td>OI</td>
+  </tr><tr>
+    <td>6365.536</td><td>0.0</td><td>0.0</td><td>0.0</td><td>OI</td>
+  </tr><tr>
+    <td>6549.86</td><td>0.0</td><td>3.0</td><td>0.0</td><td>NII</td>
+  </tr><tr>
+    <td>6564.61</td><td>0.0</td><td>8.0</td><td>8.0</td><td>H\\d\\ga</td>
+  </tr><tr>
+    <td>6585.27</td><td>0.0</td><td>3.0</td><td>0.0</td><td>NII</td>
+  </tr><tr>
+    <td>6707.89</td><td>0.0</td><td>0.0</td><td>0.0</td><td>Li</td>
+  </tr><tr>
+    <td>6718.29</td><td>0.0</td><td>3.0</td><td>0.0</td><td>SII</td>
+  </tr><tr>
+    <td>6732.67</td><td>0.0</td><td>3.0</td><td>0.0</td><td>SII</td>
+  </tr><tr>
+    <td>8500.36</td><td>0.0</td><td>0.0</td><td>0.0</td><td>CaII</td>
+  </tr><tr>
+    <td>8544.44</td><td>0.0</td><td>0.0</td><td>0.0</td><td>CaII</td>
+  </tr><tr>
+    <td>8664.52</td><td>0.0</td><td>0.0</td><td>0.0</td><td>CaII</td>
+  </tr>
+</tbody></table>
+
+<p>
+</p><pre>XTENSION= 'BINTABLE'                                                            
+BITPIX  =                    8                                                  
+NAXIS   =                    2                                                  
+NAXIS1  =                   89                                                  
+NAXIS2  =                   10                                                  
+PCOUNT  =                    0                                                  
+GCOUNT  =                    1                                                  
+TFIELDS =                   23                                                  
+TFORM1  = '1E      '                                                            
+TTYPE1  = 'wave    '                       / Line center                                                            
+TUNIT1  = 'Å '
+TFORM2  = '1E      '                                                            
+TTYPE2  = 'waveErr '                       / Error in line center                     
+TUNIT2  = 'Å '
+TFORM3  = '1E      '                                                            
+TTYPE3  = 'waveMin '                       / Minimum wavelength of line influence              
+TUNIT3  = 'Å '
+TFORM4  = '1E      '                                                            
+TTYPE4  = 'waveMax '                       / Maximum wavelength of line influence                                 
+TUNIT4  = 'Å '
+TFORM5  = '1E      '                                                            
+TTYPE5  = 'sigma   '                       / Sigma of fitted Gaussian                        
+TUNIT5  = 'Å '
+TFORM6  = '1E      '                                                            
+TTYPE6  = 'sigmaErr'                       / Error in sigma                                                            
+TUNIT6  = 'Å '
+TFORM7  = '1E      '                                                            
+TTYPE7  = 'sigmaMin'                       / Minimum sigma allowed for fit                        
+TUNIT7  = 'Å '
+TFORM8  = '1E      '                                                            
+TTYPE8  = 'sigmaMax'                       / Maximum sigma allowed for fit                      
+TUNIT8  = 'Å '
+TFORM9  = '1E      '                                                            
+TTYPE9  = 'height  '                       / Height of gaussian                                                            
+TUNIT9  = '10^-17 ergs/s/cm^2/Å'
+TFORM10 = '1E      '                                                            
+TTYPE10 = 'heightErr'                      / Error in height                                                           
+TUNIT10 = '10^-17 ergs/s/cm^2/Å'
+TFORM11 = '1E      '                                                            
+TTYPE11 = 'continuum'                      / Value of continuum at line center                      
+TUNIT11 = '10^-17 ergs/s/cm^2/Å'
+TFORM12 = '1E      '                                                            
+TTYPE12 = 'ew      '                       / Equivalent width                                                           
+TUNIT12 = 'Å '
+TFORM13 = '1E      '                                                            
+TTYPE13 = 'ewErr   '                       / Error in equivalent width                                
+TUNIT13 = 'Å '
+TFORM14 = '1E      '                                                            
+TTYPE14 = 'ewMin   '                       / Minimum equilavelent width allowed for line detection      
+TUNIT14 = 'Å '
+TFORM15 = '1E      '                                                            
+TTYPE15 = 'specIndex'                      / Spectral index                                                          
+TUNIT15 = 'unitless'
+TFORM16 = '1E      '                                                            
+TTYPE16 = 'nsigma  '                       / Significance of line in number of sigma                                
+TUNIT16 = 'unitless'
+TFORM17 = '1E      '                                                            
+TTYPE17 = 'chisq   '                       / Chi-squared of fit                                                            
+TUNIT17 = 'unitless'
+TFORM18 = '1J      '                                                            
+TTYPE18 = 'nu      '                       / Degrees of freedom = npix - 3                           
+TUNIT18 = 'unitless'
+TFORM19 = '1E      '                                                            
+TTYPE19 = 'restWave'                       / Restwavelength, also serves as line ID                        
+TUNIT19 = 'Å '
+TFORM20 = '1E      '                                                            
+TTYPE20 = 'weight  '                       / Weight of line in fit                                                 
+TUNIT20 = 'unitless'
+TFORM21 = '1E      '                                                            
+TTYPE21 = 'z       '                       / Redshift of this line                             
+TUNIT21 = 'unitless'
+TFORM22 = '1E      '                                                            
+TTYPE22 = 'zErr    '                       / Error in redshift                                                            
+TUNIT22 = 'unitless'
+TFORM23 = '1A      '                                                            
+TTYPE23 = 'lineMask'                       / Line mask                                                           
+TUNIT23 = 'unitless'
+COMMENT 'lineMask' is a bit mask, with the following bits defined
+COMMENT    SP_LINE_WAVELET = 0x001, /* detected by wavelet filter */
+COMMENT    SP_LINE_WZ      = 0x002, /* detected by Wei Zheng algorithm */
+COMMENT    SP_LINE_BLENDED = 0x004, /* blended with another line */  
+COMMENT    SP_LINE_MINIMIZE= 0x008  /* line &amp; continuum fitted simultaneously*/
+</pre>
+
+<a name="emz"></a>
+<h2>Emission Redshift HDU (HDU 3)</h2>
+Redshift determinations based on sets of emission lines.  There is one HDU of
+this type.  There may be multiple entries, with each entry corresponding to a
+different set of lines.
+<pre>XTENSION= 'BINTABLE'                                                           
+BITPIX  =                    8                                                 
+NAXIS   =                    2                                                 
+NAXIS1  =                   24                                                 
+NAXIS2  =                  XXX
+PCOUNT  =                    0                                                 
+GCOUNT  =                    1                                                 
+TFIELDS =                    6                                                 
+TFORM1  = '1E      '                                                           
+TTYPE1  = 'z       '           / Redshift
+TUNIT1  = 'unitless'
+TFORM2  = '1E      '                                                           
+TTYPE2  = 'zErr    '           / Error in redshift
+TUNIT2  = 'unitless'
+TFORM3  = '1E      '                                                           
+TTYPE3  = 'conf    '           / Confidence in redshift
+TUNIT3  = 'unitless'
+TFORM4  = '1J      '                                                           
+TTYPE4  = 'nFit'               / Number of matched lines
+TUNIT4  = 'unitless'
+TFORM5  = '1E      '                                                           
+TTYPE5  = 'wtFit'              / Weight of fit lines
+TUNIT5  = 'unitless'
+</pre>
+
+<a name="xcorz"></a>
+<h2>Cross-Correlation Redshift HDU (HDU 4)</h2>
+Redshift determinations from cross-correlations.
+There is one HDU of this type.  More than one peak may be measured in each
+cross-correlation function (i.e., for each template).
+<pre>XTENSION= 'BINTABLE'                                                            
+BITPIX  =                    8                                                  
+NAXIS   =                    2                                                  
+NAXIS1  =                   48                                                  
+NAXIS2  =                   31                                                  
+PCOUNT  =                    0                                                  
+GCOUNT  =                    1                                                  
+TFIELDS =                   12                                                  
+TFORM1  = '1J      '                                                            
+TTYPE1  = 'temp_no '           / ID of template used                                                            
+TUNIT1  = 'unitless'
+TFORM2  = '1J      '                                                            
+TTYPE2  = 'peak_no '           / 1=first peak, 2=second peak, etc for templat                                      
+TUNIT2  = 'unitless'
+TFORM3  = '1E      '                                                            
+TTYPE3  = 'shift   '           / Number of pixels between between object and template              
+TUNIT3  = 'pixels  '
+TFORM4  = '1E      '                                                            
+TTYPE4  = 'z       '           / Redshift from this correlation peak                                  
+TUNIT4  = 'unitless'
+TFORM5  = '1E      '                                                            
+TTYPE5  = 'zErr    '           / Error in redshift                                                            
+TUNIT5  = 'unitless'
+TFORM6  = '1E      '                                                            
+TTYPE6  = 'r       '           / Tonry &amp; Davis R value                                  
+TUNIT6  = 'unitless'
+TFORM7  = '1E      '                                                            
+TTYPE7  = 'con     '           / Confidence                                                            
+TUNIT7  = 'unitless'
+TFORM8  = '1E      '                                                            
+TTYPE8  = 'height  '           / Height of CCF peak                                                            
+TUNIT8  = 'unitless'
+TFORM9  = '1E      '                                                            
+TTYPE9  = 'width   '           / Width of CCF peak                                                            
+TUNIT9  = 'unitless'
+TFORM10 = '1E      '                                                            
+TTYPE10 = 'widthErr'           / Error on the width of CCF peak                                 
+TUNIT10 = 'unitless'
+TFORM11 = '1E      '                                                            
+TTYPE11 = 'delta   '           / Error on the location CCF peak                                           
+TUNIT11  = 'unitless'
+TFORM12 = '1E      '                                                            
+TTYPE12 = 'rms     '           / Rms of CCF                                                           
+TUNIT12 = 'unitless'
+</pre>
+
+<a name="lineindex"></a>
+<h2>Line Index  HDU (HDU 5)</h2>
+
+<p>A number of standard line indices and flux ratios are stored here.
+There is one HDU of this type.</p>
+
+<p>We calculate the Lick Indices <a href="http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=1998ApJS..116....1T">(Trager
+et al. 1998)</a>, those of <a href="http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=1986ApJ...300..258B">Brodie
+&amp; Hanes 1986</a> (see also <a href="http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=1996ApJS..102...29H">Huchra
+et al. 1996)</a> and those of <a href="http://adsbit.harvard.edu/cgi-bin/nph-iarticle_query?bibcode=1989MNRAS.239..325D&amp;db_key=AST&amp;page_ind=5&amp;plate_select=NO&amp;data_type=GIF&amp;type=SCREEN_GIF">Diaz,
+Terlevich &amp; Terlevich 1989</a>. We also calculate two break ratios
+<code>D4000</code> and <code>HKratio</code>.  The latter are calculated
+using the spectral regions in the second table below.</p>
+
+<h3>Caveats</h3>
+
+<p> Following the SDSS convention, <strong>all wavelengths are given
+as vacuum wavelengths</strong>. The value of the break ratios are
+stored as (eW) in the line index table.  The break indices are
+calculated somewhat unconventionally as (blue flux)/(red flux) so for
+most galaxies the value is &lt; 1.  Atomic and molecular indices are
+computed in the same fashion; results are returned both as equivalent
+widths (eW, conventionally used for atomic indices) and magnitudes
+(mag, conventionally used for molecular indices).  The Lick standards
+are too bright to be observed by SDSS and therefore these indices are
+not on the Lick system in the classical sense, nor is any attempt made
+to smooth to Lick resolution.</p>
+
+<table nosave="" border="3" cols="7" width="100%">
+<tbody><tr>
+<td><b>Name</b></td>
+
+<td><b>Index Begin</b></td>
+
+<td><b>Index End</b></td>
+
+<td><b>Blue Cont Begin</b></td>
+
+<td><b>Blue Cont End</b></td>
+
+<td><b>Red Cont Begin</b></td>
+
+<td><b>Red Cont End</b></td>
+</tr>
+
+<tr nosave="">
+<td>Lick_CN1</td>
+
+<td nosave="">4143.375</td>
+
+<td>4178.375</td>
+
+<td>4081.375</td>
+
+<td>4118.875</td>
+
+<td>4245.375</td>
+
+<td>4285.375</td>
+</tr>
+
+<tr>
+<td>Lick_CN2</td>
+
+<td>4143.375</td>
+
+<td>4178.375</td>
+
+<td>4085.125</td>
+
+<td>4097.625</td>
+
+<td>4245.375</td>
+
+<td>4285.375</td>
+</tr>
+
+<tr>
+<td>Lick_Ca4227</td>
+
+<td>4223.500</td>
+
+<td>4236.000</td>
+
+<td>4212.250</td>
+
+<td>4221.000</td>
+
+<td>4242.250</td>
+
+<td>4252.250</td>
+</tr>
+
+<tr>
+<td>Lick_G4300</td>
+
+<td>4282.625</td>
+
+<td>4317.625</td>
+
+<td>4267.625</td>
+
+<td>4283.875</td>
+
+<td>4320.125</td>
+
+<td>4333.375</td>
+</tr>
+
+<tr>
+<td>Lick_Fe4383</td>
+
+<td>4370.375</td>
+
+<td>4421.625</td>
+
+<td>4360.375</td>
+
+<td>4371.625</td>
+
+<td>4444.125</td>
+
+<td>4456.625</td>
+</tr>
+
+<tr>
+<td>Lick_Ca4455</td>
+
+<td>4453.375</td>
+
+<td>4475.875</td>
+
+<td>4447.125</td>
+
+<td>4455.875</td>
+
+<td>4478.375</td>
+
+<td>4493.375</td>
+</tr>
+
+<tr>
+<td>Lick_Fe4531</td>
+
+<td>4515.500</td>
+
+<td>4560.500</td>
+
+<td>4505.500</td>
+
+<td>4515.500</td>
+
+<td>4561.750</td>
+
+<td>4580.500</td>
+</tr>
+
+<tr>
+<td>Lick_C4668</td>
+
+<td>4635.250</td>
+
+<td>4721.500</td>
+
+<td>4612.750</td>
+
+<td>4631.500</td>
+
+<td>4744.000</td>
+
+<td>4757.750</td>
+</tr>
+
+<tr>
+<td>Lick_Hb</td>
+
+<td>4848.875</td>
+
+<td>4877.625</td>
+
+<td>4828.875</td>
+
+<td>4848.875</td>
+
+<td>4877.625</td>
+
+<td>4892.625</td>
+</tr>
+
+<tr>
+<td>Lick_Fe5015</td>
+
+<td>4979.000</td>
+
+<td>5055.250</td>
+
+<td>4947.750</td>
+
+<td>4979.000</td>
+
+<td>5055.250</td>
+
+<td>5066.500</td>
+</tr>
+
+<tr>
+<td>Lick_Mg1</td>
+
+<td>5070.375</td>
+
+<td>5135.375</td>
+
+<td>4896.375</td>
+
+<td>4958.875</td>
+
+<td>5302.375</td>
+
+<td>5367.375</td>
+</tr>
+
+<tr>
+<td>Lick_Mg2</td>
+
+<td>5155.375</td>
+
+<td>5197.875</td>
+
+<td>4896.375</td>
+
+<td>4958.875</td>
+
+<td>5302.375</td>
+
+<td>5367.375</td>
+</tr>
+
+<tr>
+<td>Lick_Mgb</td>
+
+<td>5143.875</td>
+
+<td>5162.625</td>
+
+<td>5161.375</td>
+
+<td>5193.875</td>
+
+<td>5192.625</td>
+
+<td>5207.625</td>
+</tr>
+
+<tr>
+<td>Lick_Fe527</td>
+
+<td>5247.375</td>
+
+<td>5287.375</td>
+
+<td>5234.875</td>
+
+<td>5249.875</td>
+
+<td>5287.375</td>
+
+<td>5319.875</td>
+</tr>
+
+<tr>
+<td>Lick_Fe5335</td>
+
+<td>5314.125</td>
+
+<td>5354.125</td>
+
+<td>5306.625</td>
+
+<td>5317.875</td>
+
+<td>5355.375</td>
+
+<td>5365.375</td>
+</tr>
+
+<tr>
+<td>Lick_Fe5406</td>
+
+<td>5390.250</td>
+
+<td>5417.750</td>
+
+<td>5379.000</td>
+
+<td>5390.250</td>
+
+<td>5417.750</td>
+
+<td>5427.750</td>
+</tr>
+
+<tr>
+<td>Lick_Fe5709</td>
+
+<td>5698.375</td>
+
+<td>5722.125</td>
+
+<td>5674.625</td>
+
+<td>5698.375</td>
+
+<td>5724.625</td>
+
+<td>5738.375</td>
+</tr>
+
+<tr>
+<td>Lick_Fe5782</td>
+
+<td>5778.375</td>
+
+<td>5798.375</td>
+
+<td>5767.125</td>
+
+<td>5777.125</td>
+
+<td>5799.625</td>
+
+<td>5813.375</td>
+</tr>
+
+<tr>
+<td>Lick_NaD</td>
+
+<td>5878.625</td>
+
+<td>5911.125</td>
+
+<td>5862.375</td>
+
+<td>5877.375</td>
+
+<td>5923.875</td>
+
+<td>5949.875</td>
+</tr>
+
+<tr>
+<td>Lick_TiO1</td>
+
+<td>5938.875</td>
+
+<td>5995.875</td>
+
+<td>5818.375</td>
+
+<td>5850.875</td>
+
+<td>6040.375</td>
+
+<td>6105.375</td>
+</tr>
+
+<tr>
+<td>Lick_TiO2</td>
+
+<td>6191.375</td>
+
+<td>6273.875</td>
+
+<td>6068.375</td>
+
+<td>6143.375</td>
+
+<td>6374.375</td>
+
+<td>6416.875</td>
+</tr>
+
+<tr>
+<td>B&amp;H_CNB</td>
+
+<td>3810.0</td>
+
+<td>3910.0</td>
+
+<td>3785.0</td>
+
+<td>3810.0</td>
+
+<td>3910.0</td>
+
+<td>3925.0</td>
+</tr>
+
+<tr>
+<td>B&amp;H_H=K</td>
+
+<td>3925.0</td>
+
+<td>3995.0</td>
+
+<td>3910.0</td>
+
+<td>3925.0</td>
+
+<td>3995.0</td>
+
+<td>4010.0</td>
+</tr>
+
+<tr>
+<td>B&amp;H_CaI</td>
+
+<td>4215.0</td>
+
+<td>4245.0</td>
+
+<td>4200.0</td>
+
+<td>4215.0</td>
+
+<td>4245.0</td>
+
+<td>4260.0</td>
+</tr>
+
+<tr>
+<td>B&amp;H_G</td>
+
+<td>4285.0</td>
+
+<td>4315.0</td>
+
+<td>4275.0</td>
+
+<td>4285.0</td>
+
+<td>4315.0</td>
+
+<td>4325.0</td>
+</tr>
+
+<tr>
+<td>B&amp;H_CaI</td>
+
+<td>4215.0</td>
+
+<td>4245.0</td>
+
+<td>4200.0</td>
+
+<td>4215.0</td>
+
+<td>4245.0</td>
+
+<td>4260.0</td>
+</tr>
+
+<tr>
+<td>B&amp;H_G</td>
+
+<td>4285.0</td>
+
+<td>4315.0</td>
+
+<td>4275.0</td>
+
+<td>4285.0</td>
+
+<td>4315.0</td>
+
+<td>4325.0</td>
+</tr>
+
+<tr>
+<td>B&amp;H_Hb</td>
+
+<td>4830.0</td>
+
+<td>4890.0</td>
+
+<td>4800.0</td>
+
+<td>4830.0</td>
+
+<td>4890.0</td>
+
+<td>4920.0</td>
+</tr>
+
+<tr>
+<td>B&amp;H_MgG</td>
+
+<td>5150.0</td>
+
+<td>5195.0</td>
+
+<td>5125.0</td>
+
+<td>5150.0</td>
+
+<td>5195.0</td>
+
+<td>5220.0</td>
+</tr>
+
+<tr>
+<td>B&amp;H_MH</td>
+
+<td>4940.0</td>
+
+<td>5350.0</td>
+
+<td>4740.0</td>
+
+<td>4940.0</td>
+
+<td>5350.0</td>
+
+<td>5550.0</td>
+</tr>
+
+<tr>
+<td>B&amp;H_FC</td>
+
+<td>5250.0</td>
+
+<td>5280.0</td>
+
+<td>5225.0</td>
+
+<td>5250.0</td>
+
+<td>5280.0</td>
+
+<td>5305.0</td>
+</tr>
+
+<tr>
+<td>B&amp;H_NaD</td>
+
+<td>5865.0</td>
+
+<td>5920.0</td>
+
+<td>5835.0</td>
+
+<td>5865.0</td>
+
+<td>5920.0</td>
+
+<td>5950.0</td>
+</tr>
+
+<tr>
+<td>DTT_CaII8498</td>
+
+<td>8483.0</td>
+
+<td>8513.0</td>
+
+<td>8447.5</td>
+
+<td>8462.5</td>
+
+<td>8842.5</td>
+
+<td>8857.5</td>
+</tr>
+
+<tr>
+<td>DTT_CaII8542</td>
+
+<td>8527.0</td>
+
+<td>8557.0</td>
+
+<td>8447.5</td>
+
+<td>8462.</td>
+
+<td>8842.5</td>
+
+<td>8857.5</td>
+</tr>
+
+<tr>
+<td>DTT_CaII8662</td>
+
+<td>8467.0</td>
+
+<td>8677.0</td>
+
+<td>8447.5</td>
+
+<td>8462.5</td>
+
+<td>8842.5</td>
+
+<td>8857.5</td>
+</tr>
+
+<tr>
+<td>DTT_MgI8807</td>
+
+<td>8799.5</td>
+
+<td>8814.5</td>
+
+<td>8775.0</td>
+
+<td>8787.0</td>
+
+<td>8845.0</td>
+
+<td>8855.0</td>
+</tr>
+</tbody></table>
+
+<p>We also calculate the following line ratios:
+<br>&nbsp;
+<br><b></b>&nbsp;
+<table nosave="" border="1" cols="5" width="100%">
+<tbody><tr>
+<td><b>Name</b></td>
+
+<td><b>Blue Begin</b></td>
+
+<td><b>Blue End</b></td>
+
+<td><b>Red Begin</b></td>
+
+<td><b>Red End</b></td>
+</tr>
+
+<tr>
+<td>4000Abreak</td>
+
+<td>3750.</td>
+
+<td>3950.</td>
+
+<td>4050.</td>
+
+<td>4250.</td>
+</tr>
+
+<tr>
+<td>HKratio</td>
+
+<td>3920.</td>
+
+<td>3945.</td>
+
+<td>3955.</td>
+
+<td>3980.</td>
+</tr>
+</tbody></table>
+</p><p>
+</p><pre>
+XTENSION= 'BINTABLE'                                                            
+BITPIX  =                    8                                                  
+NAXIS   =                    2                                                  
+NAXIS1  =                   51                                                  
+NAXIS2  =                   32                                                  
+PCOUNT  =                    0                                                  
+GCOUNT  =                    1                                                  
+TFIELDS =                    9                                                  
+TFORM1  = '19A     '                                                            
+TTYPE1  = 'name    '          / Name of the line index                                                  
+TUNIT1  = 'unitless'
+TFORM2  = '1E      '                                                            
+TTYPE2  = 'ew      '          / Equivalent width of the line index (or flux ratio in the case of 4000Abreak, and HKratio)
+TUNIT2  = 'Å '
+TFORM3  = '1E      '                                                            
+TTYPE3  = 'ewErr   '          / Error on the equivalent width
+TUNIT3  = 'Å '
+TFORM4  = '1E      '                                                            
+TTYPE4  = 'mag     '          / Magnitude of the line index                                                  
+TUNIT4  = 'unitless'
+TFORM5  = '1E      '                                                            
+TTYPE5  = 'magErr  '          / Error on the magnitude                                                  
+TUNIT5  = 'unitless'
+TFORM6  = '1E      '                                                            
+TTYPE6  = 'waveMin '          / Minimum wavelength used to calculate the index
+TUNIT6  = 'unitless'
+TFORM7  = '1E      '                                                            
+TTYPE7  = 'waveMax '          / Maximum wavelength used to calculate the index
+TUNIT7  = 'unitless'
+TFORM8  = '1E      '                                                            
+TTYPE8  = 'z       '          / Redshift used to calculate the index
+TUNIT8  = 'unitless'
+TFORM9  = '1E      '                                                            
+TTYPE9  = 'sn      '          / Signal to noise ratio over the index                                  
+TUNIT9  = 'unitless'
+</pre>
+
+<a name="maskres"></a>
+<h2>Mask and Resolution  HDU (HDU 6)</h2>
+
+<p>The masks as passed from <a href="http://www.sdss.org/dr6/dm/flatFiles/spPlate.html#maskbits">spPlate*.fit</a><a> (the mask bit values
+are a subset of those used in the </a><a href="#specmask">mask array</a>
+above), as well as the resolution.  The length of this table should be
+the same as the length of the spectrum.  There is one HDU of this
+type.</p>
+
+<p>The resolution column is copied from <a href="http://www.sdss.org/dr6/dm/flatFiles/spPlate.html#resolution">HDU 4 of the spPlate*.fit</a>
+file. It contains the RMS resolution at each pixel in units of pixels.
+To get the FWHM resolution, multiply the pixel values by sqrt(8*ln(2))
+&#8764; 2.35. Since the spectra are binned with constant logarithmic
+dispersion, the pixel size is fixed in velocity space at 69 km/s =
+ln(10) * <var>c</var> * 0.0001, where 0.0001 is the log10 dispersion
+per pixel (stored in the primary header keyword <code>CD1_1</code>).  To convert
+to resolution in wavelength units, multiply by the local pixel size in
+wavelength units, which is ln(10) * lambda * 0.0001 where lambda is
+the wavelength of the pixel and 0.0001 is again the log10
+dispersion.</p>
+
+
+<pre>XTENSION= 'BINTABLE'                                                            
+BITPIX  =                    8                                                  
+NAXIS   =                    2                                                  
+NAXIS1  =                   12                                                  
+NAXIS2  =                 3850                                                  
+PCOUNT  =                    0                                                  
+GCOUNT  =                    1                                                  
+TFIELDS =                    3                                                  
+TFORM1  = '1J      '                                                            
+TTYPE1  = 'andMask '             / AND mask
+TUNIT1  = 'unitless'
+TFORM2  = '1J      '                                                            
+TTYPE2  = 'orMask  '             / OR mask
+TUNIT2  = 'unitless'
+TFORM3  = '1E      '                                                            
+TTYPE3  = 'dispRes '             / Wavelength dispersion
+TUNIT3  = 'pixels  '
+</pre>
+
+<!--
+TTYPE4  = 'lambda    '             / Wavelength
+TUNIT4  = 'Angstroem'
+TTYPE5  = 'flux    '             / Flux
+TUNIT5  = '10^(-17) erg/s/cm^2/Angstroem'
+TTYPE6  = 'fluxMinusContinuum    '             / Flux minus Continuum
+TUNIT6  = '10^(-17) erg/s/cm^2/Angstroem'
+TTYPE7  = 'std '             / standard deviation of the flux
+TUNIT7  = '10^(-17) erg/s/cm^2/Angstroem'
+-->
+
+
+</body></html>
