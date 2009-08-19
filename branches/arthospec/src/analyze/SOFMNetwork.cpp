@@ -204,7 +204,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		SpectraVFS::write( m_gridSize, m_Min, m_Max*0.01f, sstrNet );
 		m_pNet = new SpectraVFS( sstrNet, false );
 		reset(m_params);
-
+ 
 		renderIcons();
 		exportHistograms("export/");
 
@@ -558,9 +558,8 @@ void SOFMNetwork::renderIcons()
 			redness = MathHelpers::logf(localmax+1.f,m_flux+1.f);
 			redness *= redness*2.f;
 		}
-#ifdef SDSS_SINETEST
 		redness = (float)i*2.f/(float)m_numSpectra;
-#endif // SDSS_SINETEST
+
 		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, 100, 100, redness );
 
 		m_pSourceVFS->endRead( i );
