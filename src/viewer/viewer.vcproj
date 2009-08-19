@@ -175,6 +175,7 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
 				SubSystem="1"
+				LinkTimeCodeGeneration="1"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -360,6 +361,7 @@
 				AdditionalLibraryDirectories="../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
 				SubSystem="1"
+				LinkTimeCodeGeneration="1"
 				TargetMachine="17"
 			/>
 			<Tool

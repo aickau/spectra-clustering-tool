@@ -188,6 +188,7 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
 				SubSystem="1"
+				LinkTimeCodeGeneration="1"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -387,6 +388,7 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
 				SubSystem="1"
+				LinkTimeCodeGeneration="1"
 				ProfileGuidedDatabase=""
 				TargetMachine="17"
 			/>
