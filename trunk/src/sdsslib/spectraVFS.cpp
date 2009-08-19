@@ -395,11 +395,11 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 		
 		if ( sstrExtension == ".fit" )
 		{
-			spec.loadFromFITS( sstrFilename );
+			bResult = spec.loadFromFITS( sstrFilename );
 		}
 		else if ( sstrExtension == ".csv" )
 		{
-			spec.loadFromCSV( sstrFilename );
+			bResult = spec.loadFromCSV( sstrFilename );
 		}
 		
 		if ( multiplier != 1.f )
