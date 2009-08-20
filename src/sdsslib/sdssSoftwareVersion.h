@@ -16,4 +16,4 @@
 //! \file  sdssSoftwareVersion.h
 //! \brief holds the version string
 
-#define SDSSVERSIONSTRING std::string("0.156 - arthospec branch, Rev. 129")
+#define SDSSVERSIONSTRING std::string("0.157 - arthospec branch|composite spectrum version, Rev. 133")

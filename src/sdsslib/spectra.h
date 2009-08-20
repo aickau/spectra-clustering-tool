@@ -125,6 +125,9 @@ public:
 	// add constant value to amplitudes
 	void add(float _value);
 
+	// subtract signals from other spectra
+	void subtract(const Spectra &_spectra);
+
 	// multiply signals with other spectra
 	void multiply( const Spectra &_spectra);
 

@@ -282,6 +282,15 @@ void Spectra::add(float _value)
 }
 
 
+void Spectra::subtract(const Spectra &_spectra)
+{
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		m_Amplitude[i] -= _spectra.m_Amplitude[i];
+	}
+}
+
+
 void Spectra::multiply( const Spectra &_spectra)
 {
 	for (size_t i=0;i<Spectra::numSamples;i++)
@@ -303,15 +312,11 @@ void Spectra::multiply(float _multiplier)
 
 bool Spectra::saveToCSV(const std::string &_filename)
 {
-	std::string sstrOutput("Wavelength(A),Flux,Error,Mask\n");
-
+	std::string sstrOutput;
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
-		std::string sstrLine("0.0, ");
-		sstrLine += Helpers::numberToString<float>( m_Amplitude[i] );
-		sstrLine += ", 0.0, 0.0\n";
-		sstrOutput += sstrLine;
-		sstrOutput += sstrLine;
+		sstrOutput += Helpers::numberToString<float>( m_Amplitude[i] );
+		sstrOutput += "\n";
 	}
 	
 	std::ofstream fon(_filename.c_str());
