@@ -558,7 +558,7 @@ void SOFMNetwork::renderIcons()
 			redness = MathHelpers::logf(localmax+1.f,m_flux+1.f);
 			redness *= redness*2.f;
 		}
-		redness = (float)i*2.f/(float)m_numSpectra;
+		//redness = (float)i*2.f/(float)m_numSpectra;
 
 		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, 100, 100, redness );
 

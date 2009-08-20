@@ -364,68 +364,88 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 {
 	std::vector<std::string> fileList;
 
-	size_t numSpectra = FileHelpers::getFileList( _sstrDir, fileList );
+	size_t numFiles = FileHelpers::getFileList( _sstrDir, fileList );
+	size_t numSpectraWritten = 0;
 
-	SpectraWrite w(_sstrFileName);
+	Spectra compositeSpec;
+	compositeSpec.clear();
 
-	Spectra spec;
-
-	size_t c = 0;
-	for ( size_t i=0;i<numSpectra;i++ )
 	{
-		float multiplier = 1.f;
-		if ( pFITSFilenameSet && !pFITSFilenameSet->empty())
+		SpectraWrite w(_sstrFileName);
+
+		Spectra spec;
+
+		size_t c = 0;
+		for ( size_t i=0;i<numFiles;i++ )
 		{
-			std::string sstrFilename(FileHelpers::getFileName(fileList.at(i)));
-			std::map<std::string,float>::iterator it = pFITSFilenameSet->find(sstrFilename);
-			if ( it == pFITSFilenameSet->end() )
+			float multiplier = 1.f;
+			if ( pFITSFilenameSet && !pFITSFilenameSet->empty())
 			{
-				Helpers::print( "skipping "+fileList.at(i)+"\n", _logStream );
-				continue;
+				std::string sstrFilename(FileHelpers::getFileName(fileList.at(i)));
+				std::map<std::string,float>::iterator it = pFITSFilenameSet->find(sstrFilename);
+				if ( it == pFITSFilenameSet->end() )
+				{
+					Helpers::print( "skipping "+fileList.at(i)+"\n", _logStream );
+					continue;
+				}
+				multiplier = it->second;
 			}
-			multiplier = it->second;
-		}
-		spec.clear();
+			spec.clear();
 
-		const std::string sstrFilename( fileList.at(i) );
-		const std::string sstrExtension = FileHelpers::getFileExtension( sstrFilename );
+			const std::string sstrFilename( fileList.at(i) );
+			const std::string sstrExtension = FileHelpers::getFileExtension( sstrFilename );
 
 
-		bool bResult = false; // be pessimistic:)
-		
-		if ( sstrExtension == ".fit" )
-		{
-			bResult = spec.loadFromFITS( sstrFilename );
-		}
-		else if ( sstrExtension == ".csv" )
-		{
-			bResult = spec.loadFromCSV( sstrFilename );
-		}
-		
-		if ( multiplier != 1.f )
-		{
-			Helpers::print( "multiplying spectrum "+sstrFilename+" with "+ Helpers::numberToString<float>(multiplier)+"\n", _logStream );
-			spec.multiply(multiplier);
-		}
-
-		if ( bResult )
-		{
-			if ( (spec.m_Type & _spectraFilter) > 0 )
+			bool bResult = false; // be pessimistic:)
+			
+			if ( sstrExtension == ".fit" )
 			{
-				bResult = w.write(spec);
+				bResult = spec.loadFromFITS( sstrFilename );
+			}
+			else if ( sstrExtension == ".csv" )
+			{
+				bResult = spec.loadFromCSV( sstrFilename );
+			}
+			
+			if ( multiplier != 1.f )
+			{
+				Helpers::print( "multiplying spectrum "+sstrFilename+" with "+ Helpers::numberToString<float>(multiplier)+"\n", _logStream );
+				spec.multiply(multiplier);
+			}
+
+			if ( bResult )
+			{
+				if ( (spec.m_Type & _spectraFilter) > 0 )
+				{
+					compositeSpec.add(spec);
+					bResult = w.write(spec);
+					c++;
+				}
+			} 
+			else 
+			{
+				Helpers::print( "failed to load "+fileList.at(i)+"\n", _logStream );
 			}
 		}
-		if ( !bResult )
-		{
-			Helpers::print( "failed to load "+fileList.at(i)+"\n", _logStream );
-		}
-		else
-		{
-			c++;
-		}
+
+		numSpectraWritten = c;
+
+		compositeSpec.multiply( 1.0/(double)c );
+		Helpers::print( "writing composite spectra.\n", _logStream );
+		compositeSpec.saveToCSV( std::string("compositeSpectrum.csv") );
 	}
 
-	return c;
+	SpectraVFS vfs( _sstrFileName, false );
+	const size_t numSpectra = vfs.getNumSpectra();
+	for ( size_t i=0;i<numSpectra;i++ )
+	{
+		Spectra *a = vfs.beginWrite(i);
+		a->subtract( compositeSpec );
+		a->add(0.5f);
+		vfs.endWrite(i);
+	}
+	
+	return numSpectraWritten;
 }
 
 void SpectraVFS::write( size_t _gridSize, float _minPeak, float _maxPeak, const std::string &_sstrFileName )
