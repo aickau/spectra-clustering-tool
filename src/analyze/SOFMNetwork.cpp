@@ -816,12 +816,6 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 
 void SOFMNetwork::process()
 {
-	if ( m_currentStep > m_params.numSteps )
-	{
-		Helpers::print( std::string("Clustering finished (success).\n"), m_pLogStream );
-		exit(1);
-	}
-
 	if ( m_currentStep > 1 )
 	{
 		m_pNet->dumpToFile(m_pNet->getFileName()+"old");
@@ -851,6 +845,13 @@ void SOFMNetwork::process()
 	{
 		exportToHTML("export/current", false);
 	}
+
+	if ( m_currentStep > m_params.numSteps )
+	{
+		Helpers::print( std::string("Clustering finished (success).\n"), m_pLogStream );
+		exit(1);
+	}
+
 
 
 	std::string sstrLog("Calculating step ");

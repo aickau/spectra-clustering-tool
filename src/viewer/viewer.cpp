@@ -79,6 +79,11 @@ int InitGL( )
 		{
 			bRetVal = g_Spectrum.loadFromFITS( sstrFileName );
 		}
+		if ( sstrExtension == ".csv" )
+		{
+			bRetVal = g_Spectrum.loadFromCSV( sstrFileName );
+		}
+
 		std::string sstrDir = FileHelpers::getFilePath( sstrFileName );
 		if ( FileHelpers::exitsDirectory(sstrDir) )
 		{

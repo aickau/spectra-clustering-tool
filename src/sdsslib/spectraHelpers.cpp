@@ -78,7 +78,7 @@ void init( HDC _hDC )
 	if (s_IsInitialized)
 		return;
 
-	s_FontID = GLHelper::BuildFont(_hDC, "Arial", 10, false, false);
+	s_FontID = GLHelper::BuildFont(_hDC, "Arial", 120, false, false);
 	ilInit();
 	s_IsInitialized = true;
 }
@@ -180,7 +180,7 @@ void drawSpectra(Spectra &_spectra,
 	if ( _spectra.m_SamplesRead <= 2 )
 		return;
 		
-	const float xAxisCenter = 0.9f;	// 0.9=at the bottom, 0.5=center, 0.1 = on the top
+	const float xAxisCenter = 0.5f;	// 0.9=at the bottom, 0.5=center, 0.1 = on the top
 
 	float xoffset=X2Win(_xp);
 	float yoffset=Y2Win(_yp)-_height*(1.f-xAxisCenter); 
@@ -217,9 +217,10 @@ void drawSpectra(Spectra &_spectra,
 
 	if (_showInfo)
 	{
-		float pos[]={X2Win(10.f),Y2Win(_height-20.f),-10};
-		GLHelper::Print( s_FontID, pos, _spectra.getFileName().c_str() );
-
+		float pos[]={X2Win(10.f),Y2Win(120.f),-10}; //Y2Win(_height-120.f)
+		std::string sstrIndex = Helpers::numberToString<size_t>(_spectra.getFiber());
+		GLHelper::Print( s_FontID, pos, sstrIndex.c_str() ); //_spectra.getFileName()
+/*
 		pos[1] = Y2Win(_height-30.f);
 
 		std::stringstream sstream;
@@ -246,7 +247,7 @@ void drawSpectra(Spectra &_spectra,
 		l1[0]=xp1;
 		l1[1]=yp1;
 		GLHelper::DrawLine( l1, l2 );
-
+*/
 	}
 }
 
@@ -280,12 +281,21 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	ilEnable(IL_FILE_OVERWRITE );
 	iluImageParameter(ILU_FILTER,ILU_SCALE_BSPLINE);
 
-	glColor3f(1,1,1);
-	glLineWidth(saa);
+	glLineWidth(saa*2);
 
 	float g = MAX(_redness-1.f, 0.f);
 
 	glClearColor(_redness,g,0,0);
+
+	if ( (MIN(_redness,1)+g)*0.333f < 0.5f )
+	{
+		glColor3f(1,1,1);
+	}
+	else
+	{
+		glColor3f(0,0,0);
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
 	// calc histogram
@@ -300,12 +310,16 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 1 );
 	MathHelpers::getMinMax(values, _spectra.m_SamplesRead-1, 4, 0, ymin, ymax );
 
-	if (ymax==0.0f)
+	float globalMax = MAX(fabsf(ymin), fabsf(ymax));
+
+	if (globalMax==0.0f)
 	{
-		ymax = 1.f;
+		globalMax = 1.f;
 	}
 
-	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/ymax );
+
+
+	drawSpectra( _spectra, true, false, 0, 0, w4, h4, 1.f/globalMax );
 
 	glReadPixels(0,getFBHeight()-h4,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 	iluScale(_width,_height,1);

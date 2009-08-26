@@ -441,7 +441,6 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 	{
 		Spectra *a = vfs.beginWrite(i);
 		a->subtract( compositeSpec );
-		a->add(0.5f);
 		vfs.endWrite(i);
 	}
 	
