@@ -286,6 +286,18 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	float g = MAX(_redness-1.f, 0.f);
 
 	glClearColor(_redness,g,0,0);
+
+	if ( (MIN(_redness,1)+g)*0.333f < 0.5f )
+	{
+		// use white for dark background
+		glColor3f(1,1,1);
+	}
+	else
+	{
+		// use black for light background
+		glColor3f(0,0,0);
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
 	// calc histogram
@@ -300,12 +312,14 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 10 );
 	MathHelpers::getMinMax(values, _spectra.m_SamplesRead-1, 4, 0, ymin, ymax );
 
-	if (ymax==0.0f)
+	float globalMax = MAX(fabsf(ymin), fabsf(ymax));
+
+	if (globalMax==0.0f)
 	{
-		ymax = 1.f;
+		globalMax = 1.f;
 	}
 
-	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/ymax );
+	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/globalMax );
 
 	glReadPixels(0,getFBHeight()-h4,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 	iluScale(_width,_height,1);

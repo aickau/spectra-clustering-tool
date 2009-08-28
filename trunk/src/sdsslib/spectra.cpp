@@ -282,6 +282,15 @@ void Spectra::add(float _value)
 }
 
 
+void Spectra::subtract(const Spectra &_spectra)
+{
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		m_Amplitude[i] -= _spectra.m_Amplitude[i];
+	}
+}
+
+
 void Spectra::multiply( const Spectra &_spectra)
 {
 	for (size_t i=0;i<Spectra::numSamples;i++)
@@ -359,7 +368,7 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	m_Type = SPT_SPEC_UNKNOWN;
 	if ( type > 0 )
 	{
-		m_Type = type;
+		m_Type = (SpectraType)type;
 	}
 
 

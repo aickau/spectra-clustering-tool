@@ -364,14 +364,19 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 {
 	std::vector<std::string> fileList;
 
-	size_t numSpectra = FileHelpers::getFileList( _sstrDir, fileList );
+	size_t numFiles = FileHelpers::getFileList( _sstrDir, fileList );
+	size_t numSpectraWritten = 0;
 
+	Spectra compositeSpec;
+	compositeSpec.clear();
+
+	{
 	SpectraWrite w(_sstrFileName);
 
 	Spectra spec;
 
 	size_t c = 0;
-	for ( size_t i=0;i<numSpectra;i++ )
+	for ( size_t i=0;i<numFiles;i++ )
 	{
 		float multiplier = 1.f;
 		if ( pFITSFilenameSet && !pFITSFilenameSet->empty())
@@ -412,20 +417,36 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 		{
 			if ( (spec.m_Type & _spectraFilter) > 0 )
 			{
+				compositeSpec.add(spec);
 				bResult = w.write(spec);
+				c++;
 			}
 		}
-		if ( !bResult )
+		else 
 		{
 			Helpers::print( "failed to load "+fileList.at(i)+"\n", _logStream );
 		}
-		else
-		{
-			c++;
-		}
 	}
 
-	return c;
+	numSpectraWritten = c;
+	
+	compositeSpec.multiply( 1.0/(double)c );
+	Helpers::print( "writing composite spectra.\n", _logStream );
+	compositeSpec.saveToCSV( std::string("compositeSpectrum.csv") );
+
+	}
+	
+	// for composite substraction
+//	SpectraVFS vfs( _sstrFileName, false );
+//	const size_t numSpectra = vfs.getNumSpectra();
+//	for ( size_t i=0;i<numSpectra;i++ )
+//	{
+//		Spectra *a = vfs.beginWrite(i);
+//		a->subtract( compositeSpec );
+//		vfs.endWrite(i);
+//	}
+
+	return numSpectraWritten;
 }
 
 void SpectraVFS::write( size_t _gridSize, float _minPeak, float _maxPeak, const std::string &_sstrFileName )
