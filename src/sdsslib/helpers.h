@@ -25,10 +25,16 @@
 
 namespace Helpers
 {
+	// \param fill number with preceding zeros
 	template<class T>
-	std::string numberToString( T _number )
+	std::string numberToString( T _number, int _width =-1 )
 	{
 		std::stringstream sstrStream;
+		if( _width!= -1 )
+		{
+			sstrStream.fill('0');
+			sstrStream.width(_width);
+		}
 		sstrStream << _number;
 		return sstrStream.str();
 	}

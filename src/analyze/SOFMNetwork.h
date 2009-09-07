@@ -116,7 +116,8 @@ public:
 	// sstrFilenName path + filename (no extension)
 	// _bUseLogScale use logarithmic scaling for matrix display
 	// _bNormalize normalize map for comparison
-	void calcDifferenceMap( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize );
+	// bOutputAsTextFile if true, we write the difference map as text file too (then no log scale).
+	void calcDifferenceMap( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize, bool _bOutputAsTextFile = false );
 
 	// Calculate z map of th input data assigned to a neuron  for the current calculation step. 
 	// sstrFilenName path + filename (no extension)

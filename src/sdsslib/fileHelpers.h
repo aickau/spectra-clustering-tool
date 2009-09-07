@@ -74,6 +74,9 @@ namespace FileHelpers
 	// \return true on success, otherwise false
 	bool renameFile( const std::string &_sstrFilename, const std::string &_sstrNewFilename, bool _bOverwriteExisting=false );
 
+	// load (text( file to string.
+	// \param _sstrFilename path+filename+ext
+	// \param _sstrOutString out string
 	bool loadFileToString(const std::string &_sstrFilename, std::string &_sstrOutString );
 }
 

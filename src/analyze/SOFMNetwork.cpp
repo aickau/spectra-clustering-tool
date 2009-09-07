@@ -1061,7 +1061,7 @@ void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogS
 
 
 
-void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize )
+void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize, bool _bOutputAsTextFile )
 {
 	if ( m_pNet == NULL || m_pNet->getNumSpectra() == 0 )
 	{
@@ -1069,6 +1069,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 	}
 	if ( m_pSourceVFS == NULL || m_pSourceVFS->getNumSpectra() == 0 )
 	{
+		return;
 	}
 
 	assert( !_sstrFilenName.empty() );
@@ -1077,6 +1078,9 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 	float *pRGBMap = new float[m_gridSizeSqr*3];
 
 	float maxErr = 0.0f;
+
+	std::string sstrDifferenceMap("");
+
 
 	// calc errors
 	for ( size_t i=0;i<m_gridSizeSqr;i++ )
@@ -1125,6 +1129,12 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 					scale  = pDiffMatrix[i] /= maxErr;
 				}
 
+				if ( _bOutputAsTextFile )
+				{
+					float differenceValue = pDiffMatrix[i] / maxErr;
+					sstrDifferenceMap += Helpers::numberToString<float>(differenceValue) + "\n";
+				}
+
 				intensityToRGB( scale, &pRGBMap[i*3] );
 			}
 			else
@@ -1133,10 +1143,23 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 				pRGBMap[i*3]   = 0.5f;
 				pRGBMap[i*3+1] = 0.5f;
 				pRGBMap[i*3+2] = 0.5f;
+
+				if ( _bOutputAsTextFile )
+				{
+					sstrDifferenceMap += "-1.0\n";
+				}
 			}
 		}
 	}
 
+	if ( _bOutputAsTextFile )
+	{
+		std::string sstrTxtFile(_sstrFilenName);
+		sstrTxtFile += ".txt";
+
+		std::ofstream fon(sstrTxtFile.c_str());
+		fon<<sstrDifferenceMap;
+	}
 
 	SpectraHelpers::saveIntensityMap( pRGBMap, m_gridSize, m_gridSize, _sstrFilenName );
 
@@ -1484,11 +1507,13 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 	std::string sstrInfo;
 
-	const std::string sstrUMatrix =  "UMatrix_" + sstrName;
-	const std::string sstrDifferenceMap = "DifferenceMap_" + sstrName;
-	const std::string sstrZMap = "ZMap_" + sstrName;
+	const std::string sstrStep( Helpers::numberToString<unsigned int>(m_currentStep, 3) );
+
+	const std::string sstrUMatrix =  "UMatrix_" + sstrName + "_" + sstrStep;
+	const std::string sstrDifferenceMap = "DifferenceMap_" + sstrName + "_" + sstrStep;
+	const std::string sstrZMap = "ZMap_" + sstrName + "_" + sstrStep;
 	calcUMatrix( sstrDirectory+sstrUMatrix, true, false, false );
-	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false);
+	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false, true);
 	calcZMap( sstrDirectory+sstrZMap, true );
 
 	
