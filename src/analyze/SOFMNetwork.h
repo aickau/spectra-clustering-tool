@@ -125,15 +125,24 @@ public:
 	void calcZMap( const std::string &_sstrFilenName, bool _bUseLogScale );
 
 
+	// grid size in cells of the map
 	size_t			m_gridSize;
+
+	// squared gridsize, number of neurons
 	size_t			m_gridSizeSqr;
+
+	// current learning step
 	size_t			m_currentStep;
 
 	Parameters		m_params;
 
+	// maximum amplitude (before normalization)
 	float			m_Min;
+
+	// minimum amplitude (before normalization)
 	float			m_Max;
 
+	// maximum flux of input spectra
 	float			m_flux;
 
 protected:
@@ -214,16 +223,23 @@ protected:
 	static Spectra::SpectraNormalization spectraNormalizationFromString( const std::string &_sstrSpectraNormalization );
 
 
-
+	// code book spectra
 	SpectraVFS		*m_pNet;	
 
 	// training data
 	SpectraVFS		*m_pSourceVFS;
+
+	// number of source spectra
 	const size_t	m_numSpectra;
 
+	// random number generator
 	Rnd				m_Random;
 
+	// log output
 	std::ofstream	*m_pLogStream;
+
+	// average distance/error to BMU per learning step
+	float			*m_pAvgDistanceToBMU;
 };
 
 

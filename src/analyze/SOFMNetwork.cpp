@@ -157,6 +157,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 ,m_Min(FLT_MAX)
 ,m_Max(-FLT_MAX)
 ,m_pLogStream(_logStream)
+,m_pAvgDistanceToBMU(NULL)
 {
 	std::string sstrSOFMFileName("");
 	if ( !readSettings("settings.xml", sstrSOFMFileName) )
@@ -264,6 +265,12 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		}
 	}
 
+	m_pAvgDistanceToBMU = new float[m_params.numSteps];
+	for ( size_t i=0;i<m_params.numSteps;i++ )
+	{
+		m_pAvgDistanceToBMU[i] = 0.0;
+	}
+
 	Helpers::print( std::string("Initialization finished.\n"), m_pLogStream );
 }
 
@@ -271,6 +278,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 SOFMNetwork::~SOFMNetwork()
 {
 	delete m_pNet;
+	delete[] m_pAvgDistanceToBMU;
 }
 
 
@@ -926,6 +934,7 @@ void SOFMNetwork::process()
 	}
 
 	// for each training spectra..
+	double avgDist = 0.0;
 	for ( size_t j=0;j<m_numSpectra;j++ )
 	{
 		// initialize best match batch
@@ -947,6 +956,7 @@ void SOFMNetwork::process()
 		// mark best match neuron
 		Spectra *bmuSpectrum = m_pNet->beginWrite( bmu.index );
 		setBestMatch( *bmuSpectrum, bmu.index, currentSourceSpectra, spectraIndex );
+		avgDist += currentSourceSpectra.compare( *bmuSpectrum );
 		m_pNet->endWrite( bmu.index );
 
 		// adapt neighborhood
@@ -954,6 +964,8 @@ void SOFMNetwork::process()
 
 		m_pSourceVFS->endWrite(spectraIndex);
 	}
+
+	m_pAvgDistanceToBMU[m_currentStep] = avgDist/(double)m_numSpectra;
 
 	Helpers::print( "writing network to disk.\n", m_pLogStream );
 	m_pNet->flush();
@@ -1516,7 +1528,11 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false, true);
 	calcZMap( sstrDirectory+sstrZMap, true );
 
-	
+	if ( _fullExport )
+	{
+		SpectraHelpers::renderDiagramToDisk( m_pAvgDistanceToBMU, m_params.numSteps, 1, 4, 0, 800, 533, sstrDirectory+std::string("avgDistanceBMU.png") );
+	}
+
 	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+HTMLExport::lineBreak();
 	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+HTMLExport::lineBreak();
 	sstrInfo += std::string("grid size: ")+Helpers::numberToString( m_gridSize )+HTMLExport::lineBreak();
@@ -1534,6 +1550,12 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	sstrInfo += std::string("Peak histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("peakmap.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Z histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("zmap.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Neighborhood function:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("neighborhoodfunc.png") )+HTMLExport::lineBreak();
+
+	if ( _fullExport )
+	{
+		sstrInfo += std::string("Average distance to BMU:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("avgDistanceBMU.png") )+HTMLExport::lineBreak();
+	}
+
 
 	Helpers::insertString( HTMLExport::HTML_TOKEN_INFO, sstrInfo, sstrMainHTMLDoc );
 	Helpers::insertString( HTMLExport::HTML_TOKEN_TITLE, "", sstrMainHTMLDoc );
