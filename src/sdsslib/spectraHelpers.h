@@ -95,6 +95,22 @@ namespace SpectraHelpers
 	//        if the number of destination samples is greater than _numSrcSamples / (2^numFoldIterations) the rest is filled with zeros.
 	// \param _numFoldIterations number of foldings. 
 	void foldSpectrum( float *_pSrcSpectrum, size_t _numSrcSamples, float *_pDstSpectrum, size_t _numDstSamples, size_t _numFoldIterations=1 );
+
+	// one to many spectra comparison.
+	// _a source spectrum
+	// _pB array of source spectra
+	// _nCount number of Bs to compare with
+	// _pOutErrors array of errors with _nCount elements
+	void compareSpectra(const Spectra &_a, Spectra *_pB, size_t _nCount, float *_pOutErrors );
+
+	// one to many spectra comparison.
+	// _a source spectrum
+	// _pB array of source spectra
+	// _pOutErrors array of errors with _nCount elements
+	void compareSpectra(const Spectra &_a, std::vector<Spectra*> &_pB, float *_pOutErrors );
+
+	// returns the millions of spectra compares (one to many) per second.
+	double testSpectraComparePerformance();
 };
 
 

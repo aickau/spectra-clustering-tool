@@ -191,19 +191,6 @@ protected:
 	// returns best spectra in the network
 	BestMatch searchBestMatchLocal( const Spectra &_src, const int _searchRadius );
 
-	// one to many spectra comparison.
-	// _a source spectrum
-	// _pB array of source spectra
-	// _nCount number of Bs to compare with
-	// _pOutErrors array of errors with _nCount elements
-	void compareSpectra(const Spectra &_a, Spectra *_pB, size_t _nCount, float *_pOutErrors );
-
-	// one to many spectra comparison.
-	// _a source spectrum
-	// _pB array of source spectra
-	// _pOutErrors array of errors with _nCount elements
-	void compareSpectra(const Spectra &_a, std::vector<Spectra*> &_pB, float *_pOutErrors );
-
 	// adapt network for a given neuron/spectrum
 	// _spectrum source spectrum to adapt
 	// _bestMatchIndex index into network where it best matches
