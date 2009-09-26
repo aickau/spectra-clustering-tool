@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <fstream>
 #include <set>
+#include <omp.h>
 
 #include "devil/include/il/il.h"
 #include "devil/include/il/ilu.h"
@@ -33,6 +34,7 @@
 #include "sdsslib/filehelpers.h"
 #include "sdsslib/glhelper.h"
 #include "sdsslib/HTMLexport.h"
+#include "sdsslib/Timer.h"
 
 
 namespace SpectraHelpers
@@ -609,6 +611,90 @@ void foldSpectrum( float *_pSrcSpectrum, size_t _numSrcSamples, float *_pDstSpec
 	}
 }
 
+
+
+void compareSpectra(const Spectra &_a, Spectra *_pB, size_t _nCount, float *_pOutErrors )
+{
+	assert( _pB != NULL );
+	assert( _pOutErrors != NULL );
+	const int numElements = static_cast<int>(_nCount);
+
+#pragma omp parallel for
+	for (int i=0;i<numElements;i++)
+	{
+		if ( _pB[i].isEmpty() )
+		{
+			_pOutErrors[i] = _a.compare( _pB[i] );
+		}
+		else
+		{
+			_pOutErrors[i] = FLT_MAX;
+		}
+	}
+}
+
+void compareSpectra(const Spectra &_a, std::vector<Spectra*> &_pB, float *_pOutErrors )
+{
+	assert( _pOutErrors != NULL );
+	const int numElements = static_cast<int>(_pB.size());
+
+#pragma omp parallel for
+	for (int i=0;i<numElements;i++)
+	{
+		if ( _pB[i]->isEmpty() )
+		{
+			_pOutErrors[i] = _a.compare( *_pB[i] );
+		}
+		else
+		{
+			_pOutErrors[i] = FLT_MAX;
+		}
+	}
+}
+
+
+double testSpectraComparePerformance()
+{
+	const size_t numSpectra( 10000 );
+	const std::string sstrDumpFile("perftest.bin");
+
+	float pErr[SpectraVFS::CACHELINESIZE];
+	ISSE_ALIGN Spectra a;
+	a.setSine();
+
+	SpectraVFS::write( numSpectra, 1.0, sstrDumpFile );
+
+	SpectraVFS vfs( sstrDumpFile, false );
+
+	if ( vfs.getNumSpectra() != numSpectra )
+	{
+		assert(0);
+		return 0;
+	}
+
+	for ( size_t i=0;i<numSpectra;i++)
+	{
+		Spectra *b = vfs.beginWrite( i );
+		b->m_SpecObjID = 0;
+		vfs.endWrite( i );
+	}
+
+	Timer t;
+	size_t j=0;
+	while (j<numSpectra)
+	{
+		const int jInc = MIN( SpectraVFS::CACHELINESIZE, (MIN(numSpectra, j+SpectraVFS::CACHELINESIZE)-j));
+
+		Spectra *b = vfs.beginRead( j );
+		compareSpectra( a, b, jInc, pErr );
+		vfs.endRead( j );
+		j += jInc;
+	}
+
+	double dt = t.getElapsedSecs();
+
+	return (static_cast<double>(numSpectra)/dt)/1000000.0;
+}
 
 
 }

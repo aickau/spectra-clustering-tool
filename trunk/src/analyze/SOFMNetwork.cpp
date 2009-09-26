@@ -677,48 +677,6 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 }
 
 
-void SOFMNetwork::compareSpectra(const Spectra &_a, Spectra *_pB, size_t _nCount, float *_pOutErrors )
-{
-	assert( _pB != NULL );
-	assert( _pOutErrors != NULL );
-	const int numElements = static_cast<int>(_nCount);
-
-#pragma omp parallel for
-	for (int i=0;i<numElements;i++)
-	{
-		if ( _pB[i].isEmpty() )
-		{
-			_pOutErrors[i] = _a.compare( _pB[i] );
-		}
-		else
-		{
-			_pOutErrors[i] = FLT_MAX;
-		}
-	}
-}
-
-void SOFMNetwork::compareSpectra(const Spectra &_a, std::vector<Spectra*> &_pB, float *_pOutErrors )
-{
-	assert( _pOutErrors != NULL );
-	const int numElements = static_cast<int>(_pB.size());
-
-#pragma omp parallel for
-	for (int i=0;i<numElements;i++)
-	{
-		if ( _pB[i]->isEmpty() )
-		{
-			_pOutErrors[i] = _a.compare( *_pB[i] );
-		}
-		else
-		{
-			_pOutErrors[i] = FLT_MAX;
-		}
-	}
-}
-
-
-
-
 SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchComplete( const Spectra &_src )
 {
 	float err[SpectraVFS::CACHELINESIZE];
@@ -732,7 +690,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchComplete( const Spectra &_src
 		const int jInc = MIN( SpectraVFS::CACHELINESIZE, (MIN(m_gridSizeSqr, j+SpectraVFS::CACHELINESIZE)-j));
 
 		Spectra *a = m_pNet->beginRead( j );
-		compareSpectra( _src, a, jInc, err );
+		SpectraHelpers::compareSpectra( _src, a, jInc, err );
 		m_pNet->endRead( j );
 
 		for ( size_t k=0;k<jInc;k++ )
@@ -793,7 +751,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	}
 
 	// calculate errors/distances
-	compareSpectra( _src, searchSpectraVec, &errorVec[0] );
+	SpectraHelpers::compareSpectra( _src, searchSpectraVec, &errorVec[0] );
 
 	//end read, find bmu from error list
 	for ( size_t i=0;i<numSpectraToSearch;i++ )
