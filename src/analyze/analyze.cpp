@@ -319,7 +319,14 @@ int InitGL()
 
 	Helpers::print( "testing performance..\n", &logFile );
 	const double mioSpectraPerSecond = SpectraHelpers::testSpectraComparePerformance();
-	Helpers::print( Helpers::numberToString<double>(mioSpectraPerSecond) +std::string(" million spectra compares per second.\n"), &logFile );
+	if ( mioSpectraPerSecond == 0.0 ) 
+	{
+		Helpers::print( "..skipped. Delete perftest.bin to test performance again.", &logFile );
+	}
+	else
+	{
+		Helpers::print( Helpers::numberToString<double>(mioSpectraPerSecond) +std::string(" million spectra compares per second.\n"), &logFile );
+	}
 
 	//g_QTCluster = new QTClustering( g_pVFSSource, QTClustering::Parameters(8.f, 0.0f, 2 ) );
 	//g_QTCluster->Process();

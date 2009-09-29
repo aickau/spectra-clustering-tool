@@ -41,16 +41,25 @@
 
 std::vector<std::string> g_compareFileList;
 
-
-
 #define DUMPFILE std::string("allSpectra.bin")
+
+static
+void writeTextTableEntry( const Spectra &_sp, float _error, std::string &_sstrOutString )
+{
+	_sstrOutString += Helpers::numberToString<double>(_sp.m_Z);
+	_sstrOutString += " ";
+	_sstrOutString += _sp.getFileName();
+	_sstrOutString += " ";
+	_sstrOutString += Helpers::numberToString<float>(_error);
+	_sstrOutString += "\n";
+}
 
 
 void main(int argc, char* argv[])
 {
 	std::ofstream logFile("search_log.txt");
 	Helpers::print("Welcome to SDSS Search "+SDSSVERSIONSTRING+" !\n\n\n", &logFile);
-	Helpers::print("Order spectra relative to a set of reference spectra by their absolute error.\n\n", &logFile);
+	Helpers::print("Order spectra relative to a set of reference spectra by their absolute error.\nCompare spectra should be located as FITS files in subdirectory /compare\n\n", &logFile);
 
 	std::string sstrDumpFile(DUMPFILE);
 	unsigned int spectraFilter = SPT_DEFAULTFILTER;
@@ -58,6 +67,7 @@ void main(int argc, char* argv[])
 	float compareInvariance = 0.1f;
 	bool bNormalize = false;
 	bool bReverseOrder = false;
+	unsigned int outputListLength = 100;
 
 
 	try {  
@@ -90,6 +100,7 @@ void main(int argc, char* argv[])
 		TCLAP::ValueArg<float> compareInvarianceArg("v", "compareinvariance", "Percentage to take the neighboring samples of spectra for comparison into account. 0=no neighboring samples are taken into account, 1=all samples are taken into account. Only used if compare function is not set to simple", false, compareInvariance, "compare invariance (0..1)");
 		TCLAP::SwitchArg normalizeArg("n","normalize","Normalize spectra", false);
 		TCLAP::SwitchArg reverseArg("r","reverse","Reverse order", false);
+		TCLAP::ValueArg<unsigned int> lengthArg("l", "length", "maximum number of spectra to output (default is 100)", false, outputListLength, "output list length" );
 
 		cmd.add( dumpFilenameArg );
 		cmd.add( filterArg );
@@ -97,6 +108,7 @@ void main(int argc, char* argv[])
 		cmd.add( compareInvarianceArg );
 		cmd.add( normalizeArg );
 		cmd.add( reverseArg );
+		cmd.add( lengthArg );
 
 		cmd.parse( argc, argv );
 
@@ -106,6 +118,7 @@ void main(int argc, char* argv[])
 		compareInvariance = CLAMP(compareInvarianceArg.getValue(),0.f,1.f);
 		bNormalize = normalizeArg.getValue();
 		bReverseOrder = reverseArg.getValue();
+		outputListLength = lengthArg.getValue();
 	}
 	catch (TCLAP::ArgException &e)  
 	{ 
@@ -126,6 +139,7 @@ void main(int argc, char* argv[])
 	Helpers::print( "comparison invariance: "+Helpers::numberToString<float>(compareInvariance)+"\n", &logFile );
 	Helpers::print( "normalize: "+Helpers::numberToString<bool>(bNormalize)+"\n", &logFile );
 	Helpers::print( "reversed order: "+Helpers::numberToString<bool>(bReverseOrder)+"\n" , &logFile );
+	Helpers::print( "output list length: "+Helpers::numberToString<unsigned int>(outputListLength)+"\n" , &logFile );
 	Helpers::print( "each spectrum contains "+Helpers::numberToString<size_t>(sizeof(Spectra))+" bytes.\n\n", &logFile );
 
 	std::string sstrBaseInfo;
@@ -143,6 +157,8 @@ void main(int argc, char* argv[])
 	sstrBaseInfo += Helpers::numberToString<int>(bNormalize);
 	sstrBaseInfo += "<br>\nreversed order: ";
 	sstrBaseInfo += Helpers::numberToString<int>(bReverseOrder);
+	sstrBaseInfo += "<br>\noutput list length: ";
+	sstrBaseInfo += Helpers::numberToString<unsigned int>(outputListLength);
 	sstrBaseInfo += "<br>\neach spectrum contains ";
 	sstrBaseInfo += Helpers::numberToString<int>(sizeof(Spectra));
 	sstrBaseInfo += " bytes.<br>\n\n";
@@ -262,11 +278,16 @@ void main(int argc, char* argv[])
 
 	delete[] err;
 
-
+	// for each compare spectrum
 	for ( size_t j=0;j<numCompareSpectra;j++ )
 	{
+		// html doc
 		std::string sstrHTMLDoc = HTMLExport::loadHTMLTemplate();
 		std::string sstrCompareFilename(g_compareFileList.at(j));
+
+		// additional text output for easier parsing and processing of results
+		std::string sstrOutTextTable;
+
 
 		if (!Helpers::insertString( HTMLExport::HTML_TOKEN_TITLE, sstrCompareFilename, sstrHTMLDoc ) )
 		{
@@ -282,10 +303,11 @@ void main(int argc, char* argv[])
 		if ( !bReverseOrder )
 		{
 			std::map<float,size_t>::iterator it( comparisonMap[j].begin() ); 
-			while ( it != comparisonMap[j].end() && c < 100)
+			while ( it != comparisonMap[j].end() && c < outputListLength)
 			{
 				Spectra *sp = vfs.beginRead( it->second );
 				SpectraHelpers::writeTableEntry( *sp, it->first, sstrTable );
+				writeTextTableEntry( *sp, it->first, sstrOutTextTable );
 				vfs.endRead( it->second );
 				it++;
 				c++;
@@ -294,10 +316,11 @@ void main(int argc, char* argv[])
 		else
 		{	
 			std::map<float,size_t>::reverse_iterator it( comparisonMap[j].rbegin() ); 
-			while ( it != comparisonMap[j].rend() && c < 100)
+			while ( it != comparisonMap[j].rend() && c < outputListLength)
 			{
 				Spectra *sp = vfs.beginRead( it->second );
 				SpectraHelpers::writeTableEntry( *sp, it->first, sstrTable );
+				writeTextTableEntry( *sp, it->first, sstrOutTextTable );
 				vfs.endRead( it->second );
 				it++;
 				c++;
@@ -321,12 +344,19 @@ void main(int argc, char* argv[])
 
 		std::string sstrResultFilename("searchresults_");
 		sstrResultFilename += FileHelpers::getFileName(sstrCompareFilename);
+		std::string sstrResultFilenameTXT(sstrResultFilename+".txt");
+		std::string sstrResultFilenameHTML(sstrResultFilename+".html");
+
 		sstrResultFilename += ".html";
 
 		Helpers::print( "\n\nExporting results to "+sstrResultFilename+"\n", &logFile );
 
-		std::ofstream fon(sstrResultFilename.c_str());
-		fon<<sstrHTMLDoc;
+		std::ofstream fonHTML(sstrResultFilenameHTML.c_str());
+		fonHTML<<sstrHTMLDoc;
+
+		std::ofstream fonTXT(sstrResultFilenameTXT.c_str());
+		fonTXT<<sstrOutTextTable;
+
 	}
 	Memory::memAlignedFree( compareSpectra );
 

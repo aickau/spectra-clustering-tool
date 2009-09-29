@@ -655,8 +655,14 @@ void compareSpectra(const Spectra &_a, std::vector<Spectra*> &_pB, float *_pOutE
 
 double testSpectraComparePerformance()
 {
-	const size_t numSpectra( 10000 );
+	const size_t numSpectra( 16000 );
 	const std::string sstrDumpFile("perftest.bin");
+
+	// skip performance check if bin file exits to speed-up startup
+	if ( FileHelpers::fileExists(sstrDumpFile) )
+	{
+		return 0.0;
+	}
 
 	float pErr[SpectraVFS::CACHELINESIZE];
 	ISSE_ALIGN Spectra a;
@@ -680,18 +686,35 @@ double testSpectraComparePerformance()
 	}
 
 	Timer t;
-	size_t j=0;
-	while (j<numSpectra)
-	{
-		const int jInc = MIN( SpectraVFS::CACHELINESIZE, (MIN(numSpectra, j+SpectraVFS::CACHELINESIZE)-j));
 
-		Spectra *b = vfs.beginRead( j );
-		compareSpectra( a, b, jInc, pErr );
-		vfs.endRead( j );
-		j += jInc;
+	float err=FLT_MAX;
+
+	// repeat test 100 times.
+	for ( size_t i=0;i<100;i++ )
+	{
+		size_t j=0;
+		while (j<numSpectra)
+		{
+			const int jInc = MIN( SpectraVFS::CACHELINESIZE, (MIN(numSpectra, j+SpectraVFS::CACHELINESIZE)-j));
+
+			Spectra *b = vfs.beginRead( j );
+			compareSpectra( a, b, jInc, pErr );
+			vfs.endRead( j );
+			j += jInc;
+
+			for (size_t k=0;k<jInc;k++)
+			{
+				if ( err > pErr[k] )
+				{
+					err = pErr[k];
+				}
+			}
+		}
 	}
 
-	double dt = t.getElapsedSecs();
+	
+
+	double dt = t.getElapsedSecs()/100.0;
 
 	return (static_cast<double>(numSpectra)/dt)/1000000.0;
 }
