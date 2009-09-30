@@ -41,6 +41,12 @@ public:
 	static const float waveBeginDst;			// spectrum start in destination system 
 	static const float waveEndDst;				// spectrum end in destination system 
 
+
+	/** @name TYPES
+	*/
+	//@{
+
+
 	enum SpectraType
 	{
 		SPT_NOT_SET		 = 0,
@@ -96,63 +102,41 @@ public:
 		float height;		// in 10^(-17) erg/cm/s^2/Ang
 	};
 
+	//@}
+
+	/** @name CONSTRUCTORS / DESTRUCTORS
+	*/
+	//@{
+
+
 	Spectra();
 	Spectra( const Spectra &_source );
 	~Spectra();
 
-	// clear data
-	void clear();
+	//@}
 
-	// seed != 0
-	void randomize( float _minrange, float _maxrange);
+	/** @name ACCESSORS
+	*/
+	//@{
 
-	void set(const Spectra &_spectra);
-	
-	// set test spectra
-	// type: 0=sin, 1=cos, 2=lin, 3=lin inv, 4=sqr
-	void set( size_t _type, float _noize );
+	// returns assembled filename
+	std::string getFileName() const;
 
-	// set rect 
-	// _phase 0..1, _width 0..1
-	void setRect( float _width=0.1, float _phase=0.5, float _amplitude=1.f );
+	// get date 
+	int getMJD() const;
 
-	// set sine curve with a given frequency, phase and amplitude.
-	void setSine( float _frequency = 1.f, float _phase = 0.f, float _amplitude=1.f, float _noize=0.f );
+	// fiber ID for SDSS
+	// 1..640
+	int getFiber() const;
 
-	// add signals from other spectra
-	void add(const Spectra &_spectra);
+	// plate id 
+	int getPlate() const;
 
-	// add constant value to amplitudes
-	void add(float _value);
+	// get SDSS URL to spectrum overview page
+	std::string getURL() const;
 
-	// subtract signals from other spectra
-	void subtract(const Spectra &_spectra);
-
-	// multiply signals with other spectra
-	void multiply( const Spectra &_spectra);
-
-	// scale signals
-	void multiply(float _multiplier);
-	
-	// load spectrum from comma separated values, we aussume ~3900 samples.
-	// spectrum should look like this:
-	//
-	//
-	//	Wavelength(A),Flux,Error,Mask
-	//	3830.01081226449, -1.97607004642487, 0, 83886080
-	//	3830.01081226449, -1.97607004642487, 0, 83886080
-	//  .. omitting next ~3900 lines.
-	//	3833.54000759044, 1.56192994117737, 1.66190469264984, 0
-	//
-	bool loadFromCSV(const std::string &_filename);
-	
-	// load from SDSS .fit file
-	// FITS file description see http://www.sdss.org/DR6/dm/flatFiles/spSpec.html
-	// general info here: http://www.sdss.org/DR6/dm/flatFiles/FILES.html
-	bool loadFromFITS(const std::string &_filename);
-
-	// save to ASCII CSV
-	bool saveToCSV(const std::string &_filename);
+	// returns true if marked as empty spectrum (specObjID is set to zero).
+	bool isEmpty() const;
 
 	// compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 	float compare(const Spectra &_spectra) const;
@@ -167,35 +151,19 @@ public:
 	// _width 0..1
 	float compareAdvanced(const Spectra &_spectra, float _width) const;
 
-	// super advanced compare using peak detectors and continuum spectra.
+	// super advanced compare using peak detectors and continuum spectrum.
 	// _width 0..1
 	float compareSuperAdvanced(const Spectra &_spectra, float _width, bool _bOptimize=false) const;
 
-	// calculate extrema
-	void calcMinMax();
-
-	// calculates the surface of the spectrum
-	void calculateFlux();
-
-	// normalize to range -1..1
-	void normalize();
-
-	// normalize by flux
-	void normalizeByFlux();
-
-	// transforms spectrum into frequency domain using a DFT.
-	void dft();
-
-	// generate continuum spectrum by heavy under sampling.
+	// calculate continuum spectrum by heavy under sampling.
 	// _continuumSamples should be an order of magnitude smaller than Spectra::numSamples. 32 for instance is a good fit.
-	void generateContinuum( size_t _continuumSamples, std::vector<float> &_outContinuum ) const;
+	void getContinuum( size_t _continuumSamples, std::vector<float> &_outContinuum ) const;
 
 	// generate continuum subtracted spectrum
 	// _continuumSamples should be an order of magnitude smaller than Spectra::numSamples. 32 for instance is a good fit.
 	// _outSpectrumMinusContinuum returns spectrum subtracted by the continuum
 	// _outContinuum returns the continuum itself, has _continuumSamples in 
 	void getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<float> &_outSpectrumMinusContinuum, std::vector<float> &_outContinuum ) const;
-
 
 	// get a list of detected peaks.
 	// _spectrumMinusContinuum continuum subtracted spectrum of the used spectrum
@@ -211,21 +179,95 @@ public:
 		std::vector<float> &_outMinPeaks, 
 		std::vector<float> &_outMaxPeak ) const;
 
-	// returns assembled filename
-	std::string getFileName() const;
+	//@}
 
-	int getMJD() const;
+	/** @name MODIFIERS
+	*/
+	//@{
 
-	// 1..640
-	int getFiber() const;
+	// clear data/reset spectrum
+	void clear();
 
-	// plate id 
-	int getPlate() const;
+	void set(const Spectra &_spectra);
 
-	std::string getURL() const;
+	// set test spectra
+	// type: 0=sin, 1=cos, 2=lin, 3=lin inv, 4=sqr
+	void set( size_t _type, float _noize );
 
-	// returns true if marked as empty spectrum.
-	bool isEmpty() const;
+	// set rect 
+	// _phase 0..1, _width 0..1
+	void setRect( float _width=0.1, float _phase=0.5, float _amplitude=1.f );
+
+	// set sine curve with a given frequency, phase and amplitude.
+	void setSine( float _frequency = 1.f, float _phase = 0.f, float _amplitude=1.f, float _noize=0.f );
+
+	// fill spectrum with noise
+	// seed != 0
+	void randomize( float _minrange, float _maxrange);
+
+	// add signals from other spectra
+	void add(const Spectra &_spectra);
+
+	// add constant value to amplitudes
+	void add(float _value);
+
+	// subtract signals from other spectra
+	void subtract(const Spectra &_spectra);
+
+	// multiply signals with other spectra
+	void multiply( const Spectra &_spectra);
+
+	// scale signals
+	void multiply(float _multiplier);
+
+	// load spectrum from comma separated values, we aussume ~3900 samples.
+	// spectrum should look like this:
+	//
+	//
+	//	Wavelength(A),Flux,Error,Mask
+	//	3830.01081226449, -1.97607004642487, 0, 83886080
+	//	3830.01081226449, -1.97607004642487, 0, 83886080
+	//  .. omitting next ~3900 lines.
+	//	3833.54000759044, 1.56192994117737, 1.66190469264984, 0
+	//
+	bool loadFromCSV(const std::string &_filename);
+
+	// load from SDSS .fit file
+	// FITS file description see http://www.sdss.org/DR6/dm/flatFiles/spSpec.html
+	// general info here: http://www.sdss.org/DR6/dm/flatFiles/FILES.html
+	bool loadFromFITS(const std::string &_filename);
+
+	// save to ASCII CSV
+	bool saveToCSV(const std::string &_filename);
+
+	// calculate extrema
+	void calcMinMax();
+
+	// calculates the surface of the spectrum
+	void calculateFlux();
+
+	// normalize to range -1..1
+	void normalize();
+
+	// normalize by flux
+	void normalizeByFlux();
+
+	// adapt spectrum towards another spectrum by a given factor
+	// _spectra spectrum to adapt to
+	// _adaptionRate [0..1]
+	void adapt( const Spectra &_spectra, float _adaptionRate );
+
+	// transforms spectrum into frequency domain using a DFT.
+	//void dft();
+
+	//@}
+
+
+
+	/** @name MEMBERS
+	*/
+	//@{
+
 
 	float m_Amplitude[numSamples];		// amplitude in 10^(-17) erg/cm/s^2/Ang
 	float m_Min;
@@ -242,9 +284,11 @@ public:
 	char pad[4];						// for padding to multiple of 16 byte boundaries
 
 
-	//////////////////////////////////////////////////////////////////////////////////////////////////
-	// helper functions
-	//////////////////////////////////////////////////////////////////////////////////////////////////
+	//@}
+
+	/** @name HELPER FUNCTIONS
+	*/
+	//@{
 
 	// calc unique photo object identifier from a bunch of parameters
 	static unsigned __int64 calcPhotoObjID( int _run, int _rerun, int _camcol, int _field, int _obj );
@@ -261,8 +305,10 @@ public:
 	// returns any ORed combination of SpectraTypes as filter
 	static std::string spectraFilterToString( unsigned int _spectraFilter );
 
+	//@}
+
 };
 
-STATIC_ASSERT((sizeof(Spectra)%16)==0);		// check if spectra is multiple of 16 bytes
+STATIC_ASSERT((sizeof(Spectra)%16)==0);		// check if spectrum is multiple of 16 bytes
 
 #endif

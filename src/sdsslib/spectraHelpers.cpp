@@ -653,19 +653,22 @@ void compareSpectra(const Spectra &_a, std::vector<Spectra*> &_pB, float *_pOutE
 }
 
 
-double testSpectraComparePerformance()
+void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAdaptionPerSecond )
 {
+	_outMioComparesPerSecond = -1.0;
+	_outMioAdaptionPerSecond = -1.0;
+
 	const size_t numSpectra( 16000 );
 	const std::string sstrDumpFile("perftest.bin");
 
 	// skip performance check if bin file exits to speed-up startup
 	if ( FileHelpers::fileExists(sstrDumpFile) )
 	{
-		return 0.0;
+//		return;
 	}
 
 	float pErr[SpectraVFS::CACHELINESIZE];
-	ISSE_ALIGN Spectra a;
+	SSE_ALIGN Spectra a;
 	a.setSine();
 
 	SpectraVFS::write( numSpectra, 1.0, sstrDumpFile );
@@ -675,7 +678,7 @@ double testSpectraComparePerformance()
 	if ( vfs.getNumSpectra() != numSpectra )
 	{
 		assert(0);
-		return 0;
+		return;
 	}
 
 	for ( size_t i=0;i<numSpectra;i++)
@@ -687,8 +690,10 @@ double testSpectraComparePerformance()
 
 	Timer t;
 
-	float err=FLT_MAX;
+	// measure compare performance
+	////////////////////////////////////////////////////
 
+	float err=FLT_MAX;
 	// repeat test 100 times.
 	for ( size_t i=0;i<100;i++ )
 	{
@@ -711,13 +716,31 @@ double testSpectraComparePerformance()
 			}
 		}
 	}
-
-	
-
 	double dt = t.getElapsedSecs()/100.0;
+	_outMioComparesPerSecond = (static_cast<double>(numSpectra)/dt)/1000000.0;
 
-	return (static_cast<double>(numSpectra)/dt)/1000000.0;
+
+	// measure adaption performance
+	////////////////////////////////////////////////////
+
+	t.start();
+
+	for ( size_t i=0;i<100;i++ )
+	{
+		for ( size_t j=0;j<numSpectra;j++ )
+		{
+			Spectra *b = vfs.beginRead( j );
+
+			b->adapt( a, 0.01f );
+
+			vfs.endRead( j );
+		}
+	}
+	dt = t.getElapsedSecs()/100.0;
+	_outMioAdaptionPerSecond = (static_cast<double>(numSpectra)/dt)/1000000.0;
+
 }
+
 
 
 }

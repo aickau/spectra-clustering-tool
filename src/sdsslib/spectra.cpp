@@ -669,6 +669,15 @@ void Spectra::normalizeByFlux()
 	calcMinMax();
 }
 
+void Spectra::adapt( const Spectra &_spectra, float _adaptionRate )
+{
+	for ( size_t i=0;i<Spectra::numSamples;i++ )
+	{
+		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
+	}
+}
+
+
 
 extern "C" void spectraCompareX64(const float *a0, const float *a1, float *errout, size_t numsamples);
 
@@ -683,7 +692,7 @@ float Spectra::compare(const Spectra &_spectra) const
 	}
 */
 
-	ISSE_ALIGN float errorv[4];
+	SSE_ALIGN float errorv[4];
 	
 	// optimized memory friendly version. make sure spectra is 16 bytes aligned
 	// this is 10x faster than compiler generated SSE code!
@@ -915,8 +924,8 @@ float Spectra::compareSuperAdvanced(const Spectra &_spectra, float _width, bool 
 }
 
 
-void Spectra::dft()
-{
+//void Spectra::dft()
+//{
 	// test code
 	//fftwf_complex complex[numSamples/2+1];
 	//fftwf_plan p;
@@ -949,10 +958,10 @@ void Spectra::dft()
 	//}
 
 	//calcMinMax();
-}
+//}
 
 
-void Spectra::generateContinuum( size_t _continuumSamples, std::vector<float> &_outContinuum ) const
+void Spectra::getContinuum( size_t _continuumSamples, std::vector<float> &_outContinuum ) const
 {
 	float continuum[Spectra::numSamples];
 	memcpy( continuum, m_Amplitude, Spectra::numSamples*sizeof(float) );
@@ -973,7 +982,7 @@ void Spectra::generateContinuum( size_t _continuumSamples, std::vector<float> &_
 void Spectra::getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<float> &_outSpectrumMinusContinuum, std::vector<float> &_outContinuum ) const
 {
 	_outSpectrumMinusContinuum.resize(Spectra::m_SamplesRead);
-	generateContinuum( _continuumSamples, _outContinuum );
+	getContinuum( _continuumSamples, _outContinuum );
 
 	const float continuumSizef = static_cast<float>(_outContinuum.size());
 	float c=0.0f;

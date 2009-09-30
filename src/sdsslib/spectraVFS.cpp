@@ -526,6 +526,7 @@ bool SpectraVFS::IOHandle::isSet()
 
 void SpectraVFS::Read( size_t _nSpectraIndex, Spectra *_pDestination, bool bAsyncRead )
 {
+	_cprintf("disk.read\n");
 	assert( _pDestination != NULL );
 
 	size_t nBytesToRead = TOTALCACHELINEBYTES;
@@ -603,6 +604,7 @@ void SpectraVFS::WaitForIO( IOHandle &_handle )
 
 void SpectraVFS::Write(  size_t _nSpectraIndex, Spectra *_pSource )
 {
+	_cprintf("disk.write\n");
 	assert( _pSource != NULL );
 
 	size_t nBytesToWrite = TOTALCACHELINEBYTES;

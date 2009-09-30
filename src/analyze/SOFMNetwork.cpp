@@ -213,7 +213,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		Helpers::print( std::string("Initializing network with input data.\n"), m_pLogStream );
 
 		// for p:
-		ISSE_ALIGN Spectra multiplier;
+		SSE_ALIGN Spectra multiplier;
 		bool bMult = multiplier.loadFromCSV("multiplier.csv");
 		if ( bMult ) 
 		{
@@ -665,10 +665,7 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 			if ( lratehsx > _adaptionThreshold )
 			{
 				Spectra *a = m_pNet->beginWrite( c );
-				for ( size_t i=0;i<Spectra::numSamples;i++ )
-				{
-					a->m_Amplitude[i] += lratehsx*(_spectrum.m_Amplitude[i]-a->m_Amplitude[i]);
-				}
+				a->adapt( _spectrum, lratehsx );
 				m_pNet->endWrite( c );
 			}
 			c++;
@@ -901,6 +898,10 @@ void SOFMNetwork::process()
 		const size_t spectraIndex = spectraIndexList.at(j);
 		Spectra &currentSourceSpectra = *m_pSourceVFS->beginWrite(spectraIndex);
 
+//		Timer t;
+
+
+
 		// retrieve best match neuron for a source spectra
 		if (bFullSearch) 
 		{
@@ -911,6 +912,11 @@ void SOFMNetwork::process()
 			bmu = searchBestMatchLocal( currentSourceSpectra, searchRadius );
 		}
 
+//		double dt = t.getElapsedSecs();
+//		Helpers::print( Helpers::numberToString<double>(dt) +std::string("search.\n") );
+
+//		t.start();
+
 		// mark best match neuron
 		Spectra *bmuSpectrum = m_pNet->beginWrite( bmu.index );
 		setBestMatch( *bmuSpectrum, bmu.index, currentSourceSpectra, spectraIndex );
@@ -919,6 +925,10 @@ void SOFMNetwork::process()
 
 		// adapt neighborhood
 		adaptNetwork( currentSourceSpectra, bmu.index, adaptionThreshold, sigmaSqr, lRate );
+
+//	dt = t.getElapsedSecs();
+//		Helpers::print( Helpers::numberToString<double>(dt) +std::string("adapt.\n") );
+
 
 		m_pSourceVFS->endWrite(spectraIndex);
 	}
@@ -969,11 +979,11 @@ void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogS
 
 			if ( _bShowEmpty || !spCenter->isEmpty() )
 			{
-				ISSE_ALIGN Spectra backupCenter (*spCenter);
-				ISSE_ALIGN Spectra backupLeft(*spLeft);
-				ISSE_ALIGN Spectra backupRight(*spRight);
-				ISSE_ALIGN Spectra backupTop(*spTop);
-				ISSE_ALIGN Spectra backupBottom(*spBottom);
+				SSE_ALIGN Spectra backupCenter (*spCenter);
+				SSE_ALIGN Spectra backupLeft(*spLeft);
+				SSE_ALIGN Spectra backupRight(*spRight);
+				SSE_ALIGN Spectra backupTop(*spTop);
+				SSE_ALIGN Spectra backupBottom(*spBottom);
 
 				if ( _bNormalize )
 				{
@@ -1056,7 +1066,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 	for ( size_t i=0;i<m_gridSizeSqr;i++ )
 	{
 		Spectra *spNet = m_pNet->beginRead( i );
-		ISSE_ALIGN Spectra backupNet(*spNet);
+		SSE_ALIGN Spectra backupNet(*spNet);
 
 		if ( spNet->isEmpty() )
 		{
@@ -1066,7 +1076,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 		else
 		{
 			Spectra *spSource = m_pSourceVFS->beginRead( spNet->m_Index );
-			ISSE_ALIGN Spectra backupSource(*spSource);
+			SSE_ALIGN Spectra backupSource(*spSource);
 
 			if ( _bNormalize )
 			{

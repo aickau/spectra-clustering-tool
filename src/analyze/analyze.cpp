@@ -318,14 +318,19 @@ int InitGL()
 	}
 
 	Helpers::print( "testing performance..\n", &logFile );
-	const double mioSpectraPerSecond = SpectraHelpers::testSpectraComparePerformance();
-	if ( mioSpectraPerSecond == 0.0 ) 
+
+	double mioSpectraComparePerSecond;
+	double mioSpectraAdaptionPerSecond;
+	SpectraHelpers::testSpectraPerformance( mioSpectraComparePerSecond, mioSpectraAdaptionPerSecond );
+
+	if ( mioSpectraComparePerSecond == -1.0 ) 
 	{
 		Helpers::print( "..skipped. Delete perftest.bin to test performance again.", &logFile );
 	}
 	else
 	{
-		Helpers::print( Helpers::numberToString<double>(mioSpectraPerSecond) +std::string(" million spectra compares per second.\n"), &logFile );
+		Helpers::print( Helpers::numberToString<double>(mioSpectraComparePerSecond) +std::string(" million spectra compares per second.\n"), &logFile );
+		Helpers::print( Helpers::numberToString<double>(mioSpectraAdaptionPerSecond) +std::string(" million spectra adaption per second.\n"), &logFile );
 	}
 
 	//g_QTCluster = new QTClustering( g_pVFSSource, QTClustering::Parameters(8.f, 0.0f, 2 ) );
@@ -406,7 +411,7 @@ void DrawNetwork( SOFMNetwork &network )
 		size_t xp=0;
 		for ( size_t x=0;x<network.m_gridSize;x+=stepSize)
 		{
-			ISSE_ALIGN Spectra spectra;
+			SSE_ALIGN Spectra spectra;
 			network.getSOFMSpectra(x,y,spectra);
 			spectra.calcMinMax();
 			if (maxAmplitude<spectra.m_Max)
@@ -446,7 +451,7 @@ void DrawNetwork( SOFMNetwork &network )
 				}
 			}
 
-			ISSE_ALIGN Spectra spectra;
+			SSE_ALIGN Spectra spectra;
 			network.getSOFMSpectra(x,y,spectra);
 			if ( spectra.isEmpty() )
 			{

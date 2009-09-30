@@ -110,7 +110,9 @@ namespace SpectraHelpers
 	void compareSpectra(const Spectra &_a, std::vector<Spectra*> &_pB, float *_pOutErrors );
 
 	// returns the millions of spectra compares (one to many) per second.
-	double testSpectraComparePerformance();
+	// returns the millions of spectra adaption (one to many) per second.
+	void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAdaptionPerSecond );
+
 };
 
 
