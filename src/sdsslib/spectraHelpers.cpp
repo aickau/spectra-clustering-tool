@@ -664,14 +664,15 @@ void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAd
 	// skip performance check if bin file exits to speed-up startup
 	if ( FileHelpers::fileExists(sstrDumpFile) )
 	{
-//		return;
+		return;
 	}
 
 	float pErr[SpectraVFS::CACHELINESIZE];
 	SSE_ALIGN Spectra a;
 	a.setSine();
 
-	SpectraVFS::write( numSpectra, 1.0, sstrDumpFile );
+	if ( !FileHelpers::fileExists(sstrDumpFile) )
+		SpectraVFS::write( numSpectra, 1.0, sstrDumpFile );
 
 	SpectraVFS vfs( sstrDumpFile, false );
 
@@ -724,22 +725,19 @@ void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAd
 	////////////////////////////////////////////////////
 
 	t.start();
-
 	for ( size_t i=0;i<100;i++ )
 	{
 		for ( size_t j=0;j<numSpectra;j++ )
 		{
-			Spectra *b = vfs.beginRead( j );
-
+			Spectra *b = vfs.beginWrite( j );
 			b->adapt( a, 0.01f );
-
-			vfs.endRead( j );
+			vfs.endWrite( j );
 		}
 	}
 	dt = t.getElapsedSecs()/100.0;
 	_outMioAdaptionPerSecond = (static_cast<double>(numSpectra)/dt)/1000000.0;
 
-}
+} 
 
 
 
