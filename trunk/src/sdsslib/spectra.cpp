@@ -671,10 +671,72 @@ void Spectra::normalizeByFlux()
 
 void Spectra::adapt( const Spectra &_spectra, float _adaptionRate )
 {
+//	million adaption / sec
+//	0,37  	c-version 
+//	0,46	sse version 
+
+
+/*
 	for ( size_t i=0;i<Spectra::numSamples;i++ )
 	{
 		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
 	}
+*/
+#ifdef X64
+	for ( size_t i=0;i<Spectra::numSamples;i++ )
+	{
+		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
+	}
+#else // X64
+	const float *a0 = &m_Amplitude[0];
+	const float *a1 = &_spectra.m_Amplitude[0];
+	size_t numSamples4 = (Spectra::numSamples >> 3) << 3;
+	SSE_ALIGN float adaptionRate4[4] = {_adaptionRate,_adaptionRate,_adaptionRate,_adaptionRate}; 
+
+	_asm {
+		mov edi, a0
+		mov esi, a1
+		mov ecx, Spectra::numSamples
+		shr ecx, 3
+		movaps xmm0, adaptionRate4
+
+
+loop1:
+		prefetchnta [esi+4*4*64]
+		prefetchnta [edi+4*4*64]
+
+		movaps xmm1, [edi+4*4*0]	// dst: m_Amplitude[c]
+		movaps xmm2, [esi+4*4*0]	// src: _spectra.m_Amplitude[c]
+		movaps xmm3, [edi+4*4*1]	// dst: m_Amplitude[c+4]
+		movaps xmm4, [esi+4*4*1]	// src: _spectra.m_Amplitude[c+4]
+
+		subps xmm2, xmm1			// _spectra.m_Amplitude[c]-m_Amplitude[c]
+		subps xmm4, xmm3			// _spectra.m_Amplitude[c+4]-m_Amplitude[c+4]
+
+		mulps xmm2, xmm0			// *=_adaptionRate
+		mulps xmm4, xmm0			// *=_adaptionRate
+
+		addps xmm1, xmm2			// add to dst
+		addps xmm3, xmm4			// add to dst
+
+		movaps [edi+4*4*0], xmm1
+		movaps [edi+4*4*1], xmm3
+
+		add edi, 4*4*2
+		add esi, 4*4*2
+
+		dec ecx
+		jnz loop1
+	}
+
+	int i=numSamples4;
+	for (i;i<Spectra::numSamples;i++)
+	{
+		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
+	}
+
+#endif // X64
+
 }
 
 
