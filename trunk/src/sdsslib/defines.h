@@ -69,7 +69,7 @@
 
 #define CACHE_LINE 64
 #define CACHE_ALIGN __declspec(align(CACHE_LINE))
-#define ISSE_ALIGN __declspec(align(16))
+#define SSE_ALIGN __declspec(align(16))
 
 
 

@@ -180,7 +180,7 @@ void main(int argc, char* argv[])
 		Helpers::print( "Normalize by flux.\n", &logFile );
 	}
 
-	ISSE_ALIGN Spectra a;
+	SSE_ALIGN Spectra a;
 	if ( !a.loadFromFITS(sstrFITSFile) )
 	{
 		Helpers::print("Error: Could not load FITS file.\n", &logFile);
