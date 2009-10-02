@@ -44,8 +44,8 @@ __int64 HiLowtoUInt64( unsigned __int32 _nLowerPart, unsigned __int32 _nHigherPa
 static
 void UInt64toHiLow( unsigned __int64 _nInNumber, unsigned __int32 &_nOutLowerPart, unsigned __int32 &_nOutHigherPart )
 {
-	_nOutLowerPart = _nInNumber & 0x0ffffffff;
-	_nOutHigherPart = _nInNumber >> 32;
+	_nOutLowerPart = static_cast<unsigned __int32>(_nInNumber & 0x0ffffffff);
+	_nOutHigherPart = static_cast<unsigned __int32>(_nInNumber >> 32);
 }
 
 
