@@ -107,14 +107,13 @@ loop1:
 		ret
 
 spectraCompareX64 endp
-end
+
 
 
 public spectraAdaptX64 
 .code
 align 16
-spectraAdaptX64 PROC frame ;a0:PTR, a1:PTR, adaptionRate:PTR,
-numSamples:QWORD
+spectraAdaptX64 PROC frame ;a0:PTR, a1:PTR, adaptionRate:PTR, numSamples:QWORD
 ; a0 = rcx
 ; a1 = rdx
 ; r8 = adaptionRate
@@ -168,6 +167,7 @@ loop1:
 		ret
 
 spectraAdaptX64 endp
-end
 
+
+end
 
