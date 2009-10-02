@@ -107,6 +107,67 @@ loop1:
 		ret
 
 spectraCompareX64 endp
-
 end
+
+
+public spectraAdaptX64 
+.code
+align 16
+spectraAdaptX64 PROC frame ;a0:PTR, a1:PTR, adaptionRate:PTR,
+numSamples:QWORD
+; a0 = rcx
+; a1 = rdx
+; r8 = adaptionRate
+; r9 = numsamples
+
+		SaveGPR
+		
+		push rdi
+		push rsi
+		
+		mov	rdi, rcx
+		mov rsi, rdx
+		mov rcx, r9
+		mov rdx, r8
+
+		shr rcx, 3
+		movaps xmm0, [rdx]
+
+
+loop1:
+		prefetchnta [rsi+4*4*64]
+		prefetchnta [rdi+4*4*64]
+
+		movaps xmm1, [rdi+4*4*0]	; dst: m_Amplitude[c]
+		movaps xmm2, [rsi+4*4*0]	; src: _spectra.m_Amplitude[c]
+		movaps xmm3, [rdi+4*4*1]	; dst: m_Amplitude[c+4]
+		movaps xmm4, [rsi+4*4*1]	; src:_spectra.m_Amplitude[c+4]
+
+		subps xmm2, xmm1			; _spectra.m_Amplitude[c]-m_Amplitude[c]
+		subps xmm4, xmm3			; _spectra.m_Amplitude[c+4]-m_Amplitude[c+4]
+
+		mulps xmm2, xmm0			; *=_adaptionRate
+		mulps xmm4, xmm0			; *=_adaptionRate
+
+		addps xmm1, xmm2			; add to dst
+		addps xmm3, xmm4			; add to dst
+
+		movaps [rdi+4*4*0], xmm1    ; this is the slowest bit
+		movaps [rdi+4*4*1], xmm3	; this is the slowest bit
+
+		add rdi, 4*4*2
+		add rsi, 4*4*2
+
+		dec rcx
+		jnz loop1
+		
+		pop rdi
+		pop rsi
+		
+		RestoreGPR
+		ret
+
+spectraAdaptX64 endp
+end
+
 

@@ -669,36 +669,38 @@ void Spectra::normalizeByFlux()
 	calcMinMax();
 }
 
+
+extern "C" void spectraAdaptX64(const float *a0, const float *a1, float
+								*adaptionRate, size_t numsamples);
+
 void Spectra::adapt( const Spectra &_spectra, float _adaptionRate )
 {
-//	million adaption / sec
-//	0,37  	c-version 
-//	0,46	sse version 
+	//	million adaption / sec
+	//	0,37  	c-version 
+	//	0,46	sse version 
 
 
-/*
+	/*  c - version
 	for ( size_t i=0;i<Spectra::numSamples;i++ )
 	{
-		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
+	m_Amplitude[i] +=
+	_adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
 	}
-*/
-#ifdef X64
-	for ( size_t i=0;i<Spectra::numSamples;i++ )
-	{
-		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
-	}
-#else // X64
+	*/
 	const float *a0 = &m_Amplitude[0];
 	const float *a1 = &_spectra.m_Amplitude[0];
 	size_t numSamples4 = (Spectra::numSamples >> 3) << 3;
 	SSE_ALIGN float adaptionRate4[4] = {_adaptionRate,_adaptionRate,_adaptionRate,_adaptionRate}; 
 
+#ifdef X64
+	spectraAdaptX64(a0,a1,adaptionRate4,numSamples4);
+#else // X64
 	_asm {
 		mov edi, a0
-		mov esi, a1
-		mov ecx, Spectra::numSamples
-		shr ecx, 3
-		movaps xmm0, adaptionRate4
+			mov esi, a1
+			mov ecx, Spectra::numSamples
+			shr ecx, 3
+			movaps xmm0, adaptionRate4
 
 
 loop1:
@@ -719,8 +721,8 @@ loop1:
 		addps xmm1, xmm2			// add to dst
 		addps xmm3, xmm4			// add to dst
 
-		movaps [edi+4*4*0], xmm1
-		movaps [edi+4*4*1], xmm3
+		movaps [edi+4*4*0], xmm1	// this is the slowest bit
+		movaps [edi+4*4*1], xmm3	// this is the slowest bit
 
 		add edi, 4*4*2
 		add esi, 4*4*2
@@ -734,9 +736,7 @@ loop1:
 	{
 		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
 	}
-
 #endif // X64
-
 }
 
 
