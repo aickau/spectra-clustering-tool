@@ -55,7 +55,7 @@ std::ofstream logFile("sofm_log.txt");
 int g_CurrentSpectraIndex=0;
 
 size_t g_Mode = 1;	// immediately start with clustering..
-bool g_DisableOutput=false;
+bool g_DisableOutput = false;
 
 size_t g_numSpectra = 0;
 SpectraVFS *g_pVFSSource = NULL; 
@@ -223,16 +223,19 @@ int InitGL()
 		TCLAP::ValueArg<std::string> dumpFilenameArg("i", "inputdumpfile", "example: allSpectra.bin", false, sstrSourceSpectraFilename, "input dump file that contains all spectra to compare with.");
 		TCLAP::ValueArg<std::string> selectionListFilenameArg("s", "selection", "Optional selection list of FITS files to cluster a small subset of input spectra.", false, sstrSelectionListFilename, "selectionlist.txt");
 		TCLAP::SwitchArg continueArg("c","continue","Continue computation.", false);
+		TCLAP::SwitchArg visualizeOffArg("v","visualizeoff","Disable visualization of computation.", g_DisableOutput);
 
 		cmd.add( dumpFilenameArg );
 		cmd.add( selectionListFilenameArg );
 		cmd.add( continueArg );
+		cmd.add( visualizeOffArg );
 
 		cmd.parse( argc, argv );
 
 		sstrSourceSpectraFilename = dumpFilenameArg.getValue();
 		sstrSelectionListFilename = selectionListFilenameArg.getValue();
 		bContinue = continueArg.getValue();
+		g_DisableOutput = visualizeOffArg.getValue();
 	}
 	catch (TCLAP::ArgException &e)  
 	{ 
@@ -368,7 +371,10 @@ void UpdateGLView(int width, int height)
 void DrawNetwork( SOFMNetwork &network )
 {
 	if (g_DisableOutput)
+	{
+		ShowWindow( fr_hWnd, SW_HIDE );
 		return;
+	}
 
 	const size_t nMaxGridSize = 40;
 
