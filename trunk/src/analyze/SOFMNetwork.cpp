@@ -715,6 +715,13 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	bool bOnFrame = false;
 	bool bFound = false;
 
+	if ( _src.m_Index < 0 )
+	{
+		// no old position, due to continue computation, we have to use complete search!
+		bestMatch = searchBestMatchComplete( _src );
+		return bestMatch;
+	}
+
 	const int xpBestMatchOld = _src.m_Index % m_gridSize;
 	const int ypBestMatchOld = _src.m_Index / m_gridSize;
 
@@ -899,8 +906,6 @@ void SOFMNetwork::process()
 		Spectra &currentSourceSpectra = *m_pSourceVFS->beginWrite(spectraIndex);
 
 //		Timer t;
-
-
 
 		// retrieve best match neuron for a source spectra
 		if (bFullSearch) 
