@@ -670,8 +670,7 @@ void Spectra::normalizeByFlux()
 }
 
 
-extern "C" void spectraAdaptX64(const float *a0, const float *a1, float
-								*adaptionRate, size_t numsamples);
+extern "C" void spectraAdaptX64(const float *a0, const float *a1, float *adaptionRate, size_t numsamples);
 
 void Spectra::adapt( const Spectra &_spectra, float _adaptionRate )
 {
@@ -697,11 +696,10 @@ void Spectra::adapt( const Spectra &_spectra, float _adaptionRate )
 #else // X64
 	_asm {
 		mov edi, a0
-			mov esi, a1
-			mov ecx, Spectra::numSamples
-			shr ecx, 3
-			movaps xmm0, adaptionRate4
-
+		mov esi, a1
+		mov ecx, Spectra::numSamples
+		shr ecx, 3
+		movaps xmm0, adaptionRate4
 
 loop1:
 		prefetchnta [esi+4*4*64]
@@ -730,13 +728,13 @@ loop1:
 		dec ecx
 		jnz loop1
 	}
+#endif // X64
 
 	int i=numSamples4;
 	for (i;i<Spectra::numSamples;i++)
 	{
 		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
 	}
-#endif // X64
 }
 
 
