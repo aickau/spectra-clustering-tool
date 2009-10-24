@@ -40,7 +40,18 @@ typedef char _TCHAR;
 
 void main(int argc, char* argv[])
 {
-	std::ofstream logFile("dump_log.txt");
+/*
+	std::ofstream logFile("perftest.txt");
+
+
+	double mioSpectraComparePerSecond;
+	double mioSpectraAdaptionPerSecond;
+	SpectraHelpers::testSpectraPerformance( mioSpectraComparePerSecond, mioSpectraAdaptionPerSecond );
+
+	Helpers::print( Helpers::numberToString<double>(mioSpectraComparePerSecond) +std::string(" million spectra compares per second.\n"), &logFile );
+	Helpers::print( Helpers::numberToString<double>(mioSpectraAdaptionPerSecond) +std::string(" million spectra adaption per second.\n"), &logFile );
+*/	
+
 
 	Helpers::print("Welcome to SDSS Dump "+SDSSVERSIONSTRING+" !\n\n\n", &logFile);
 	Helpers::print("Reads SDSS fits files from a given directory (and subdirectories) and dumps the data to a binary file.\n", &logFile);
@@ -146,6 +157,4 @@ void main(int argc, char* argv[])
 			vfs.endRead(i);
 		}
 	}
-
-
 }
