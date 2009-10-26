@@ -40,10 +40,10 @@ typedef char _TCHAR;
 
 void main(int argc, char* argv[])
 {
+
+	std::ofstream logFile("dump_log.txt");
+
 /*
-	std::ofstream logFile("perftest.txt");
-
-
 	double mioSpectraComparePerSecond;
 	double mioSpectraAdaptionPerSecond;
 	SpectraHelpers::testSpectraPerformance( mioSpectraComparePerSecond, mioSpectraAdaptionPerSecond );
