@@ -122,11 +122,14 @@ public:
 	// returns assembled filename
 	std::string getFileName() const;
 
-	// get date 
+	// get modified Julian date of observation.
+	// MJD starts at November 7.th 1858, see http://en.wikipedia.org/wiki/Julian_date
 	int getMJD() const;
 
 	// fiber ID for SDSS
 	// 1..640
+	// note that on re-observations fibers may change
+	// see http://spectro.princeton.edu/#plots
 	int getFiber() const;
 
 	// plate id 
