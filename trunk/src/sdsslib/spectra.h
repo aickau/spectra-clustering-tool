@@ -138,6 +138,9 @@ public:
 	// returns true if marked as empty spectrum (specObjID is set to zero).
 	bool isEmpty() const;
 
+	// returns true if the number of bad pixels in spectrum are over a threshold of 5%
+	bool hasBadPixels() const;
+
 	// compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 	float compare(const Spectra &_spectra) const;
 
@@ -281,7 +284,8 @@ public:
 	SpectraLines m_Lines[numSpectraLines];
 #endif
 	float m_flux;
-	char pad[4];						// for padding to multiple of 16 byte boundaries
+	char m_status;						// 0=ok, 1=bad pixels
+	char pad[3];						// for padding to multiple of 16 byte boundaries
 
 
 	//@}
