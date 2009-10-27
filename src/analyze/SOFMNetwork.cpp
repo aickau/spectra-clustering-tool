@@ -1351,6 +1351,11 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		sstrTable += HTMLExport::beginTableRow();
 		sstrTable += HTMLExport::beginTableCell();
 		sstrTable += HTMLExport::image(a->getFileName()+ ".png"); 
+		if ( a->hasBadPixels() )
+		{
+			sstrTable += "Bad pixels detected (over 5% out of "+Helpers::numberToString<int>(a->m_SamplesRead)+" pixels).";
+			sstrTable += HTMLExport::lineBreak();
+		}
 		sstrTable += HTMLExport::endTableCell();
 		sstrTable += HTMLExport::endTableRow();
 
@@ -1501,10 +1506,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false, true);
 	calcZMap( sstrDirectory+sstrZMap, true );
 
-	if ( _fullExport )
-	{
-		SpectraHelpers::renderDiagramToDisk( m_pAvgDistanceToBMU, m_params.numSteps, 1, 4, 0, 800, 533, sstrDirectory+std::string("avgDistanceBMU.png") );
-	}
+	SpectraHelpers::renderDiagramToDisk( m_pAvgDistanceToBMU, m_params.numSteps, 1, 4, 0, 800, 533, sstrDirectory+std::string("avgDistanceBMU.png") );
 
 	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+HTMLExport::lineBreak();
 	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+HTMLExport::lineBreak();
@@ -1523,11 +1525,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	sstrInfo += std::string("Peak histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("peakmap.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Z histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("zmap.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Neighborhood function:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("neighborhoodfunc.png") )+HTMLExport::lineBreak();
-
-	if ( _fullExport )
-	{
-		sstrInfo += std::string("Average distance to BMU:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("avgDistanceBMU.png") )+HTMLExport::lineBreak();
-	}
+	sstrInfo += std::string("Average distance to BMU:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("avgDistanceBMU.png") )+HTMLExport::lineBreak();
 
 
 	Helpers::insertString( HTMLExport::HTML_TOKEN_INFO, sstrInfo, sstrMainHTMLDoc );

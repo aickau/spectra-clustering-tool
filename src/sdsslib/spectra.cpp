@@ -76,6 +76,7 @@ void Spectra::clear()
 	m_Type = SPT_NOT_SET;
 	m_Z = 0.0;
 	m_flux = 0.0f;
+	m_status = 0;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
@@ -125,6 +126,7 @@ void Spectra::set(const Spectra &_spectra)
 	m_Type = _spectra.m_Type;
 	m_Z = _spectra.m_Z;
 	m_flux = _spectra.m_flux;
+	m_status = _spectra.m_status;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
@@ -485,10 +487,16 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 	fits_get_img_size(f, 2, size, &status );
 	const size_t spectrumMaxSize = 3900; 
 	float spectrum[spectrumMaxSize];
-	
+	unsigned long maskarray[spectrumMaxSize];
+
+	// number of elemtns should be 2 at least.
 	size_t elementsToRead = size[0];
 	assert( elementsToRead <= spectrumMaxSize );
 	elementsToRead = MIN( elementsToRead, spectrumMaxSize );
+	if ( elementsToRead < 3 )
+	{
+		return false;
+	}
 
 	// spec says:
 	// The first row is the spectrum,
@@ -497,6 +505,60 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 	// the forth row is the mask array. The spectra are binned log-linear. Units are 10^(-17) erg/cm/s^2/Ang.
 	long adress[2]={1,1};
 	fits_read_pix( f, TFLOAT, adress, elementsToRead, NULL, (void*)spectrum, NULL, &status );
+
+	// mask array
+	const unsigned int maskErr = (!static_cast<unsigned int>(SpectraMask::SP_MASK_OK)) && (!static_cast<unsigned int>(SpectraMask::SP_MASK_EMLINE));
+	adress[1] = 4;
+	fits_read_pix( f, TLONG, adress, elementsToRead, NULL, (void*)maskarray, NULL, &status );
+
+	// count bad pixels 
+	size_t badPixelCount = 0;
+	for (size_t i=0;i<elementsToRead;i++)
+	{
+		if ( (maskarray[i] & maskErr) != 0 )
+		{
+			// bad pixel detected.
+			badPixelCount++;
+		}
+	}
+
+	//..and repair isolated pixel errors
+	for (size_t i=1;i<elementsToRead-1;i++)
+	{
+		if ( (maskarray[i] & maskErr) != 0 )
+		{
+			if ( ((maskarray[i-1] & maskErr) == 0) &&
+				 ((maskarray[i+1] & maskErr) == 0) )
+			{
+				const float pixelRepaired = (spectrum[i-1] + spectrum[i+1]) / 2.0f;
+				spectrum[i] = pixelRepaired;
+			}
+		}
+	}
+
+	// pixel repair at boundaries
+	if ( ((maskarray[0] & maskErr) != 0) && 
+		 (maskarray[1] & maskErr) == 0 )
+	{
+		spectrum[0] = spectrum[1];
+	}
+	{
+		const size_t l1 = elementsToRead-1;
+		const size_t l2 = elementsToRead-2;
+
+		if ( ((maskarray[l1] & maskErr) != 0) && 
+			(maskarray[l2] & maskErr) == 0 )
+		{
+			spectrum[l1] = spectrum[l2];
+		}
+	}
+
+	// mark spectrum as bad if more than 5 % are bad pixels
+	if ( badPixelCount > elementsToRead/20 ) 
+	{
+		m_status = 1;
+	}
+
 
 
 #ifdef _ZBACKCALC
@@ -1307,6 +1369,12 @@ bool Spectra::isEmpty() const
 {
 	return (m_SpecObjID == 0);
 }
+
+bool Spectra::hasBadPixels() const
+{
+	return (m_status > 0);
+}
+
 
 
 unsigned __int64 Spectra::calcPhotoObjID( int _run, int _rerun, int _camcol, int _field, int _obj )
