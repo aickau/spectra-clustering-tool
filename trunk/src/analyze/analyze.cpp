@@ -204,7 +204,7 @@ int InitGL()
 	}
 	argv[argc] = NULL; // terminate with zero.
 
-	Helpers::print("Welcome to SDSS Analyze "+SDSSVERSIONSTRING+" !\n\n\n", &logFile);
+	Helpers::print("Welcome to SDSS Analyze "+sstrSDSSVersionString+" !\n\n\n", &logFile);
 
 
 	std::string sstrSourceSpectraFilename("allSpectra.bin");
@@ -218,7 +218,7 @@ int InitGL()
 		sstrExamples += std::string("analyze.exe -i allSpectra.bin -s selection.txt\n");
 		sstrExamples += std::string("analyze.exe -c\n");
 
-		TCLAP::CmdLine cmd(sstrExamples, ' ', SDSSVERSIONSTRING);
+		TCLAP::CmdLine cmd(sstrExamples, ' ', sstrSDSSVersionString);
 
 		TCLAP::ValueArg<std::string> dumpFilenameArg("i", "inputdumpfile", "example: allSpectra.bin", false, sstrSourceSpectraFilename, "input dump file that contains all spectra to compare with.");
 		TCLAP::ValueArg<std::string> selectionListFilenameArg("s", "selection", "Optional selection list of FITS files to cluster a small subset of input spectra.", false, sstrSelectionListFilename, "selectionlist.txt");
@@ -541,8 +541,8 @@ void ShowTrainData()
 
 void SOFM()
 {
-	DrawNetwork( *g_pSOFM );
 	g_pSOFM->process();
+	DrawNetwork( *g_pSOFM );
 }
 
 void DrawGLScene()

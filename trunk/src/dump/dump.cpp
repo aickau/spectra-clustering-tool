@@ -53,7 +53,7 @@ void main(int argc, char* argv[])
 */	
 
 
-	Helpers::print("Welcome to SDSS Dump "+SDSSVERSIONSTRING+" !\n\n\n", &logFile);
+	Helpers::print("Welcome to SDSS Dump "+sstrSDSSVersionString+" !\n\n\n", &logFile);
 	Helpers::print("Reads SDSS fits files from a given directory (and subdirectories) and dumps the data to a binary file.\n", &logFile);
 	Helpers::print("Reads binary dump files and extracts text tables out of it.\n\n", &logFile);
 
@@ -72,7 +72,7 @@ void main(int argc, char* argv[])
 		sstrExamples += std::string("dump.exe -i sofmnet.bin\n");
 
 
-		TCLAP::CmdLine cmd(sstrExamples, ' ', SDSSVERSIONSTRING);
+		TCLAP::CmdLine cmd(sstrExamples, ' ', sstrSDSSVersionString);
 
 		std::string sstrFilterDesc = std::string("where <filter> is any added combination of:\n");
 		sstrFilterDesc +=  std::string( "  SPEC_UNKNOWN =   1\n");
