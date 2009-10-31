@@ -617,7 +617,7 @@
 				>
 				<Tool
 					Name="VCCustomBuildTool"
-					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir).&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
+					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir)../&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
 					Outputs="sdssSoftwareVersion.h"
 				/>
 			</FileConfiguration>
@@ -626,7 +626,7 @@
 				>
 				<Tool
 					Name="VCCustomBuildTool"
-					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir).&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
+					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir)../&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
 					Outputs="sdssSoftwareVersion.h"
 				/>
 			</FileConfiguration>
@@ -635,7 +635,7 @@
 				>
 				<Tool
 					Name="VCCustomBuildTool"
-					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir).&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
+					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir)../&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
 					Outputs="sdssSoftwareVersion.h"
 				/>
 			</FileConfiguration>
@@ -644,7 +644,7 @@
 				>
 				<Tool
 					Name="VCCustomBuildTool"
-					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir).&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
+					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir)../&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
 					Outputs="sdssSoftwareVersion.h"
 				/>
 			</FileConfiguration>
