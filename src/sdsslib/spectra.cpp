@@ -609,8 +609,8 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 	}
 #else // _ZBACKCALC
 
-	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, m_Amplitude, numSamples, 2 );
-	elementsToRead /= 4; 
+	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, m_Amplitude, numSamples, 3 );
+	elementsToRead /= 8; 
 	m_SamplesRead = static_cast<__int16>(elementsToRead);
 #endif // _ZBACKCALC
 #ifdef _USE_SPECTRALINES
@@ -628,10 +628,6 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 	float nullVal = 0.f;
 	float wave, waveMin, waveMax, height = 0.f;
 	size_t rowsToRead = MIN( tblrows, numSpectraLines ); 
-
-	//for (size_t i=0;i<numSamples;i++) {
-	//	m_Amplitude[i]=0.0f;
-	//}
 
 	if ( hdutype == BINARY_TBL && 
 		 tblcols == 23 )

@@ -435,7 +435,7 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 
 	numSpectraWritten = c;
 	
-	compositeSpec.multiply( 1.0/(double)c );
+	compositeSpec.multiply( 1.0f/static_cast<float>(c) );
 	Helpers::print( "writing composite spectra.\n", _logStream );
 	compositeSpec.saveToCSV( std::string("compositeSpectrum.csv") );
 
