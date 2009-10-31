@@ -58,7 +58,7 @@ void writeTextTableEntry( const Spectra &_sp, float _error, std::string &_sstrOu
 void main(int argc, char* argv[])
 {
 	std::ofstream logFile("search_log.txt");
-	Helpers::print("Welcome to SDSS Search "+SDSSVERSIONSTRING+" !\n\n\n", &logFile);
+	Helpers::print("Welcome to SDSS Search "+sstrSDSSVersionString+" !\n\n\n", &logFile);
 	Helpers::print("Order spectra relative to a set of reference spectra by their absolute error.\nCompare spectra should be located as FITS files in subdirectory /compare\n\n", &logFile);
 
 	std::string sstrDumpFile(DUMPFILE);
@@ -76,7 +76,7 @@ void main(int argc, char* argv[])
 		sstrExamples += std::string("search.exe -i allSpectra.bin -n\n");
 		sstrExamples += std::string("search.exe -i allSpectra.bin -f 255 -c 2 -v 0.1\n");
 
-		TCLAP::CmdLine cmd(sstrExamples, ' ', SDSSVERSIONSTRING);
+		TCLAP::CmdLine cmd(sstrExamples, ' ', sstrSDSSVersionString);
 
 		std::string sstrFilterDesc("Spectra filter is any added combination of:\n");
 		sstrFilterDesc +=  std::string( "  SPEC_UNKNOWN =   1\n");

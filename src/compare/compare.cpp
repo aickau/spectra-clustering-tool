@@ -40,7 +40,7 @@ void main(int argc, char* argv[])
 {
 	std::ofstream logFile("compare_log.txt");
 
-	Helpers::print("Welcome to SDSS Compare "+SDSSVERSIONSTRING+" !\n\n\n", &logFile);
+	Helpers::print("Welcome to SDSS Compare "+sstrSDSSVersionString+" !\n\n\n", &logFile);
 	Helpers::print("Does a global comparison, one FITS file with a spectrum with many spectra from a given SOM.\n", &logFile);
 
 	std::string sstrSourceDumpFile("allSpectra.bin");
@@ -58,7 +58,7 @@ void main(int argc, char* argv[])
 		sstrExamples += std::string("compare.exe -s allSpectra.bin -m sofmnet.bin -f data/0266/1d/spSpec-51630-0266-637.fit -o rgbmap.txt\n");
 
 
-		TCLAP::CmdLine cmd(sstrExamples, ' ', SDSSVERSIONSTRING);
+		TCLAP::CmdLine cmd(sstrExamples, ' ', sstrSDSSVersionString);
 
 		TCLAP::ValueArg<std::string> SOMdumpFile("m", "somdumpfile", "example: sofmnet.bin. ", false, sstrSOMDumpFile, "SOM dump file that contains clustered map.");
 		TCLAP::ValueArg<std::string> sourceDumpFile("s", "sourcedumpfile", "example: allSpectra.bin. ", false, sstrSourceDumpFile, "Source dump file that contains original spectral data.");

@@ -610,6 +610,46 @@
 			>
 		</File>
 		<File
+			RelativePath=".\sdssSoftwareVersionTemplate.h"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir).&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
+					Outputs="sdssSoftwareVersion.h"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug|x64"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir).&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
+					Outputs="sdssSoftwareVersion.h"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir).&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
+					Outputs="sdssSoftwareVersion.h"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|x64"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					CommandLine="&quot;SubWCRev.exe&quot; &quot;$(SolutionDir).&quot; &quot;$(InputPath)&quot; &quot;$(InputDir)sdssSoftwareVersion.h&quot;"
+					Outputs="sdssSoftwareVersion.h"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
 			RelativePath=".\spectra.cpp"
 			>
 		</File>

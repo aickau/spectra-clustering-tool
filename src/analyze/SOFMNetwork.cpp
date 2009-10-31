@@ -287,7 +287,7 @@ void SOFMNetwork::writeSettings( const std::string &_sstrFileName )
 	std::string sstrXML;
 	XMLExport::xmlHeader(sstrXML);
 
-	XMLExport::xmlSingleComment("Analyzer config file, SDSS sorting prototype - Stage I, Copyright (c) 2009 "+SDSSVERSIONSTRING, sstrXML);
+	XMLExport::xmlSingleComment("Analyzer config file, SDSS sorting prototype - Stage I, Copyright (c) 2009 "+sstrSDSSVersionString, sstrXML);
 
 	XMLExport::xmlElementBegin( SOFMNET_SETTINGS, 0, sstrXML );
 	XMLExport::xmlElementEndBegin( sstrXML );

@@ -13,7 +13,11 @@
 //!                   2. 
 //! \endverbatim
 //!
-//! \file  sdssSoftwareVersion.h
+//! \file  sdssSoftwareVersionTemplate.h
 //! \brief holds the version string
 
-#define SDSSVERSIONSTRING std::string("0.157, Rev. 139")
+const std::string sstrVersion("0.16");
+const std::string sstrSubversionRev("$WCREV$");
+const std::string sstrBuildDate("$WCNOW$");
+const std::string sstrSDSSVersionString("Version "+sstrVersion+", Revision "+sstrSubversionRev+", Build date "+sstrBuildDate);
+
