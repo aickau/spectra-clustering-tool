@@ -144,6 +144,9 @@ public:
 	// returns true if the number of bad pixels in spectrum are over a threshold of 5%
 	bool hasBadPixels() const;
 
+	// return true if spectrum does not contain any awkward numbers, e.g. NANs, infinite numbers.
+	bool checkConsistency() const;
+
 	// compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 	float compare(const Spectra &_spectra) const;
 

@@ -161,7 +161,7 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 
 		if ( spec.hasBadPixels() )
 		{
-			Helpers::print( "Over 5% bad pixels detected in spectrum "+sstrFilename+"\n", _logStream );
+			Helpers::print( "Over 5%% bad pixels detected in spectrum "+sstrFilename+"\n", _logStream );
 		}
 		
 		if ( multiplier != 1.f )
@@ -182,6 +182,10 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 		else 
 		{
 			Helpers::print( "failed to load "+fileList.at(i)+"\n", _logStream );
+			if ( !spec.checkConsistency() )
+			{
+				Helpers::print( "Reason: spectrum contains NANs or infinite numbers.\n", _logStream );
+			}
 		}
 	}
 

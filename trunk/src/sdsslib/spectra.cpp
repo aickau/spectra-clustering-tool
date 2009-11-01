@@ -439,7 +439,9 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 
 	calcMinMax();
 
-	return (m_SamplesRead>0);	
+	bool bConsistent = checkConsistency();
+
+	return (m_SamplesRead>0 && bConsistent);	
 }
 
 
@@ -507,7 +509,7 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 	fits_read_pix( f, TFLOAT, adress, elementsToRead, NULL, (void*)spectrum, NULL, &status );
 
 	// mask array
-	const unsigned int maskErr = (!static_cast<unsigned int>(SpectraMask::SP_MASK_OK)) && (!static_cast<unsigned int>(SpectraMask::SP_MASK_EMLINE));
+	const unsigned int maskErr = (~static_cast<unsigned int>(SpectraMask::SP_MASK_OK)) & (~static_cast<unsigned int>(SpectraMask::SP_MASK_EMLINE));
 	adress[1] = 4;
 	fits_read_pix( f, TLONG, adress, elementsToRead, NULL, (void*)maskarray, NULL, &status );
 
@@ -661,7 +663,8 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 
 	calcMinMax();
 
-	return ((m_SamplesRead > numSamples/2) && (status == 0));	
+	bool bConsistent = checkConsistency();
+	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
 }
 
 
@@ -1371,6 +1374,26 @@ bool Spectra::hasBadPixels() const
 	return (m_status > 0);
 }
 
+bool Spectra::checkConsistency() const
+{
+	if (( _isnan( m_Min ) || !_finite(m_Min) ) ||
+		( _isnan( m_Max ) || !_finite(m_Max) ) ||
+		( _isnan( m_Z ) || !_finite(m_Z) ) ||
+		( _isnan( m_flux ) || !_finite(m_flux) ))
+	{
+		return false;
+	}
+		
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		const double a = static_cast<double>(m_Amplitude[i]);
+		if ( _isnan( a ) || !_finite(a) )
+		{
+			return false;
+		}
+	}
+	return true;
+}
 
 
 unsigned __int64 Spectra::calcPhotoObjID( int _run, int _rerun, int _camcol, int _field, int _obj )
