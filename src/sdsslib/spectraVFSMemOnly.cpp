@@ -89,6 +89,7 @@ void SpectraVFSMemOnly::endRead( size_t )
 
 Spectra *SpectraVFSMemOnly::beginWrite( size_t _nSpectraIndex )
 {
+	assert( _nSpectraIndex < m_nNumberOfSpectra );
 	if ( m_bReadOnly )
 		return NULL;
 
