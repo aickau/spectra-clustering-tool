@@ -1665,8 +1665,10 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 		return;
 	}
 
-	std::ofstream fon(std::string(_sstrFilename+".html").c_str());
-	fon<<sstrMainHTMLDoc;
+	{
+		std::ofstream fon(std::string(_sstrFilename+".html").c_str());
+		fon<<sstrMainHTMLDoc;
+	}
 
 	if ( _fullExport )
 	{
