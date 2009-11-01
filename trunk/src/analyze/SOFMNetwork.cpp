@@ -167,14 +167,6 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		exit(0);
 	}
 
-	// write som info to our log
-	Helpers::print( std::string("Spectra VFS cache line size ") + Helpers::numberToString( SpectraVFS::CACHELINESIZE ) + " spectra.\n", m_pLogStream );
-	Helpers::print( std::string("Spectra VFS number of cache lines ") + Helpers::numberToString( SpectraVFS::CACHELINES ) + ".\n", m_pLogStream );
-	Helpers::print( std::string("That allows us to pack ") + Helpers::numberToString( SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE ) + " spectra into main memory.\n", m_pLogStream );
-	Helpers::print( std::string("We can eat up ") + Helpers::numberToString( static_cast<float>(2*SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE*sizeof(Spectra))/(1024.f*1024.f*1024.f) ) + " GB of main memory for clustering .\n", m_pLogStream );
-	Helpers::print( std::string("We are using ") + m_params.sstrSearchMode  + " search .\n", m_pLogStream );
-	Helpers::print( std::string("Spectra normalization is set to ") +spectraNormalizationToString(m_params.normaliziationType) + ".\n", m_pLogStream );
-
 #ifdef SDSS_SINETEST
 	float freq = 0.001f;
 	for (size_t i=0;i<m_numSpectra;i++)
@@ -248,14 +240,14 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		// continue old computation 
 		//
 
-		Helpers::print( std::string("Continue clustering at step ")+Helpers::numberToString(m_currentStep)+
-			            std::string(" using ")+Helpers::numberToString(m_numSpectra)+
-						std::string(" spectra. Grid size is ")+Helpers::numberToString(m_gridSize)+std::string(".\n"), m_pLogStream );
-
 		m_pNet = new SpectraVFS( sstrSOFMFileName, false );
 
 		m_gridSizeSqr = m_pNet->getNumSpectra();
 		m_gridSize = sqrtf(m_gridSizeSqr);
+
+		Helpers::print( std::string("Continue clustering at step ")+Helpers::numberToString(m_currentStep)+
+						std::string(" using ")+Helpers::numberToString(m_numSpectra)+
+						std::string(" spectra. Grid size is ")+Helpers::numberToString(m_gridSize)+std::string(".\n"), m_pLogStream );
 
 		if ( m_gridSizeSqr == 0 )
 		{
@@ -271,6 +263,17 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		m_pAvgDistanceToBMU[i] = 0.0;
 	}
 
+	// write som info to our log
+
+	const size_t memUsageBytes = m_numSpectra*sizeof(Spectra)+m_gridSizeSqr*sizeof(Spectra);
+	const double memUsageGB = static_cast<double>(memUsageBytes)/(1024.0*1024.0*1024.0);
+	Helpers::print( std::string("We need ") + Helpers::numberToString( static_cast<float>(memUsageGB)) + std::string(" GB of main memory for clustering.\n"), m_pLogStream );
+// 	Helpers::print( std::string("Spectra VFS cache line size ") + Helpers::numberToString( SpectraVFS::CACHELINESIZE ) + " spectra.\n", m_pLogStream );
+// 	Helpers::print( std::string("Spectra VFS number of cache lines ") + Helpers::numberToString( SpectraVFS::CACHELINES ) + ".\n", m_pLogStream );
+// 	Helpers::print( std::string("That allows us to pack ") + Helpers::numberToString( SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE ) + " spectra into main memory.\n", m_pLogStream );
+// 	Helpers::print( std::string("We can eat up ") + Helpers::numberToString( static_cast<float>(2*SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE*sizeof(Spectra))/(1024.f*1024.f*1024.f) ) + " GB of main memory for clustering .\n", m_pLogStream );
+	Helpers::print( std::string("We are using ") + m_params.sstrSearchMode  + " search.\n", m_pLogStream );
+	Helpers::print( std::string("Spectra normalization is set to ") +spectraNormalizationToString(m_params.normaliziationType) + ".\n", m_pLogStream );
 	Helpers::print( std::string("Initialization finished.\n"), m_pLogStream );
 }
 
@@ -639,16 +642,18 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 	const float sigmaSqr2 = _sigmaSqr*(1.f/EULER);
 	const float fGridSizeSqr = static_cast<float>(m_gridSizeSqr);
 
+	const int gridSize = static_cast<int>(m_gridSize);
+
 	// TODO: different boundary conditions
 
 	// adjust weights of the whole network
-	size_t c=0;
-	for ( size_t y=0;y<m_gridSize;y++)
+#pragma omp parallel for schedule (dynamic)
+	for ( int y=0;y<gridSize;y++)
 	{
 		const float tdisty = static_cast<float>(y)-static_cast<float>(ypBestMatch);
 		const float tdisty2=tdisty*tdisty;
 
-		for ( size_t x=0;x<m_gridSize;x++)
+		for ( int x=0;x<gridSize;x++)
 		{
 			const float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
 			const float tdistx2 = tdistx*tdistx;
@@ -659,16 +664,15 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 			//const float hxy = exp(-(tdistall)/sigmaSqr2);							// original
 			//const float hxy = exp(-(tdistall)/sigmaSqr2)*mexican_hat_term;		// Mexican hat
 			const float hxy = exp(-sqrtf(tdistall)/sigmaSqr2);						// spike
-
 			const float lratehsx = _lRate*hxy;
 
 			if ( lratehsx > _adaptionThreshold )
 			{
-				Spectra *a = m_pNet->beginWrite( c );
+				const size_t spectraAdress = y*m_gridSize+x;
+				Spectra *a = m_pNet->beginWrite( spectraAdress );
 				a->adapt( _spectrum, lratehsx );
-				m_pNet->endWrite( c );
+				m_pNet->endWrite( spectraAdress );
 			}
-			c++;
 		}
 	}
 }
@@ -776,7 +780,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 
 	if ( !bFound )
 	{
-		// all spectra where used in the given serach radius, use global search.
+		// all spectra where used in the given search radius, use global search.
 		Helpers::print(".",NULL,false);
 		bestMatch = searchBestMatchComplete( _src );
 	}

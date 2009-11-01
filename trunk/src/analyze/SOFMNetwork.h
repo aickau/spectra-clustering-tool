@@ -49,12 +49,6 @@ public:
 	// number of columns and rows of spectra output table per HTML page.
 	static const size_t s_outputPlanSize = 5;
 
-	// fraction of global search vs. local search
-	//static const size_t s_globalSearchFraction = 10;
-
-	// search radius in cells for local search
-	//static const int s_searchRadius = 4;
-
 	// SOFM parameters
 	class Parameters
 	{

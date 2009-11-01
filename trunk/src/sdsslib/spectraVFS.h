@@ -27,10 +27,13 @@
 #include "sdsslib/debug.h"
 #include "spectra.h"
 
+class SpectraVFSCached;
+class SpectraVFSMemOnly;
+
+// use this version if entire spectra data pool fits into main memory
+#define SPECTRAVFS_MEMONLY
 
 // virtual file system for a large set of homogeneous spectra.
-// Only a small partition is hold in RAM (what in this context is called 'cached') using a LRU flavored caching scheme. 
-// Use CACHESIZE to configure RAM usage.
 class SpectraVFS
 {
 public:
@@ -38,12 +41,6 @@ public:
 	// number of spectra per cache line
 	static const size_t CACHELINESIZE = 16000;
 
-	// number of cache lines
-#ifdef X64
-	static const size_t CACHELINES = 80;
-#else
-	static const size_t CACHELINES = 2;
-#endif
 	// create VFS from a set of input fits files
 	// sstrDir directory where fits files can be located
 	// sstrFileName filename of VFS binary dump to write
@@ -100,65 +97,14 @@ public:
 
 private:
 
-	static const size_t INDEX_INVALID = 0x0ffffffff;
-	static const size_t SPECTRASIZE = sizeof(Spectra);
-	static const size_t TOTALCACHESIZE = CACHELINESIZE*CACHELINES;		// number of spectra should be stored in heap 
-	static const size_t TOTALCACHELINEBYTES = CACHELINESIZE*SPECTRASIZE;
-
-	STATIC_ASSERT(TOTALCACHELINEBYTES < 0x80000000);					// should be smaller than 2^31
-
-	struct CacheTag
-	{
-		enum Status
-		{
-			STATUS_FREE,												// not in use
-			STATUS_INUSE,												// in use for read / read-write access
-			STATUS_FETCHING,											// is currently fetched
-		};
-		size_t nCacheLineIndex;											// CacheLineIndex := SpectraIndex / CACHELINESIZE 
-		size_t nTimeStamp;												// higher = newer
-		bool bCommitWrite;												// if true, cache line contains data which must be written to disk first
-		Status status;													// status of cache line
-	};
-
-	struct IOHandle
-	{
-	public:
-		IOHandle();
-		IOHandle( OVERLAPPED &_overlapped );
-		void set( unsigned __int32 _offsetLow, unsigned __int32 _offsetHigh );
-		void reset();
-		bool isSet();
-		OVERLAPPED m_overlapped;
-	};
-
-	// Read cache line into cache
-	// _nSpectraIndex to spectra in file
-	// _pDestination to cache 
-	// bAsyncRead if true read op is not blocked
-	void Read( size_t _nSpectraIndex, Spectra *_pDestination, bool bAsyncRead = false );
-
-	// write cache line to disk
-	// _nSpectraIndex to spectra in file
-	// _pDestination to cache 
-	void Write( size_t _nSpectraIndex, Spectra *_pSource );
-
-	// barrier
-	// _handle IO Handle to wait for
-	void WaitForIO( IOHandle &_handle );
-
-	// File IO completion routine
-	static void CALLBACK ReadFinished(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped );
-
 	std::string m_sstrDumpFilename;										// file where we read from (and write to)
-	bool m_bReadOnly;													// global read only flag
-	size_t m_nNumberOfSpectra;											// total number of spectra (not only those which are cached)
-	HANDLE m_FileHandle;												// handle to dump file 
-	Spectra *m_pCache[CACHELINES];										// where the cache begins
-	CacheTag m_TagTable[CACHELINES];									// tag RAM to track spectra cache lines
-	size_t m_nTimeStamp;												// global timestamp
-	IOHandle m_IOHandle;												// used for async IO operations
 	std::ofstream m_logFile;											// error logfile 
+
+#ifdef SPECTRAVFS_MEMONLY
+	SpectraVFSMemOnly *m_pSpectraVFS;				
+#else
+	SpectraVFSCached *m_pSpectraVFS;				
+#endif // SPECTRAVFS_MEMONLY
 };
 
 #endif
