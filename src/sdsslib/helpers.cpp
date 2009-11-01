@@ -111,3 +111,15 @@ void Helpers::createConsole()
 	setvbuf( stdout, NULL, _IONBF, 0 );
 	std::cout.sync_with_stdio();
 }
+
+
+__int64 Helpers::HiLowtoUInt64( unsigned __int32 _nLowerPart, unsigned __int32 _nHigherPart )
+{
+	return (static_cast<unsigned __int64>(_nHigherPart)<<32)+static_cast<unsigned __int64>(_nLowerPart);
+}
+
+void Helpers::UInt64toHiLow( unsigned __int64 _nInNumber, unsigned __int32 &_nOutLowerPart, unsigned __int32 &_nOutHigherPart )
+{
+	_nOutLowerPart = static_cast<unsigned __int32>(_nInNumber & 0x0ffffffff);
+	_nOutHigherPart = static_cast<unsigned __int32>(_nInNumber >> 32);
+}

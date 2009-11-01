@@ -25,7 +25,7 @@
 
 namespace Helpers
 {
-	// \param fill number with preceding zeros
+	// \param _width fill number with preceding zeros
 	template<class T>
 	std::string numberToString( T _number, int _width =-1 )
 	{
@@ -68,6 +68,9 @@ namespace Helpers
 
 	// allocate console window, set standard output to this console.
 	void createConsole();
+
+	__int64 HiLowtoUInt64( unsigned __int32 _nLowerPart, unsigned __int32 _nHigherPart );
+	void UInt64toHiLow( unsigned __int64 _nInNumber, unsigned __int32 &_nOutLowerPart, unsigned __int32 &_nOutHigherPart );
 
 };
 

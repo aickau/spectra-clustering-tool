@@ -328,7 +328,7 @@ int InitGL()
 
 	if ( mioSpectraComparePerSecond == -1.0 ) 
 	{
-		Helpers::print( "..skipped. Delete perftest.bin to test performance again.", &logFile );
+		Helpers::print( "..skipped. Delete perftest.bin to test performance again.\n", &logFile );
 	}
 	else
 	{
@@ -375,6 +375,9 @@ void DrawNetwork( SOFMNetwork &network )
 		ShowWindow( fr_hWnd, SW_HIDE );
 		return;
 	}
+	glClearColor(0.f,0.f,0.f,1.f);	
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
+
 
 	const size_t nMaxGridSize = 40;
 

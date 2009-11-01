@@ -22,6 +22,7 @@
 #include <windows.h>
 #include <algorithm>
 #include <fstream>
+#include <assert.h>
 
 
 #ifdef WIN32
@@ -151,6 +152,26 @@ bool FileHelpers::fileExists(const std::string &_sstrFilename)
 	return true;
 }
 
+
+size_t FileHelpers::getFileSize(const std::string &_sstrFilename)
+{
+	FILE *f;
+	errno_t retVal = fopen_s( &f, _sstrFilename.c_str(), "rb" );
+
+	if (f == NULL || retVal != 0 )
+	{
+		return 0;
+	}
+
+	_fseeki64( f, 0, SEEK_END );
+	__int64 fileSize = _ftelli64( f );
+	fclose( f );
+
+	// check if we reach 32 bit limits.
+	assert( static_cast<size_t>(fileSize) == fileSize );
+
+	return static_cast<size_t>(fileSize);
+}
 
 std::string FileHelpers::getFileExtension(const std::string &_sstrFilename)
 {

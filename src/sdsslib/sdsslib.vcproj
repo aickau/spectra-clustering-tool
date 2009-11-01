@@ -606,10 +606,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\sdssSoftwareVersion.h"
-			>
-		</File>
-		<File
 			RelativePath=".\sdssSoftwareVersionTemplate.h"
 			>
 			<FileConfiguration
@@ -709,6 +705,22 @@
 		</File>
 		<File
 			RelativePath=".\spectraVFS.h"
+			>
+		</File>
+		<File
+			RelativePath=".\spectraVFSCached.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\spectraVFSCached.h"
+			>
+		</File>
+		<File
+			RelativePath=".\spectraVFSMemOnly.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\spectraVFSMemOnly.h"
 			>
 		</File>
 		<File

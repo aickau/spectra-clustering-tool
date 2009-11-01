@@ -50,7 +50,9 @@ void main(int argc, char* argv[])
 
 	Helpers::print( Helpers::numberToString<double>(mioSpectraComparePerSecond) +std::string(" million spectra compares per second.\n"), &logFile );
 	Helpers::print( Helpers::numberToString<double>(mioSpectraAdaptionPerSecond) +std::string(" million spectra adaption per second.\n"), &logFile );
-*/	
+
+	return;
+*/
 
 
 	Helpers::print("Welcome to SDSS Dump "+sstrSDSSVersionString+" !\n\n\n", &logFile);
@@ -95,7 +97,7 @@ void main(int argc, char* argv[])
 		cmd.add( filterArg );
 		cmd.add( inputFilenameArg );
 		cmd.add( selectionListFilenameArg );
-
+ 
 		cmd.parse( argc, argv );
 
 		sstrDataDir = dataDirArg.getValue();
