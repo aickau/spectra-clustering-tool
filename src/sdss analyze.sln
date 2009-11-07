@@ -25,6 +25,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compare", "compare\compare.vcproj", "{E8DB291F-7F86-4C22-9369-1BF4BAF08205}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "specObjOperations", "specObjOperations\specObjOperations.vcproj", "{4ADFDDAB-FB91-4716-873C-6BBD29A7EA7D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C70E88BF-3020-4C30-BDD0-9131B9E859E3} = {C70E88BF-3020-4C30-BDD0-9131B9E859E3}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

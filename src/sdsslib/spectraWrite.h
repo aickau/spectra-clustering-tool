@@ -26,7 +26,7 @@
 class Spectra;
 
 
-// helper class for scope based writing spectra to disk.
+// Helper class for scope based writing of spectra to disk.
 // Note: the file is closed on destruction of the object.
 class SpectraWrite
 {
@@ -42,5 +42,31 @@ public:
 private:
 	HANDLE m_fileHandle;
 };
+
+
+// Helper class for writing of rsync .lis files to download from SDSS directory.
+// SDSS based .lis files for spectra download look like this:
+//+ ./
+//+ /spectro
+//+ /spectro/1d_25
+//+ /spectro/1d_25/0266
+//+ /spectro/1d_25/0266/1d
+//+ /spectro/1d_25/0266/1d/spSpec-51630-0266-002.fit
+//+ /spectro/1d_25/0266/1d/spSpec-51630-0266-004.fit
+//+ /spectro/1d_25/0266/1d/spSpec-51630-0266-039.fit
+//- * 
+//
+class SpectroLisWriter
+{
+public:
+	SpectroLisWriter(const std::string &_sstrFilename );
+	~SpectroLisWriter();
+	void writeEntry( int _MJD, int _plate, int _fiberID );
+private:
+	std::string m_sstrOutTable;
+	std::string m_sstrFilename;
+	int m_currentPlate;
+};
+
 
 #endif
