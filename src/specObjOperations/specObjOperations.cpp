@@ -37,7 +37,8 @@
 typedef char _TCHAR;
 
 //#define DATADIR std::string("G:/SDSS_ANALYZE/fits/spectro/data/*")
-#define DATADIR std::string("c:/prj/sdss_trunk/data/0266/*")
+//#define DATADIR std::string("c:/prj/sdss_trunk/data/0266/*")
+#define DATADIR std::string("d:/dr7/1d_25/*")
 
 
 
@@ -98,7 +99,7 @@ void main(int argc, char* argv[])
 
 	size_t fcount=0;
 	size_t c=0;
-	while( fin && c<10 ) 
+	while( fin  ) 
 	{	
 		TspecObj specObj;
 		fin >> plate;
@@ -132,7 +133,7 @@ void main(int argc, char* argv[])
 	for ( size_t i=0;i<numFiles;i++ )
 	{
 		std::string &sstrFilename( fileList[i] );
-		std::pair<std::set<std::string>::iterator, bool> retVal =  fileSet.insert( fileList[i] );
+		std::pair<std::set<std::string>::iterator, bool> retVal =  fileSet.insert( FileHelpers::getFileName(fileList[i]) );
 
 		if ( !retVal.second )
 		{
