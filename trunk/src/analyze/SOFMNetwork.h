@@ -61,7 +61,7 @@ public:
 		float lRateEnd;												// learn rate end (0.0 .. 1.0)
 		float radiusBegin;											// radius begin (0.0 .. grid size)
 		float radiusEnd;											// radius end (0.0 .. grid size)
-		bool exportSubPage;											// if true add subpages to HTML output
+		bool exportSubPage;											// if true add sub pages to HTML output
 		bool waitForUser;											// if true wait for user input after each calculation step
 		std::string sstrSearchMode;									// search mode to control quality vs. computation time
 																	// SOFMNET_SETTINGS_SEARCHMODE_global     < uses global search for BMUs, best quality, runtime is O(n²)

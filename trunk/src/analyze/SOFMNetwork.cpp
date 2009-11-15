@@ -186,7 +186,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		//
 		// start new computation 
 		//
-		m_gridSize = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1)));
+		m_gridSize = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1))*1.1f);
 		m_gridSizeSqr = m_gridSize*m_gridSize;
 
 		Helpers::print( std::string("Start clustering using ")+Helpers::numberToString(m_numSpectra)+
@@ -781,7 +781,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	if ( !bFound )
 	{
 		// all spectra where used in the given search radius, use global search.
-		Helpers::print(".",NULL,false);
+		//Helpers::print(".",NULL,false);
 		bestMatch = searchBestMatchComplete( _src );
 	}
 
@@ -1480,6 +1480,16 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 }
 
 
+std::string linkToPlan( const std::string &_sstrFilename, size_t _planX, size_t _planY )
+{
+	std::string sstrFilename = _sstrFilename;
+	sstrFilename += Helpers::numberToString( _planX );
+	sstrFilename += "_";
+	sstrFilename += Helpers::numberToString( _planY );
+	sstrFilename += ".html";
+	return FileHelpers::getFileName(sstrFilename) ;
+}
+
 void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExport )
 {
 	std::string sstrName( FileHelpers::getFileName(_sstrFilename) );
@@ -1503,14 +1513,15 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 	const std::string sstrStep( Helpers::numberToString<unsigned int>(m_currentStep, 3) );
 
-	const std::string sstrUMatrix =  "UMatrix_" + sstrName + "_" + sstrStep;
-	const std::string sstrDifferenceMap = "DifferenceMap_" + sstrName + "_" + sstrStep;
-	const std::string sstrZMap = "ZMap_" + sstrName + "_" + sstrStep;
+	const std::string sstrUMatrix =  "UMatrix_" + sstrStep;
+	const std::string sstrDifferenceMap = "DifferenceMap_" + sstrStep;
+	const std::string sstrZMap = "ZMap_" + sstrStep;
 	calcUMatrix( sstrDirectory+sstrUMatrix, true, false, false );
 	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false, true);
 	calcZMap( sstrDirectory+sstrZMap, true );
 
 	SpectraHelpers::renderDiagramToDisk( m_pAvgDistanceToBMU, m_params.numSteps, 1, 4, 0, 800, 533, sstrDirectory+std::string("avgDistanceBMU.png") );
+	SpectraHelpers::writeFloatList( m_pAvgDistanceToBMU, m_params.numSteps, std::string("avgDistanceBMU.txt"));
 
 	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+HTMLExport::lineBreak();
 	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+HTMLExport::lineBreak();
@@ -1637,9 +1648,31 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 				}
 				sstrTable += HTMLExport::endTableRow();
 			}
+			if ( planX > 0 )
+			{
+				sstrTable += HTMLExport::imageLink( std::string("left.png"), linkToPlan(_sstrFilename, planX-1, planY), true );
+			}
+			if ( planX < planXMax-1 )
+			{
+				sstrTable += HTMLExport::imageLink( std::string("right.png"), linkToPlan(_sstrFilename, planX+1, planY), true );
+			}
+			if ( planY > 0 )
+			{
+				sstrTable += HTMLExport::imageLink( std::string("up.png"), linkToPlan(_sstrFilename, planX, planY-1), true );
+			}
+			if ( planY < planYMax-1 )
+			{
+				sstrTable += HTMLExport::imageLink( std::string("down.png"), linkToPlan(_sstrFilename, planX, planY+1), true );
+			}
+			sstrTable += HTMLExport::lineBreak();
+			sstrTable += HTMLExport::image( sstrUMatrix+std::string(".png") );
+			sstrTable += HTMLExport::image( sstrDifferenceMap+std::string(".png") );
+			sstrTable += HTMLExport::image( sstrZMap+std::string(".png") );
+	
 
 			if ( bOut )
 			{
+				// link to sub pages
 				Helpers::insertString( HTMLExport::HTML_TOKEN_TEMPLATE, sstrTable, sstrHTMLDoc );
 
 				std::string sstrFilename = _sstrFilename;
@@ -1652,7 +1685,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 				fon<<sstrHTMLDoc;
 
 				sstrMainTable += HTMLExport::beginTableCell();
-				sstrMainTable += HTMLExport::imageLink( sstrLastImageInPlan+".png", FileHelpers::getFileName(sstrFilename) );
+				sstrMainTable += HTMLExport::imageLink( sstrLastImageInPlan+".png", linkToPlan(_sstrFilename, planX, planY ));
 				sstrMainTable += HTMLExport::endTableCell();
 			}
 		}
