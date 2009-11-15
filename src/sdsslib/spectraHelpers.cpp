@@ -741,6 +741,18 @@ void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAd
 
 } 
 
+void writeFloatList( float *_pArray, size_t _size, const std::string &_sstrFilename )
+{
+	assert( _pArray != NULL );
+	std::string sstrOutTable;
+	for (size_t i=0;i<_size;i++)
+	{
+		sstrOutTable += Helpers::numberToString<float>(_pArray[i]);
+	}
+
+	std::ofstream fon(_sstrFilename.c_str());
+	fon<<sstrOutTable;
+}
 
 
 }

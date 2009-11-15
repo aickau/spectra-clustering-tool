@@ -88,11 +88,18 @@ std::string textLink(const std::string &_sstrText, const std::string &_sstrLink 
 
 
 
-std::string imageLink(const std::string &_sstrImage, const std::string &_sstrLink )
+std::string imageLink(const std::string &_sstrImage, const std::string &_sstrLink, bool _bSelf )
 {
 	std::string sstrImageLink( "<a href=\"" );
 	sstrImageLink += _sstrLink;
-	sstrImageLink += "\" target=\"_blank\">";
+	if ( _bSelf )
+	{
+		sstrImageLink += "\" target=\"_self\">";
+	}
+	else
+	{
+		sstrImageLink += "\" target=\"_blank\">";
+	}
 	sstrImageLink += "<img src=\"";
 	sstrImageLink += _sstrImage;
 	sstrImageLink += "\"/>";

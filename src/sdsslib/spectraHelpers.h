@@ -113,6 +113,8 @@ namespace SpectraHelpers
 	// returns the millions of spectra adaption (one to many) per second.
 	void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAdaptionPerSecond );
 
+	//  write float values from array to disk (as text)
+	void writeFloatList( float *_pArray, size_t _size, const std::string &_sstrFilename );
 };
 
 
