@@ -45,34 +45,6 @@
 //#define SDSS_SINETEST
 
 
-static
-void intensityToRGB(float _intensity, float *_pRGB, bool _bRed=false )
-{
-	_intensity *= 3.f;
-	if ( _intensity >= 0.0f )
-	{
-		_pRGB[2] = MIN(_intensity,1.f);
-		_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
-		_pRGB[0] = CLAMP(_intensity-2.f,0.f,1.f);
-	}
-	else
-	{
-		_intensity = -_intensity;
-		_pRGB[0] = MIN(_intensity,1.f);
-		_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
-		_pRGB[2] = CLAMP(_intensity-2.f,0.f,1.f);
-	}
-
-	if ( _bRed )
-	{
-		float c = _pRGB[2];
-		_pRGB[2] = _pRGB[0];
-		_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
-		_pRGB[0] = c;
-
-	}
-}
-
 
 static 
 void setBestMatch( Spectra &_networkSpectrum, size_t _networkIndex, Spectra &_bestMatchSpectrum, size_t _bestMatchIndex )
@@ -951,7 +923,7 @@ void SOFMNetwork::process()
 }
 
 
-void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bShowEmpty, bool _bNormalize )
+void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bShowEmpty, bool _bNormalize, bool _showRanges )
 {
 	if ( m_pNet == NULL || m_pNet->getNumSpectra() == 0 )
 	{
@@ -1037,10 +1009,14 @@ void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogS
 				scale  = pUMatrix[i] /= maxErr;
 			}
 
-			intensityToRGB( scale,  &pRGBMap[i*3] );
+			SpectraHelpers::intensityToRGB( scale,  &pRGBMap[i*3] );
 		}
 	}
 
+	if (_showRanges)
+	{
+		SpectraHelpers::writeMapWithSubpageMarkers( _sstrFilenName, pRGBMap, m_gridSize, s_outputPlanSize );
+	}
 
 	SpectraHelpers::saveIntensityMap( pRGBMap, m_gridSize, m_gridSize, _sstrFilenName );
 
@@ -1050,7 +1026,7 @@ void SOFMNetwork::calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogS
 
 
 
-void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize, bool _bOutputAsTextFile )
+void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize, bool _bOutputAsTextFile, bool _showRanges )
 {
 	if ( m_pNet == NULL || m_pNet->getNumSpectra() == 0 )
 	{
@@ -1124,7 +1100,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 					sstrDifferenceMap += Helpers::numberToString<float>(differenceValue) + "\n";
 				}
 
-				intensityToRGB( scale, &pRGBMap[i*3] );
+				SpectraHelpers::intensityToRGB( scale, &pRGBMap[i*3] );
 			}
 			else
 			{
@@ -1149,6 +1125,11 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 		std::ofstream fon(sstrTxtFile.c_str());
 		fon<<sstrDifferenceMap;
 	}
+	if (_showRanges)
+	{
+		SpectraHelpers::writeMapWithSubpageMarkers( _sstrFilenName, pRGBMap, m_gridSize, s_outputPlanSize );
+	}
+
 
 	SpectraHelpers::saveIntensityMap( pRGBMap, m_gridSize, m_gridSize, _sstrFilenName );
 
@@ -1157,7 +1138,7 @@ void SOFMNetwork::calcDifferenceMap( const std::string &_sstrFilenName, bool _bU
 }
 
 
-void SOFMNetwork::calcZMap( const std::string &_sstrFilenName, bool _bUseLogScale )
+void SOFMNetwork::calcZMap( const std::string &_sstrFilenName, bool _bUseLogScale, bool _showRanges )
 {
 	if ( m_pNet == NULL || m_pNet->getNumSpectra() == 0 )
 	{
@@ -1214,9 +1195,13 @@ void SOFMNetwork::calcZMap( const std::string &_sstrFilenName, bool _bUseLogScal
 				scale  = pZMatrix[i] /= maxZ;
 			}
 			m_pSourceVFS->endRead( spNet->m_Index );
-			intensityToRGB( scale, &pRGBMap[i*3], true );			
+			SpectraHelpers::intensityToRGB( scale, &pRGBMap[i*3], true );			
 		}
 		m_pNet->endRead( i );
+	}
+	if (_showRanges)
+	{
+		SpectraHelpers::writeMapWithSubpageMarkers( _sstrFilenName, pRGBMap, m_gridSize, s_outputPlanSize );
 	}
 
 	SpectraHelpers::saveIntensityMap( pRGBMap, m_gridSize, m_gridSize, _sstrFilenName );
@@ -1323,7 +1308,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 			for (size_t c=0;c<m_gridSizeSqr;c++) 
 			{
 				float scale  = log10f(pErrMap[c]+1.f)/log10f(maxErr);
-				intensityToRGB( scale,  &pRGBMap[c*3] );
+				SpectraHelpers::intensityToRGB( scale,  &pRGBMap[c*3] );
 			}
 		}
 		// mark own position with red dot.
@@ -1516,9 +1501,9 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	const std::string sstrUMatrix =  "UMatrix_" + sstrStep;
 	const std::string sstrDifferenceMap = "DifferenceMap_" + sstrStep;
 	const std::string sstrZMap = "ZMap_" + sstrStep;
-	calcUMatrix( sstrDirectory+sstrUMatrix, true, false, false );
-	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false, true);
-	calcZMap( sstrDirectory+sstrZMap, true );
+	calcUMatrix( sstrDirectory+sstrUMatrix, true, false, false, _fullExport );
+	calcDifferenceMap( sstrDirectory+sstrDifferenceMap, true, false, true, _fullExport);
+	calcZMap( sstrDirectory+sstrZMap, true, _fullExport );
 
 	SpectraHelpers::renderDiagramToDisk( m_pAvgDistanceToBMU, m_params.numSteps, 1, 4, 0, 800, 533, sstrDirectory+std::string("avgDistanceBMU.png") );
 	SpectraHelpers::writeFloatList( m_pAvgDistanceToBMU, m_params.numSteps, std::string("avgDistanceBMU.txt"));
@@ -1664,10 +1649,15 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 			{
 				sstrTable += HTMLExport::imageLink( std::string("down.png"), linkToPlan(_sstrFilename, planX, planY+1), true );
 			}
+			std::string sstrPlan("");
+			if (_fullExport)
+			{
+				sstrPlan = "_"+Helpers::numberToString(planX,4)+"_"+Helpers::numberToString(planY,4);
+			}
 			sstrTable += HTMLExport::lineBreak();
-			sstrTable += HTMLExport::image( sstrUMatrix+std::string(".png") );
-			sstrTable += HTMLExport::image( sstrDifferenceMap+std::string(".png") );
-			sstrTable += HTMLExport::image( sstrZMap+std::string(".png") );
+			sstrTable += HTMLExport::image( sstrUMatrix+sstrPlan+std::string(".png") );
+			sstrTable += HTMLExport::image( sstrDifferenceMap+sstrPlan+std::string(".png") );
+			sstrTable += HTMLExport::image( sstrZMap+sstrPlan+std::string(".png") );
 	
 
 			if ( bOut )
