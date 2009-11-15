@@ -542,6 +542,14 @@
 			</Filter>
 		</Filter>
 		<File
+			RelativePath=".\CSVExport.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\CSVExport.h"
+			>
+		</File>
+		<File
 			RelativePath=".\debug.cpp"
 			>
 		</File>

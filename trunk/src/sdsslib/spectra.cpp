@@ -37,6 +37,7 @@
 #include "sdsslib/mathhelpers.h"
 #include "sdsslib/defines.h"
 #include "sdsslib/spectrahelpers.h"
+#include "sdsslib/CSVExport.h"
 
 
 // spectra read from SDSS FITS have a wavelength of 3800..9200 Angström
@@ -314,20 +315,27 @@ void Spectra::multiply(float _multiplier)
 
 bool Spectra::saveToCSV(const std::string &_filename)
 {
-	std::string sstrOutput("Wavelength(A),Flux,Error,Mask\n");
+	CSVExport cvsExporter(_filename, ", ");
 
+	cvsExporter.writeTableEntry(std::string("Wavelength(A)"));
+	cvsExporter.writeTableEntry(std::string("Flux"));
+	cvsExporter.writeTableEntry(std::string("Error"));
+	cvsExporter.writeTableEntry(std::string("Mask"));
+	cvsExporter.newRow();
+
+	const size_t numIterations = 3900/Spectra::numSamples;
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
-		std::string sstrLine("0.0, ");
-		sstrLine += Helpers::numberToString<float>( m_Amplitude[i] );
-		sstrLine += ", 0.0, 0.0\n";
-		sstrOutput += sstrLine;
-		sstrOutput += sstrLine;
+		for (size_t j=0;j<numIterations;j++ )
+		{
+			cvsExporter.writeTableEntry(0.f);
+			cvsExporter.writeTableEntry(m_Amplitude[i]);
+			cvsExporter.writeTableEntry(0.f);
+			cvsExporter.writeTableEntry(0.f);
+			cvsExporter.newRow();
+		}
 	}
 	
-	std::ofstream fon(_filename.c_str());
-	fon<<sstrOutput;
-
 	return true;
 }
 
