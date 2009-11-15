@@ -119,6 +119,10 @@ namespace SpectraHelpers
 	// write dotted red rectangles into a float rgb map (for u matrix and difference map rendering)
 	void writeMapWithSubpageMarkers( const std::string &_sstrFilenName, float *_pRGBMap, size_t _gridSize, size_t _planSize );
 
+	// intensity [0..1]
+	// _pRGB pointer to location where out rgb triple is written to.
+	// if red false -> map intensity to black->blue->cyan->white color gradient
+	// otherwise       map intensity to black->red->yellow->white color gradient
 	void intensityToRGB(float _intensity, float *_pRGB, bool _bRed=false );
 };
 
