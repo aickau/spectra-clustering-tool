@@ -748,6 +748,7 @@ void writeFloatList( float *_pArray, size_t _size, const std::string &_sstrFilen
 	for (size_t i=0;i<_size;i++)
 	{
 		sstrOutTable += Helpers::numberToString<float>(_pArray[i]);
+		sstrOutTable += "\n";
 	}
 
 	std::ofstream fon(_sstrFilename.c_str());
