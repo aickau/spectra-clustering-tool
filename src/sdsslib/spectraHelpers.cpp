@@ -755,4 +755,90 @@ void writeFloatList( float *_pArray, size_t _size, const std::string &_sstrFilen
 }
 
 
+void writeRect( float *_pRGBMap, size_t _size, size_t _planX, size_t _planY, size_t _planSize )
+{
+	const size_t maxPlanSize = _size/_planSize;
+	const size_t pXBeg = (_planX>0) ? _planX-1 : _planX;
+	const size_t pYBeg = (_planY>0) ? _planY-1 : _planY;
+	const size_t pXEnd = _planX+2;
+	const size_t pYEnd = _planY+2;
+
+	const size_t xBeg = pXBeg*_planSize;
+	const size_t yBeg = pYBeg*_planSize;
+	const size_t xEnd = pXEnd*_planSize;
+	const size_t yEnd = pYEnd*_planSize;
+
+	for (size_t x=xBeg;x<xEnd;x++)
+	{
+		if ( (x & 1) > 0 )
+		{
+			size_t a1 = CALC_ADRESS_SAFE( x, yBeg, _size, _size )*3;
+			size_t a2 = CALC_ADRESS_SAFE( x, yEnd, _size, _size )*3;
+			_pRGBMap[a1+0] = _pRGBMap[a2+0] = 1.0f;
+			_pRGBMap[a1+1] = _pRGBMap[a2+1] = 0.0f;
+			_pRGBMap[a1+2] = _pRGBMap[a2+2] = 0.0f;
+		}
+	}
+
+	for (size_t y=yBeg;y<yEnd;y++)
+	{
+		if ( (y & 1) > 0 )
+		{
+			size_t a1 = CALC_ADRESS_SAFE( xBeg, y, _size, _size )*3;
+			size_t a2 = CALC_ADRESS_SAFE( xEnd, y, _size, _size )*3;
+			_pRGBMap[a1+0] = _pRGBMap[a2+0] = 1.0f;
+			_pRGBMap[a1+1] = _pRGBMap[a2+1] = 0.0f;
+			_pRGBMap[a1+2] = _pRGBMap[a2+2] = 0.0f;
+		}
+	}
+}
+
+void writeMapWithSubpageMarkers( const std::string &_sstrFilenName, float *_pRGBMap, size_t _gridSize, size_t _planSize )
+{
+	const size_t gridSizeSqr = _gridSize*_gridSize;
+	float *pRGBMap2 = new float[gridSizeSqr*3];
+	const size_t planMax = _gridSize/_planSize+1;
+	const size_t planMaxSqr = planMax*planMax;
+	for ( size_t i=0;i<planMaxSqr;i++ )
+	{
+		const size_t planX = i%planMax;
+		const size_t planY = i/planMax;
+		memcpy( pRGBMap2, _pRGBMap, gridSizeSqr*3*sizeof(float) );
+		writeRect( pRGBMap2, _gridSize, planX, planY, _planSize );
+		std::string sstrPlan = "_"+Helpers::numberToString(planX,4)+"_"+Helpers::numberToString(planY,4);
+		SpectraHelpers::saveIntensityMap( pRGBMap2, _gridSize, _gridSize, _sstrFilenName+sstrPlan );
+	}
+	delete[] pRGBMap2;
+}
+
+
+
+void intensityToRGB(float _intensity, float *_pRGB, bool _bRed )
+{
+	_intensity *= 3.f;
+	if ( _intensity >= 0.0f )
+	{
+		_pRGB[2] = MIN(_intensity,1.f);
+		_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
+		_pRGB[0] = CLAMP(_intensity-2.f,0.f,1.f);
+	}
+	else
+	{
+		_intensity = -_intensity;
+		_pRGB[0] = MIN(_intensity,1.f);
+		_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
+		_pRGB[2] = CLAMP(_intensity-2.f,0.f,1.f);
+	}
+
+	if ( _bRed )
+	{
+		float c = _pRGB[2];
+		_pRGB[2] = _pRGB[0];
+		_pRGB[1] = CLAMP(_intensity-1.f,0.f,1.f);
+		_pRGB[0] = c;
+
+	}
+}
+
+
 }

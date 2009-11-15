@@ -115,6 +115,11 @@ namespace SpectraHelpers
 
 	//  write float values from array to disk (as text)
 	void writeFloatList( float *_pArray, size_t _size, const std::string &_sstrFilename );
+	
+	// write dotted red rectangles into a float rgb map (for u matrix and difference map rendering)
+	void writeMapWithSubpageMarkers( const std::string &_sstrFilenName, float *_pRGBMap, size_t _gridSize, size_t _planSize );
+
+	void intensityToRGB(float _intensity, float *_pRGB, bool _bRed=false );
 };
 
 
