@@ -147,6 +147,7 @@ void main(int argc, char* argv[])
 
 	TSpecObjMap::iterator it = filenameList.begin();
 	TSpecObjMap::iterator itEnd = filenameList.end();
+	size_t numFilesMissing = 0;
 	while (it != itEnd )
 	{
 		const std::string sstrCurrentFilename(it->first);
@@ -157,10 +158,14 @@ void main(int argc, char* argv[])
 		{
 			Helpers::print( sstrCurrentFilename+std::string(" not found.\n"), &logFile );
 			lis.writeEntry(it->second.mjd,it->second.plate,it->second.fiberID);
+			numFilesMissing++;
 		}
 
 		it++;
 	}
+
+	Helpers::print( Helpers::numberToString<int>(numFilesMissing) + std::string(" missing.\n"), &logFile );
+
 		
 
 	printf ("fin.\n" );
