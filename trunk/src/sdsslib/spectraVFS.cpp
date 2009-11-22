@@ -159,21 +159,21 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 			bResult = spec.loadFromCSV( sstrFilename );
 		}
 
-		if ( spec.hasBadPixels() )
-		{
-			Helpers::print( "Over 5%% bad pixels detected in spectrum "+sstrFilename+"\n", _logStream );
-		}
-		
-		if ( multiplier != 1.f )
-		{
-			Helpers::print( "multiplying spectrum "+sstrFilename+" with "+ Helpers::numberToString<float>(multiplier)+"\n", _logStream );
-			spec.multiply(multiplier);
-		}
-
 		if ( bResult )
 		{
 			if ( (spec.m_Type & _spectraFilter) > 0 )
 			{
+				if ( spec.hasBadPixels() )
+				{
+					Helpers::print( "Over 5%% bad pixels detected in spectrum "+sstrFilename+"\n", _logStream );
+				}
+
+				if ( multiplier != 1.f )
+				{
+					Helpers::print( "multiplying spectrum "+sstrFilename+" with "+ Helpers::numberToString<float>(multiplier)+"\n", _logStream );
+					spec.multiply(multiplier);
+				}
+
 				compositeSpec.add(spec);
 				bResult = w.write(spec);
 				c++;
