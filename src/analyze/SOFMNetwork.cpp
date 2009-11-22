@@ -140,12 +140,13 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 	}
 
 #ifdef SDSS_SINETEST
-	float freq = 0.001f;
+	float freq = 0.00001f;
 	for (size_t i=0;i<m_numSpectra;i++)
 	{
 		Spectra *a = _pSourceVFS->beginRead(i);
 		a->setSine(freq);
-		freq += 0.000025f;
+		a->m_Z = static_cast<float>(i)/static_cast<float>(m_numSpectra);
+		freq += 0.0000005625f;
 		_pSourceVFS->endRead(i);
 	}
 #endif // SDSS_SINETEST
@@ -918,6 +919,7 @@ void SOFMNetwork::process()
 
 	Helpers::print( "writing network to disk.\n", m_pLogStream );
 	m_pNet->flush();
+	writeIndicesFromNetwork();
 	Helpers::print( "finished writing network to disk.\n", m_pLogStream );
 	m_currentStep++;
 }
@@ -1243,7 +1245,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		float maxErr = 0.0f;
 		for (size_t c=0;c<m_gridSizeSqr;c++) 
 		{
-			pErrMap[c] = 0.0f;
+			pErrMap[c] = -1.0f;
 		}
 
 
@@ -1305,10 +1307,21 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		sstrComprarisonMapFilename += a->getFileName();
 		if ( maxErr > 0.0f )
 		{
-			for (size_t c=0;c<m_gridSizeSqr;c++) 
+			const float fMaxErrLog10 = log10f(maxErr);
+			const int iGridSizeSqr = static_cast<int>(m_gridSizeSqr);
+			#pragma omp parallel for
+			for (int c=0;c<iGridSizeSqr;c++) 
 			{
-				float scale  = log10f(pErrMap[c]+1.f)/log10f(maxErr);
-				SpectraHelpers::intensityToRGB( scale,  &pRGBMap[c*3] );
+				// mark empty cells gray
+				if ( pErrMap[c] < 0.0f )
+				{
+					pRGBMap[c*3+0] = pRGBMap[c*3+1] = pRGBMap[c*3+2] = 0.5f;
+				}
+				else
+				{
+					const float scale = log10f(pErrMap[c]+1.f)/fMaxErrLog10;
+					SpectraHelpers::intensityToRGB( scale,  &pRGBMap[c*3] );
+				}
 			}
 		}
 		// mark own position with red dot.
@@ -1714,4 +1727,26 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 size_t SOFMNetwork::getIndex( size_t _cellX, size_t _cellY )
 {
 	return _cellX+_cellY*m_gridSize;
+}
+
+
+
+void SOFMNetwork::writeIndicesFromNetwork()
+{
+	int *pIndexBuffer = new int[m_gridSizeSqr];
+	
+	for ( size_t i=0;i<m_gridSizeSqr;i++ )
+	{
+		Spectra *a = m_pNet->beginRead( i );
+		pIndexBuffer[i] = a->m_Index;
+		m_pNet->endRead( i );
+	}
+
+	std::string sstrFilename("export/indexList");
+	sstrFilename += Helpers::numberToString( m_currentStep,4 );
+	sstrFilename += ".bin";
+
+	FileHelpers::writeFile( sstrFilename, static_cast<void*>(pIndexBuffer), m_gridSizeSqr*sizeof(int), true );
+
+	delete[] pIndexBuffer;
 }

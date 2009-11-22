@@ -229,7 +229,7 @@ std::string FileHelpers::getFilePath(const std::string &_sstrFilename)
 }
 
 
-void FileHelpers::writeFile(const std::string &_sstrFilename, char *_buf, int _size, bool _bWiteAsBinary )
+void FileHelpers::writeFile(const std::string &_sstrFilename, void *_buf, int _size, bool _bWiteAsBinary )
 {
 	FILE *f;
 

@@ -771,26 +771,20 @@ void writeRect( float *_pRGBMap, size_t _size, size_t _planX, size_t _planY, siz
 
 	for (size_t x=xBeg;x<xEnd;x++)
 	{
-		if ( (x & 1) > 0 )
-		{
-			size_t a1 = CALC_ADRESS_SAFE( x, yBeg, _size, _size )*3;
-			size_t a2 = CALC_ADRESS_SAFE( x, yEnd, _size, _size )*3;
-			_pRGBMap[a1+0] = _pRGBMap[a2+0] = 1.0f;
-			_pRGBMap[a1+1] = _pRGBMap[a2+1] = 0.0f;
-			_pRGBMap[a1+2] = _pRGBMap[a2+2] = 0.0f;
-		}
+		size_t a1 = CALC_ADRESS_SAFE( x, yBeg, _size, _size )*3;
+		size_t a2 = CALC_ADRESS_SAFE( x, yEnd, _size, _size )*3;
+		_pRGBMap[a1+0] = _pRGBMap[a2+0] = 1.0f;
+		_pRGBMap[a1+1] = _pRGBMap[a2+1] = 0.0f;
+		_pRGBMap[a1+2] = _pRGBMap[a2+2] = 0.0f;
 	}
 
 	for (size_t y=yBeg;y<yEnd;y++)
 	{
-		if ( (y & 1) > 0 )
-		{
-			size_t a1 = CALC_ADRESS_SAFE( xBeg, y, _size, _size )*3;
-			size_t a2 = CALC_ADRESS_SAFE( xEnd, y, _size, _size )*3;
-			_pRGBMap[a1+0] = _pRGBMap[a2+0] = 1.0f;
-			_pRGBMap[a1+1] = _pRGBMap[a2+1] = 0.0f;
-			_pRGBMap[a1+2] = _pRGBMap[a2+2] = 0.0f;
-		}
+		size_t a1 = CALC_ADRESS_SAFE( xBeg, y, _size, _size )*3;
+		size_t a2 = CALC_ADRESS_SAFE( xEnd, y, _size, _size )*3;
+		_pRGBMap[a1+0] = _pRGBMap[a2+0] = 1.0f;
+		_pRGBMap[a1+1] = _pRGBMap[a2+1] = 0.0f;
+		_pRGBMap[a1+2] = _pRGBMap[a2+2] = 0.0f;
 	}
 }
 

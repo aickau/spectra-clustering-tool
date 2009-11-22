@@ -204,6 +204,9 @@ protected:
 	static std::string spectraNormalizationToString( Spectra::SpectraNormalization _type );	 
 	static Spectra::SpectraNormalization spectraNormalizationFromString( const std::string &_sstrSpectraNormalization );
 
+	// track spectra indices
+	void writeIndicesFromNetwork();
+
 
 	// code book spectra
 	SpectraVFS		*m_pNet;	

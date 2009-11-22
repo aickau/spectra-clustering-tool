@@ -68,7 +68,7 @@ namespace FileHelpers
 
 	// write buffer to file.
 	// _bWiteAsBinary if set to true, file is written as binary otherwise as text. 
-	void writeFile(const std::string &_sstrFilename, char *_buf, int _size, bool _bWiteAsBinary=true );
+	void writeFile(const std::string &_sstrFilename, void *_buf, int _size, bool _bWiteAsBinary=true );
 
 	// renames a given file.
 	// \param _sstrFilename path+filename+ext
