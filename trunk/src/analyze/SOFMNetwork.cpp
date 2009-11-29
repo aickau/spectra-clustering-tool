@@ -617,26 +617,31 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 
 	const int gridSize = static_cast<int>(m_gridSize);
 
-	// TODO: different boundary conditions
 
 	// adjust weights of the whole network
 #pragma omp parallel for schedule (dynamic)
 	for ( int y=0;y<gridSize;y++)
 	{
-		const float tdisty = static_cast<float>(y)-static_cast<float>(ypBestMatch);
-		const float tdisty2=tdisty*tdisty;
+		const float distY1 = static_cast<float>(y)-static_cast<float>(ypBestMatch);
+		//const float distY2 = (static_cast<float>(gridSize)-static_cast<float>(y))-static_cast<float>(ypBestMatch);
+		const float distY1Sqr = distY1*distY1;
+		//const float distY2Sqr = distY2*distY2;
+		const float distYSqr = distY1Sqr; //MIN(distY1Sqr, distY2Sqr);
 
 		for ( int x=0;x<gridSize;x++)
 		{
-			const float tdistx = static_cast<float>(x)-static_cast<float>(xpBestMatch);
-			const float tdistx2 = tdistx*tdistx;
-			const float tdistall = (tdistx2+tdisty2)/fGridSizeSqr;					// normalize distance with gridsize
+			const float distX1 = static_cast<float>(x)-static_cast<float>(xpBestMatch);
+			//const float distX2 = (static_cast<float>(gridSize)-static_cast<float>(x))-static_cast<float>(xpBestMatch);
+			const float distX1Sqr = distX1*distX1;
+			//const float distX2Sqr = distX2*distX2;
+			const float distXSqr = distX1Sqr;//MIN(distX1Sqr, distX2Sqr);
+			const float distSqr = (distXSqr+distYSqr)/fGridSizeSqr;					// normalize squared distance with gridsize
 
 			// calculate neighborhood function
-			//const float mexican_hat_term = 1.f-tdistall/_sigmaSqr;
-			//const float hxy = exp(-(tdistall)/sigmaSqr2);							// original
-			//const float hxy = exp(-(tdistall)/sigmaSqr2)*mexican_hat_term;		// Mexican hat
-			const float hxy = exp(-sqrtf(tdistall)/sigmaSqr2);						// spike
+			//const float mexican_hat_term = 1.f-distSqr/_sigmaSqr;
+			//const float hxy = exp(-(distSqr)/sigmaSqr2);							// original
+			//const float hxy = exp(-(distSqr)/sigmaSqr2)*mexican_hat_term;		// Mexican hat
+			const float hxy = exp(-sqrtf(distSqr)/sigmaSqr2);						// spike
 			const float lratehsx = _lRate*hxy;
 
 			if ( lratehsx > _adaptionThreshold )
