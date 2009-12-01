@@ -119,6 +119,19 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 	size_t numFiles = FileHelpers::getFileList( _sstrDir, fileList );
 	size_t numSpectraWritten = 0;
 
+	Helpers::print( "Source directory contains "+ Helpers::numberToString<size_t>(numFiles)+" files.\n", _logStream );
+	
+	if ( pFITSFilenameSet != NULL )
+	{
+		Helpers::print( "Selection list contains "+ Helpers::numberToString<size_t>(pFITSFilenameSet->size())+" files.\n", _logStream );
+	}
+
+	if ( pFITSFilenameSet && pFITSFilenameSet->empty() )
+	{
+		pFITSFilenameSet = NULL;
+	}
+
+
 	Spectra compositeSpec;
 	compositeSpec.clear();
 
@@ -131,16 +144,18 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 	for ( size_t i=0;i<numFiles;i++ )
 	{
 		float multiplier = 1.f;
-		if ( pFITSFilenameSet && !pFITSFilenameSet->empty())
+		if ( pFITSFilenameSet )
 		{
 			std::string sstrFilename(FileHelpers::getFileName(fileList.at(i)));
 			std::map<std::string,float>::iterator it = pFITSFilenameSet->find(sstrFilename);
 			if ( it == pFITSFilenameSet->end() )
 			{
-				Helpers::print( "skipping "+fileList.at(i)+"\n", _logStream );
+//				Helpers::print( "skipping "+fileList.at(i)+"\n", _logStream );
 				continue;
 			}
+			// make sure item is not written twice.
 			multiplier = it->second;
+			pFITSFilenameSet->erase( it );
 		}
 		spec.clear();
 
@@ -165,14 +180,14 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 			{
 				if ( spec.hasBadPixels() )
 				{
-					Helpers::print( "Over 5%% bad pixels detected in spectrum "+sstrFilename+"\n", _logStream );
+//					Helpers::print( "Over 5%% bad pixels detected in spectrum "+sstrFilename+"\n", _logStream );
 				}
 
-				if ( multiplier != 1.f )
-				{
-					Helpers::print( "multiplying spectrum "+sstrFilename+" with "+ Helpers::numberToString<float>(multiplier)+"\n", _logStream );
-					spec.multiply(multiplier);
-				}
+//				if ( multiplier != 1.f )
+//				{
+//					Helpers::print( "multiplying spectrum "+sstrFilename+" with "+ Helpers::numberToString<float>(multiplier)+"\n", _logStream );
+//					spec.multiply(multiplier);
+//				}
 
 				compositeSpec.add(spec);
 				bResult = w.write(spec);
@@ -184,7 +199,7 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 			Helpers::print( "failed to load "+fileList.at(i)+"\n", _logStream );
 			if ( !spec.checkConsistency() )
 			{
-				Helpers::print( "Reason: spectrum contains NANs or infinite numbers.\n", _logStream );
+				Helpers::print( "Reason: spectrum contains NANs, infinite numbers or just insane high numbers.\n", _logStream );
 			}
 		}
 	}

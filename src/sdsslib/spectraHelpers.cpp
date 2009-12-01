@@ -412,6 +412,36 @@ void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstr
 	_sstrOutTable += HTMLExport::endTableRow();
 }
 
+struct TspecObj 
+{
+	int plate;
+	int mjd;
+	int fiberID;
+};
+
+
+
+std::string getSpecObjFileName(TspecObj &obj)
+{
+	// e.g. spSpec-52203-0716-002.fit
+	std::string sstrFileName( "spSpec-" );
+
+	char buf[64];
+	sprintf_s( buf, "%05i", obj.mjd );
+	sstrFileName += buf;
+	sstrFileName += "-";
+
+	sprintf_s( buf, "%04i", obj.plate );
+	sstrFileName += buf;
+	sstrFileName += "-";
+
+	sprintf_s( buf, "%03i", obj.fiberID );
+	sstrFileName += buf;
+	sstrFileName += ".fit";
+
+	return sstrFileName;
+}
+
 bool readSelectionList( const std::string &_sstrSelectionListFilename, std::map<std::string,float> &_outFITSFilenameSet )
 {
 	if ( _sstrSelectionListFilename.empty() )
@@ -428,6 +458,26 @@ bool readSelectionList( const std::string &_sstrSelectionListFilename, std::map<
 		return false;
 	}
 
+	std::string sstrLine;
+	getline(fin,sstrLine);
+
+	while( fin  ) 
+	{	
+		std::string sstrPlate, sstrMJD ,sstrFiberID;
+
+		TspecObj specObj;
+		fin >> sstrPlate;
+		fin >> sstrMJD;
+		fin >> sstrFiberID;
+
+		specObj.fiberID = Helpers::stringToNumber<int>(sstrFiberID);
+		specObj.plate = Helpers::stringToNumber<int>(sstrPlate);
+		specObj.mjd = Helpers::stringToNumber<int>(sstrMJD);
+
+		std::string sstrFileName = getSpecObjFileName(specObj);
+		_outFITSFilenameSet.insert(std::make_pair<std::string,float>(sstrFileName,1.0));
+	}
+/*
 	// read selection list
 	std::string sstrLine;
 	while( getline(fin,sstrLine) ) 
@@ -451,7 +501,7 @@ bool readSelectionList( const std::string &_sstrSelectionListFilename, std::map<
 		}
 		_outFITSFilenameSet.insert(std::make_pair<std::string,float>(sstrFITSFilename,multiplier));
 	}
-
+*/
 	return true;
 }
 
