@@ -874,6 +874,7 @@ void SOFMNetwork::process()
 	{
 		Spectra *a = m_pNet->beginWrite( i );
 		a->m_SpecObjID = 0;
+		a->m_Index = -1;
 		m_pNet->endWrite( i );
 	}
 
