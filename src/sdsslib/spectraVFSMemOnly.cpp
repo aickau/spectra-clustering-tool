@@ -151,7 +151,7 @@ void SpectraVFSMemOnly::Read( size_t _nSpectraIndex, size_t _numSpectra, Spectra
 
 
 	_fseeki64( f, offsetInBytes, SEEK_SET );
-	fread_s( &_pDestination[_nSpectraIndex], bytesToRead, 1, bytesToRead, f );
+	fread( &_pDestination[_nSpectraIndex], bytesToRead, 1, f );
 	_fseeki64( f, 0, SEEK_SET );
 	fclose(f);
 }
