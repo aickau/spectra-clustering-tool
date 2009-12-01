@@ -1399,6 +1399,11 @@ bool Spectra::checkConsistency() const
 		{
 			return false;
 		}
+		// check for insane high numbers
+		if ( fabs(a) > 1000000000000.0 )
+		{
+			return false;
+		}
 	}
 	return true;
 }

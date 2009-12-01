@@ -40,7 +40,8 @@ typedef char _TCHAR;
 
 void main(int argc, char* argv[])
 {
-
+//	SpectraVFS::write( 80000, 0, "allSpectra.bin" );
+//	return;
 	std::ofstream logFile("dump_log.txt");
 
 /*
