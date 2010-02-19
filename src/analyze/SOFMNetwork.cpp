@@ -1546,6 +1546,10 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	sstrInfo += std::string("Neighborhood function:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("neighborhoodfunc.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Average distance to BMU:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("avgDistanceBMU.png") )+HTMLExport::lineBreak();
 
+	// todo: also export images using this PHP func:
+	// http://casjobs.sdss.org/ImgCutoutDR6/getjpeg.aspx?ra=147.30828866&dec=0.15117002&scale=0.2&width=200&height=200&opt=SGP
+	// or see: http://cas.sdss.org/dr6/en/tools/chart/chartinfo.asp
+
 
 	Helpers::insertString( HTMLExport::HTML_TOKEN_INFO, sstrInfo, sstrMainHTMLDoc );
 	Helpers::insertString( HTMLExport::HTML_TOKEN_TITLE, "", sstrMainHTMLDoc );
