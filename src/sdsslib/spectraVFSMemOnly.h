@@ -17,7 +17,7 @@
 //! \brief virtual filesystem for spectra, in this version all spectra have to fit into main memory
 
 #ifndef _SPECTRAVFSMEMONLY_H
-#define _SPECTRAVFS_H
+#define _SPECTRAVFSMEMONLY_H
 
 #include <Windows.h>
 #include <string>
