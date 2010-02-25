@@ -3,15 +3,13 @@
 	ProjectType="Visual C++"
 	Version="8,00"
 	Name="viewer"
-	ProjectGUID="{62E6E754-F559-47D4-8F72-252182054FF5}"
-	RootNamespace="framework"
+	ProjectGUID="{B90ADBF7-E8B0-4D86-9736-0FF6B4E55859}"
+	RootNamespace="viewer"
+	Keyword="MFCProj"
 	>
 	<Platforms>
 		<Platform
 			Name="Win32"
-		/>
-		<Platform
-			Name="x64"
 		/>
 	</Platforms>
 	<ToolFiles>
@@ -22,9 +20,7 @@
 			OutputDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
 			IntermediateDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
+			UseOfMFC="1"
 			CharacterSet="2"
 			>
 			<Tool
@@ -41,8 +37,9 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Debug/framework.tlb"
-				HeaderFileName=""
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="false"
+				ValidateParameters="false"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -50,15 +47,10 @@
 				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api/;../"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				StructMemberAlignment="5"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Debug/framework.pch"
-				AssemblerListingLocation=""
-				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="$(IntDir)\"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -67,116 +59,21 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
-				Culture="1031"
+				Culture="1033"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib IL$(PlatformName).lib ILU$(PlatformName).lib"
+				AdditionalDependencies="vis$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="../3rdParty/api/vis/lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
-				SubSystem="1"
+				SubSystem="2"
 				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
-			IntermediateDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
-			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				TargetEnvironment="3"
-				TypeLibraryName=".\Debug/framework.tlb"
-				HeaderFileName=""
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api/;../"
-				PreprocessorDefinitions="WIN32;X64;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				StructMemberAlignment="5"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Debug/framework.pch"
-				AssemblerListingLocation=""
-				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="$(IntDir)\"
-				WarningLevel="3"
-				SuppressStartupBanner="true"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1031"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib IL$(PlatformName).lib ILU$(PlatformName).lib"
-				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
-				SubSystem="1"
-				LinkTimeCodeGeneration="1"
-				TargetMachine="17"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -208,10 +105,9 @@
 			OutputDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
 			IntermediateDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
+			UseOfMFC="1"
 			CharacterSet="2"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -227,26 +123,25 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Release/framework.tlb"
-				HeaderFileName=""
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="false"
+				ValidateParameters="false"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="1"
+				Optimization="0"
 				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api/;../"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN;WIN32_LEAN_AND_MEAN"
-				StringPooling="true"
-				RuntimeLibrary="2"
-				StructMemberAlignment="5"
-				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Release/framework.pch"
+				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN"
+				MinimalRebuild="false"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="0"
+				UsePrecompiledHeader="2"
 				AssemblerListingLocation=""
 				ObjectFile="$(IntDir)\"
 				ProgramDataBaseFileName="$(IntDir)\"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -254,115 +149,24 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
-				Culture="1031"
+				Culture="1033"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib IL$(PlatformName).lib ILU$(PlatformName).lib"
+				AdditionalDependencies="vis$(PlatformName)$(ConfigurationName).lib"
 				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib"
+				AdditionalLibraryDirectories="../3rdParty/api/vis/lib"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
-				SubSystem="1"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
 				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|x64"
-			OutputDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
-			IntermediateDirectory="$(SolutionDir)../out/$(ProjectName)/$(PlatformName)/$(ConfigurationName)"
-			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				TargetEnvironment="3"
-				TypeLibraryName=".\Release/framework.tlb"
-				HeaderFileName=""
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../3rdparty/api/devil/include/;../3rdparty/api/;../"
-				PreprocessorDefinitions="WIN32;X64;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN"
-				StringPooling="true"
-				RuntimeLibrary="2"
-				StructMemberAlignment="5"
-				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Release/framework.pch"
-				AssemblerListingLocation=""
-				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="$(IntDir)\"
-				WarningLevel="3"
-				SuppressStartupBanner="true"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1031"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib fits$(PlatformName).lib sdsslib$(PlatformName)$(ConfigurationName).lib IL$(PlatformName).lib ILU$(PlatformName).lib"
-				OutputFile="$(SolutionDir)../$(ProjectName)$(PlatformName)$(ConfigurationName).exe"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib"
-				ProgramDatabaseFile="$(IntDir)/$(ProjectName).pdb"
-				SubSystem="1"
-				LinkTimeCodeGeneration="1"
-				TargetMachine="17"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -393,24 +197,142 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="gui"
+			>
+			<File
+				RelativePath=".\MainFrm.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MainFrm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\viewer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\viewer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\viewerDoc.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\viewerDoc.h"
+				>
+			</File>
+			<File
+				RelativePath=".\viewerView.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\viewerView.h"
+				>
+			</File>
+			<File
+				RelativePath=".\viewerVis.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\viewerVis.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="3rdParty"
+			>
+			<File
+				RelativePath="..\3rdparty\api\vis\vis_dllexport.h"
+				>
+			</File>
+			<File
+				RelativePath="..\3rdparty\api\vis\vis_error.h"
+				>
+			</File>
+			<File
+				RelativePath="..\3rdparty\api\vis\vis_interface.h"
+				>
+			</File>
+			<File
+				RelativePath="..\3rdparty\api\vis\vis_interface_lines.h"
+				>
+			</File>
+			<File
+				RelativePath="..\3rdparty\api\vis\vis_interface_opt.h"
+				>
+			</File>
+			<File
+				RelativePath="..\3rdparty\api\vis\vis_interface_points.h"
+				>
+			</File>
+			<File
+				RelativePath="..\3rdparty\api\vis\vis_interface_tri.h"
+				>
+			</File>
+			<File
+				RelativePath="..\3rdparty\api\vis\vis_main.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			>
+			<File
+				RelativePath=".\res\Toolbar.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\viewer.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\viewer.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\res\viewer.rc2"
+				>
+			</File>
+			<File
+				RelativePath=".\viewer.reg"
+				>
+			</File>
+			<File
+				RelativePath=".\res\viewerDoc.ico"
+				>
+			</File>
+		</Filter>
 		<File
-			RelativePath="..\framework.cpp"
+			RelativePath=".\Resource.h"
 			>
 		</File>
 		<File
-			RelativePath="..\framework.h"
+			RelativePath=".\stdafx.cpp"
 			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
 		</File>
 		<File
-			RelativePath="..\keycodes.h"
-			>
-		</File>
-		<File
-			RelativePath="..\keymap.h"
-			>
-		</File>
-		<File
-			RelativePath=".\viewer.cpp"
+			RelativePath=".\stdafx.h"
 			>
 		</File>
 	</Files>
