@@ -1,216 +1,146 @@
-//! \verbatim
-//! ###########################################################################
-//! # SDSS sorting prototype - Stage I
-//! #
-//! # Copyright (c) 2009 Aick in der Au
-//! # All rights reserved.
-//! ###########################################################################
-//!
-//!      created by : Aick in der Au <aick.inderau@gmail.com>
-//!      created on : 1/19/2009
-//! additional docs : none
-//!  responsibility : 1. Aick in der Au
-//!                   2. 
-//! \endverbatim
-//!
-//! \file  viewer.cpp
-//! \brief Experimental viewer to view a spectrum
+// viewer.cpp : Defines the class behaviors for the application.
+//
 
-#include "framework.h"	
+#include "stdafx.h"
+#include "viewer.h"
+#include "MainFrm.h"
 
-#include <string>
-#include <conio.h>
-#include <assert.h>
-#include <sstream>
+#include "viewerDoc.h"
+#include "viewerView.h"
 
-#include "sdsslib/defines.h"
-#include "sdsslib/helpers.h"
-#include "sdsslib/filehelpers.h"
-#include "sdsslib/spectra.h"
-#include "sdsslib/glhelper.h"
-#include "sdsslib/spectraHelpers.h"
-
-extern HWND		fr_hWnd;
-
-int left,right,up,down;
-int scr_width, scr_height;
-int fileListPos = 0;
-
-extern HDC fr_hDC;		
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 
 
-std::vector<std::string> g_spectraFileList;
+// CviewerApp
 
-int g_FontID=0;
-Spectra g_Spectrum;
-float g_YScale=.66f;
+BEGIN_MESSAGE_MAP(CViewerApp, CWinApp)
+	ON_COMMAND(ID_APP_ABOUT, &CViewerApp::OnAppAbout)
+	// Standard file based document commands
+	ON_COMMAND(ID_FILE_NEW, &CWinApp::OnFileNew)
+	ON_COMMAND(ID_FILE_OPEN, &CWinApp::OnFileOpen)
+	// Standard print setup command
+	ON_COMMAND(ID_FILE_PRINT_SETUP, &CWinApp::OnFilePrintSetup)
+END_MESSAGE_MAP()
 
-void setCaptionText( const std::string &_sstrFileName )
+
+// CviewerApp construction
+
+CViewerApp::CViewerApp()
 {
-	std::string sstrCaptionText("SDSS Viewer - ");
-	sstrCaptionText += _sstrFileName;
-	SetWindowText(fr_hWnd, sstrCaptionText.c_str());
+	// TODO: add construction code here,
+	// Place all significant initialization in InitInstance
 }
 
 
-int InitGL( )		
+// The one and only CviewerApp object
+
+CViewerApp theApp;
+
+
+// CviewerApp initialization
+
+BOOL CViewerApp::InitInstance()
 {
-	std::string sstrCurrentDir( FileHelpers::getCurrentDirectory() );
-	std::string sstrFileName("");
 
-	sstrFileName = GetCommandLine();
-	/*
-	std::istringstream sstrStream(sstrCmdLine);
-	if (sstrStream) {
-		sstrStream >> sstrFileName;	
-	}*/
+	// InitCommonControlsEx() is required on Windows XP if an application
+	// manifest specifies use of ComCtl32.dll version 6 or later to enable
+	// visual styles.  Otherwise, any window creation will fail.
+	INITCOMMONCONTROLSEX InitCtrls;
+	InitCtrls.dwSize = sizeof(InitCtrls);
+	// Set this to include all the common control classes you want to use
+	// in your application.
+	InitCtrls.dwICC = ICC_WIN95_CLASSES;
+	InitCommonControlsEx(&InitCtrls);
 
-	bool bRetVal=true;
-	if ( !sstrFileName.empty() )
-	{
-		if ( sstrFileName[0] == '"' )
-		{
-			sstrFileName.erase( sstrFileName.begin() );
-			sstrFileName.erase( --sstrFileName.end() );
-		}
+	CWinApp::InitInstance();
 
-		std::string sstrExtension(FileHelpers::getFileExtension(sstrFileName));
-		if ( sstrExtension == ".fit" )
-		{
-			bRetVal = g_Spectrum.loadFromFITS( sstrFileName );
-		}
-		std::string sstrDir = FileHelpers::getFilePath( sstrFileName );
-		if ( FileHelpers::exitsDirectory(sstrDir) )
-		{
-			sstrCurrentDir = sstrDir;
-		}
-	}
-	else
-	{
-		g_Spectrum.setSine(1.f,1.f,1.f);
-	}
+	// Standard initialization
+	// If you are not using these features and wish to reduce the size
+	// of your final executable, you should remove from the following
+	// the specific initialization routines you do not need
+	// Change the registry key under which our settings are stored
+	// TODO: You should modify this string to be something appropriate
+	// such as the name of your company or organization
+	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
+	LoadStdProfileSettings(4);  // Load standard INI file options (including MRU)
+	// Register the application's document templates.  Document templates
+	//  serve as the connection between documents, frame windows and views
+	CSingleDocTemplate* pDocTemplate;
+	pDocTemplate = new CSingleDocTemplate(
+		IDR_MAINFRAME,
+		RUNTIME_CLASS(CViewerDoc),
+		RUNTIME_CLASS(CMainFrame),       // main SDI frame window
+		RUNTIME_CLASS(CViewerView));
+	if (!pDocTemplate)
+		return FALSE;
+	AddDocTemplate(pDocTemplate);
 
-	// get spectra files for current working dir
-	sstrCurrentDir = FileHelpers::getFilePath( sstrCurrentDir );
-	sstrCurrentDir += std::string("/*");
-	std::vector<std::string> fileList;
-	FileHelpers::getFileList( sstrCurrentDir, fileList );
-	for (size_t i=0;i<fileList.size();i++) {
-		if ( FileHelpers::getFileExtension(fileList[i]) == std::string(".fit") )
-		{
-			g_spectraFileList.push_back( fileList[i] );
-		}
-	}
 
-	setCaptionText( sstrFileName );
+	// Enable DDE Execute open
+	EnableShellOpen();
+	RegisterShellFileTypes(TRUE);
 
-	SpectraHelpers::init( fr_hDC );
+	// Parse command line for standard shell commands, DDE, file open
+	CCommandLineInfo cmdInfo;
+	ParseCommandLine(cmdInfo);
 
-	// opengl init stuff
-	glShadeModel(GL_SMOOTH);							
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);				
-	glClearDepth(1.0f);									
-	glEnable(GL_DEPTH_TEST);							
-	glDepthFunc(GL_LEQUAL);			
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	
 
-	return bRetVal;
+	// Dispatch commands specified on the command line.  Will return FALSE if
+	// app was launched with /RegServer, /Register, /Unregserver or /Unregister.
+	if (!ProcessShellCommand(cmdInfo))
+		return FALSE;
+
+	// The one and only window has been initialized, so show and update it
+	m_pMainWnd->ShowWindow(SW_SHOW);
+	m_pMainWnd->UpdateWindow();
+	// call DragAcceptFiles only if there's a suffix
+	//  In an SDI app, this should occur after ProcessShellCommand
+	// Enable drag/drop open
+	m_pMainWnd->DragAcceptFiles();
+	return TRUE;
 }
 
 
 
+// CAboutDlg dialog used for App About
 
-void UpdateGLView(int width, int height)	
+class CAboutDlg : public CDialog
 {
-	if (height == 0)										
-	{
-		height = 1;										
-	}
+public:
+	CAboutDlg();
 
-	scr_width	= width;
-	scr_height	= height;
+// Dialog Data
+	enum { IDD = IDD_ABOUTBOX };
 
-	glViewport(0, 0, width, height);						
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-	glMatrixMode(GL_PROJECTION);						
-	glLoadIdentity();			
-	glOrtho(0,width, height, 0, 1, 100);
-	glMatrixMode(GL_MODELVIEW);							
-	glLoadIdentity();			
-}	
+// Implementation
+protected:
+	DECLARE_MESSAGE_MAP()
+};
 
-
-
-void DrawGLScene()
-{
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
-
-	SpectraHelpers::drawSpectra( g_Spectrum, true, false, 0,0,scr_width,scr_height,g_YScale/g_Spectrum.m_Max );
-
-	Sleep(50);
-}
-
-
-void KillGL()	
+CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 {
 }
 
-
-void Export()
+void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
+	CDialog::DoDataExchange(pDX);
 }
 
-void DisableOutput()
-{
-}
+BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
+END_MESSAGE_MAP()
 
-void ArrowLeft()
+// App command to run the dialog
+void CViewerApp::OnAppAbout()
 {
-	if ( fileListPos > 0 ) {
-		fileListPos--;
-		std::string sstrFN = g_spectraFileList[fileListPos];
-		bool bSuccess = g_Spectrum.loadFromFITS( sstrFN );
-		if ( !bSuccess )
-		{
-			sstrFN +=" - [ failed ]";
-		}
-		setCaptionText( sstrFN );
-	}
-	left = 1;
+	CAboutDlg aboutDlg;
+	aboutDlg.DoModal();
 }
 
 
-void ArrowRight()
-{
-	if ( fileListPos+1 < g_spectraFileList.size() ) {
-		fileListPos++;
-		std::string sstrFN = g_spectraFileList[fileListPos];
-		bool bSuccess = g_Spectrum.loadFromFITS( sstrFN );
-		if ( !bSuccess )
-		{
-			sstrFN +=" - [ failed ]";
-		}
-		setCaptionText( sstrFN );
-	}
+// CviewerApp message handlers
 
-	right = 1;
-}
-
-void ArrowUp()
-{
-	g_YScale +=0.01f;
-	up = 1;
-}
-
-void ArrowDown()
-{
-	if ( g_YScale > 0.0f )
-	{
-		g_YScale -=0.01f;
-	}
-	down = 1;
-}
-
-void Space()
-{
-}
