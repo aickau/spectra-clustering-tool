@@ -58,7 +58,6 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE 9, 1
 #pragma code_page(1252)
@@ -110,10 +109,6 @@ BEGIN
 		MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
 		MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
 		MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
-		MENUITEM SEPARATOR
-		MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
-		MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
-		MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
 		MENUITEM SEPARATOR
 		MENUITEM "Recent File",                 ID_FILE_MRU_FILE1,GRAYED
 		MENUITEM SEPARATOR
@@ -254,12 +249,10 @@ END
 // String Table
 //
 
-STRINGTABLE   
+STRINGTABLE PRELOAD DISCARDABLE 
 BEGIN
-// Non-mac-targeting apps remove the two extra substrings
-  // has a file suffix
-	IDR_MAINFRAME           "enter Cool Name Here\n\nsdssbin\nviewer Files (*.bin)\n.bin\nsdssbin.Document\nsdssbin.Document"
-
+	  IDR_MAINFRAME           "enter Cool Name Here\n\nsdssbin\nviewer Files (*.bin)\n.bin\nsdssbin.Document\nsdssbin.Document"
+    IDR_VIS_TETYPE          "\nVis_te\nVis_te"
 END
 STRINGTABLE   
 BEGIN
