@@ -201,6 +201,22 @@
 			Name="gui"
 			>
 			<File
+				RelativePath=".\ChildFrm.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ChildFrm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ChildView.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ChildView.h"
+				>
+			</File>
+			<File
 				RelativePath=".\MainFrm.cpp"
 				>
 			</File>
@@ -214,30 +230,6 @@
 			</File>
 			<File
 				RelativePath=".\viewer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\viewerDoc.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\viewerDoc.h"
-				>
-			</File>
-			<File
-				RelativePath=".\viewerView.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\viewerView.h"
-				>
-			</File>
-			<File
-				RelativePath=".\viewerVis.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\viewerVis.h"
 				>
 			</File>
 		</Filter>

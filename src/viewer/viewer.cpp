@@ -5,11 +5,13 @@
 #include "viewer.h"
 #include "MainFrm.h"
 
-#include "viewerDoc.h"
-#include "viewerView.h"
+#include "MainFrm.h"
+#include "ChildFrm.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
 #endif
 
 
@@ -17,11 +19,7 @@
 
 BEGIN_MESSAGE_MAP(CViewerApp, CWinApp)
 	ON_COMMAND(ID_APP_ABOUT, &CViewerApp::OnAppAbout)
-	// Standard file based document commands
-	ON_COMMAND(ID_FILE_NEW, &CWinApp::OnFileNew)
-	ON_COMMAND(ID_FILE_OPEN, &CWinApp::OnFileOpen)
-	// Standard print setup command
-	ON_COMMAND(ID_FILE_PRINT_SETUP, &CWinApp::OnFilePrintSetup)
+	ON_COMMAND(ID_FILE_NEW, OnFileNew)
 END_MESSAGE_MAP()
 
 
@@ -43,6 +41,7 @@ CViewerApp theApp;
 
 BOOL CViewerApp::InitInstance()
 {
+	AfxEnableControlContainer();
 
 	// InitCommonControlsEx() is required on Windows XP if an application
 	// manifest specifies use of ComCtl32.dll version 6 or later to enable
@@ -55,53 +54,73 @@ BOOL CViewerApp::InitInstance()
 	InitCommonControlsEx(&InitCtrls);
 
 	CWinApp::InitInstance();
-
-	// Standard initialization
-	// If you are not using these features and wish to reduce the size
-	// of your final executable, you should remove from the following
-	// the specific initialization routines you do not need
-	// Change the registry key under which our settings are stored
-	// TODO: You should modify this string to be something appropriate
-	// such as the name of your company or organization
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
-	LoadStdProfileSettings(4);  // Load standard INI file options (including MRU)
-	// Register the application's document templates.  Document templates
-	//  serve as the connection between documents, frame windows and views
-	CSingleDocTemplate* pDocTemplate;
-	pDocTemplate = new CSingleDocTemplate(
-		IDR_MAINFRAME,
-		RUNTIME_CLASS(CViewerDoc),
-		RUNTIME_CLASS(CMainFrame),       // main SDI frame window
-		RUNTIME_CLASS(CViewerView));
-	if (!pDocTemplate)
-		return FALSE;
-	AddDocTemplate(pDocTemplate);
-
-
-	// Enable DDE Execute open
-	EnableShellOpen();
-	RegisterShellFileTypes(TRUE);
 
 	// Parse command line for standard shell commands, DDE, file open
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
 
-
-	// Dispatch commands specified on the command line.  Will return FALSE if
-	// app was launched with /RegServer, /Register, /Unregserver or /Unregister.
-	if (!ProcessShellCommand(cmdInfo))
+	CMDIFrameWnd* pFrame = new CMainFrame;
+	m_pMainWnd = pFrame;
+	
+	if (!pFrame->LoadFrame(IDR_MAINFRAME))
 		return FALSE;
 
-	// The one and only window has been initialized, so show and update it
-	m_pMainWnd->ShowWindow(SW_SHOW);
-	m_pMainWnd->UpdateWindow();
-	// call DragAcceptFiles only if there's a suffix
-	//  In an SDI app, this should occur after ProcessShellCommand
-	// Enable drag/drop open
-	m_pMainWnd->DragAcceptFiles();
+	HINSTANCE hInst = AfxGetResourceHandle();
+	m_hMDIMenu  = ::LoadMenu(hInst, MAKEINTRESOURCE(IDR_VIS_TETYPE));
+	m_hMDIAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_VIS_TETYPE));
+
+
+	pFrame->ShowWindow(m_nCmdShow);
+	pFrame->UpdateWindow();
+
+
 	return TRUE;
 }
 
+
+int CViewerApp::ExitInstance() 
+{
+	if (m_hMDIMenu != NULL)
+		FreeResource(m_hMDIMenu);
+	if (m_hMDIAccel != NULL)
+		FreeResource(m_hMDIAccel);
+
+	return CWinApp::ExitInstance();
+}
+
+void CViewerApp::OnFileNew() 
+{
+	CMainFrame* pFrame = STATIC_DOWNCAST(CMainFrame, m_pMainWnd);
+
+	if (pFrame)
+	{
+
+	pFrame->CreateNewChild(
+		RUNTIME_CLASS(CChildFrame), IDR_VIS_TETYPE, m_hMDIMenu, m_hMDIAccel);
+		}
+
+
+}
+
+
+void CViewerApp::Close()
+{
+	CMainFrame* pFrame = STATIC_DOWNCAST(CMainFrame, m_pMainWnd);
+
+	if ((pFrame) && ((void*)pFrame != (void*)this))
+	{
+		pFrame->GetActiveFrame()->SendMessage(WM_CLOSE);
+	}
+}
+
+
+BOOL CViewerApp::OnIdle(LONG lCount )
+{
+	CWinApp::OnIdle(lCount);
+
+	return TRUE;
+}
 
 
 // CAboutDlg dialog used for App About

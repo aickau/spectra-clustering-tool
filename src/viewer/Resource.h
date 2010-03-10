@@ -5,6 +5,7 @@
 #define IDD_ABOUTBOX				100
 #define IDR_MAINFRAME				128
 #define IDR_UntitledTYPE				129
+#define IDR_VIS_TETYPE                  153
 
 // Next default values for new objects
 // 
