@@ -4,9 +4,12 @@
 #include "stdafx.h"
 #include "viewer.h"
 #include "MainFrm.h"
-
-#include "MainFrm.h"
 #include "ChildFrm.h"
+
+#include "sdsslib/helpers.h"
+
+#include "tclap/CmdLine.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -15,7 +18,6 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 
-// CviewerApp
 
 BEGIN_MESSAGE_MAP(CViewerApp, CWinApp)
 	ON_COMMAND(ID_APP_ABOUT, &CViewerApp::OnAppAbout)
@@ -23,21 +25,15 @@ BEGIN_MESSAGE_MAP(CViewerApp, CWinApp)
 END_MESSAGE_MAP()
 
 
-// CviewerApp construction
-
-CViewerApp::CViewerApp()
-{
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
-}
-
-
-// The one and only CviewerApp object
 
 CViewerApp theApp;
 
+CViewerApp::CViewerApp()
+{
+}
 
-// CviewerApp initialization
+
+
 
 BOOL CViewerApp::InitInstance()
 {
@@ -59,6 +55,12 @@ BOOL CViewerApp::InitInstance()
 	// Parse command line for standard shell commands, DDE, file open
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
+
+	// convert command line
+	int argc;
+	std::string sstrCmdLine(GetCommandLine());
+	char **argv = Helpers::getCommandLineFromString( sstrCmdLine, argc );
+
 
 	CMDIFrameWnd* pFrame = new CMainFrame;
 	m_pMainWnd = pFrame;
@@ -92,15 +94,10 @@ int CViewerApp::ExitInstance()
 void CViewerApp::OnFileNew() 
 {
 	CMainFrame* pFrame = STATIC_DOWNCAST(CMainFrame, m_pMainWnd);
-
 	if (pFrame)
 	{
-
-	pFrame->CreateNewChild(
-		RUNTIME_CLASS(CChildFrame), IDR_VIS_TETYPE, m_hMDIMenu, m_hMDIAccel);
-		}
-
-
+		pFrame->CreateNewChild(	RUNTIME_CLASS(CChildFrame), IDR_VIS_TETYPE, m_hMDIMenu, m_hMDIAccel );
+	}
 }
 
 
@@ -123,7 +120,7 @@ BOOL CViewerApp::OnIdle(LONG lCount )
 }
 
 
-// CAboutDlg dialog used for App About
+
 
 class CAboutDlg : public CDialog
 {
@@ -161,5 +158,4 @@ void CViewerApp::OnAppAbout()
 }
 
 
-// CviewerApp message handlers
 
