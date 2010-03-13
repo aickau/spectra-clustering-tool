@@ -26,6 +26,8 @@
 #include <windows.h>
 #include <fcntl.h>
 #include <io.h>
+#include <shellapi.h>
+
 
 
 
@@ -122,4 +124,27 @@ void Helpers::UInt64toHiLow( unsigned __int64 _nInNumber, unsigned __int32 &_nOu
 {
 	_nOutLowerPart = static_cast<unsigned __int32>(_nInNumber & 0x0ffffffff);
 	_nOutHigherPart = static_cast<unsigned __int32>(_nInNumber >> 32);
+}
+
+
+char **Helpers::getCommandLineFromString( const std::string &sstrCommandLineString, int &outArgC )
+{
+	outArgC=0;
+	size_t commandlineSize = sstrCommandLineString.size();
+	WCHAR *commandlinewc = new WCHAR[commandlineSize];
+	char *commandline = new char[commandlineSize];
+	mbstowcs( commandlinewc, GetCommandLine(), 16384 );
+	LPWSTR *argvwc = CommandLineToArgvW( commandlinewc, &outArgC );
+	char **argv = new char*[outArgC+1];
+	size_t c=0;
+	for (int i=0;i<outArgC;i++) {
+		argv[i] = commandline+c;
+		size_t len =  wcslen(argvwc[i]);
+		wcstombs(&commandline[c],argvwc[i], len);
+		c+= len+1;
+		commandline[c-1] = 0;
+	}
+	argv[outArgC] = NULL; // terminate with zero.
+
+	return argv;
 }

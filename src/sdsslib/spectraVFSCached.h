@@ -39,11 +39,7 @@ public:
 	static const size_t CACHELINESIZE = 16000;
 
 	// number of cache lines
-#ifdef X64
-	static const size_t CACHELINES = 80;
-#else
-	static const size_t CACHELINES = 2;
-#endif
+	static const size_t CACHELINES = 4;
 
 	// construct a virtual file system by specifying a binary dump file which contains spectral data
 	// _readOnly if true no data can be written

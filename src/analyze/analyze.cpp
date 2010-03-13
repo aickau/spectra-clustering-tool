@@ -36,7 +36,6 @@
 
 #include <assert.h>
 #include <Windows.h>
-#include <shellapi.h>
 
 #include <string>
 
@@ -185,24 +184,11 @@ int InitGL()
 
 	//SpectraVFS::write(30,75.0f, std::string("allspectra3.bin") );
 
-	// convert commandline
+
+	// convert command line
 	int argc;
 	std::string sstrCmdLine(GetCommandLine());
-	size_t commandlineSize = sstrCmdLine.size();
-	WCHAR *commandlinewc = new WCHAR[commandlineSize];
-	char *commandline = new char[commandlineSize];
-	mbstowcs( commandlinewc, GetCommandLine(), 16384 );
-	LPWSTR *argvwc = CommandLineToArgvW( commandlinewc, &argc );
-	char **argv = new char*[argc+1];
-	size_t c=0;
-	for (int i=0;i<argc;i++) {
-		argv[i] = commandline+c;
-		size_t len =  wcslen(argvwc[i]);
-		wcstombs(&commandline[c],argvwc[i], len);
-		c+= len+1;
-		commandline[c-1] = 0;
-	}
-	argv[argc] = NULL; // terminate with zero.
+	char **argv = Helpers::getCommandLineFromString( sstrCmdLine, argc );
 
 	Helpers::print("Welcome to SDSS Analyze "+sstrSDSSVersionString+" !\n\n\n", &logFile);
 
@@ -241,6 +227,8 @@ int InitGL()
 	{ 
 		Helpers::print( "error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
 	}
+
+	delete[] argv;
 
 
 	Helpers::print( "Reading dump file "+sstrSourceSpectraFilename+ "\n", &logFile );

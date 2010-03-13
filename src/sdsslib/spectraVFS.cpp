@@ -39,7 +39,7 @@ SpectraVFS::SpectraVFS( const std::string &_sstrFilename, bool _readOnly )
 :m_sstrDumpFilename(_sstrFilename)
 ,m_logFile(std::string(_sstrFilename+std::string(".log")).c_str())
 {
-#ifdef SPECTRAVFS_MEMONLY
+#ifdef X64
 	m_pSpectraVFS = new SpectraVFSMemOnly(_sstrFilename, m_logFile, _readOnly );
 #else
 	m_pSpectraVFS = new SpectraVFSCached(_sstrFilename, m_logFile, _readOnly );
