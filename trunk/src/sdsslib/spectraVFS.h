@@ -30,8 +30,6 @@
 class SpectraVFSCached;
 class SpectraVFSMemOnly;
 
-// use this version if entire spectra data pool fits into main memory
-#define SPECTRAVFS_MEMONLY
 
 // virtual file system for a large set of homogeneous spectra.
 class SpectraVFS
@@ -100,7 +98,7 @@ private:
 	std::string m_sstrDumpFilename;										// file where we read from (and write to)
 	std::ofstream m_logFile;											// error logfile 
 
-#ifdef SPECTRAVFS_MEMONLY
+#ifdef X64
 	SpectraVFSMemOnly *m_pSpectraVFS;				
 #else
 	SpectraVFSCached *m_pSpectraVFS;				
