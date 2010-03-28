@@ -35,8 +35,9 @@
 	#define ASSERTM(x,msg) {if(!(x)) if(DoAssert (#x,__LINE__,__FILE__,msg)==ASSERT_BREAK) __asm{int 3};}
 
 	//#define ASSERT(x) ASSERTM(x,0)  
+#ifndef ASSERT
 	#define ASSERT(x) assert(x);
-
+#endif
 #endif
 
 
