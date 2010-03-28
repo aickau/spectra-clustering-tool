@@ -23,7 +23,9 @@
 #include <Windows.h>
 
 #ifndef _DEBUG
+#ifndef ASSERT
 	#define ASSERT(x) 
+#endif
 	#define ASSERTM(x,msg)
 #else 
 
