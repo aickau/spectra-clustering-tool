@@ -18,8 +18,7 @@ public:
 	 */
 	VIS_DLLEXPORT  CString				GetDsName();
 	
-	// only for testing purposes since TR::Triangulation is fuuucking slow
-	VIS_DLLEXPORT  void					Init(double *points, int *faces, int numpoints, int numfaces);
+	VIS_DLLEXPORT  void					Init(float *points, int *faces, int numpoints, int numfaces);
 
 	VIS_DLLEXPORT  void					ReleaseBuffer();
 
