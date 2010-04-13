@@ -312,8 +312,14 @@ public:
 	static float indexToWaveLength( size_t _index, float _waveBegin, float _waveEnd, int _numSamples );
 	static size_t waveLengthToIndex( float _waveLength, float _waveBegin, float _waveEnd, int _numSamples );
 
-	// returns any ORed combination of SpectraTypes as filter
+	// returns any combination of SpectraTypes as filter
 	static std::string spectraFilterToString( unsigned int _spectraFilter );
+
+	// generate spectra filename from plate, MJD and fiber, e.g. spSpec-52203-0716-002.fit
+	// MJD has always five digits
+	// plate number has always four digits
+	// fiber id has always three digits
+	static std::string Spectra::getSpecObjFileName(int _plate, int _mjd, int _fiberID );
 
 	//@}
 

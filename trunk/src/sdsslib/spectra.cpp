@@ -1514,3 +1514,26 @@ std::string Spectra::spectraFilterToString( unsigned int _spectraFilter )
 	}
 	return sstrOutString;
 }
+
+
+
+std::string Spectra::getSpecObjFileName(int _plate, int _mjd, int _fiberID )
+{
+	// e.g. spSpec-52203-0716-002.fit
+	std::string sstrFileName( "spSpec-" );
+
+	char buf[64];
+	sprintf_s( buf, "%05i", _mjd );
+	sstrFileName += buf;
+	sstrFileName += "-";
+
+	sprintf_s( buf, "%04i", _plate );
+	sstrFileName += buf;
+	sstrFileName += "-";
+
+	sprintf_s( buf, "%03i", _fiberID );
+	sstrFileName += buf;
+	sstrFileName += ".fit";
+
+	return sstrFileName;
+}
