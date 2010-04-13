@@ -127,24 +127,24 @@ void Helpers::UInt64toHiLow( unsigned __int64 _nInNumber, unsigned __int32 &_nOu
 }
 
 
-char **Helpers::getCommandLineFromString( const std::string &sstrCommandLineString, int &outArgC )
+char **Helpers::getCommandLineFromString( const std::string &_sstrCommandLineString, int &_outArgC )
 {
-	outArgC=0;
-	size_t commandlineSize = sstrCommandLineString.size();
+	_outArgC=0;
+	size_t commandlineSize = _sstrCommandLineString.size();
 	WCHAR *commandlinewc = new WCHAR[commandlineSize];
 	char *commandline = new char[commandlineSize];
 	mbstowcs( commandlinewc, GetCommandLine(), 16384 );
-	LPWSTR *argvwc = CommandLineToArgvW( commandlinewc, &outArgC );
-	char **argv = new char*[outArgC+1];
+	LPWSTR *argvwc = CommandLineToArgvW( commandlinewc, &_outArgC );
+	char **argv = new char*[_outArgC+1];
 	size_t c=0;
-	for (int i=0;i<outArgC;i++) {
+	for (int i=0;i<_outArgC;i++) {
 		argv[i] = commandline+c;
 		size_t len =  wcslen(argvwc[i]);
 		wcstombs(&commandline[c],argvwc[i], len);
 		c+= len+1;
 		commandline[c-1] = 0;
 	}
-	argv[outArgC] = NULL; // terminate with zero.
+	argv[_outArgC] = NULL; // terminate with zero.
 
 	return argv;
 }
