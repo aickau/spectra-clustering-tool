@@ -40,6 +40,7 @@
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/spectraHelpers.h"
 #include "sdsslib/spectra.h"
+#include "sdsslib/defines.h"
 
 typedef char _TCHAR;
 
@@ -501,6 +502,148 @@ void writeRADEC()
 }
 
 
+void writeUMatrix()
+{
+	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
+	if ( pNetworkVFS != NULL )
+	{
+		SpectraHelpers::calcUMatrix( *pNetworkVFS, "UMatrix", true, true, false, false, 1 );
+	}
+}
+
+
+
+void writeUMatrixForSource()
+{
+	bool _bUseLogScale = false;
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	float maxFlux = 0.0f;
+
+	//for (size_t j=0;j<=200;j++)
+	size_t j=200;
+	{
+		int *pIndexlist= new int[gridSize*gridSize];
+		std::string sstrIndexList = "indexlist";
+		std::string sstrFileName = "UMatrixForSource";
+		sstrIndexList += Helpers::numberToString(j,4);
+		sstrFileName += Helpers::numberToString(j,4);
+		sstrIndexList+= ".bin";
+		FILE *f=fopen(sstrIndexList.c_str(),"rb");
+		if ( f!= NULL)
+		{
+			fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+			fclose(f);
+		}
+
+		float *pUMatrix = new float[gridSizeSqr];
+		float *pRGBMap = new float[gridSizeSqr*3];
+
+		float maxErr = 0.0f;
+
+		// flash
+		for (size_t i=0;i<gridSizeSqr;i++) 
+		{
+			pUMatrix[i] = -1.0f;
+		}
+		for ( size_t i=0;i<gridSizeSqr*3;i++)
+		{
+			pRGBMap[i] = 0.5f;
+		}
+
+
+		// calc errors
+		for ( size_t y=1;y<gridSize-1;y++ )
+		{
+			for ( size_t x=1;x<gridSize-1;x++ )
+			{
+				const size_t i = CALC_ADRESS(x,y,gridSize);
+				const size_t iLeft = CALC_ADRESS(x-1,y,gridSize);
+				const size_t iRight = CALC_ADRESS(x+1,y,gridSize);
+				const size_t iUp = CALC_ADRESS(x,y-1,gridSize);
+				const size_t iBottom = CALC_ADRESS(x,y+1,gridSize);
+
+				int index_i = pIndexlist[i];
+				int index_iLeft = pIndexlist[iLeft];
+				int index_iRight = pIndexlist[iRight];
+				int index_iUp = pIndexlist[iUp];
+				int index_iBottom = pIndexlist[iBottom];
+
+				if ( index_i > 0 && index_i < numSourceSpecra )
+				{
+					Spectra *spCenter = pSourceVFS->beginRead( index_i );
+
+					pUMatrix[i] = 0;
+
+					if ( index_iLeft > 0 && index_iLeft < numSourceSpecra )
+					{
+						Spectra *sp = pSourceVFS->beginRead( index_iLeft );
+						pUMatrix[i] += spCenter->compare( *sp );
+						pSourceVFS->endRead( index_iLeft );
+					}
+					if ( index_iRight > 0 && index_iRight < numSourceSpecra )
+					{
+						Spectra *sp = pSourceVFS->beginRead( index_iRight );
+						pUMatrix[i] += spCenter->compare( *sp );
+						pSourceVFS->endRead( index_iRight );
+					}
+					if ( index_iUp > 0 && index_iUp < numSourceSpecra )
+					{
+						Spectra *sp = pSourceVFS->beginRead( index_iUp );
+						pUMatrix[i] += spCenter->compare( *sp );
+						pSourceVFS->endRead( index_iUp );
+					}
+					if ( index_iBottom > 0 && index_iBottom < numSourceSpecra )
+					{
+						Spectra *sp = pSourceVFS->beginRead( index_iBottom );
+						pUMatrix[i] += spCenter->compare( *sp );
+						pSourceVFS->endRead( index_iBottom );
+					}
+					maxErr = MAX( maxErr, pUMatrix[i] );
+					pSourceVFS->endRead( index_i );
+				}
+			}
+		}
+
+		// normalize
+		if ( maxErr > 0.0f )
+		{
+			for (size_t i=0;i<gridSizeSqr;i++) 
+			{
+				if ( pUMatrix[i] > 0 )
+				{
+
+					float scale;
+					if ( _bUseLogScale )
+					{
+						// logarithmic scale
+						scale  = log10f( pUMatrix[i]+1.f ) / log10f( maxErr+1.f );
+					}
+					else
+					{
+						// linear scale
+						scale  = pUMatrix[i] /= maxErr;
+					}
+
+					SpectraHelpers::intensityToRGB( scale,  &pRGBMap[i*3] );
+				}
+			}
+		}
+
+		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrFileName);
+
+
+		delete[] pIndexlist;
+		delete[] pRGBMap;
+	}
+}
+
+
+
 void spectroLisWrite()
 {
 	std::ofstream logFile("specObjOperations_log.txt");
@@ -599,7 +742,10 @@ void main(int argc, char* argv[])
 	//writeFlux();
 	//writePlate();
 	//writeRADEC();
-	writeMJD();
+	//writeMJD();
+	//writeUMatrix();
+	writeUMatrixForSource();
+
 
 	printf ("fin.\n" );
 

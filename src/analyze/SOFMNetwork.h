@@ -99,27 +99,6 @@ public:
 	// _fullExport if set to true generates UMatrix, DifferenceMaps and search result lists (containing top 100 similar spectra) for input each spectrum
 	void exportToHTML( const std::string &_sstrFilename, bool _fullExport = true );
 	
-	// Calculate unified distance matrix (Ultsch 1989) of the SOM for the current calculation step. 
-	// sstrFilenName path + filename (no extension)
-	// _bUseLogScale use logarithmic scaling for matrix display
-	// _bShowEmpty show intensities for empty cells (no input data in there), otherwise empty cells are filled with black pixels
-	// _bNormalize normalize map for comparison
-	// _showRanges write many u matrices with a red rectangle marking the actual range
-	void calcUMatrix( const std::string &_sstrFilenName, bool _bUseLogScale=true, bool _bShowEmpty=true, bool _bNormalize=false, bool _showRanges=false );
-
-	// Calculate difference map of the SOM codebook vectors and the input data assigned to a neuron  for the current calculation step. 
-	// sstrFilenName path + filename (no extension)
-	// _bUseLogScale use logarithmic scaling for matrix display
-	// _bNormalize normalize map for comparison
-	// bOutputAsTextFile if true, we write the difference map as text file too (then no log scale).
-	void calcDifferenceMap( const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize, bool _bOutputAsTextFile = false, bool _showRanges=false );
-
-	// Calculate z map of th input data assigned to a neuron  for the current calculation step. 
-	// sstrFilenName path + filename (no extension)
-	// _bUseLogScale use logarithmic scaling for matrix display
-	void calcZMap( const std::string &_sstrFilenName, bool _bUseLogScale, bool _showRanges=false );
-
-
 	// grid size in cells of the map
 	size_t			m_gridSize;
 

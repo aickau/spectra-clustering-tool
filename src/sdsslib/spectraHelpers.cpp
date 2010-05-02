@@ -886,4 +886,307 @@ void intensityToRGB(float _intensity, float *_pRGB, bool _bRed )
 }
 
 
+
+
+void calcUMatrix( SpectraVFS &_network, const std::string &_sstrFilenName, bool _bUseLogScale, bool _bShowEmpty, bool _bNormalize, bool _showRanges, size_t _planSize )
+{
+	if ( _network.getNumSpectra() == 0 )
+	{
+		return;
+	}
+	assert( !_sstrFilenName.empty() );
+
+	const size_t gridSizeSqr = _network.getNumSpectra();
+	const size_t gridSize = sqrtf(gridSizeSqr);
+
+	float *pUMatrix = new float[gridSizeSqr];
+	float *pRGBMap = new float[gridSizeSqr*3];
+
+	float maxErr = 0.0f;
+
+	// flash
+	for (size_t i=0;i<gridSizeSqr;i++) 
+	{
+		pUMatrix[i] = 0.0f;
+	}
+
+	// calc errors
+	for ( size_t y=1;y<gridSize-1;y++ )
+	{
+		for ( size_t x=1;x<gridSize-1;x++ )
+		{
+			const size_t i = CALC_ADRESS(x,y,gridSize);
+			const size_t iLeft = CALC_ADRESS(x-1,y,gridSize);
+			const size_t iRight = CALC_ADRESS(x+1,y,gridSize);
+			const size_t iUp = CALC_ADRESS(x,y-1,gridSize);
+			const size_t iBottom = CALC_ADRESS(x,y+1,gridSize);
+			Spectra *spCenter = _network.beginRead( i );
+			Spectra *spLeft = _network.beginRead( iLeft );
+			Spectra *spRight = _network.beginRead( iRight );
+			Spectra *spTop = _network.beginRead( iUp );
+			Spectra *spBottom = _network.beginRead( iBottom );
+
+			if ( _bShowEmpty || !spCenter->isEmpty() )
+			{
+				SSE_ALIGN Spectra backupCenter (*spCenter);
+				SSE_ALIGN Spectra backupLeft(*spLeft);
+				SSE_ALIGN Spectra backupRight(*spRight);
+				SSE_ALIGN Spectra backupTop(*spTop);
+				SSE_ALIGN Spectra backupBottom(*spBottom);
+
+				if ( _bNormalize )
+				{
+					backupCenter.normalize();
+					backupLeft.normalize();
+					backupRight.normalize();
+					backupTop.normalize();
+					backupBottom.normalize();
+				}
+
+				pUMatrix[i] += backupCenter.compare( backupLeft );
+				pUMatrix[i] += backupCenter.compare( backupRight );
+				pUMatrix[i] += backupCenter.compare( backupTop );
+				pUMatrix[i] += backupCenter.compare( backupBottom );
+
+				maxErr = MAX( maxErr, pUMatrix[i] );
+			}
+
+
+			_network.endRead( i );
+			_network.endRead( iLeft );
+			_network.endRead( iRight );
+			_network.endRead( iUp );
+			_network.endRead( iBottom );
+		}
+	}
+
+	// normalize
+	if ( maxErr > 0.0f )
+	{
+		for (size_t i=0;i<gridSizeSqr;i++) 
+		{
+			float scale;
+			if ( _bUseLogScale )
+			{
+				// logarithmic scale
+				scale  = log10f( pUMatrix[i]+1.f ) / log10f( maxErr+1.f );
+			}
+			else
+			{
+				// linear scale
+				scale  = pUMatrix[i] /= maxErr;
+			}
+
+			SpectraHelpers::intensityToRGB( scale,  &pRGBMap[i*3] );
+		}
+	}
+
+	if (_showRanges)
+	{
+		writeMapWithSubpageMarkers( _sstrFilenName, pRGBMap, gridSize, _planSize );
+	}
+
+	saveIntensityMap( pRGBMap, gridSize, gridSize, _sstrFilenName );
+
+	delete[] pUMatrix;
+	delete[] pRGBMap;
+}
+
+
+
+void calcDifferenceMap( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize, bool _bOutputAsTextFile, bool _showRanges, size_t _planSize )
+{
+	if ( _network.getNumSpectra() == 0 )
+	{
+		return;
+	}
+	if ( _sourceSpectra.getNumSpectra() == 0 )
+	{
+		return;
+	}
+
+	assert( !_sstrFilenName.empty() );
+
+	const size_t gridSizeSqr = _network.getNumSpectra();
+	const size_t gridSize = sqrtf(gridSizeSqr);
+
+	float *pDiffMatrix = new float[gridSizeSqr];
+	float *pRGBMap = new float[gridSizeSqr*3];
+
+	float maxErr = 0.0f;
+
+	std::string sstrDifferenceMap("");
+
+
+	// calc errors
+	for ( size_t i=0;i<gridSizeSqr;i++ )
+	{
+		Spectra *spNet = _network.beginRead( i );
+		SSE_ALIGN Spectra backupNet(*spNet);
+
+		if ( spNet->isEmpty() )
+		{
+			// mark empty cells
+			pDiffMatrix[i] = -1.f;
+		}
+		else
+		{
+			Spectra *spSource = _sourceSpectra.beginRead( spNet->m_Index );
+			SSE_ALIGN Spectra backupSource(*spSource);
+
+			if ( _bNormalize )
+			{
+				backupSource.normalize();
+				backupNet.normalize();
+			}
+			pDiffMatrix[i] = backupNet.compare( backupSource );
+			maxErr = MAX( maxErr, pDiffMatrix[i] );
+			_sourceSpectra.endRead( spNet->m_Index );
+		}
+		_network.endRead( i );
+	}
+
+	// normalize
+	if ( maxErr > 0.0f )
+	{
+		for (size_t i=0;i<gridSizeSqr;i++) 
+		{
+			if ( pDiffMatrix[i] >= 0.0f )
+			{
+				float scale;
+				if ( _bUseLogScale )
+				{
+					// logarithmic scale
+					scale  = log10f( pDiffMatrix[i]+1.f ) / log10f( maxErr+1.f );
+				}
+				else
+				{
+					// linear scale
+					scale  = pDiffMatrix[i] /= maxErr;
+				}
+
+				if ( _bOutputAsTextFile )
+				{
+					float differenceValue = pDiffMatrix[i] / maxErr;
+					sstrDifferenceMap += Helpers::numberToString<float>(differenceValue) + "\n";
+				}
+
+				SpectraHelpers::intensityToRGB( scale, &pRGBMap[i*3] );
+			}
+			else
+			{
+				// mark empty cells
+				pRGBMap[i*3]   = 0.5f;
+				pRGBMap[i*3+1] = 0.5f;
+				pRGBMap[i*3+2] = 0.5f;
+
+				if ( _bOutputAsTextFile )
+				{
+					sstrDifferenceMap += "-1.0\n";
+				}
+			}
+		}
+	}
+
+	if ( _bOutputAsTextFile )
+	{
+		std::string sstrTxtFile(_sstrFilenName);
+		sstrTxtFile += ".txt";
+
+		std::ofstream fon(sstrTxtFile.c_str());
+		fon<<sstrDifferenceMap;
+	}
+	if (_showRanges)
+	{
+		SpectraHelpers::writeMapWithSubpageMarkers( _sstrFilenName, pRGBMap, gridSize, _planSize );
+	}
+
+
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, _sstrFilenName );
+
+	delete[] pDiffMatrix;
+	delete[] pRGBMap;
+}
+
+
+void calcZMap( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilenName, bool _bUseLogScale, bool _showRanges, size_t _planSize )
+{
+	if ( _network.getNumSpectra() == 0 )
+	{
+		return;
+	}
+	if ( _sourceSpectra.getNumSpectra() == 0 )
+	{
+		return;
+	}
+
+	assert( !_sstrFilenName.empty() );
+
+
+	const size_t numSpectra = _sourceSpectra.getNumSpectra();
+	const size_t gridSizeSqr = _network.getNumSpectra();
+	const size_t gridSize = sqrtf(gridSizeSqr);
+
+	float *pZMatrix = new float[gridSizeSqr];
+	float *pRGBMap = new float[gridSizeSqr*3];
+
+	float maxZ = 0.0f;
+
+	// get maximum z
+	for ( size_t i=0;i<numSpectra;i++ )
+	{
+		Spectra *a = _sourceSpectra.beginRead( i );
+		if (maxZ < a->m_Z)
+		{
+			maxZ = a->m_Z;
+		}
+		_sourceSpectra.endRead( i );
+	}
+
+	// get z from net
+	for (size_t i=0;i<gridSizeSqr;i++) 
+	{
+		Spectra *spNet = _network.beginRead( i );
+
+		if ( spNet->isEmpty() )
+		{
+			// mark empty cells
+			pZMatrix[i] = -1.f;
+			pRGBMap[i*3]   = 0.5f;
+			pRGBMap[i*3+1] = 0.5f;
+			pRGBMap[i*3+2] = 0.5f;
+		}
+		else
+		{
+			Spectra *spSource = _sourceSpectra.beginRead( spNet->m_Index );
+			pZMatrix[i] = spSource->m_Z;
+			float scale;
+			if ( _bUseLogScale )
+			{
+				// logarithmic scale
+				scale  = log10f( pZMatrix[i]+1.f ) / log10f( maxZ+1.f );
+			}
+			else
+			{
+				// linear scale
+				scale  = pZMatrix[i] /= maxZ;
+			}
+			_sourceSpectra.endRead( spNet->m_Index );
+			SpectraHelpers::intensityToRGB( scale, &pRGBMap[i*3], true );			
+		}
+		_network.endRead( i );
+	}
+	if (_showRanges)
+	{
+		SpectraHelpers::writeMapWithSubpageMarkers( _sstrFilenName, pRGBMap, gridSize, _planSize );
+	}
+
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, _sstrFilenName );
+
+	delete[] pZMatrix;
+	delete[] pRGBMap;
+}
+
+
+
 }
