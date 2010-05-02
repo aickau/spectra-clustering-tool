@@ -71,6 +71,31 @@ namespace SpectraHelpers
 	void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _redness );
 
 
+	// Calculate unified distance matrix (Ultsch 1989) of the SOM for the current calculation step. 
+	// sstrFilenName path + filename (no extension)
+	// _bUseLogScale use logarithmic scaling for matrix display
+	// _bShowEmpty show intensities for empty cells (no input data in there), otherwise empty cells are filled with black pixels
+	// _bNormalize normalize map for comparison
+	// _showRanges write many u matrices with a red rectangle marking the actual range
+	// _planSize plan size for rectangles (only used if _showRanges true)
+	void calcUMatrix( SpectraVFS &_network, const std::string &_sstrFilenName, bool _bUseLogScale, bool _bShowEmpty, bool _bNormalize, bool _showRanges, size_t _planSize);
+
+	// Calculate difference map of the SOM codebook vectors and the input data assigned to a neuron  for the current calculation step. 
+	// sstrFilenName path + filename (no extension)
+	// _bUseLogScale use logarithmic scaling for matrix display
+	// _bNormalize normalize map for comparison
+	// bOutputAsTextFile if true, we write the difference map as text file too (then no log scale).
+	// _planSize plan size for rectangles (only used if _showRanges true)
+	void calcDifferenceMap( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilenName, bool _bUseLogScale, bool _bNormalize, bool _bOutputAsTextFile, bool _showRanges, size_t _planSize );
+
+	// Calculate z map of th input data assigned to a neuron  for the current calculation step. 
+	// sstrFilenName path + filename (no extension)
+	// _bUseLogScale use logarithmic scaling for matrix display
+	// _planSize plan size for rectangles (only used if _showRanges true)
+	void calcZMap( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilenName, bool _bUseLogScale, bool _showRanges, size_t _planSize );
+
+
+
 	//@}
 
 
