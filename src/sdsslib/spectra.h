@@ -93,6 +93,48 @@ public:
 		SN_FLUX
 	};
 
+	enum SpectraZStatus
+	{
+		SP_ZSTATUS_NOT_MEASURED	= 0,		// Redshift not yet measured.
+		SP_ZSTATUS_FAILED		= 1,		// Redshift measurement failed.
+		SP_ZSTATUS_INCONSISTENT	= 2,		// Redshift cross-correlation and emz both high-confidence but inconsistent.
+		SP_ZSTATUS_XCORR_EMLINE	= 3,		// Redshift determined from cross-correlation and emz are consistent.
+		SP_ZSTATUS_XCORR_HIC	= 4,		// Redshift determined from x-corr with high confidence.
+		SP_ZSTATUS_XCORR_LOC	= 5,		// Redshift determined from cross-correlation with low confidence.
+		SP_ZSTATUS_EMLINE_XCORR	= 6,		// Redshift from emz plus consistent xcorr redshift measurement.
+		SP_ZSTATUS_EMLINE_HIC	= 7,		// Redshift determined from em-lines with high confidence.
+		SP_ZSTATUS_EMLINE_LOC	= 8,		// Redshift determined from em-lines with low confidence.
+		SP_ZSTATUS_MANUAL_HIC	= 9,		// Redshift determined "by hand" with high confidence.
+		SP_ZSTATUS_MANUAL_LOC	= 10,		// Redshift determined "by hand" with low confidence.
+		SP_ZSTATUS_4000BREAK	= 11,		// x-corr redshift determined when EW(4000Å break) > 0.95.
+		SP_ZSTATUS_ABLINE_CAII	= 12		// Redshift determined from average of CaII triplet fits.
+	};
+
+	enum SpectraZWarning
+	{
+		SP_ZWARNING_OK				= 0x00000000,		//	No warnings.
+		SP_ZWARNING_NO_SPEC			= 0x00000001,		//	No spectrum.
+		SP_ZWARNING_NO_BLUE			= 0x00000004,		//	No blue side spectrum.
+		SP_ZWARNING_NO_RED			= 0x00000008,		//	No red side spectrum.
+		SP_ZWARNING_NOT_GAL			= 0x00000010,		//	Classification does not match galaxy target.
+		SP_ZWARNING_NOT_QSO			= 0x00000020,		//	Classification does not match quasar target.
+		SP_ZWARNING_NOT_STAR		= 0x00000040,		//	Classification does not match star target.
+		SP_ZWARNING_GAL_COEF		= 0x00000080,		//	Galaxy PCA coefficients far off locus (placeholder).
+		SP_ZWARNING_EMAB_INC		= 0x00000100,		//	Emission and absorption z's inconsistent.
+		SP_ZWARNING_AB_INC			= 0x00000200,		//	Absorption redshifts inconsistent.
+		SP_ZWARNING_EM_INC			= 0x00000400,		//	Emission redshifts inconsistent.
+		SP_ZWARNING_HIZ				= 0x00000800,		//	Redshift is high.
+		SP_ZWARNING_LOC				= 0x00001000,		//	Confidence is low.
+		SP_ZWARNING_LOW_SNG			= 0x00002000,		//	Signal to noise is low in g.
+		SP_ZWARNING_LOW_SNR			= 0x00004000,		//	Signal to noise is low in r .
+		SP_ZWARNING_LOW_SNI			= 0x00008000,		//	Signal to noise is low in i.
+		SP_ZWARNING_4000BREAK		= 0x00010000,		//	EW(4000A break) > 0.95.
+		SP_ZWARNING_NOT_MAPPED		= 0x00020000,		//	Fiber was not mapped
+		SP_ZWARNING_MANUAL_MAPPED	= 0x00040000,		//	Fiber mapping was set manually
+		SP_ZWARNING_LOADER_MAPPED	= 0x00080000		//	Single unmapped fiber re-mapped by DB loader
+	};
+
+
 	// emission and absorption lines info
 	struct SpectraLines
 	{

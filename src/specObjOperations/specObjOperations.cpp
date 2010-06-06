@@ -474,8 +474,8 @@ void writeRADEC()
 				fits_open_file( &f, sstrPath.c_str(), READONLY, &status );
 				if ( status == 0 )
 				{
-					fits_read_key( f, TFLOAT, "RADEG", &ra, NULL, &status );
-					fits_read_key( f, TFLOAT, "DECDEG", &dec, NULL, &status );
+					fits_read_key( f, TFLOAT, "RAOBJ", &ra, NULL, &status );//RADEG
+					fits_read_key( f, TFLOAT, "DECOBJ", &dec, NULL, &status );//DECDEG
 					fits_close_file(f, &status);
 				}
 				
@@ -491,6 +491,11 @@ void writeRADEC()
 				
 				pSourceVFS->endRead(index);
 			}
+
+			if ( i%5000==0)
+			{
+				printf("%f finished\n",((float)i/(float)gridSizeSqr)*100.0);
+			}
 		}
 
 		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrFileName);
@@ -500,6 +505,307 @@ void writeRADEC()
 		delete[] pRGBMap;
 	}
 }
+
+
+
+void writeOtherZValues()
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	float maxFlux = 0.0f;
+
+	//for (size_t j=0;j<=200;j++)
+	size_t j=200;
+	{
+		int *pIndexlist= new int[gridSize*gridSize];
+		std::string sstrIndexList = "indexlist";
+		std::string sstrFileName1 = "zErr";
+		std::string sstrFileName2 = "zConf";
+		std::string sstrFileName3 = "zStatus";
+		std::string sstrFileName4 = "zWarning";
+		sstrIndexList += Helpers::numberToString(j,4);
+		sstrIndexList+= ".bin";
+		FILE *f=fopen(sstrIndexList.c_str(),"rb");
+		if ( f!= NULL)
+		{
+			fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+			fclose(f);
+		}
+
+		float *pZErr = new float[gridSizeSqr];
+		float *pZConf = new float[gridSizeSqr];
+		unsigned int *pZStatus = new unsigned int[gridSizeSqr];
+		unsigned int *pZWarning = new unsigned int[gridSizeSqr];
+
+
+		float *pRGBMap1 = new float[gridSizeSqr*3];
+		float *pRGBMap2 = new float[gridSizeSqr*3];
+
+		float zMaxErr = -110.0;
+
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index > 0 && index < numSourceSpecra )
+			{
+				Spectra *sp = pSourceVFS->beginRead(index);
+				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
+				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
+				std::string sstrPath = "D:/dr7/1d_25/"+sstrPlate+"/1d/"+sstrFileName;
+
+
+				fitsfile *f;
+				int status = 0;
+				float zErr = 0.f;
+				float zConf = 0.0f;
+				unsigned long zStatus=0;
+				unsigned long zWarning=0;
+
+
+				fits_open_file( &f, sstrPath.c_str(), READONLY, &status );
+				if ( status == 0 )
+				{
+					fits_read_key( f, TFLOAT, "Z_ERR", &zErr, NULL, &status );
+					fits_read_key( f, TFLOAT, "Z_CONF", &zConf, NULL, &status );
+					fits_read_key( f, TULONG, "Z_STATUS", &zStatus, NULL, &status );
+					fits_read_key( f, TULONG, "Z_WARNIN", &zWarning, NULL, &status );
+					fits_close_file(f, &status);
+				}
+
+				pZErr[i] = zErr;
+				pZConf[i] = zConf;
+				pZStatus[i] = zStatus;
+				pZWarning[i] = zWarning;
+
+				if ( zErr > zMaxErr )
+				{
+					zMaxErr = zErr;
+				}
+
+				pSourceVFS->endRead(index);
+			}
+
+			if ( i%5000==0)
+			{
+				printf("%f finished\n",((float)i/(float)gridSizeSqr)*100.0);
+			}
+		}
+
+		// z err
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if (index > 0 && index < numSourceSpecra )
+			{
+				pRGBMap1[i*3] = 0.5;
+				pRGBMap1[i*3+1] = 0.5;
+				pRGBMap1[i*3+2] = 0.5;
+				pRGBMap2[i*3] = 0.5;
+				pRGBMap2[i*3+1] = 0.5;
+				pRGBMap2[i*3+2] = 0.5;
+			}
+			else
+			{
+				float intensity_lin = pZErr[i]/zMaxErr;
+				float intensity_log = log10f(pZErr[i])/log10f(zMaxErr);
+
+				SpectraHelpers::intensityToRGB( intensity_lin, &pRGBMap1[i*3], true );			
+				SpectraHelpers::intensityToRGB( intensity_log, &pRGBMap2[i*3], true );			
+			}
+		}
+		SpectraHelpers::saveIntensityMap( pRGBMap1, gridSize, gridSize, sstrFileName1+"_linear");
+		SpectraHelpers::saveIntensityMap( pRGBMap2, gridSize, gridSize, sstrFileName1+"_log");
+
+		// z conf
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index > 0 && index < numSourceSpecra )
+			{
+				pRGBMap1[i*3] = 0.5;
+				pRGBMap1[i*3+1] = 0.5;
+				pRGBMap1[i*3+2] = 0.5;
+				pRGBMap2[i*3] = 0.5;
+				pRGBMap2[i*3+1] = 0.5;
+				pRGBMap2[i*3+2] = 0.5;
+			}
+			else
+			{
+				float intensity_lin = pZConf[i];
+				float intensity_log = log10f(pZConf[i]);
+
+				SpectraHelpers::intensityToRGB( intensity_lin, &pRGBMap1[i*3], true );			
+				SpectraHelpers::intensityToRGB( intensity_log, &pRGBMap2[i*3], true );			
+			}
+		}
+		SpectraHelpers::saveIntensityMap( pRGBMap1, gridSize, gridSize, sstrFileName2+"_linear");
+		SpectraHelpers::saveIntensityMap( pRGBMap2, gridSize, gridSize, sstrFileName2+"_log");
+
+
+		// z status
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index > 0 && index < numSourceSpecra )
+			{
+				pRGBMap1[i*3] = 0.5;
+				pRGBMap1[i*3+1] = 0.5;
+				pRGBMap1[i*3+2] = 0.5;
+			}
+			else
+			{
+				float r=0;
+				float g=0;
+				float b=0;
+
+				switch ( pZStatus[i] )
+				{
+				case Spectra::SP_ZSTATUS_NOT_MEASURED : r=0;g=0; b= 0.0; // black
+					break;
+				case Spectra::SP_ZSTATUS_FAILED : r= 1.0; g=0.0; b= 0.0; // red
+					break;
+				case Spectra::SP_ZSTATUS_INCONSISTENT : r= 0.5; g=1.0; b= 0.0; // green yellow
+					break;
+				case Spectra::SP_ZSTATUS_XCORR_EMLINE : r= 0.5; g=1.0; b= 0.5; // light green
+					break;
+				case Spectra::SP_ZSTATUS_XCORR_HIC : r= 0.0; g=1.0; b= 0.0; // green
+					break;
+				case Spectra::SP_ZSTATUS_XCORR_LOC : r= 0.0; g=0.5; b= 0.0; // dark green
+					break;
+				case Spectra::SP_ZSTATUS_EMLINE_XCORR : r= 1.0; g=1.0; b= 0.5;// light yellow
+					break;
+				case Spectra::SP_ZSTATUS_EMLINE_HIC : r= 1.0; g=1.0; b= 0.0;// yellow
+					break;
+				case Spectra::SP_ZSTATUS_EMLINE_LOC : r= 0.6; g=0.6; b= 0.0;// dark yellow
+					break;
+				case Spectra::SP_ZSTATUS_MANUAL_HIC : r= 0.4; g=0.4; b= 1.0;// light blue
+					break;
+				case Spectra::SP_ZSTATUS_MANUAL_LOC : r= 0.0; g=0.0; b= 1.0;// blue
+					break;
+				case Spectra::SP_ZSTATUS_4000BREAK : r= 0.0; g=1.0; b= 1.0; // cyan
+					break;
+				case Spectra::SP_ZSTATUS_ABLINE_CAII : r= 1.0; g=0.0; b= 1.0;// violet
+					break;
+				}
+
+				pRGBMap1[i*3] =r;
+				pRGBMap1[i*3+1] = g;
+				pRGBMap1[i*3+2] = b;
+			}
+		}
+		SpectraHelpers::saveIntensityMap( pRGBMap1, gridSize, gridSize, sstrFileName3);
+
+		// z warning
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index == 0 )
+			{
+				pRGBMap1[i*3] = 0.5;
+				pRGBMap1[i*3+1] = 0.5;
+				pRGBMap1[i*3+2] = 0.5;
+			}
+			else
+			{
+				float r=0;
+				float g=0;
+				float b=0;
+
+				if (pZWarning[i] & Spectra::SP_ZWARNING_NO_SPEC )
+				{
+					r=0.2; g=0.2; b= 0.2; // dark grey
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_NO_BLUE )
+				{
+					r=0; g=0; b= 1.0; // blue
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_NO_RED )
+				{
+					r=0; g=0; b= 0.0; // red
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_NOT_GAL )
+				{
+					r=0; g=1; b= 0.0; // green
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_NOT_QSO )
+				{
+					r=0; g=1; b= 1.0; // cyan
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_NOT_STAR )
+				{
+					r=1; g=1; b= 0.0; // yellow
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_GAL_COEF )
+				{
+					r=0.5; g=0; b= 0.5; // dark violet
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_EMAB_INC )
+				{
+					r=1; g=0; b= 1.0; // violet
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_AB_INC )
+				{
+					r=1; g=0.5; b= 0.0; // orange
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_LOW_SNG )
+				{
+					r=0.5; g=1; b= 0.0; // light green
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_LOW_SNR )
+				{
+					r=1; g=0.5; b= 0.5; // rosa
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_LOW_SNI )
+				{
+					r=0.5; g=0.5; b= 1.0; // light blue
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_4000BREAK )
+				{
+					r=1; g=1; b= 1.0; // white
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_NOT_MAPPED )
+				{
+					r=0.2; g=0; b= 0.0; // dark red
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_MANUAL_MAPPED )
+				{
+					r=0; g=0.2; b= 0.0; // dark green
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_LOADER_MAPPED )
+				{
+					r=0; g=0; b= 0.2; // dark blue
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_EM_INC )
+				{
+					r=0.8; g=0.8; b= 0.8; // light grey
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_HIZ )
+				{
+					r=0.5; g=1; b= 0.2; // light green
+				} else
+				if (pZWarning[i] & Spectra::SP_ZWARNING_LOC )
+				{
+					r=0.2; g=0.6; b= 0.4; // dark cyan
+				}
+			
+			}
+		}
+		SpectraHelpers::saveIntensityMap( pRGBMap1, gridSize, gridSize, sstrFileName4);
+
+
+		delete[] pZErr;
+		delete[] pZConf; 
+		delete[] pZStatus;
+		delete[] pZWarning;
+		delete[] pRGBMap1;
+		delete[] pRGBMap2;
+	}
+}
+
 
 
 void writeUMatrix()
@@ -732,6 +1038,42 @@ void spectroLisWrite()
 	Helpers::print( Helpers::numberToString<int>(numFilesMissing) + std::string(" missing.\n"), &logFile );
 }
 
+void test()
+{
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	double zmin = 100.f;
+	double zmax = -100.f;
+	size_t iZmin, iZmax;
+	for ( size_t i=0;i<numSourceSpecra;i++ )
+	{
+		Spectra *a = pSourceVFS->beginRead(i);
+		if ( a->m_Z < zmin )
+		{
+			zmin = a->m_Z;
+			iZmin = i;
+		}
+		if ( a->m_Z > zmax )
+		{
+			zmax = a->m_Z;
+			iZmax = i;
+		}
+
+		pSourceVFS->endRead(i);
+	}
+
+	Spectra *spmin = pSourceVFS->beginRead(iZmin);
+	Spectra *smax = pSourceVFS->beginRead(iZmax);
+
+	int fmax = smax->getFiber();
+	int pmax = smax->getPlate();
+	int mjdmax = smax->getMJD();
+
+}
+
+
+
 void main(int argc, char* argv[])
 {
 	SpectraHelpers::init(0);
@@ -742,11 +1084,12 @@ void main(int argc, char* argv[])
 	//writeFlux();
 	//writePlate();
 	//writeRADEC();
+	writeOtherZValues();
 	//writeMJD();
 	//writeUMatrix();
-	writeUMatrixForSource();
-
-
+	//writeUMatrixForSource(); 
+	//test();
+	
 	printf ("fin.\n" );
 
 }
