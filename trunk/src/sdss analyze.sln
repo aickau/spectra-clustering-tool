@@ -24,11 +24,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "specObjOperations", "specOb
 		{C70E88BF-3020-4C30-BDD0-9131B9E859E3} = {C70E88BF-3020-4C30-BDD0-9131B9E859E3}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "viewer", "viewer\viewer.vcproj", "{B90ADBF7-E8B0-4D86-9736-0FF6B4E55859}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C70E88BF-3020-4C30-BDD0-9131B9E859E3} = {C70E88BF-3020-4C30-BDD0-9131B9E859E3}
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -82,12 +77,6 @@ Global
 		{4ADFDDAB-FB91-4716-873C-6BBD29A7EA7D}.Release|Win32.ActiveCfg = Release|Win32
 		{4ADFDDAB-FB91-4716-873C-6BBD29A7EA7D}.Release|Win32.Build.0 = Release|Win32
 		{4ADFDDAB-FB91-4716-873C-6BBD29A7EA7D}.Release|x64.ActiveCfg = Release|Win32
-		{B90ADBF7-E8B0-4D86-9736-0FF6B4E55859}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B90ADBF7-E8B0-4D86-9736-0FF6B4E55859}.Debug|Win32.Build.0 = Debug|Win32
-		{B90ADBF7-E8B0-4D86-9736-0FF6B4E55859}.Debug|x64.ActiveCfg = Debug|Win32
-		{B90ADBF7-E8B0-4D86-9736-0FF6B4E55859}.Release|Win32.ActiveCfg = Release|Win32
-		{B90ADBF7-E8B0-4D86-9736-0FF6B4E55859}.Release|Win32.Build.0 = Release|Win32
-		{B90ADBF7-E8B0-4D86-9736-0FF6B4E55859}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
