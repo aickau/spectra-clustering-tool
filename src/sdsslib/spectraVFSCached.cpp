@@ -135,8 +135,8 @@ Spectra *SpectraVFSCached::beginRead( size_t _nSpectraIndex )
 
 	m_nTimeStamp++;
 
-	size_t nCacheLineIndex = _nSpectraIndex / CACHELINESIZE;
-	size_t nLineOffset = _nSpectraIndex - nCacheLineIndex*CACHELINESIZE;
+	size_t nCacheLineIndex = _nSpectraIndex / SpectraVFS::CACHELINESIZE;
+	size_t nLineOffset = _nSpectraIndex - nCacheLineIndex*SpectraVFS::CACHELINESIZE;
 	size_t nLRUCacheIndex = INDEX_INVALID;
 	size_t nLRUTimeStamp = INDEX_INVALID;
 
@@ -180,7 +180,7 @@ Spectra *SpectraVFSCached::beginRead( size_t _nSpectraIndex )
 
 	if ( currentTag.bCommitWrite )
 	{
-		Write( currentTag.nCacheLineIndex*CACHELINESIZE, pCacheLineStart );
+		Write( currentTag.nCacheLineIndex*SpectraVFS::CACHELINESIZE, pCacheLineStart );
 		currentTag.bCommitWrite = false;
 	}
 
@@ -188,13 +188,13 @@ Spectra *SpectraVFSCached::beginRead( size_t _nSpectraIndex )
 	currentTag.nTimeStamp = m_nTimeStamp;
 	currentTag.status = CacheTag::STATUS_INUSE;
 
-	Read( nCacheLineIndex*CACHELINESIZE, pCacheLineStart, false );
+	Read( nCacheLineIndex*SpectraVFS::CACHELINESIZE, pCacheLineStart, false );
 	return &pCacheLineStart[nLineOffset];
 }
 
 void SpectraVFSCached::endRead( size_t _nSpectraIndex )
 {
-	size_t nCacheLineIndex = _nSpectraIndex / CACHELINESIZE;
+	size_t nCacheLineIndex = _nSpectraIndex / SpectraVFS::CACHELINESIZE;
 
 	for ( size_t i=0;i<CACHELINES;i++) 
 	{
@@ -222,7 +222,7 @@ void SpectraVFSCached::endWrite( size_t _nSpectraIndex )
 	if ( m_bReadOnly )
 		return;
 
-	size_t nCacheLineIndex = _nSpectraIndex / CACHELINESIZE;
+	size_t nCacheLineIndex = _nSpectraIndex / SpectraVFS::CACHELINESIZE;
 
 	for ( size_t i=0;i<CACHELINES;i++) 
 	{
@@ -254,8 +254,8 @@ void SpectraVFSCached::prefetch( size_t _nSpectraIndex )
 
 	m_nTimeStamp++;
 
-	size_t nCacheLineIndex = _nSpectraIndex / CACHELINESIZE;
-	size_t nLineOffset = _nSpectraIndex - nCacheLineIndex*CACHELINESIZE;
+	size_t nCacheLineIndex = _nSpectraIndex / SpectraVFS::CACHELINESIZE;
+	size_t nLineOffset = _nSpectraIndex - nCacheLineIndex*SpectraVFS::CACHELINESIZE;
 	size_t nIndexCount = 0;
 	size_t nLRUCacheIndex = INDEX_INVALID;
 	size_t nLRUTimeStamp = INDEX_INVALID;
@@ -278,7 +278,7 @@ void SpectraVFSCached::prefetch( size_t _nSpectraIndex )
 			nLRUTimeStamp = currentTag.nTimeStamp;
 		}
 
-		nIndexCount += CACHELINESIZE;
+		nIndexCount += SpectraVFS::CACHELINESIZE;
 	}
 
 	if ( nLRUCacheIndex == INDEX_INVALID )
@@ -296,14 +296,14 @@ void SpectraVFSCached::prefetch( size_t _nSpectraIndex )
 
 	if ( currentTag.bCommitWrite )
 	{
-		Write( currentTag.nCacheLineIndex*CACHELINESIZE, pCacheLineStart );
+		Write( currentTag.nCacheLineIndex*SpectraVFS::CACHELINESIZE, pCacheLineStart );
 		currentTag.bCommitWrite = false;
 	}
 
 	currentTag.nCacheLineIndex = nCacheLineIndex;
 	currentTag.nTimeStamp = m_nTimeStamp;
 	currentTag.status = CacheTag::STATUS_FETCHING;
-	Read( nCacheLineIndex*CACHELINESIZE, pCacheLineStart, true );
+	Read( nCacheLineIndex*SpectraVFS::CACHELINESIZE, pCacheLineStart, true );
 }
 
 
@@ -318,7 +318,7 @@ void SpectraVFSCached::flush()
 			if ( currentTag.bCommitWrite  )
 			{
 				Spectra *pCacheLineStart = m_pCache[i];
-				Write( currentTag.nCacheLineIndex*CACHELINESIZE, pCacheLineStart );
+				Write( currentTag.nCacheLineIndex*SpectraVFS::CACHELINESIZE, pCacheLineStart );
 				currentTag.bCommitWrite = false;
 			}
 		}
@@ -378,7 +378,7 @@ void SpectraVFSCached::Read( size_t _nSpectraIndex, Spectra *_pDestination, bool
 	}
 
 	// check for cacheline cropping
-	if ( _nSpectraIndex+CACHELINESIZE >= m_nNumberOfSpectra )
+	if ( _nSpectraIndex+SpectraVFS::CACHELINESIZE >= m_nNumberOfSpectra )
 	{
 		// pre condition: _nIndex < m_nNumberOfSpectra 
 		nBytesToRead = (m_nNumberOfSpectra-_nSpectraIndex)*SPECTRASIZE;
@@ -455,7 +455,7 @@ void SpectraVFSCached::Write(  size_t _nSpectraIndex, Spectra *_pSource )
 	}
 
 	// check for cacheline cropping
-	if ( _nSpectraIndex+CACHELINESIZE >= m_nNumberOfSpectra )
+	if ( _nSpectraIndex+SpectraVFS::CACHELINESIZE >= m_nNumberOfSpectra )
 	{
 		// pre condition: _nIndex < m_nNumberOfSpectra 
 		nBytesToWrite = (m_nNumberOfSpectra-_nSpectraIndex)*SPECTRASIZE;

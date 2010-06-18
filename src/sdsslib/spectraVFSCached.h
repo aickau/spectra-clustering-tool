@@ -26,6 +26,7 @@
 
 #include "sdsslib/debug.h"
 #include "spectra.h"
+#include "spectraVFS.h"
 
 
 // virtual file system for a large set of homogeneous spectra.
@@ -35,11 +36,8 @@ class SpectraVFSCached
 {
 public:
 
-	// number of spectra per cache line
-	static const size_t CACHELINESIZE = 16000;
-
 	// number of cache lines
-	static const size_t CACHELINES = 16;
+	static const size_t CACHELINES = 4;
 
 	// construct a virtual file system by specifying a binary dump file which contains spectral data
 	// _readOnly if true no data can be written
@@ -73,8 +71,8 @@ private:
 
 	static const size_t INDEX_INVALID = 0x0ffffffff;
 	static const size_t SPECTRASIZE = sizeof(Spectra);
-	static const size_t TOTALCACHESIZE = CACHELINESIZE*CACHELINES;		// number of spectra should be stored in heap 
-	static const size_t TOTALCACHELINEBYTES = CACHELINESIZE*SPECTRASIZE;
+	static const size_t TOTALCACHESIZE = SpectraVFS::CACHELINESIZE*CACHELINES;		// number of spectra should be stored in heap 
+	static const size_t TOTALCACHELINEBYTES = SpectraVFS::CACHELINESIZE*SPECTRASIZE;
 
 	STATIC_ASSERT(TOTALCACHELINEBYTES < 0x80000000);					// should be smaller than 2^31
 
