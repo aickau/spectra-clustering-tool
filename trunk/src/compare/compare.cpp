@@ -41,7 +41,7 @@ void main(int argc, char* argv[])
 	std::ofstream logFile("compare_log.txt");
 
 	Helpers::print("Welcome to SDSS Compare "+sstrSDSSVersionString+" !\n\n\n", &logFile);
-	Helpers::print("Does a global comparison, one FITS file with a spectrum with many spectra from a given SOM.\n", &logFile);
+	Helpers::print("Does a global comparison, one FITS/CSV file with a spectrum with many spectra from a given SOM.\n", &logFile);
 
 	std::string sstrSourceDumpFile("allSpectra.bin");
 	std::string sstrSOMDumpFile("sofmnet.bin");
@@ -62,7 +62,7 @@ void main(int argc, char* argv[])
 
 		TCLAP::ValueArg<std::string> SOMdumpFile("m", "somdumpfile", "example: sofmnet.bin. ", false, sstrSOMDumpFile, "SOM dump file that contains clustered map.");
 		TCLAP::ValueArg<std::string> sourceDumpFile("s", "sourcedumpfile", "example: allSpectra.bin. ", false, sstrSourceDumpFile, "Source dump file that contains original spectral data.");
-		TCLAP::ValueArg<std::string> FITSFile("f", "fitsfile", "example: spSpec-51630-0266-637.fit ", false, sstrFITSFile, "FITS file to compare.");
+		TCLAP::ValueArg<std::string> FITSFile("f", "fitsfile", "example: spSpec-51630-0266-637.fit ", false, sstrFITSFile, "FITS/CSV file to compare.");
 		TCLAP::ValueArg<std::string> OutFile("o", "outfile", "example: compareRGB.txt ", false, sstrOutFile, "Output text file that contains the error values.");
 		TCLAP::ValueArg<int> normalizeArg("n", "normalize", "example: -n 0", false, normalize, "Normalize spectra 0=off, 1=by max amplitude, 2=by flux" );
 		TCLAP::ValueArg<std::string> map1FileArg("", "m1", "example: som1.bin. ", false, sstrMap1File, "SOM dump file 1 for vector field calculation.");
@@ -94,7 +94,7 @@ void main(int argc, char* argv[])
 	Helpers::print( "Comparing with following parameters:\n", &logFile);
 	Helpers::print( "dumpfile input: "+sstrSourceDumpFile+"\n", &logFile );
 	Helpers::print( "dumpfile SOM: "+sstrSOMDumpFile+"\n", &logFile );
-	Helpers::print( "FITS file: "+sstrFITSFile+"\n", &logFile );
+	Helpers::print( "FITS/CSV file: "+sstrFITSFile+"\n", &logFile );
 	Helpers::print( "out file: "+sstrOutFile+"\n", &logFile );
 	Helpers::print( "SOM map1 file: "+sstrMap1File+"\n", &logFile );
 	Helpers::print( "SOM map2 file: "+sstrMap2File+"\n", &logFile );
@@ -183,8 +183,11 @@ void main(int argc, char* argv[])
 	SSE_ALIGN Spectra a;
 	if ( !a.loadFromFITS(sstrFITSFile) )
 	{
-		Helpers::print("Error: Could not load FITS file.\n", &logFile);
-		return;
+		if ( !a.loadFromCSV(sstrFITSFile) ) 
+		{
+			Helpers::print("Error: Could not load spectrum from FITS/CSV.\n", &logFile);
+			return;
+		}
 	}
 
 	if (normalize==1)

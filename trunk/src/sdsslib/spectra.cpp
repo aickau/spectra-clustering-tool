@@ -407,7 +407,7 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	}
 
 
-	const size_t spectrumMaxSize = 3900; 
+	const size_t spectrumMaxSize = 4000; 
 	float spectrum[spectrumMaxSize];
 
 
@@ -422,17 +422,17 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 //		st0 >> x0;
 
 		// row 1: Flux
-		fin >> sstrTemp;
+//		fin >> sstrTemp;
 		std::stringstream st1(sstrTemp.c_str() );
 		st1 >> x1;
 
 		// row: 2: Error
-		fin >> sstrTemp;
+//		fin >> sstrTemp;
 //		std::stringstream st2(sstrTemp.c_str() );
 //		st2 >> x2;
 
 		// row 3: Mask
-		fin >> sstrTemp;
+//		fin >> sstrTemp;
 //		std::stringstream st3(sstrTemp.c_str() );
 //		st3 >> x3;
 
