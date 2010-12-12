@@ -30,6 +30,9 @@
 #include <set>
 #include <map>
 
+#include "devil/include/il/il.h"
+#include "devil/include/il/ilu.h"
+
 #include <windows.h>
 #include "cfitsio/fitsio.h"
 #include "cfitsio/longnam.h"
@@ -50,6 +53,40 @@ typedef char _TCHAR;
 
 
 
+#define TARGET_QSO_HIZ	0x00000001	 
+#define TARGET_QSO_CAP	0x00000002	 
+#define TARGET_QSO_SKIRT	0x00000004	 
+#define TARGET_QSO_FIRST_CAP	0x00000008	 
+#define TARGET_QSO_FIRST_SKIRT	0x00000010	 
+#define TARGET_GALAXY_RED	0x00000020	 
+#define TARGET_GALAXY	0x00000040	 
+#define TARGET_GALAXY_BIG	0x00000080	 
+#define TARGET_GALAXY_BRIGHT_CORE	0x00000100	 
+#define TARGET_ROSAT_A	0x00000200	 
+#define TARGET_ROSAT_B	0x00000400	 
+#define TARGET_ROSAT_C	0x00000800	 
+#define TARGET_ROSAT_D	0x00001000	 
+#define TARGET_STAR_BHB	0x00002000	 
+#define TARGET_STAR_CARBON	0x00004000	 
+#define TARGET_STAR_BROWN_DWARF	0x00008000	 
+#define TARGET_STAR_SUB_DWARF	0x00010000	 
+#define TARGET_STAR_CATY_VAR	0x00020000	 
+#define TARGET_STAR_RED_DWARF	0x00040000	 
+#define TARGET_STAR_WHITE_DWARF	0x00080000	 
+#define TARGET_SERENDIP_BLUE	0x00100000	 
+#define TARGET_SERENDIP_FIRST	0x00200000	 
+#define TARGET_SERENDIP_RED	0x00400000	 
+#define TARGET_SERENDIP_DISTANT	0x00800000	 
+#define TARGET_SERENDIP_MANUAL	0x01000000	 
+#define TARGET_QSO_FAINT	0x02000000	 
+#define TARGET_GALAXY_RED_II	0x04000000	 
+#define TARGET_ROSAT_E	0x08000000	 
+#define TARGET_STAR_PN	0x10000000	 
+#define TARGET_QSO_REJECT	0x20000000	 
+
+
+
+
 struct TspecObj 
 {
 int plate;
@@ -65,10 +102,11 @@ void trackCatalogs()
 
 	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
 	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
-
-	for (size_t j=0;j<=200;j++)
+	size_t j=199;
+//	for (size_t j=0;j<=200;j++)
 	{
-		std::string sstrCatalogueName("catalogueKoester2006");
+		std::string sstrCatalogueName("catalogueDownes2004");
+		//std::string sstrCatalogueName("catalogueKoester2006");
 		//std::string sstrCatalogueName("catalogueHall2002");
 		const std::string sstrCatalogueName_(sstrCatalogueName+"_"+Helpers::numberToString(j,3));
 		sstrCatalogueName += ".csv";
@@ -156,8 +194,9 @@ void writeSpectrTypes()
 
 	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
 	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
-
-	for (size_t j=0;j<=200;j++)
+	
+	size_t j=199;
+	//for (size_t j=0;j<=200;j++)
 	{
 		int *pIndexlist= new int[gridSize*gridSize];
 		std::string sstrIndexList = "indexlist";
@@ -182,13 +221,13 @@ void writeSpectrTypes()
 		for (size_t i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
 
-				float r=0;
-				float g=0;
-				float b=0;
+				float r=0;		// dark cyan undefined spectra type
+				float g=0.5;
+				float b=0.5;
 
 				switch ( sp->m_Type )
 				{
@@ -237,6 +276,7 @@ void writeFlux()
 	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
 
 	float maxFlux = 0.0f;
+	float minFlux = FLT_MAX;
 
 	for ( size_t i=0;i<numSourceSpecra;i++)
 	{
@@ -244,6 +284,8 @@ void writeFlux()
 		sp->calculateFlux();
 		if ( sp->m_flux > maxFlux)
 			maxFlux = sp->m_flux;
+		if ( sp->m_flux < minFlux)
+			minFlux = sp->m_flux;
 		pSourceVFS->endRead(i);
 	}
 
@@ -276,7 +318,11 @@ void writeFlux()
 			if ( index > 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
-				float intensity = log10f(sp->m_flux)/log10f(maxFlux);
+				float flux = sp->m_flux;
+				if ( flux <= 0.0f ) {
+					flux = 0.0001f;
+				}
+				float intensity = log10f(flux)/log10f(maxFlux);
 				SpectraHelpers::intensityToRGB( intensity, &pRGBMap[i*3], true );			
 				pSourceVFS->endRead(index);
 			}
@@ -288,6 +334,300 @@ void writeFlux()
 		delete[] pIndexlist;
 		delete[] pRGBMap;
 	}
+}
+
+void writeMagUGRIZ()
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	float maxFlux = 0.0f;
+
+	//for (size_t j=0;j<=200;j++)
+	size_t j=199;
+	{
+		int *pIndexlist= new int[gridSize*gridSize];
+		std::string sstrIndexList = "indexlist";
+		std::string sstrFileName1 = "MagU";
+		std::string sstrFileName2 = "MagG";
+		std::string sstrFileName3 = "MagR";
+		std::string sstrFileName4 = "MagI";
+		std::string sstrFileName5 = "MagZ";
+		std::string sstrFileName6 = "UGRIZ.dat";
+		sstrIndexList += Helpers::numberToString(j,4);
+		sstrFileName1 += Helpers::numberToString(j,4);
+		sstrFileName2 += Helpers::numberToString(j,4);
+		sstrFileName3 += Helpers::numberToString(j,4);
+		sstrFileName4 += Helpers::numberToString(j,4);
+		sstrFileName5 += Helpers::numberToString(j,4);
+
+		sstrIndexList+= ".bin";
+		FILE *f=fopen(sstrIndexList.c_str(),"rb");
+		if ( f!= NULL)
+		{
+			fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+			fclose(f);
+		}
+
+		FILE *f2=fopen(sstrFileName6.c_str(),"wb");
+
+		float *pRGBMap[5];
+		float ugrizMax[5];
+		float ugrizMin[5];
+
+		// for each band..
+		for ( size_t b=0;b<5;b++ ) 
+		{
+			pRGBMap[b] = new float[gridSizeSqr*3];
+			for ( size_t i=0;i<gridSizeSqr*3;i++)
+			{
+				pRGBMap[b][i] = 0.5f;
+			}
+
+			ugrizMax[b] = 31.f;
+			ugrizMin[b] = 14.f;
+		}
+
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index > 0 && index < numSourceSpecra )
+			{
+				Spectra *sp = pSourceVFS->beginRead(index);
+				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
+				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
+				std::string sstrPath = "D:/sdss/dr7/1d_25/"+sstrPlate+"/1d/"+sstrFileName;
+
+
+				fitsfile *f;
+				int status = 0;
+				float ugriz[5]={0.f};
+				char mag[1024]={0};
+
+				fits_open_file( &f, sstrPath.c_str(), READONLY, &status );
+				if ( status == 0 )
+				{
+					fits_read_key( f, TSTRING, "MAG", mag, NULL, &status );
+					sscanf(mag,"%f %f %f %f %f", &ugriz[0], &ugriz[1], &ugriz[2], &ugriz[3], &ugriz[4] );
+					fits_close_file(f, &status);
+					fwrite(&ugriz[0], 5*sizeof(float), 1, f2);
+				}
+
+				for ( size_t b=0;b<5;b++ ) 
+				{
+					pRGBMap[b][i*3] = ugriz[b];
+				}
+				pSourceVFS->endRead(index);
+			}
+
+			if ( i%5000==0)
+			{
+				printf("%f finished\n",((float)i/(float)gridSizeSqr)*100.0);
+			}
+		}
+
+		fclose(f2);
+
+
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			for ( size_t b=0;b<5;b++ ) 
+			{
+				pRGBMap[b][i*3] -= ugrizMin[b];
+				pRGBMap[b][i*3] /= (ugrizMax[b]-ugrizMin[b]);
+				pRGBMap[b][i*3] = 1.f - pRGBMap[b][i*3];
+				pRGBMap[b][i*3+1] = pRGBMap[b][i*3];
+				pRGBMap[b][i*3+2] = pRGBMap[b][i*3];
+
+			}
+		}
+
+		SpectraHelpers::saveIntensityMap( &pRGBMap[0][0], gridSize, gridSize, sstrFileName1);
+		SpectraHelpers::saveIntensityMap( &pRGBMap[1][0], gridSize, gridSize, sstrFileName2);
+		SpectraHelpers::saveIntensityMap( &pRGBMap[2][0], gridSize, gridSize, sstrFileName3);
+		SpectraHelpers::saveIntensityMap( &pRGBMap[3][0], gridSize, gridSize, sstrFileName4);
+		SpectraHelpers::saveIntensityMap( &pRGBMap[4][0], gridSize, gridSize, sstrFileName5);
+
+
+		delete[] pIndexlist;
+		for ( size_t m=0;m<5;m++ ) 
+		{
+			delete[] pRGBMap[m];
+		}
+	}
+}
+
+
+void writePrimaryTarget()
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	//for (size_t j=0;j<=200;j++)
+	size_t j=199;
+	{
+		int *pIndexlist= new int[gridSize*gridSize];
+		std::string sstrIndexList = "indexlist";
+		sstrIndexList += Helpers::numberToString(j,4);
+		sstrIndexList+= ".bin";
+
+		std::string sstrFileName1 = "primaryTarget";
+		sstrFileName1 += Helpers::numberToString(j,4);
+		sstrFileName1 += ".dat";
+		std::string sstrFileName2 = "primaryTargetMap";
+		sstrFileName2 += Helpers::numberToString(j,4);
+
+		FILE *f=fopen(sstrIndexList.c_str(),"rb");
+		if ( f!= NULL)
+		{
+			fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+			fclose(f);
+		}
+
+		float *pRGBMap = new float[gridSizeSqr*3];
+		for ( size_t i=0;i<gridSizeSqr*3;i++)
+		{
+			pRGBMap[i] = 0.0f;
+		}
+
+
+		FILE *f2=fopen(sstrFileName1.c_str(),"wb");
+
+
+
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index > 0 && index < numSourceSpecra )
+			{
+				Spectra *sp = pSourceVFS->beginRead(index);
+				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
+				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
+				std::string sstrPath = "D:/sdss/dr7/1d_25/"+sstrPlate+"/1d/"+sstrFileName;
+
+
+				fitsfile *f;
+				int status = 0;
+				unsigned long primTarget = 0;
+
+				fits_open_file( &f, sstrPath.c_str(), READONLY, &status );
+				if ( status == 0 )
+				{
+					fits_read_key( f, TULONG, "PRIMTARG", &primTarget, NULL, &status );
+					fits_close_file(f, &status);
+					fwrite(&primTarget, sizeof(unsigned long), 1, f2);
+				}
+
+
+				float r=0;
+				float g=0;
+				float b=0;
+
+				switch ( primTarget )
+				{
+
+
+
+
+				case TARGET_GALAXY_RED : r=1.f;g=0; b= 0.0; // red
+					break;
+				case TARGET_GALAXY_RED_II : r= 0.8; g=0.0; b= 0.0;// darker red
+					break;
+				case TARGET_GALAXY : r= 1.0; g=0.5; b=0.0;// orange
+					break;
+				case TARGET_GALAXY_BIG : r= 1.0; g=0.75; b= 0.0;// light orange
+					break;
+				case TARGET_GALAXY_BRIGHT_CORE : r= 0.0; g=1.0; b= 0.0; // green
+					break;
+				case TARGET_QSO_HIZ : r= 1.0; g=1.0; b= 0.0; // yellow
+					break;
+				case TARGET_QSO_FAINT : r= 0.0; g=0.5; b= 1.0;// cyan
+					break;
+				case TARGET_QSO_CAP : r= 0.2; g=0.2; b= 0.2;// dark grey
+					break;
+				case TARGET_QSO_REJECT : r= 1.0; g=1.0; b= 0.5; // light yellow
+					break;
+
+				case TARGET_QSO_SKIRT : r= 1.0; g=0.95; b= 0.5; // light yellow
+					break;
+				case TARGET_QSO_FIRST_CAP : r= 1.0; g=0.9; b= 0.5; // light yellow
+					break;
+				case TARGET_QSO_FIRST_SKIRT : r= 1.0; g=0.85; b= 0.5; // light yellow
+					break;
+
+				case TARGET_STAR_RED_DWARF : r= 0.5; g=0.0; b= 0.0; // low red
+					break;
+				case TARGET_STAR_BROWN_DWARF : r= 0.5; g=0.25; b= 0.5; // brown
+					break;
+				case TARGET_STAR_CARBON : r= 0.8; g=0.8; b= 0.8; // light grey
+					break;
+				case TARGET_STAR_WHITE_DWARF : r= 1.0; g=1.0; b= 1.0; // white
+					break;
+				case TARGET_STAR_PN : r= 0.5; g=0.5; b= 1.0;// light blue
+					break;
+				case TARGET_STAR_BHB : r= 1.0; g=0.0; b= 1.0;// violet
+					break;
+				case TARGET_STAR_SUB_DWARF : r= 0.0; g=0.5; b= 0.0;// dark green
+					break;
+				case TARGET_SERENDIP_BLUE : r= 0.0; g=0.0; b= 1.0;// blue
+					break;
+				case TARGET_ROSAT_A : r= 1.0; g=0.0; b= 0.55;// pink
+					break;
+				case TARGET_ROSAT_B : r= 1.0; g=0.0; b= 0.5;// pink
+					break;
+				case TARGET_ROSAT_C : r= 1.0; g=0.0; b= 0.45;// pink
+					break;
+				case TARGET_ROSAT_D : r= 1.0; g=0.0; b= 0.4;// pink
+					break;
+				case TARGET_ROSAT_E : r= 1.0; g=0.0; b= 0.35;// pink
+					break;
+				case TARGET_SERENDIP_FIRST : r= 0.5; g=1.0; b= 0.0;// light green
+					break;
+				case TARGET_SERENDIP_RED : r= 0.5; g=0.95; b= 0.0;// light green
+					break;
+				case TARGET_SERENDIP_DISTANT : r= 0.5; g=0.9; b= 0.0;// light green
+					break;
+				case TARGET_SERENDIP_MANUAL : r= 0.5; g=0.85; b= 0.0;// light green
+					break;
+				}
+
+				pRGBMap[i*3] =r;
+				pRGBMap[i*3+1] = g;
+				pRGBMap[i*3+2] = b;
+	
+				pSourceVFS->endRead(index);
+			}
+			else
+			{
+				pRGBMap[i*3] = 0.5;
+				pRGBMap[i*3+1] = 0.5;
+				pRGBMap[i*3+2] = 0.5;
+			}
+
+
+			if ( i%5000==0)
+			{
+				printf("%f finished\n",((float)i/(float)gridSizeSqr)*100.0);
+			}
+
+		}
+
+		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrFileName2);
+
+		fclose(f2);
+
+		delete[] pIndexlist;
+		delete[] pRGBMap;
+
+	}
+
+
 }
 
 
@@ -520,6 +860,7 @@ void writeOtherZValues()
 
 	//for (size_t j=0;j<=200;j++)
 	size_t j=200;
+	size_t i=0;
 	{
 		int *pIndexlist= new int[gridSize*gridSize];
 		std::string sstrIndexList = "indexlist";
@@ -547,7 +888,7 @@ void writeOtherZValues()
 
 		float zMaxErr = -110.0;
 
-		for (size_t i=0;i<gridSizeSqr;i++)
+		for (i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
 			if ( index > 0 && index < numSourceSpecra )
@@ -565,7 +906,6 @@ void writeOtherZValues()
 				unsigned long zStatus=0;
 				unsigned long zWarning=0;
 
-
 				fits_open_file( &f, sstrPath.c_str(), READONLY, &status );
 				if ( status == 0 )
 				{
@@ -575,6 +915,7 @@ void writeOtherZValues()
 					fits_read_key( f, TULONG, "Z_WARNIN", &zWarning, NULL, &status );
 					fits_close_file(f, &status);
 				}
+
 
 				pZErr[i] = zErr;
 				pZConf[i] = zConf;
@@ -594,12 +935,28 @@ void writeOtherZValues()
 				printf("%f finished\n",((float)i/(float)gridSizeSqr)*100.0);
 			}
 		}
+		FileHelpers::writeFile("zErr",pZErr,gridSizeSqr*sizeof(float),true);
+		FileHelpers::writeFile("zConf",pZConf,gridSizeSqr*sizeof(float),true);
+		FileHelpers::writeFile("zStatus",pZStatus,gridSizeSqr*sizeof(unsigned int),true);
+		FileHelpers::writeFile("zWarning",pZWarning,gridSizeSqr*sizeof(unsigned int),true);
 
 		// z err
-		for (size_t i=0;i<gridSizeSqr;i++)
+		for (i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
 			if (index > 0 && index < numSourceSpecra )
+			{
+				float intensity_lin = pZErr[i]/zMaxErr;
+				float intensity_log = 0.0f;
+				if  (pZErr[i] > 0.0f )
+				{
+					intensity_log = fabsf(log10f(pZErr[i])/log10f(zMaxErr));
+				}
+
+				SpectraHelpers::intensityToRGB( intensity_lin, &pRGBMap1[i*3], true );			
+				SpectraHelpers::intensityToRGB( intensity_log, &pRGBMap2[i*3], true );			
+			}
+			else
 			{
 				pRGBMap1[i*3] = 0.5;
 				pRGBMap1[i*3+1] = 0.5;
@@ -607,24 +964,28 @@ void writeOtherZValues()
 				pRGBMap2[i*3] = 0.5;
 				pRGBMap2[i*3+1] = 0.5;
 				pRGBMap2[i*3+2] = 0.5;
-			}
-			else
-			{
-				float intensity_lin = pZErr[i]/zMaxErr;
-				float intensity_log = log10f(pZErr[i])/log10f(zMaxErr);
-
-				SpectraHelpers::intensityToRGB( intensity_lin, &pRGBMap1[i*3], true );			
-				SpectraHelpers::intensityToRGB( intensity_log, &pRGBMap2[i*3], true );			
 			}
 		}
 		SpectraHelpers::saveIntensityMap( pRGBMap1, gridSize, gridSize, sstrFileName1+"_linear");
 		SpectraHelpers::saveIntensityMap( pRGBMap2, gridSize, gridSize, sstrFileName1+"_log");
 
 		// z conf
-		for (size_t i=0;i<gridSizeSqr;i++)
+		for (i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
 			if ( index > 0 && index < numSourceSpecra )
+			{
+				float intensity_lin = pZConf[i];
+				float intensity_log = 0.0f;
+				if  (pZConf[i] > 0.0f )
+				{
+					intensity_log = -log10f(pZConf[i]);
+				}
+				
+				SpectraHelpers::intensityToRGB( intensity_lin, &pRGBMap1[i*3], true );			
+				SpectraHelpers::intensityToRGB( intensity_log, &pRGBMap2[i*3], true );			
+			}
+			else
 			{
 				pRGBMap1[i*3] = 0.5;
 				pRGBMap1[i*3+1] = 0.5;
@@ -632,14 +993,6 @@ void writeOtherZValues()
 				pRGBMap2[i*3] = 0.5;
 				pRGBMap2[i*3+1] = 0.5;
 				pRGBMap2[i*3+2] = 0.5;
-			}
-			else
-			{
-				float intensity_lin = pZConf[i];
-				float intensity_log = log10f(pZConf[i]);
-
-				SpectraHelpers::intensityToRGB( intensity_lin, &pRGBMap1[i*3], true );			
-				SpectraHelpers::intensityToRGB( intensity_log, &pRGBMap2[i*3], true );			
 			}
 		}
 		SpectraHelpers::saveIntensityMap( pRGBMap1, gridSize, gridSize, sstrFileName2+"_linear");
@@ -647,16 +1000,10 @@ void writeOtherZValues()
 
 
 		// z status
-		for (size_t i=0;i<gridSizeSqr;i++)
+		for (i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
 			if ( index > 0 && index < numSourceSpecra )
-			{
-				pRGBMap1[i*3] = 0.5;
-				pRGBMap1[i*3+1] = 0.5;
-				pRGBMap1[i*3+2] = 0.5;
-			}
-			else
 			{
 				float r=0;
 				float g=0;
@@ -696,21 +1043,22 @@ void writeOtherZValues()
 				pRGBMap1[i*3+1] = g;
 				pRGBMap1[i*3+2] = b;
 			}
-		}
-		SpectraHelpers::saveIntensityMap( pRGBMap1, gridSize, gridSize, sstrFileName3);
-
-		// z warning
-		for (size_t i=0;i<gridSizeSqr;i++)
-		{
-			int index = pIndexlist[i];
-			if ( index == 0 )
+			else
 			{
 				pRGBMap1[i*3] = 0.5;
 				pRGBMap1[i*3+1] = 0.5;
 				pRGBMap1[i*3+2] = 0.5;
 			}
-			else
+		}
+		SpectraHelpers::saveIntensityMap( pRGBMap1, gridSize, gridSize, sstrFileName3);
+
+		// z warning
+		for (i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index > 0 && index < numSourceSpecra )
 			{
+
 				float r=0;
 				float g=0;
 				float b=0;
@@ -721,77 +1069,86 @@ void writeOtherZValues()
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_NO_BLUE )
 				{
-					r=0; g=0; b= 1.0; // blue
+				r=0; g=0; b= 1.0; // blue
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_NO_RED )
 				{
-					r=0; g=0; b= 0.0; // red
+				r=0; g=0; b= 0.0; // red
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_NOT_GAL )
 				{
-					r=0; g=1; b= 0.0; // green
+				r=0; g=1; b= 0.0; // green
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_NOT_QSO )
 				{
-					r=0; g=1; b= 1.0; // cyan
+				r=0; g=1; b= 1.0; // cyan
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_NOT_STAR )
 				{
-					r=1; g=1; b= 0.0; // yellow
+				r=1; g=1; b= 0.0; // yellow
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_GAL_COEF )
 				{
-					r=0.5; g=0; b= 0.5; // dark violet
+				r=0.5; g=0; b= 0.5; // dark violet
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_EMAB_INC )
 				{
-					r=1; g=0; b= 1.0; // violet
+				r=1; g=0; b= 1.0; // violet
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_AB_INC )
 				{
-					r=1; g=0.5; b= 0.0; // orange
+				r=1; g=0.5; b= 0.0; // orange
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_LOW_SNG )
 				{
-					r=0.5; g=1; b= 0.0; // light green
+				r=0.5; g=1; b= 0.0; // light green
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_LOW_SNR )
 				{
-					r=1; g=0.5; b= 0.5; // rosa
+				r=1; g=0.5; b= 0.5; // rosa
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_LOW_SNI )
 				{
-					r=0.5; g=0.5; b= 1.0; // light blue
+				r=0.5; g=0.5; b= 1.0; // light blue
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_4000BREAK )
 				{
-					r=1; g=1; b= 1.0; // white
+				r=1; g=1; b= 1.0; // white
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_NOT_MAPPED )
 				{
-					r=0.2; g=0; b= 0.0; // dark red
+				r=0.2; g=0; b= 0.0; // dark red
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_MANUAL_MAPPED )
 				{
-					r=0; g=0.2; b= 0.0; // dark green
+				r=0; g=0.2; b= 0.0; // dark green
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_LOADER_MAPPED )
 				{
-					r=0; g=0; b= 0.2; // dark blue
+				r=0; g=0; b= 0.2; // dark blue
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_EM_INC )
 				{
-					r=0.8; g=0.8; b= 0.8; // light grey
+				r=0.8; g=0.8; b= 0.8; // light grey
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_HIZ )
 				{
-					r=0.5; g=1; b= 0.2; // light green
+				r=0.5; g=1; b= 0.2; // light green
 				} else
 				if (pZWarning[i] & Spectra::SP_ZWARNING_LOC )
 				{
-					r=0.2; g=0.6; b= 0.4; // dark cyan
+				r=0.2; g=0.6; b= 0.4; // dark cyan
 				}
-			
+
+				pRGBMap1[i*3] =r;
+				pRGBMap1[i*3+1] = g;
+				pRGBMap1[i*3+2] = b;
+			}
+			else
+			{
+				pRGBMap1[i*3] = 0.5;
+				pRGBMap1[i*3+1] = 0.5;
+				pRGBMap1[i*3+2] = 0.5;
 			}
 		}
 		SpectraHelpers::saveIntensityMap( pRGBMap1, gridSize, gridSize, sstrFileName4);
@@ -805,6 +1162,130 @@ void writeOtherZValues()
 		delete[] pRGBMap2;
 	}
 }
+
+
+void writeSpectraVersion()
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	float maxFlux = 0.0f;
+
+	size_t j=200;
+	{
+		int *pIndexlist= new int[gridSize*gridSize];
+		std::string sstrIndexList = "indexlist";
+		std::string sstrFileName = "spectraVersions";
+		sstrIndexList += Helpers::numberToString(j,4);
+		sstrFileName += Helpers::numberToString(j,4);
+		sstrIndexList+= ".bin";
+		FILE *f=fopen(sstrIndexList.c_str(),"rb");
+		if ( f!= NULL)
+		{
+			fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+			fclose(f);
+		}
+
+		float *pRGBMap = new float[gridSizeSqr*3];
+		for ( size_t i=0;i<gridSizeSqr*3;i++)
+		{
+			pRGBMap[i] = 0.5f;
+		}
+
+		std::string sstrV1;
+		std::string sstrV2;
+		std::string sstrV3;
+		std::string sstrV4;
+
+
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index > 0 && index < numSourceSpecra )
+			{
+				Spectra *sp = pSourceVFS->beginRead(index);
+				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
+				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
+				std::string sstrPath = "D:/dr7/1d_25/"+sstrPlate+"/1d/"+sstrFileName;
+
+
+				fitsfile *f;
+				int status = 0;
+				float ra = 0.f;
+				float dec = 0.0f;
+				char vers[32]={0};
+				char vers1[32]={0};
+				char vers2[32]={0};
+
+				fits_open_file( &f, sstrPath.c_str(), READONLY, &status );
+				if ( status == 0 )
+				{
+					fits_read_key( f, TSTRING, "VERSUTIL", vers1, NULL, &status );
+					fits_read_key( f, TSTRING, "VERSREAD", vers2, NULL, &status );
+			//		fits_read_key( f, TSTRING, "datVERS2D", vers3, NULL, &status );
+					fits_read_key( f, TSTRING, "VERSCOMB", vers, NULL, &status );
+					fits_close_file(f, &status);
+				}
+				std::string sstrVers(vers);
+				std::string sstrVers1(vers1);
+				std::string sstrVers2(vers2);
+
+				sstrV1 += sstrVers1 + "\n";
+				sstrV2 += sstrVers2 + "\n";
+				sstrV4 += sstrVers + "\n";
+
+				int dr=0;
+				if ( sstrVers == "v5_3_2  " ||  sstrVers == "v5_3_2")
+				{
+					dr=6;
+				}
+				if (sstrVers == "v5_3_12 " || sstrVers == "v5_3_12")
+				{
+					dr=7;
+				}
+
+				float r = (dr==0) ? 1: 0;
+				float g = (dr==6) ? 1: 0;
+				float b = (dr==7) ? 1: 0;
+
+				pRGBMap[i*3] = r;
+				pRGBMap[i*3+1] = g;
+				pRGBMap[i*3+2] = b;
+
+				pSourceVFS->endRead(index);
+			}
+
+			if ( i%5000==0)
+			{
+				printf("%f finished\n",((float)i/(float)gridSizeSqr)*100.0);
+			}
+		}
+
+		{
+			std::ofstream fon("VERSUTIL.txt");
+			fon<<sstrV1;
+		}
+		{
+			std::ofstream fon("VERSREAD.txt");
+			fon<<sstrV2;
+		}
+		{
+			std::ofstream fon("VERSCOMB.txt");
+			fon<<sstrV4;
+		}
+
+
+		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrFileName);
+
+
+		delete[] pIndexlist;
+		delete[] pRGBMap;
+	}
+}
+
 
 
 
@@ -1039,7 +1520,7 @@ void spectroLisWrite()
 }
 
 void test()
-{
+{	
 	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
 	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
 
@@ -1069,6 +1550,149 @@ void test()
 	int fmax = smax->getFiber();
 	int pmax = smax->getPlate();
 	int mjdmax = smax->getMJD();
+/*
+	SSE_ALIGN Spectra spDR4;
+	SSE_ALIGN Spectra spDR6;
+
+	spDR4.loadFromFITS("c:/incoming/dr4/spSpec-53120-1448-351.fit");
+	spDR6.loadFromFITS("c:/incoming/dr6/spSpec-53120-1448-351.fit");
+*/	
+}
+
+void writeParamsFromSelection()
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+
+	// load mask
+	ilLoadImage( (ILstring)"mask.png" );
+	ILenum err = ilGetError();
+	if( err != NULL )
+		return;
+	ilConvertImage( IL_LUMINANCE, IL_UNSIGNED_BYTE );
+	int width = ilGetInteger( IL_IMAGE_WIDTH );
+	int height = ilGetInteger( IL_IMAGE_HEIGHT );
+	if ( width != gridSize || height != gridSize ) {
+		// wrong dimensions
+		return;
+	}
+	unsigned char *pt = ilGetData();
+	if ( pt == NULL )  {
+		// nah, fail..
+		return;
+	}
+
+
+
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	size_t j=199;
+	int *pIndexlist= new int[gridSize*gridSize];
+	std::string sstrIndexList = "indexlist";
+	std::string sstrFileName = "UMatrixForSource";
+	sstrIndexList += Helpers::numberToString(j,4);
+	sstrFileName += Helpers::numberToString(j,4);
+	sstrIndexList+= ".bin";
+	FILE *f=fopen(sstrIndexList.c_str(),"rb");
+	if ( f== NULL) {
+		// no index list
+		return;
+	}
+	fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+	fclose(f);
+
+
+	std::string sstrOutTable = "specOBJID; mjd; plate id; fiber id; z; total flux;	RAOBJ; DECOBJ; Z_ERR; Z_CONF; Z_STATUS;	Z_WARNIN; spectra type; MAG (fiber Mags ugriz)\n";
+
+
+	for (size_t i=0;i<gridSizeSqr;i++)
+	{
+		// if mask is selected..
+		if (pt[i] > 128 ) {
+			int index = pIndexlist[i];
+			if ( index >= 0 && index < numSourceSpecra )
+			{
+				Spectra *sp = pSourceVFS->beginRead(index);
+				sp->calculateFlux();
+				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
+				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
+				std::string sstrPath = "D:/sdss/dr7/1d_25/"+sstrPlate+"/1d/"+sstrFileName;
+
+
+				fitsfile *f;
+				int status = 0;
+				float zErr = 0.f;
+				float zConf = 0.0f;
+				unsigned long zStatus=0;
+				unsigned long zWarning=0;
+				float ra = 0.f;
+				float dec = 0.0f;
+				float uu = 0.0f;
+				float gg = 0.0f;
+				float rr = 0.0f;
+				float ii = 0.0f;
+				float zz = 0.0f;
+				char mag[1024]={0};
+
+
+				fits_open_file( &f, sstrPath.c_str(), READONLY, &status );
+				if ( status == 0 )
+				{
+					fits_read_key( f, TFLOAT, "Z_ERR", &zErr, NULL, &status );
+					fits_read_key( f, TFLOAT, "Z_CONF", &zConf, NULL, &status );
+					fits_read_key( f, TULONG, "Z_STATUS", &zStatus, NULL, &status );
+					fits_read_key( f, TULONG, "Z_WARNIN", &zWarning, NULL, &status );
+
+					fits_read_key( f, TFLOAT, "RAOBJ", &ra, NULL, &status );//RADEG
+					fits_read_key( f, TFLOAT, "DECOBJ", &dec, NULL, &status );//DECDEG
+					fits_read_key( f, TSTRING, "MAG", mag, NULL, &status );//DECDEG
+
+					sscanf(mag,"%f %f %f %f %f", &uu, &gg, &rr, &ii, &zz );
+	
+					fits_close_file(f, &status);
+				}
+
+				pSourceVFS->endRead(index);
+
+		
+				sstrOutTable += Helpers::numberToString<unsigned __int64>(sp->m_SpecObjID)+"; ";
+				sstrOutTable += Helpers::numberToString<int>(sp->getMJD())+"; ";
+				sstrOutTable += Helpers::numberToString<int>(sp->getPlate())+"; ";
+				sstrOutTable += Helpers::numberToString<int>(sp->getFiber())+"; ";
+				sstrOutTable += Helpers::numberToString<float>(sp->m_Z)+"; ";
+				
+				sstrOutTable += Helpers::numberToString<float>(sp->m_flux)+"; ";
+
+				sstrOutTable += Helpers::numberToString<float>(ra)+"; ";
+				sstrOutTable += Helpers::numberToString<float>(dec)+"; ";
+
+				sstrOutTable += Helpers::numberToString<float>(zErr)+"; ";
+				sstrOutTable += Helpers::numberToString<float>(zConf)+"; ";
+				sstrOutTable += Helpers::numberToString<unsigned long>(zStatus)+"; ";
+				sstrOutTable += Helpers::numberToString<unsigned long>(zWarning)+"; ";
+				
+				sstrOutTable += Helpers::numberToString<unsigned int>(sp->m_Type)+"; ";
+
+				sstrOutTable += Helpers::numberToString<float>(uu)+"; ";
+				sstrOutTable += Helpers::numberToString<float>(gg)+"; ";
+				sstrOutTable += Helpers::numberToString<float>(rr)+"; ";
+				sstrOutTable += Helpers::numberToString<float>(ii)+"; ";
+				sstrOutTable += Helpers::numberToString<float>(zz)+"; ";
+
+
+				sstrOutTable += "\n";
+
+			}
+		}
+	}
+
+	std::ofstream fon("maskTable.csv");
+	fon<<sstrOutTable;
+
+
 
 }
 
@@ -1082,15 +1706,20 @@ void main(int argc, char* argv[])
 	//trackCatalogs();
 	//writeSpectrTypes();
 	//writeFlux();
+	//writeMagUGRIZ();
+	writePrimaryTarget();
 	//writePlate();
 	//writeRADEC();
-	writeOtherZValues();
+	//writeOtherZValues();
+	//writeSpectraVersion();
 	//writeMJD();
 	//writeUMatrix();
 	//writeUMatrixForSource(); 
 	//test();
+	//writeParamsFromSelection();
 	
 	printf ("fin.\n" );
 
 }
+
 
