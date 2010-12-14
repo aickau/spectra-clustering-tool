@@ -150,7 +150,7 @@ void trackCatalogs()
 			for (size_t i=0;i<gridSizeSqr;i++)
 			{
 				int index = pIndexlist[i];
-				if ( index > 0 && index < numSourceSpecra )
+				if ( index >= 0 && index < numSourceSpecra )
 				{
 					Spectra *sp = pSourceVFS->beginRead(index);
 					int spFiber = sp->getFiber();
@@ -315,7 +315,7 @@ void writeFlux()
 		for (size_t i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
 				float flux = sp->m_flux;
@@ -394,7 +394,7 @@ void writeMagUGRIZ()
 		for (size_t i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
@@ -460,6 +460,134 @@ void writeMagUGRIZ()
 	}
 }
 
+void writePrimTargetFromBin()
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	unsigned long *primTargets= new unsigned long[608792];
+	int *pIndexlist= new int[gridSize*gridSize];
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+
+	{
+		FILE *f=fopen("indexList0199.bin","rb");
+		if ( f!= NULL)
+		{
+			fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+			fclose(f);
+		}
+	}
+	{
+		FILE *f=fopen("primaryTarget0199.dat","rb");
+		if ( f!= NULL)
+		{
+			fread(primTargets, 1, 608792*sizeof(unsigned long), f);
+			fclose(f);
+		}
+	}
+
+	float *pRGBMap = new float[gridSizeSqr*3];
+	for ( size_t i=0;i<gridSizeSqr*3;i++)
+	{
+		pRGBMap[i] = 0.0f;
+	}
+	size_t c=0;
+
+	for (size_t i=0;i<gridSizeSqr;i++)
+	{
+		int index = pIndexlist[i];
+		if ( index > 0 && index < numSourceSpecra )
+		{
+
+			float r=0;
+			float g=0;
+			float b=0;
+
+
+			if (primTargets[c]== TARGET_GALAXY_RED ) { r=1.f;g=0; b= 0.0; // red 
+				} else
+			if (primTargets[c]== TARGET_GALAXY_RED_II ) { r= 0.8; g=0.0; b= 0.0;// darker red
+				} else
+			if (primTargets[c]== TARGET_GALAXY ) { r= 1.0; g=0.5; b=0.0;// orange
+				} else
+			if (primTargets[c]== TARGET_GALAXY_BIG ) { r= 1.0; g=0.75; b= 0.0;// light orange
+				} else
+			if (primTargets[c]== TARGET_GALAXY_BRIGHT_CORE ) { r= 1.0; g=0.0; b= 0.5; // red pink
+				} else
+			if (primTargets[c]==  TARGET_QSO_HIZ ) { r= 1.0; g=1.0; b= 0.0; // yellow
+				} else
+			if (primTargets[c]==  TARGET_QSO_FAINT ) { r= 0.0; g=0.5; b= 1.0;// light blue
+				} else
+			if (primTargets[c]==  TARGET_QSO_CAP ) { r= 0.0; g=0.0; b= 0.5;// dark blue
+				} else
+			if (primTargets[c]==  TARGET_QSO_REJECT ) { r= 0.8; g=0.8; b= 0.8; // light gray
+				} else
+			if (primTargets[c]==  TARGET_QSO_SKIRT ) {  r= 0.2; g=0.2; b= 0.2; // dark gray
+				} else
+			if (primTargets[c]==  TARGET_QSO_FIRST_CAP ) { r= 0.0; g=1.0; b= 0.6; // light green
+				} else
+			if (primTargets[c]==  TARGET_QSO_FIRST_SKIRT ) { r= 0.0; g=0.5; b= 0.0; // dark green
+				} else
+
+			if (primTargets[c]==  TARGET_STAR_RED_DWARF ) { r= 0.5; g=0.0; b= 0.0; // low red
+				} else
+			if (primTargets[c]==  TARGET_STAR_BROWN_DWARF ) { r= 0.5; g=0.25; b= 0.0; // brown
+				} else
+			if (primTargets[c]==  TARGET_STAR_CARBON ) { r= 1.0; g=0.0; b= 1.0; // pink
+				} else
+			if (primTargets[c]==  TARGET_STAR_WHITE_DWARF ) { r= 1.0; g=1.0; b= 1.0; // white
+				} else
+			if (primTargets[c]==  TARGET_STAR_PN ) { r= 0.5; g=0.5; b= 1.0;// light blue
+				} else
+			if (primTargets[c]==  TARGET_STAR_BHB ) { r= 0.5; g=0.0; b= 1.0;// violet
+				} else
+			if (primTargets[c]==  TARGET_STAR_SUB_DWARF ) { r= 0.0; g=1.0; b= 0.0;// green
+				} else
+	
+			if (primTargets[c]==  TARGET_ROSAT_A ) { r= 0.0; g=1.0; b= 1.0;// cyan
+				} else
+			if (primTargets[c]==  TARGET_ROSAT_B ) { r= 0.0; g=0.95; b= 0.0;// cyan
+				} else
+			if (primTargets[c]==  TARGET_ROSAT_C ) { r= 0.0; g=0.9; b= 0.0;// cyan
+				} else
+			if (primTargets[c]==  TARGET_ROSAT_D ) { r= 0.0; g=0.85; b= 0.0;// cyan
+				} else
+			if (primTargets[c]==  TARGET_ROSAT_E ) { r= 0.0; g=0.08; b= 0.0;// cyan
+				} else
+			if (primTargets[c]==  TARGET_SERENDIP_FIRST ) { r= 0.0; g=0.0; b= 1.0;// blue
+				} else
+			if (primTargets[c]==  TARGET_SERENDIP_RED ) { r= 0.0; g=0.0; b= 0.95;// blue
+				} else
+			if (primTargets[c]==  TARGET_SERENDIP_DISTANT ) {r= 0.0; g=0.0; b= 0.9;// blue
+				} else
+			if (primTargets[c]==  TARGET_SERENDIP_MANUAL ) { r= 0.0; g=0.0; b= 0.85;// blue
+				} else
+			if (primTargets[c]== TARGET_SERENDIP_BLUE ) { r= 0.0; g=0.0; b= 0.8;// blue
+			}
+
+			pRGBMap[i*3] =r;
+			pRGBMap[i*3+1] = g;
+			pRGBMap[i*3+2] = b;
+
+			pSourceVFS->endRead(index);
+
+			c++;
+
+		}
+		else
+		{
+			pRGBMap[i*3] = 0.5;
+			pRGBMap[i*3+1] = 0.5;
+			pRGBMap[i*3+2] = 0.5;
+		}
+	}
+
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "primaryTarget");
+
+}
+
 
 void writePrimaryTarget()
 {
@@ -504,7 +632,7 @@ void writePrimaryTarget()
 		for (size_t i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
@@ -676,7 +804,7 @@ void writePlate()
 		for (size_t i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
 				float intensity = (float)(sp->getPlate()-266)/(float)(maxPlateID-266);
@@ -743,7 +871,7 @@ void writeMJD()
 		for (size_t i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
 				float intensity = (float)(sp->getMJD()-minMJD)/(float)(maxMJD-minMJD);
@@ -798,7 +926,7 @@ void writeRADEC()
 		for (size_t i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
@@ -891,7 +1019,7 @@ void writeOtherZValues()
 		for (i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
@@ -944,7 +1072,7 @@ void writeOtherZValues()
 		for (i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if (index > 0 && index < numSourceSpecra )
+			if (index >= 0 && index < numSourceSpecra )
 			{
 				float intensity_lin = pZErr[i]/zMaxErr;
 				float intensity_log = 0.0f;
@@ -973,7 +1101,7 @@ void writeOtherZValues()
 		for (i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 				float intensity_lin = pZConf[i];
 				float intensity_log = 0.0f;
@@ -1003,7 +1131,7 @@ void writeOtherZValues()
 		for (i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 				float r=0;
 				float g=0;
@@ -1056,7 +1184,7 @@ void writeOtherZValues()
 		for (i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 
 				float r=0;
@@ -1204,7 +1332,7 @@ void writeSpectraVersion()
 		for (size_t i=0;i<gridSizeSqr;i++)
 		{
 			int index = pIndexlist[i];
-			if ( index > 0 && index < numSourceSpecra )
+			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
@@ -1707,7 +1835,8 @@ void main(int argc, char* argv[])
 	//writeSpectrTypes();
 	//writeFlux();
 	//writeMagUGRIZ();
-	writePrimaryTarget();
+//	writePrimaryTarget();
+	writePrimTargetFromBin();
 	//writePlate();
 	//writeRADEC();
 	//writeOtherZValues();
@@ -1721,5 +1850,4 @@ void main(int argc, char* argv[])
 	printf ("fin.\n" );
 
 }
-
 
