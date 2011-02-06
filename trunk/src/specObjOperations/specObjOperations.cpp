@@ -29,6 +29,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <algorithm>
 
 #include "devil/include/il/il.h"
 #include "devil/include/il/ilu.h"
@@ -44,6 +45,7 @@
 #include "sdsslib/spectraHelpers.h"
 #include "sdsslib/spectra.h"
 #include "sdsslib/defines.h"
+#include "sdsslib/CSVExport.h"
 
 typedef char _TCHAR;
 
@@ -1426,6 +1428,27 @@ void writeUMatrix()
 	}
 }
 
+void writeIndexListFromSOFMBin()
+{
+	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
+	if ( pNetworkVFS != NULL )
+	{
+		const size_t numSpectra = pNetworkVFS->getNumSpectra();
+		int *pIndexBuffer = new int[numSpectra];
+
+		for ( size_t i=0;i<numSpectra;i++ )
+		{
+			Spectra *spSpec = pNetworkVFS->beginRead( i );
+			pIndexBuffer[i] = spSpec->m_Index;
+
+			pNetworkVFS->endRead( i );
+		}
+
+		FileHelpers::writeFile( std::string("indexList.bin"), static_cast<void*>(pIndexBuffer), numSpectra*sizeof(int), true );
+		delete[] pIndexBuffer;
+	}
+}
+
 
 
 void writeUMatrixForSource()
@@ -1720,9 +1743,7 @@ void writeParamsFromSelection()
 	size_t j=199;
 	int *pIndexlist= new int[gridSize*gridSize];
 	std::string sstrIndexList = "indexlist";
-	std::string sstrFileName = "UMatrixForSource";
 	sstrIndexList += Helpers::numberToString(j,4);
-	sstrFileName += Helpers::numberToString(j,4);
 	sstrIndexList+= ".bin";
 	FILE *f=fopen(sstrIndexList.c_str(),"rb");
 	if ( f== NULL) {
@@ -1819,11 +1840,254 @@ void writeParamsFromSelection()
 
 	std::ofstream fon("maskTable.csv");
 	fon<<sstrOutTable;
-
-
-
 }
 
+
+void medianSpectrumFromSelection()
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+
+	// load mask
+	ilLoadImage( (ILstring)"mask.png" );
+	ILenum err = ilGetError();
+	if( err != NULL )
+		return;
+	ilConvertImage( IL_LUMINANCE, IL_UNSIGNED_BYTE );
+	int width = ilGetInteger( IL_IMAGE_WIDTH );
+	int height = ilGetInteger( IL_IMAGE_HEIGHT );
+	if ( width != gridSize || height != gridSize ) {
+		// wrong dimensions
+		return;
+	}
+	unsigned char *pt = ilGetData();
+	if ( pt == NULL )  {
+		// nah, fail..
+		return;
+	}
+
+
+
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	size_t j=199;
+	int *pIndexlist= new int[gridSize*gridSize];
+	std::string sstrIndexList = "indexlist";
+	sstrIndexList += Helpers::numberToString(j,4);
+	sstrIndexList+= ".bin";
+	FILE *f=fopen(sstrIndexList.c_str(),"rb");
+	if ( f== NULL) {
+		// no index list
+		return;
+	}
+	fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+	fclose(f);
+
+	
+	SSE_ALIGN Spectra spAvg;
+	SSE_ALIGN Spectra spMin;
+	SSE_ALIGN Spectra spMax;
+	spMin.add(FLT_MAX);
+
+	size_t count = 0;
+	spMax.add(-FLT_MAX);
+
+
+	for (size_t i=0;i<gridSizeSqr;i++)
+	{
+		// if mask is selected..
+		if (pt[i] > 128 ) {
+			int index = pIndexlist[i];
+
+			if ( index >= 0 && index < numSourceSpecra )
+			{
+				Spectra *sp = pSourceVFS->beginRead(index);
+
+				spAvg.add( *sp );
+
+				// min / max
+				for ( size_t j=0;j<Spectra::numSamples;j++ )
+				{
+					if ( spMin.m_Amplitude[j] > sp->m_Amplitude[j] ) 
+					{
+						spMin.m_Amplitude[j] = sp->m_Amplitude[j];
+					}
+					if ( spMax.m_Amplitude[j] < sp->m_Amplitude[j] ) 
+					{
+						spMax.m_Amplitude[j] = sp->m_Amplitude[j];
+					}
+				}
+				
+				pSourceVFS->endRead(index);
+				count++;
+
+			}
+		}
+	}
+
+	spAvg.multiply(1.f/static_cast<float>(count));
+
+	CSVExport cvsExporter(std::string("spMask.csv"), ", ");
+
+	cvsExporter.writeTableEntry(std::string("avg"));
+	cvsExporter.writeTableEntry(std::string("min"));
+	cvsExporter.writeTableEntry(std::string("max"));
+	cvsExporter.newRow();
+
+	for (size_t j=0;j<Spectra::numSamples;j++)
+	{
+		cvsExporter.writeTableEntry(spAvg.m_Amplitude[j]);
+		cvsExporter.writeTableEntry(spMin.m_Amplitude[j]);
+		cvsExporter.writeTableEntry(spMax.m_Amplitude[j]);
+		cvsExporter.newRow();
+	}
+
+//	spAvg.saveToCSV( std::string("spAvg.csv") );
+//	spMin.saveToCSV( std::string("spMin.csv") );
+//	spMax.saveToCSV( std::string("spMax.csv") );
+}
+
+
+
+void extractGalaxyZooData()
+{
+	// photo obj id -> spec obj id
+	std::map<unsigned __int64,unsigned __int64> specObjIDLookup;
+
+	// spec obj id -> index
+	std::map<unsigned __int64,int> indexLookup;
+
+	// our map
+	const size_t gridSize = 859;
+	const size_t gridSizeSqr = gridSize*gridSize;
+	float *pRGBMap = new float[gridSizeSqr*3];
+	for ( size_t i=0;i<gridSizeSqr*3;i++)
+	{
+		pRGBMap[i] = 0.5f;
+	}
+
+
+	// build dictionary spec obj id -> index
+	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
+	if ( pNetworkVFS != NULL )
+	{
+		const size_t numSpectra = pNetworkVFS->getNumSpectra();
+
+		for ( size_t i=0;i<numSpectra;i++ )
+		{
+			Spectra *spSpec = pNetworkVFS->beginRead( i );
+			if ( spSpec->m_SpecObjID > 0 ) {
+				indexLookup.insert(std::make_pair<unsigned __int64,int>(spSpec->m_SpecObjID,i));
+			}
+			pNetworkVFS->endRead( i );
+		}
+	}
+
+
+	// build dictionary photo obj id -> spec obj id
+	int status = 0;
+	fitsfile *f;
+	fits_open_file( &f, "PhotoObjSpecObj.fit", READONLY, &status );
+	if ( status != 0 ) {
+		return;
+	}
+
+	int numhdus = 0;
+	int hdutype = 0; // should be BINARY_TBL
+	long tblrows = 0; // should be numLines
+	int tblcols = 0; // should be 23
+	unsigned __int64 nullVal = 0;
+	unsigned __int64 photoObj, specObj;
+	fits_get_num_hdus( f, &numhdus, &status );
+	fits_movabs_hdu( f, 2, &hdutype, &status );
+
+
+	fits_get_num_rows( f, &tblrows, &status );
+	fits_get_num_cols( f, &tblcols, &status );
+
+	for ( size_t i=0;i<tblrows;i++ )
+	{
+		size_t i1 = i+1;
+		fits_read_col( f, TLONGLONG, 1, i1, 1, 1, &nullVal, &photoObj, NULL, &status );
+		fits_read_col( f, TLONGLONG, 2, i1, 1, 1, &nullVal, &specObj, NULL, &status );
+
+		specObjIDLookup.insert(std::make_pair<unsigned __int64,unsigned __int64>(photoObj,specObj));
+	}
+
+	fits_close_file(f, &status);
+
+
+	// load galaxy zoo table & build map(s)
+	std::string sstrCSV;
+	const bool bSuccess = FileHelpers::loadFileToString( std::string("GalaxyZoo1_DR_table2.csv"), sstrCSV );
+	if ( !bSuccess )
+	{
+		return;
+	}
+
+	std::stringstream fin(sstrCSV.c_str());
+	std::string sstrTemp;
+	getline(fin, sstrTemp, '\n');
+
+	while( fin >> sstrTemp ) 
+	{	
+		std::replace(sstrTemp.begin(), sstrTemp.end(), ',', ' ');
+		// row 0:PhotoObjID
+		unsigned __int64 photoObjID; 
+		std::stringstream st0(sstrTemp.c_str() );
+		st0 >> photoObjID;
+		unsigned __int64 specObjID=0; 
+
+		// row 1,2,3: ra,dec,nvotes
+		std::string ra,dec;
+		int nVotes;
+		st0 >> ra;
+		st0 >> dec;
+		st0 >> nVotes;
+		
+		// row 4,5,6,7,8,9,10 votes
+		float vElliptical, vClockWise, vAntiClockwise, vEdge, vDontKnow, vMerger, vCombinedSpiral;
+		st0 >> vElliptical;
+		st0 >> vClockWise;
+		st0 >> vAntiClockwise;
+		st0 >> vEdge;
+		st0 >> vDontKnow;
+		st0 >> vMerger;
+		st0 >> vCombinedSpiral;
+
+		// row 11,12 debiased votes
+		float vdElliptical, vdCombinedSpiral;
+		st0 >> vdElliptical;
+		st0 >> vdCombinedSpiral;
+
+		// row 13,14,15 flags
+		int fSpiral, fElliptical, fUncertain;
+		st0 >> fSpiral;
+		st0 >> fElliptical;
+		st0 >> fUncertain;
+
+		std::map<unsigned __int64,unsigned __int64>::iterator it = specObjIDLookup.find(photoObjID);
+		if ( it != specObjIDLookup.end() ) {
+			specObjID = it->second;
+			std::map<unsigned __int64,int>::iterator it2 = indexLookup.find(specObjID);
+			if (it2 != indexLookup.end() ) {
+				int index = it2->second;
+
+				SpectraHelpers::intensityToRGB( (float)vCombinedSpiral, &pRGBMap[index*3], false );			
+			}
+		}
+
+	}
+
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooCombinedSpiral");
+
+
+	delete[] pRGBMap;
+
+}
 
 
 void main(int argc, char* argv[])
@@ -1835,8 +2099,8 @@ void main(int argc, char* argv[])
 	//writeSpectrTypes();
 	//writeFlux();
 	//writeMagUGRIZ();
-//	writePrimaryTarget();
-	writePrimTargetFromBin();
+	//writePrimaryTarget();
+	//writePrimTargetFromBin();
 	//writePlate();
 	//writeRADEC();
 	//writeOtherZValues();
@@ -1846,6 +2110,9 @@ void main(int argc, char* argv[])
 	//writeUMatrixForSource(); 
 	//test();
 	//writeParamsFromSelection();
+	//writeIndexListFromSOFMBin();
+	//medianSpectrumFromSelection();
+	extractGalaxyZooData();
 	
 	printf ("fin.\n" );
 
