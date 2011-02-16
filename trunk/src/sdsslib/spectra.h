@@ -354,6 +354,8 @@ public:
 	static float indexToWaveLength( size_t _index, float _waveBegin, float _waveEnd, int _numSamples );
 	static size_t waveLengthToIndex( float _waveLength, float _waveBegin, float _waveEnd, int _numSamples );
 
+	static float waveLenghtToRestFrame( float _waveLength, float _z );
+
 	// returns any combination of SpectraTypes as filter
 	static std::string spectraFilterToString( unsigned int _spectraFilter );
 

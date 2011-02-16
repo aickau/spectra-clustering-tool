@@ -60,7 +60,8 @@ namespace SpectraHelpers
 		bool _showSpectraLines, 
 		size_t _xp=0, size_t _yp=0, 
 		size_t _width=400, size_t _height=300, 
-		float _yscale=1.f);
+		float _yscale=1.f,
+		float _xScale=1.f);
 
 	// Render spectrum to disk.
 	// _spectra = spectrum to render

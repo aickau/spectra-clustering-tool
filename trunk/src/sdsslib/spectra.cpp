@@ -1477,6 +1477,16 @@ size_t Spectra::waveLengthToIndex( float _waveLength, float _waveBegin, float _w
 }
 
 
+float Spectra::waveLenghtToRestFrame( float _waveLength, float _z )
+{
+	if ( _z <= -1.0 ) {
+		return FLT_MAX;
+	}
+	return _waveLength/(1.f+_z);
+}
+
+
+
 std::string Spectra::spectraFilterToString( unsigned int _spectraFilter )
 {
 	std::string sstrOutString;
