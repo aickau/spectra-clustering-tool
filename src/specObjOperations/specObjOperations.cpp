@@ -826,6 +826,66 @@ void writePlate()
 
 
 
+void writePlate336()
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	int objCount=0;
+
+	//for (size_t j=0;j<=200;j++)
+	size_t j=200;
+	{
+		int *pIndexlist= new int[gridSize*gridSize];
+		std::string sstrIndexList = "indexlist";
+		sstrIndexList += Helpers::numberToString(j,4);
+		sstrIndexList+= ".bin";
+		FILE *f=fopen(sstrIndexList.c_str(),"rb");
+		if ( f!= NULL)
+		{
+			fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+			fclose(f);
+		}
+
+		float *pRGBMap = new float[gridSizeSqr*3];
+		for ( size_t i=0;i<gridSizeSqr*3;i++)
+		{
+			pRGBMap[i] = 0.5f;
+		}
+
+
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index >= 0 && index < numSourceSpecra )
+			{
+				Spectra *sp = pSourceVFS->beginRead(index);
+				if ( sp->getPlate() == 336) {
+					int mjd = sp->getMJD();
+
+					pRGBMap[i*3] = 1.0;
+					pRGBMap[i*3+1] = sp->getFiber()/640.f;
+					pRGBMap[i*3+2] = 0.0;
+					objCount++;
+				}
+				pSourceVFS->endRead(index);
+			}
+		}
+
+		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, std::string("plate336"));
+
+
+		delete[] pIndexlist;
+		delete[] pRGBMap;
+	}
+}
+
+
+
+
 void writeMJD()
 {
 	const size_t gridSize(859);
@@ -2031,6 +2091,7 @@ void extractGalaxyZooData()
 	std::stringstream fin(sstrCSV.c_str());
 	std::string sstrTemp;
 	getline(fin, sstrTemp, '\n');
+	int mappingCount = 0;
 
 	while( fin >> sstrTemp ) 
 	{	
@@ -2075,14 +2136,23 @@ void extractGalaxyZooData()
 			std::map<unsigned __int64,int>::iterator it2 = indexLookup.find(specObjID);
 			if (it2 != indexLookup.end() ) {
 				int index = it2->second;
-
-				SpectraHelpers::intensityToRGB( (float)vCombinedSpiral, &pRGBMap[index*3], false );			
+				if ( vMerger >= 0.8f ) {
+					pRGBMap[index*3] = 1.0f;
+					pRGBMap[index*3+1] = 1.0f;
+					pRGBMap[index*3+2] = 1.0f;
+				} else {
+					pRGBMap[index*3] = 0.0f;
+					pRGBMap[index*3+1] = 0.0f;
+					pRGBMap[index*3+2] = 0.0f;
+				}
+				//SpectraHelpers::intensityToRGB( (float)vAntiClockwise, &pRGBMap[index*3], false );	
+				mappingCount++;
 			}
 		}
 
 	}
 
-	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooCombinedSpiral");
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooFlagMerger");
 
 
 	delete[] pRGBMap;
@@ -2102,6 +2172,7 @@ void main(int argc, char* argv[])
 	//writePrimaryTarget();
 	//writePrimTargetFromBin();
 	//writePlate();
+	//writePlate336();
 	//writeRADEC();
 	//writeOtherZValues();
 	//writeSpectraVersion();

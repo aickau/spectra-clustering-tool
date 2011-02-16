@@ -177,7 +177,8 @@ void drawSpectra(Spectra &_spectra,
 								 size_t _yp, 
 								 size_t _width, 
 								 size_t _height, 
-								 float _yscale )
+								 float _yscale,
+								 float _xScale )
 {
 	if ( _spectra.m_SamplesRead <= 2 )
 		return;
@@ -186,14 +187,14 @@ void drawSpectra(Spectra &_spectra,
 
 	float xoffset=X2Win(_xp);
 	float yoffset=Y2Win(_yp)-_height*(1.f-xAxisCenter); 
-	float xscale=static_cast<float>(_width-10)/static_cast<float>(Spectra::numSamples);
+	float xscale=(static_cast<float>(_width-10)/static_cast<float>(Spectra::numSamples))*_xScale;
 	float yscale=_yscale*static_cast<float>(_height*xAxisCenter);
 
 	float values[Spectra::numSamples];
 
-	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 2 );
+	//MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 2 );
 
-	GLHelper::DrawDiagram( values, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
+	GLHelper::DrawDiagram( &_spectra.m_Amplitude[0], _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
 
 	// draw x-axis
 	GLHelper::DrawLine( xoffset, yoffset, xoffset+static_cast<float>(_width-10), yoffset );
