@@ -365,13 +365,16 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	std::istringstream sstr;
 	sstr.str(sstrTemp);
 	__int64 specObjID=0;
-	int plate=-1, mjd=-1, fiberID=-1, type=-1;
+	int type=-1;
+	int mjd = -1;
+	int plate = -1;
+	int fiberID = -1;
 	double z=-100000.0;
 
 	sstr >> specObjID;
-	sstr >> mjd;
-	sstr >> plate;
-	sstr >> fiberID;
+ 	sstr >> mjd;
+ 	sstr >> plate;
+ 	sstr >> fiberID;
 	sstr >> type;
 	sstr >> z;
 
@@ -389,13 +392,15 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	}
 	else
 	{
+
 		// try to calculate it form the other data.
-		if ( plate>-1 && mjd>-1 && fiberID>-1 && type>-1 )
+		if ( mjd > 0 && plate > 0 && fiberID >= 0 ) 
 		{
-			m_SpecObjID = Spectra::calcSpecObjID( plate,mjd,fiberID,type );
-		}
+			m_SpecObjID = Spectra::calcSpecObjID( plate, mjd, fiberID, 0 );
+		} 
 		else
 		{
+			// generate fake spec obj ID
 			m_SpecObjID = Spectra::calcSpecObjID( nCounter/640, 0, nCounter%640, 0 );
 			nCounter++;
 		}
@@ -407,7 +412,7 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	}
 
 
-	const size_t spectrumMaxSize = 4000; 
+	const size_t spectrumMaxSize = 3900; 
 	float spectrum[spectrumMaxSize];
 
 
@@ -441,9 +446,9 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 		c++;
 	}
 
-	SpectraHelpers::foldSpectrum( spectrum, c, m_Amplitude, numSamples, 2 );
+	SpectraHelpers::foldSpectrum( spectrum, c, m_Amplitude, numSamples, 3 );
 
-	m_SamplesRead = c/4;
+	m_SamplesRead = c/8;
 
 	calcMinMax();
 
@@ -1367,7 +1372,7 @@ int Spectra::getPlate() const
 
 std::string Spectra::getURL()const
 {
-	std::string sstrUrl("http://cas.sdss.org/dr6/en/tools/explore/obj.asp?sid=");
+	std::string sstrUrl("http://cas.sdss.org/dr7/en/tools/explore/obj.asp?sid=");
 	sstrUrl += Helpers::numberToString( m_SpecObjID );
 	return sstrUrl;
 }

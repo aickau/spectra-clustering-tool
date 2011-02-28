@@ -92,7 +92,7 @@ SpectraVFSCached::SpectraVFSCached( const std::string &_sstrFilename, std::ofstr
 	{
 		m_pCache[i] = static_cast<Spectra*>( Memory::memAlignedAlloc( TOTALCACHELINEBYTES ) ); // new Spectra[CACHELINESIZE];
 
-		if ( m_pCache == NULL )
+		if ( m_pCache[i] == NULL )
 		{
 			// out of heap
 			_cprintf("failed to allocate %i bytes. exit.\n", TOTALCACHELINEBYTES );

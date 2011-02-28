@@ -40,7 +40,7 @@
 #include <string>
 
 // analyze or spectra mapper ?
-#define SPECTRAMAPPER
+//#define SPECTRAMAPPER
 
 extern HWND	fr_hWnd;
 extern HDC fr_hDC;		
@@ -199,7 +199,7 @@ void mapSpectraFromSelection( bool _toRestFrame )
 
 
 //				sp->m_SamplesRead= Spectra::numSamples;
-				SpectraHelpers::drawSpectra(tsp, false, false, xO*scr_width, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max, xD/xDAll );
+				SpectraHelpers::drawSpectra(tsp, false, false, xO*scr_width, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max, xD/xDAll, 0 );
 
 				pSourceVFS->endRead(index);
 
@@ -210,11 +210,11 @@ void mapSpectraFromSelection( bool _toRestFrame )
 	if ( !_toRestFrame ) {
 		GLHelper::SetBlendMode(GLHelper::kBlendMode_Off);
 		glColor3f(0,1,0);
-		SpectraHelpers::drawSpectra(spAvg, false, false, 0, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max );
+		SpectraHelpers::drawSpectra(spAvg, false, false, 0, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max, 0 );
 		glColor3f(1,1,0);
-		SpectraHelpers::drawSpectra(spMin, false, false, 0, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max );
+		SpectraHelpers::drawSpectra(spMin, false, false, 0, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max, 0 );
 		glColor3f(1,0,0);
-		SpectraHelpers::drawSpectra(spMax, false, false, 0, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max );
+		SpectraHelpers::drawSpectra(spMax, false, false, 0, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max, 0 );
 	}
 
 

@@ -1096,7 +1096,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 			sstrTable += HTMLExport::beginTableRow();
 
 			sstrTable += HTMLExport::beginTableCell();
-			sstrTable += HTMLExport::imageLink( std::string("http://cas.sdss.org/dr6/en/get/specById.asp?id=")+Helpers::numberToString<__int64>(b->m_SpecObjID), b->getURL() );
+			sstrTable += HTMLExport::imageLink( std::string("http://cas.sdss.org/dr7/en/get/specById.asp?id=")+Helpers::numberToString<__int64>(b->m_SpecObjID), b->getURL() );
 			sstrTable += HTMLExport::lineBreak();
 			sstrTable += "err=";
 			sstrTable += Helpers::numberToString<float>(error);

@@ -55,13 +55,15 @@ namespace SpectraHelpers
 	void saveIntensityMap( float *_pMap, size_t _sizeX, size_t _sizeY, const std::string &_sstrFileName );
 
 	// Draw Spectrum (to framebuffer)
+	// _smooth smoothing of spectra [0..10] (0=no smoothing, n=number of smooth iterations)
 	void drawSpectra(Spectra &_spectra, 
 		bool _showInfo,
 		bool _showSpectraLines, 
 		size_t _xp=0, size_t _yp=0, 
 		size_t _width=400, size_t _height=300, 
 		float _yscale=1.f,
-		float _xScale=1.f);
+		float _xScale=1.f,
+		int _smooth=2);
 
 	// Render spectrum to disk.
 	// _spectra = spectrum to render
