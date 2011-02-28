@@ -178,7 +178,8 @@ void drawSpectra(Spectra &_spectra,
 								 size_t _width, 
 								 size_t _height, 
 								 float _yscale,
-								 float _xScale )
+								 float _xScale,
+								 int _smooth)
 {
 	if ( _spectra.m_SamplesRead <= 2 )
 		return;
@@ -190,11 +191,16 @@ void drawSpectra(Spectra &_spectra,
 	float xscale=(static_cast<float>(_width-10)/static_cast<float>(Spectra::numSamples))*_xScale;
 	float yscale=_yscale*static_cast<float>(_height*xAxisCenter);
 
-	float values[Spectra::numSamples];
-
-	//MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 2 );
-
-	GLHelper::DrawDiagram( &_spectra.m_Amplitude[0], _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
+	if ( _smooth>0 ) 
+	{
+		float values[Spectra::numSamples];
+		MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, MIN(_smooth,10) );
+		GLHelper::DrawDiagram( values, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
+	}
+	else
+	{
+		GLHelper::DrawDiagram( &_spectra.m_Amplitude[0], _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
+	}
 
 	// draw x-axis
 	GLHelper::DrawLine( xoffset, yoffset, xoffset+static_cast<float>(_width-10), yoffset );
@@ -322,7 +328,7 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 		globalMax = 1.f;
 	}
 
-	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/globalMax );
+	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/globalMax, 1.f, 2 );
 
 	glReadPixels(0,getFBHeight()-h4,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 	iluScale(_width,_height,1);
@@ -394,7 +400,7 @@ void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstr
 	// insert link
 	if ( !sp->getFileName().empty() )
 	{
-		_sstrOutTable += HTMLExport::imageLink( std::string("http://cas.sdss.org/dr6/en/get/specById.asp?id=")+Helpers::numberToString<__int64>(sp->m_SpecObjID), sp->getURL() );
+		_sstrOutTable += HTMLExport::imageLink( std::string("http://cas.sdss.org/dr7/en/get/specById.asp?id=")+Helpers::numberToString<__int64>(sp->m_SpecObjID), sp->getURL() );
 		_sstrOutTable += HTMLExport::lineBreak();
 		_sstrOutTable += "err=";
 		_sstrOutTable += Helpers::numberToString<float>(_error);
