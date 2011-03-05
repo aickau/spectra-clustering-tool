@@ -49,9 +49,11 @@
 
 typedef char _TCHAR;
 
-//#define DATADIR std::string("G:/SDSS_ANALYZE/fits/spectro/data/*")
-//#define DATADIR std::string("c:/prj/sdss_trunk/data/0266/*")
-#define DATADIR std::string("d:/dr7/1d_25/*")
+//#define DATADIR std::string("G:/SDSS_ANALYZE/fits/spectro/data/")
+//#define DATADIR std::string("c:/prj/sdss_trunk/data/")
+//#define DATADIR std::string("d:/dr7/1d_25/")
+#define DATADIR std::string("f:/DR6SpectroFITS/")
+
 
 
 
@@ -268,6 +270,84 @@ void writeSpectrTypes()
 	}
 }
 
+void writeZMap()
+{
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
+
+	if ( pSourceVFS != NULL && pNetworkVFS != NULL ) 
+	{
+		SpectraHelpers::calcZMap( *pSourceVFS, *pNetworkVFS, "ZMap", true, false, 5 );
+	}
+}
+
+
+
+void writeZMapFromIndexList()
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	size_t j=199;
+	//for (size_t j=0;j<=200;j++)
+	{
+		int *pIndexlist= new int[gridSize*gridSize];
+		std::string sstrIndexList = "indexlist";
+		std::string sstrFileName = "ZMap";
+		sstrIndexList += Helpers::numberToString(j,4);
+		sstrFileName += Helpers::numberToString(j,4);
+		sstrIndexList+= ".bin";
+		FILE *f=fopen(sstrIndexList.c_str(),"rb");
+		if ( f!= NULL)
+		{
+			fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+			fclose(f);
+		}
+
+		float *pRGBMap = new float[gridSizeSqr*3];
+		for ( size_t i=0;i<gridSizeSqr*3;i++)
+		{
+			pRGBMap[i] = 0.5f;
+		}
+
+		// determine maximum Z
+		float maxZ = 0.0f;
+		for (size_t i=0;i<numSourceSpecra;i++) 
+		{
+			Spectra *sp = pSourceVFS->beginRead(i);
+			maxZ = MAX(sp->m_Z,maxZ);
+			pSourceVFS->endRead(i);
+		}
+
+
+
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index >= 0 && index < numSourceSpecra )
+			{
+				Spectra *sp = pSourceVFS->beginRead(index);
+
+				float z = sp->m_Z;
+				// logarithmic scale
+				float scale = log10f( z+1.f ) / log10f( maxZ+1.f );
+				SpectraHelpers::intensityToRGB( scale, &pRGBMap[i*3], true );			
+
+				pSourceVFS->endRead(index);
+			}
+		}
+
+		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrFileName);
+
+
+		delete[] pIndexlist;
+		delete[] pRGBMap;
+	}
+}
+
 
 void writeFlux()
 {
@@ -292,7 +372,7 @@ void writeFlux()
 	}
 
 	//for (size_t j=0;j<=200;j++)
-	size_t j=200;
+	size_t j=199;
 	{
 		int *pIndexlist= new int[gridSize*gridSize];
 		std::string sstrIndexList = "indexlist";
@@ -401,7 +481,7 @@ void writeMagUGRIZ()
 				Spectra *sp = pSourceVFS->beginRead(index);
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
-				std::string sstrPath = "D:/sdss/dr7/1d_25/"+sstrPlate+"/1d/"+sstrFileName;
+				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
 
 
 				fitsfile *f;
@@ -639,7 +719,7 @@ void writePrimaryTarget()
 				Spectra *sp = pSourceVFS->beginRead(index);
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
-				std::string sstrPath = "D:/sdss/dr7/1d_25/"+sstrPlate+"/1d/"+sstrFileName;
+				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
 
 
 				fitsfile *f;
@@ -963,7 +1043,7 @@ void writeRADEC()
 	float maxFlux = 0.0f;
 
 	//for (size_t j=0;j<=200;j++)
-	size_t j=200;
+	size_t j=199;
 	{
 		int *pIndexlist= new int[gridSize*gridSize];
 		std::string sstrIndexList = "indexlist";
@@ -993,7 +1073,7 @@ void writeRADEC()
 				Spectra *sp = pSourceVFS->beginRead(index);
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
-				std::string sstrPath = "D:/dr7/1d_25/"+sstrPlate+"/1d/"+sstrFileName;
+				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
 
 
 				fitsfile *f;
@@ -1086,7 +1166,7 @@ void writeOtherZValues()
 				Spectra *sp = pSourceVFS->beginRead(index);
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
-				std::string sstrPath = "D:/dr7/1d_25/"+sstrPlate+"/1d/"+sstrFileName;
+				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
 
 
 				fitsfile *f;
@@ -1399,7 +1479,7 @@ void writeSpectraVersion()
 				Spectra *sp = pSourceVFS->beginRead(index);
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
-				std::string sstrPath = "D:/dr7/1d_25/"+sstrPlate+"/1d/"+sstrFileName;
+				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
 
 
 				fitsfile *f;
@@ -1691,7 +1771,7 @@ void spectroLisWrite()
 
 	Helpers::print( std::string("Scanning directories..\n"), &logFile );
 
-	size_t numFiles = FileHelpers::getFileList( DATADIR, fileList );
+	size_t numFiles = FileHelpers::getFileList( DATADIR+"*", fileList );
 
 	for ( size_t i=0;i<numFiles;i++ )
 	{
@@ -1828,7 +1908,7 @@ void writeParamsFromSelection()
 				sp->calculateFlux();
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
-				std::string sstrPath = "D:/sdss/dr7/1d_25/"+sstrPlate+"/1d/"+sstrFileName;
+				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
 
 
 				fitsfile *f;
@@ -2136,7 +2216,7 @@ void extractGalaxyZooData()
 			std::map<unsigned __int64,int>::iterator it2 = indexLookup.find(specObjID);
 			if (it2 != indexLookup.end() ) {
 				int index = it2->second;
-				if ( vMerger >= 0.8f ) {
+				if ( vDontKnow >= 0.8f ) {
 					pRGBMap[index*3] = 1.0f;
 					pRGBMap[index*3+1] = 1.0f;
 					pRGBMap[index*3+2] = 1.0f;
@@ -2152,7 +2232,7 @@ void extractGalaxyZooData()
 
 	}
 
-	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooFlagMerger");
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooDontKnow");
 
 
 	delete[] pRGBMap;
@@ -2173,7 +2253,9 @@ void main(int argc, char* argv[])
 	//writePrimTargetFromBin();
 	//writePlate();
 	//writePlate336();
-	//writeRADEC();
+	writeRADEC();
+	//writeZMap();
+	//writeZMapFromIndexList();
 	//writeOtherZValues();
 	//writeSpectraVersion();
 	//writeMJD();
@@ -2183,7 +2265,7 @@ void main(int argc, char* argv[])
 	//writeParamsFromSelection();
 	//writeIndexListFromSOFMBin();
 	//medianSpectrumFromSelection();
-	extractGalaxyZooData();
+	//extractGalaxyZooData();
 	
 	printf ("fin.\n" );
 
