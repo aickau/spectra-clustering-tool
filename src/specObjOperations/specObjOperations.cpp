@@ -109,9 +109,9 @@ void trackCatalogs()
 	size_t j=199;
 //	for (size_t j=0;j<=200;j++)
 	{
-		std::string sstrCatalogueName("catalogueDownes2004");
+		//std::string sstrCatalogueName("catalogueDownes2004");
 		//std::string sstrCatalogueName("catalogueKoester2006");
-		//std::string sstrCatalogueName("catalogueHall2002");
+		std::string sstrCatalogueName("catalogueHall2002");
 		const std::string sstrCatalogueName_(sstrCatalogueName+"_"+Helpers::numberToString(j,3));
 		sstrCatalogueName += ".csv";
 
@@ -337,6 +337,58 @@ void writeZMapFromIndexList()
 				SpectraHelpers::intensityToRGB( scale, &pRGBMap[i*3], true );			
 
 				pSourceVFS->endRead(index);
+			}
+		}
+
+		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrFileName);
+
+
+		delete[] pIndexlist;
+		delete[] pRGBMap;
+	}
+}
+
+
+void writeOccupiedFromIndexList()
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	size_t j=199;
+	//for (size_t j=0;j<=200;j++)
+	{
+		int *pIndexlist= new int[gridSize*gridSize];
+		std::string sstrIndexList = "indexlist";
+		std::string sstrFileName = "occupied";
+		sstrIndexList += Helpers::numberToString(j,4);
+		sstrFileName += Helpers::numberToString(j,4);
+		sstrIndexList+= ".bin";
+		FILE *f=fopen(sstrIndexList.c_str(),"rb");
+		if ( f!= NULL)
+		{
+			fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+			fclose(f);
+		}
+
+		float *pRGBMap = new float[gridSizeSqr*3];
+		for ( size_t i=0;i<gridSizeSqr*3;i++)
+		{
+			pRGBMap[i] = 1.0f;
+		}
+
+
+
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index >= 0 && index < numSourceSpecra )
+			{
+				pRGBMap[i*3] = 0.0f;
+				pRGBMap[i*3+1] = 0.0f;
+				pRGBMap[i*3+2] = 0.0f;
 			}
 		}
 
@@ -580,7 +632,7 @@ void writePrimTargetFromBin()
 	for (size_t i=0;i<gridSizeSqr;i++)
 	{
 		int index = pIndexlist[i];
-		if ( index > 0 && index < numSourceSpecra )
+		if ( index >= 0 && index < numSourceSpecra )
 		{
 
 			float r=0;
@@ -861,7 +913,7 @@ void writePlate()
 
 
 	//for (size_t j=0;j<=200;j++)
-	size_t j=200;
+	size_t j=199;
 	{
 		int *pIndexlist= new int[gridSize*gridSize];
 		std::string sstrIndexList = "indexlist";
@@ -917,7 +969,7 @@ void writePlate336()
 	int objCount=0;
 
 	//for (size_t j=0;j<=200;j++)
-	size_t j=200;
+	size_t j=199;
 	{
 		int *pIndexlist= new int[gridSize*gridSize];
 		std::string sstrIndexList = "indexlist";
@@ -943,7 +995,7 @@ void writePlate336()
 			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
-				if ( sp->getPlate() == 336) {
+				if ( sp->getPlate() == 350) {
 					int mjd = sp->getMJD();
 
 					pRGBMap[i*3] = 1.0;
@@ -955,7 +1007,7 @@ void writePlate336()
 			}
 		}
 
-		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, std::string("plate336"));
+		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, std::string("plate350"));
 
 
 		delete[] pIndexlist;
@@ -988,7 +1040,7 @@ void writeMJD()
 
 
 	//for (size_t j=0;j<=200;j++)
-	size_t j=200;
+	size_t j=199;
 	{
 		int *pIndexlist= new int[gridSize*gridSize];
 		std::string sstrIndexList = "indexlist";
@@ -1129,7 +1181,7 @@ void writeOtherZValues()
 	float maxFlux = 0.0f;
 
 	//for (size_t j=0;j<=200;j++)
-	size_t j=200;
+	size_t j=199;
 	size_t i=0;
 	{
 		int *pIndexlist= new int[gridSize*gridSize];
@@ -2109,20 +2161,38 @@ void extractGalaxyZooData()
 		pRGBMap[i] = 0.5f;
 	}
 
+	size_t j=199;
+	int *pIndexlist= new int[gridSize*gridSize];
+	std::string sstrIndexList = "indexlist";
+	sstrIndexList += Helpers::numberToString(j,4);
+	sstrIndexList+= ".bin";
+	FILE *ff=fopen(sstrIndexList.c_str(),"rb");
+	if ( ff== NULL) {
+		// no index list
+		return;
+	}
+	fread(pIndexlist, 1, gridSizeSqr*sizeof(int), ff);
+	fclose(ff);
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+
 
 	// build dictionary spec obj id -> index
-	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
-	if ( pNetworkVFS != NULL )
+	if ( pIndexlist != NULL )
 	{
-		const size_t numSpectra = pNetworkVFS->getNumSpectra();
-
-		for ( size_t i=0;i<numSpectra;i++ )
+		for ( size_t i=0;i<gridSizeSqr;i++ )
 		{
-			Spectra *spSpec = pNetworkVFS->beginRead( i );
-			if ( spSpec->m_SpecObjID > 0 ) {
-				indexLookup.insert(std::make_pair<unsigned __int64,int>(spSpec->m_SpecObjID,i));
+			int index = pIndexlist[i];
+			if (index >= 0 && index < numSourceSpecra ) 
+			{
+				Spectra *spSpec = pSourceVFS->beginRead( index );
+				if ( spSpec != NULL && spSpec->m_SpecObjID > 0 ) {
+					indexLookup.insert(std::make_pair<unsigned __int64,int>(spSpec->m_SpecObjID,i));
+				}
+				pSourceVFS->endRead( i );
 			}
-			pNetworkVFS->endRead( i );
 		}
 	}
 
@@ -2216,7 +2286,7 @@ void extractGalaxyZooData()
 			std::map<unsigned __int64,int>::iterator it2 = indexLookup.find(specObjID);
 			if (it2 != indexLookup.end() ) {
 				int index = it2->second;
-				if ( vDontKnow >= 0.8f ) {
+				if ( vClockWise+vAntiClockwise >= 0.8f ) {
 					pRGBMap[index*3] = 1.0f;
 					pRGBMap[index*3+1] = 1.0f;
 					pRGBMap[index*3+2] = 1.0f;
@@ -2225,14 +2295,14 @@ void extractGalaxyZooData()
 					pRGBMap[index*3+1] = 0.0f;
 					pRGBMap[index*3+2] = 0.0f;
 				}
-				//SpectraHelpers::intensityToRGB( (float)vAntiClockwise, &pRGBMap[index*3], false );	
+				SpectraHelpers::intensityToRGB( (float)MIN(vClockWise+vAntiClockwise,1.0f), &pRGBMap[index*3], false );	
 				mappingCount++;
 			}
 		}
 
 	}
 
-	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooDontKnow");
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooSpiralNoEdgeOn");
 
 
 	delete[] pRGBMap;
@@ -2252,10 +2322,11 @@ void main(int argc, char* argv[])
 	//writePrimaryTarget();
 	//writePrimTargetFromBin();
 	//writePlate();
-	//writePlate336();
-	writeRADEC();
+	writePlate336();
+	//writeRADEC();
 	//writeZMap();
 	//writeZMapFromIndexList();
+	//writeOccupiedFromIndexList();
 	//writeOtherZValues();
 	//writeSpectraVersion();
 	//writeMJD();
