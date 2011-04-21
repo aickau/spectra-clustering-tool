@@ -89,7 +89,10 @@ typedef char _TCHAR;
 #define TARGET_QSO_REJECT	0x20000000	 
 
 
-
+#define CALC_MAPADRESS(x,y,xsize) ((CLAMP(x,0,xsize-1))+((CLAMP(y,0,xsize-1))*(xsize)))
+#define SETPIXEL(ptr,x,y,xsize,val) ptr[CALC_MAPADRESS(x,y,xsize)*3] = val; \
+	ptr[CALC_MAPADRESS(x,y,xsize)*3+1] = val; \
+	ptr[CALC_MAPADRESS(x,y,xsize)*3+2] = val; 
 
 struct TspecObj 
 {
@@ -109,9 +112,9 @@ void trackCatalogs()
 	size_t j=199;
 //	for (size_t j=0;j<=200;j++)
 	{
-		//std::string sstrCatalogueName("catalogueDownes2004");
+		std::string sstrCatalogueName("catalogueDownes2004");
 		//std::string sstrCatalogueName("catalogueKoester2006");
-		std::string sstrCatalogueName("catalogueHall2002");
+	//	std::string sstrCatalogueName("catalogueHall2002");
 		const std::string sstrCatalogueName_(sstrCatalogueName+"_"+Helpers::numberToString(j,3));
 		sstrCatalogueName += ".csv";
 
@@ -119,7 +122,7 @@ void trackCatalogs()
 		std::ifstream fin(sstrCatalogueName.c_str());
 
 
-		int *pIndexlist= new int[gridSize*gridSize];
+		int *pIndexlist= new int[gridSizeSqr];
 		std::string sstrIndexList = "indexlist";
 		sstrIndexList += Helpers::numberToString(j,4);
 		sstrIndexList+= ".bin";
@@ -135,9 +138,11 @@ void trackCatalogs()
 		float *pRGBMap = new float[gridSizeSqr*3];
 		for ( size_t i=0;i<gridSizeSqr*3;i++)
 		{
-			pRGBMap[i] = 0.0f;
+			pRGBMap[i] = 1.0f;
 		}
 
+		int trackedObjectCount=0;
+		int *pTargetPos = new int[gridSizeSqr]; 
 
 		while (fin)
 		{
@@ -149,7 +154,19 @@ void trackCatalogs()
 			const int plate = Helpers::stringToNumber<int>(sstrPlate);
 			const int mjd = Helpers::stringToNumber<int>(sstrMJD);
 			const int fiberID = Helpers::stringToNumber<int>(sstrFiberID);
+			const unsigned int sid = Spectra::calcSpecObjID(plate,mjd,fiberID,0);
 			std::string sstrFilename( Spectra::getSpecObjFileName(plate,mjd,fiberID));
+
+			for (size_t i=0;i<gridSizeSqr;i++)
+			{
+				int index = pIndexlist[i];
+				if ( index >= numSourceSpecra || index < 0) 
+				{
+					pRGBMap[i*3] = 0.9f;
+					pRGBMap[i*3+1] = 0.9f;
+					pRGBMap[i*3+2] = 0.9f;
+				}
+			}
 
 			for (size_t i=0;i<gridSizeSqr;i++)
 			{
@@ -171,16 +188,34 @@ void trackCatalogs()
 						sstrExport += Helpers::numberToString(i%gridSize);
 						sstrExport += "\n";
 
-						pRGBMap[i*3] = 1.0f;
-						pRGBMap[i*3+1] = (float)fiberID/640.f;
-						pRGBMap[i*3+2] = (float)plate/1700.0;
-						i=gridSizeSqr;
+						pRGBMap[i*3] = 0.0f;
+						pRGBMap[i*3+1] = 0.f;
+						pRGBMap[i*3+2] = 0.f;
+
+						pTargetPos[trackedObjectCount] = i; 
+
+						trackedObjectCount++;
 					}
 					pSourceVFS->endRead(index);
 				}
 			}
 		}
+
 		logFile << sstrExport;
+
+
+		// draw cross
+		for (size_t i=0;i<trackedObjectCount;i++)
+		{
+			int ix = pTargetPos[i]%gridSize;
+			int iy = pTargetPos[i]/gridSize;
+			for (int k=1;k<=2;k++) {
+				SETPIXEL(pRGBMap,ix+k,iy,gridSize,0.f);
+				SETPIXEL(pRGBMap,ix-k,iy,gridSize,0.f);
+				SETPIXEL(pRGBMap,ix,iy+k,gridSize,0.f);
+				SETPIXEL(pRGBMap,ix,iy-k,gridSize,0.f);
+			}
+		}
 
 		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrCatalogueName_);
 
@@ -2315,14 +2350,14 @@ void main(int argc, char* argv[])
 	SpectraHelpers::init(0);
 
 	//spectroLisWrite();
-	//trackCatalogs();
+	trackCatalogs();
 	//writeSpectrTypes();
 	//writeFlux();
 	//writeMagUGRIZ();
 	//writePrimaryTarget();
 	//writePrimTargetFromBin();
 	//writePlate();
-	writePlate336();
+	//writePlate336();
 	//writeRADEC();
 	//writeZMap();
 	//writeZMapFromIndexList();

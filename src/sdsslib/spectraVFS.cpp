@@ -26,6 +26,7 @@
 #include "sdsslib/spectra.h"
 #include "sdsslib/Timer.h"
 #include "sdsslib/memory.h"
+#include "sdsslib/defines.h"
 
 
 #include <sstream>
@@ -248,16 +249,24 @@ void SpectraVFS::write( size_t _gridSize, float _minPeak, float _maxPeak, const 
 
 void SpectraVFS::write( size_t _count, float _noize, const std::string &_sstrFileName )
 {
+	if ( _count <= 0 ) 
+	{
+		return;
+	}
+
 	SpectraWrite w(_sstrFileName);
 
-	Spectra spec;
+	SSE_ALIGN Spectra spec;
 	spec.clear();
-	float freq = 0.00001f;
+	const float freqMin = 0.00001f;
+	const float freqMax = 0.04f;
+	const float freqStepSize = (freqMax-freqMin)/static_cast<float>(_count);
+	float freq = freqMin;
 
 	for ( size_t i=0;i<_count;i++)
 	{
 		spec.setSine( freq, 0.f, 1.f, _noize );
-		freq += 0.000000125f;
+		freq += freqStepSize; //0.000000125f;
 
 		w.write(spec);
 	}
