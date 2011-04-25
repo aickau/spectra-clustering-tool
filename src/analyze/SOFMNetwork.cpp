@@ -159,7 +159,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		//
 		// start new computation 
 		//
-		m_gridSize = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1))*1.1f);
+		m_gridSize = static_cast<size_t>(ceilf(sqrtf((float)m_numSpectra+1))*1.1f); // gives a factor of 1.1^2=1.21 in total
 		m_gridSizeSqr = m_gridSize*m_gridSize;
 
 		Helpers::print( std::string("Start clustering using ")+Helpers::numberToString(m_numSpectra)+

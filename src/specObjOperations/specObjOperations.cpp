@@ -46,6 +46,8 @@
 #include "sdsslib/spectra.h"
 #include "sdsslib/defines.h"
 #include "sdsslib/CSVExport.h"
+#include "sdsslib/random.h"
+
 
 typedef char _TCHAR;
 
@@ -2339,9 +2341,211 @@ void extractGalaxyZooData()
 
 	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooSpiralNoEdgeOn");
 
-
 	delete[] pRGBMap;
+}
 
+
+void analyseSineTestDistributions()
+{
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
+	if ( pNetworkVFS == NULL )
+	{
+		return;
+	}
+
+	const size_t numSpectra = pNetworkVFS->getNumSpectra();
+
+	// our map
+	const size_t gridSize = sqrtf(numSpectra);
+	const size_t gridSizeSqr = numSpectra;
+	float *pRGBMap = new float[gridSizeSqr*3];
+	int *pDistribMatrix = new int[gridSizeSqr];
+
+	for ( size_t i=0;i<gridSizeSqr*3;i++)
+	{
+		pRGBMap[i] = 0.0f;
+		if (i<gridSizeSqr)
+		{
+			pDistribMatrix[i]=0;
+		}
+	}
+
+
+	// show frequency
+	for ( size_t i=0;i<numSpectra;i++ )
+	{
+		Spectra *spSpec = pNetworkVFS->beginRead( i );
+		int index = spSpec->m_Index;
+
+		if (index >= 0 && index < numSourceSpecra ) 
+		{
+			Spectra *spSpec = pSourceVFS->beginRead( index );
+			float intense = float(int(spSpec->m_SpecObjID >> 22))/8000.f;
+			pSourceVFS->endRead( index );
+
+			SpectraHelpers::intensityToRGB( intense, &pRGBMap[i*3], false );	
+
+		}
+
+		pNetworkVFS->endRead( i );
+	}
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "sineTestDistribution");
+
+	// clear map again
+	for ( size_t i=0;i<gridSizeSqr*3;i++)
+	{
+		pRGBMap[i] = 0.0f;
+	}
+
+	int maxDev = 0;
+
+	// calc errors
+	for ( size_t y=1;y<gridSize-1;y++ )
+	{
+		for ( size_t x=1;x<gridSize-1;x++ )
+		{
+			const size_t i = CALC_ADRESS(x,y,gridSize);
+			const size_t iLeft = CALC_ADRESS(x-1,y,gridSize);
+			const size_t iRight = CALC_ADRESS(x+1,y,gridSize);
+			const size_t iUp = CALC_ADRESS(x,y-1,gridSize);
+			const size_t iBottom = CALC_ADRESS(x,y+1,gridSize);
+
+			Spectra *spSpec = pNetworkVFS->beginRead( i );
+			int index_i = spSpec->m_Index;
+			pNetworkVFS->endRead( i );
+
+			spSpec = pNetworkVFS->beginRead( iLeft );
+			int index_iLeft = spSpec->m_Index;
+			pNetworkVFS->endRead( iLeft );
+
+			spSpec = pNetworkVFS->beginRead( iRight );
+			int index_iRight = spSpec->m_Index;
+			pNetworkVFS->endRead( iRight );
+
+			spSpec = pNetworkVFS->beginRead( iUp );
+			int index_iUp = spSpec->m_Index;
+			pNetworkVFS->endRead( iUp );
+
+			spSpec = pNetworkVFS->beginRead( iBottom );
+			int index_iBottom = spSpec->m_Index;
+			pNetworkVFS->endRead( iBottom );
+
+			if ( index_i > 0 && index_i < numSourceSpecra )
+			{
+				Spectra *spCenter = pSourceVFS->beginRead( index_i );
+				int freqIndexCenter = spCenter->m_SpecObjID>>22;
+
+				pDistribMatrix[i] = 0;
+
+				if ( index_iLeft > 0 && index_iLeft < numSourceSpecra )
+				{
+					Spectra *sp = pSourceVFS->beginRead( index_iLeft );
+					int freqIndexNB = sp->m_SpecObjID>>22;
+					pDistribMatrix[i] += abs(freqIndexNB-freqIndexCenter);
+					pSourceVFS->endRead( index_iLeft );
+				}
+				if ( index_iRight > 0 && index_iRight < numSourceSpecra )
+				{
+					Spectra *sp = pSourceVFS->beginRead( index_iRight );
+					int freqIndexNB = sp->m_SpecObjID>>22;
+					pDistribMatrix[i] += abs(freqIndexNB-freqIndexCenter);
+					pSourceVFS->endRead( index_iRight );
+				}
+				if ( index_iUp > 0 && index_iUp < numSourceSpecra )
+				{
+					Spectra *sp = pSourceVFS->beginRead( index_iUp );
+					int freqIndexNB = sp->m_SpecObjID>>22;
+					pDistribMatrix[i] += abs(freqIndexNB-freqIndexCenter);
+					pSourceVFS->endRead( index_iUp );
+				}
+				if ( index_iBottom > 0 && index_iBottom < numSourceSpecra )
+				{
+					Spectra *sp = pSourceVFS->beginRead( index_iBottom );
+					int freqIndexNB = sp->m_SpecObjID>>22;
+					pDistribMatrix[i] += abs(freqIndexNB-freqIndexCenter);
+					pSourceVFS->endRead( index_iBottom );
+				}
+				pSourceVFS->endRead( index_i );
+
+				if ( maxDev<pDistribMatrix[i]) 
+				{
+					maxDev = pDistribMatrix[i];
+				}
+			}
+		}
+	}
+
+	maxDev = 100;
+
+
+	for ( size_t i=0;i<gridSizeSqr;i++)
+	{
+		SpectraHelpers::intensityToRGB( float(MAX(pDistribMatrix[i]-6,0))/(float)maxDev, &pRGBMap[i*3], false );	
+	}
+
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "sineTestMeanDev");
+
+
+
+}
+
+
+
+void clusterStatisticsSim()
+{
+	CSVExport e("stats.cvs");
+
+	const int numExperiments = 1000;	
+	const int maxSamples = 100;	
+	float sample_x[maxSamples];
+	float sample_y[maxSamples];
+	float dist[maxSamples];
+
+
+	for (int j=0;j<numExperiments;j++) 
+	{
+		Rnd r(j);
+
+		int numSamples = 2+r.randomInt(10);	
+
+		float mean_x=0.f, mean_y=0.f;
+
+		for (int i=0;i<numSamples;i++)
+		{
+			float x = r.randomFloat();
+			float y = r.randomFloat();
+
+			sample_x[i] = x;
+			sample_y[i] = y;
+
+			mean_x += x;
+			mean_y += y;
+		}
+		mean_x /= (float)numSamples;
+		mean_y /= (float)numSamples;
+ 
+		float meandist = 0.0f;
+		for (int i=0;i<numSamples;i++)
+		{
+			dist[i] = sqrtf( powf(sample_x[i]-mean_x,2.f)+powf(sample_y[i]-mean_y,2.f) );
+			meandist += dist[i];
+		}
+		meandist /= (float) numSamples;
+
+		float maxdist = sqrtf( powf(1.f-mean_x,2.f)+powf(1.f-mean_y,2.f) );
+		//float maxdist = sqrtf( 0.5f );
+
+		float plotValue = 1.f-(meandist/maxdist);
+		e.writeTableEntry(plotValue);
+
+		e.newRow();
+	}
+
+	e.flush();
 }
 
 
@@ -2350,7 +2554,7 @@ void main(int argc, char* argv[])
 	SpectraHelpers::init(0);
 
 	//spectroLisWrite();
-	trackCatalogs();
+	//trackCatalogs();
 	//writeSpectrTypes();
 	//writeFlux();
 	//writeMagUGRIZ();
@@ -2372,6 +2576,8 @@ void main(int argc, char* argv[])
 	//writeIndexListFromSOFMBin();
 	//medianSpectrumFromSelection();
 	//extractGalaxyZooData();
+	//analyseSineTestDistributions();
+	clusterStatisticsSim();
 	
 	printf ("fin.\n" );
 
