@@ -488,6 +488,17 @@ void GLHelper::SetCullMode( ECullMode cullmode )
 }
 
 
+void GLHelper::SetLineStipple( unsigned int factor, unsigned int pattern )
+{
+	if ( pattern==0 || factor==0 )  {
+		glDisable(GL_LINE_STIPPLE);
+	} else {
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple( factor, pattern );
+	}
+}
+
+
 
 void GLHelper::SetPropertyState(GLenum property, bool state)
 {
