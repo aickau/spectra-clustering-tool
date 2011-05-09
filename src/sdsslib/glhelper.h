@@ -161,6 +161,11 @@ public:
 	static void			SetBlendMode( EBlendMode mode );	
 	static void			SetAlphaTest( EAlphaTest alphatest, float treshold );
 	static void			SetCullMode( ECullMode cullmode );
+
+	// if one of the parameters is 0, stippling is disabled.
+	// factor [1..256]
+	// pattern 16 bit integer describing the pattern e.g. 0x0aaaa for "....", 0xcccc for "- - ", 0xc8c8 for "- . "
+	static void			SetLineStipple( unsigned int factor=1, unsigned int pattern=0x0aaaa );
 	static void			SetPropertyState(GLenum property, bool state);
 
 	static GLenum		GetInternalFormat(GLenum _format, GLenum _type );
