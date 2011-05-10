@@ -561,6 +561,28 @@ void SOFMNetwork::getSOFMSpectra( size_t _cellX, size_t _cellY, Spectra &_outSpe
 	m_pNet->endRead( nIndex );
 }
 
+
+bool SOFMNetwork::getInputSpectrum( size_t _cellX, size_t _cellY, Spectra &_outSpectrum )
+{
+	assert( m_pNet != NULL );
+	assert( _cellX < m_gridSize );
+	assert( _cellY < m_gridSize );
+	size_t nIndex( _cellY*m_gridSize+_cellX );
+	bool bRetVal = false;
+
+	Spectra *spNet = m_pNet->beginRead( nIndex );
+	if ( spNet != NULL && !spNet->isEmpty() ) 
+	{
+		Spectra *spSource = m_pSourceVFS->beginRead( spNet->m_Index );
+		_outSpectrum = *spSource;
+		m_pSourceVFS->endRead( spNet->m_Index );
+		bRetVal = true;
+	}
+	m_pNet->endRead( nIndex );
+
+	return bRetVal;
+}
+
 SpectraVFS &SOFMNetwork::getNetwork()
 {
 	return *m_pNet;

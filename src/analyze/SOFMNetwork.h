@@ -86,11 +86,16 @@ public:
 	// one learning step
 	void process();
 
-	// get spectra from SOFM at a given cell.
+	// get spectrum from the network at a given cell.
 	// if a given cell contains a match (thus it is occupied by some input spectra) can be seen by its objectID
 	// For unoccupied cells: objectID=0.
 	// Also beware that the spectral data for matches is not equal to its original in the input (You always get the footprint). 
 	void getSOFMSpectra( size_t _cellX, size_t _cellY, Spectra &_outSpectrum );
+
+	// get source spectrum from the network at a given cell.
+	// if the network does not contain an input at the certain location, the function returns false and _outSpectrum is not written.
+	bool getInputSpectrum( size_t _cellX, size_t _cellY, Spectra &_outSpectrum );
+
 
 	SpectraVFS &getNetwork();
 
