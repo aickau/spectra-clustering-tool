@@ -2489,8 +2489,6 @@ void analyseSineTestDistributions()
 
 	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "sineTestMeanDev");
 
-
-
 }
 
 
@@ -2549,6 +2547,87 @@ void clusterStatisticsSim()
 }
 
 
+std::string& replaceAll(std::string& context, const std::string& from, const std::string& to)
+{
+	size_t lookHere = 0;
+	size_t foundHere;
+	while((foundHere = context.find(from, lookHere)) != std::string::npos)
+	{
+		context.replace(foundHere, from.size(), to);
+		lookHere = foundHere + to.size();
+	}
+	return context;
+}
+
+void analyseMarksClusters()
+{
+
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	float *pRGBMap = new float[gridSizeSqr*3];
+	for ( size_t i=0;i<gridSizeSqr*3;i++)
+	{
+		pRGBMap[i] = 0.0f;
+	}
+
+	const std::string sstrCatalogueName("hall");
+
+
+	// thats the stuff we are reading in:
+	// y,x :::114,27,2
+	// y,x :::115,27,2
+	// y,x :::115,28,1
+
+	std::string sstrClusterArea;
+	const bool bSuccess = FileHelpers::loadFileToString( "clusterareaYX.txt", sstrClusterArea );
+
+	std::stringstream fin(sstrClusterArea);
+
+	std::string sstrTemp1,sstrTemp2;
+	void *b = NULL;
+	int count = 0;
+	do {
+		b = getline(fin, sstrTemp1, '\n');
+
+		sstrTemp1.erase(0,7);
+		replaceAll(sstrTemp1,","," ");
+
+
+
+		std::istringstream sstr;
+		sstr.str(sstrTemp1);
+
+		int x,y,t;
+
+		sstr >> x;
+		sstr >> y;
+		sstr >> t;
+
+		float col = 0.5;
+		if (t==2) 
+		{
+			col = 1.f;
+		}
+		SETPIXEL(pRGBMap,y,x,gridSize,col);
+
+
+		count++;
+
+	} while (b!=NULL);
+
+
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrCatalogueName);
+	delete[] pRGBMap;
+
+}
+
+
+
+
+
+
+
 void main(int argc, char* argv[])
 {
 	SpectraHelpers::init(0);
@@ -2577,7 +2656,8 @@ void main(int argc, char* argv[])
 	//medianSpectrumFromSelection();
 	//extractGalaxyZooData();
 	//analyseSineTestDistributions();
-	clusterStatisticsSim();
+	//clusterStatisticsSim();
+	analyseMarksClusters();
 	
 	printf ("fin.\n" );
 
