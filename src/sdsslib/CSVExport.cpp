@@ -34,6 +34,13 @@ CSVExport::~CSVExport()
 	flush();
 }
 
+void CSVExport::writeTableEntry( const char *_text )
+{
+	m_sstrTable += _text;
+	m_sstrTable += m_sstrSeperator;
+}
+
+
 void CSVExport::writeTableEntry(std::string &_sstrText )
 {
 	// todo, add double-quote characters if necessary
