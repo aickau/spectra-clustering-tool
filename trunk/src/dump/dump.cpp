@@ -40,7 +40,9 @@ typedef char _TCHAR;
 
 void main(int argc, char* argv[])
 {
-//	SpectraVFS::write( 80000, 0, "allSpectra.bin" );
+ 
+	// outputs sine test spectra.
+//	SpectraVFS::write( 33, 0, "allSpectra.bin" );
 //	return;
 	std::ofstream logFile("dump_log.txt");
 
@@ -90,7 +92,7 @@ void main(int argc, char* argv[])
 		TCLAP::ValueArg<std::string> dataDirArg("d", "datadir", "example: F:/SDSS_ANALYZE/fits/spectro/data/*", false, sstrDataDir, "datadir/*");
 		TCLAP::ValueArg<std::string> outputFilenameArg("o", "outputdumpfile", "example: allSpectra.bin", false, sstrDumpFile, "outputfilename.bin");
 		TCLAP::ValueArg<unsigned int> filterArg("f", "filter", sstrFilterDesc, false, spectraFilter, "Dump only FITS files with the given filter type.");
-		TCLAP::ValueArg<std::string> inputFilenameArg("i", "inputdumpfile", "example: sofmnet.bin. If inputdumpfile is specified, then all other arguments are ignored.", false, sstrInputDumpFile, "Dumpfile for reverse reads.");
+		TCLAP::ValueArg<std::string> inputFilenameArg("i", "inputdumpfile", "example: sofmnet.bin. If inputdumpfile is specified, then all other arguments are ignored. Outputs a linear list of the network.", false, sstrInputDumpFile, "Dumpfile for reverse reads.");
 		TCLAP::ValueArg<std::string> selectionListFilenameArg("s", "selection", "Optional selection list of FITS files to dump a small subset of input spectra.", false, sstrSelectionListFilename, "selectionlist.txt");
 
 		cmd.add( dataDirArg );

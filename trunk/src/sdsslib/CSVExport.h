@@ -31,6 +31,7 @@ public:
 	CSVExport(const std::string &_sstrFileName, const std::string &_sstrSeperator=";" );
 	virtual ~CSVExport();
 
+	void writeTableEntry( const char *_text );
 	void writeTableEntry(std::string &_sstrText );
 	void writeTableEntry( float _number );
 
