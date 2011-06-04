@@ -2571,7 +2571,7 @@ void analyseMarksClusters()
 		pRGBMap[i] = 0.0f;
 	}
 
-	const std::string sstrCatalogueName("hall");
+	const std::string sstrCatalogueName("outimage");
 
 
 	// thats the stuff we are reading in:
@@ -2624,12 +2624,159 @@ void analyseMarksClusters()
 
 
 
+void analyseMarksClusters2( int clusternum )
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	float *pRGBMap = new float[gridSizeSqr*3];
+	for ( size_t i=0;i<gridSizeSqr*3;i++)
+	{
+		pRGBMap[i] = 0.0f;
+	}
+
+	const std::string sstrCatalogueName("outimage");
+
+	CSVExport e("stats.cvs");
+
+	// thats the stuff we are reading in:
+	// y,x :::114,27,2
+	// y,x :::115,27,2
+	// y,x :::115,28,1
+
+	std::string sstrClusterArea;
+	const bool bSuccess = FileHelpers::loadFileToString( "cluster.10.txt", sstrClusterArea );
+
+	std::stringstream fin(sstrClusterArea);
+
+	std::string sstrTemp1,sstrTemp2;
+	void *b = NULL;
+	int count = 0;
+	std::string strHeader("cluster ");
+	strHeader += Helpers::numberToString(clusternum);
+	do {
+		b = getline(fin, sstrTemp1, '\n');
+		count++;
+	} while (b!=NULL &&  sstrTemp1 != strHeader );
+	// remove 
+	b = getline(fin, sstrTemp1, '\n');
+	b = getline(fin, sstrTemp1, '\n');
+	sstrTemp1.erase(0,22);
+	const int numObjects = Helpers::stringToNumber<int>(sstrTemp1);
+
+	std::vector<double> cluster;
+	std::vector<double> dist;
+	cluster.reserve(numObjects);
+	dist.reserve(numObjects);
+	count =0;
+
+	double midX = 0;
+	double midY = 0;
+
+	double minX = gridSize;
+	double minY = gridSize;
+	double maxX = 0;
+	double maxY = 0;
+
+	do {
+		b = getline(fin, sstrTemp1, '\n');
+		sstrTemp1.erase(0,26);
+
+		std::istringstream sstr;
+		sstr.str(sstrTemp1);
+
+		int x,y;
+
+		sstr >> y;
+		sstr >> x;
+
+		minX = MIN(minX,x);
+		minY = MIN(minY,y);
+		maxX = MAX(maxX,x);
+		maxY = MAX(maxY,y);
+
+
+		cluster.push_back(x);
+		cluster.push_back(y);
+
+		midX += x;
+		midY += y;
+
+		float col = 1.0;
+		SETPIXEL(pRGBMap,x,y,gridSize,col);
+
+		count++;
+	} while (b!=NULL &&  count < numObjects);
+
+	if ( cluster.size()/2 != numObjects ) {
+		return;
+	}
+
+
+	midX /= (double)numObjects;
+	midY /= (double)numObjects;
+
+	midX = 0;
+	midY = 0;
+
+
+	for (int i=0;i<numObjects;i++)
+	{
+		cluster[i*2] = (cluster[i*2]-minX)/(maxX-minX);
+		cluster[i*2+1] = (cluster[i*2+1]-minY)/(maxY-minY);
+
+		midX += cluster[i*2];
+		midY += cluster[i*2+1];
+
+	}
+	midX /= (double)numObjects;
+	midY /= (double)numObjects;
+
+
+	double meandist = 0.0;
+	double maxdist = 0.0;
+	for (int i=0;i<numObjects;i++)
+	{
+		dist.push_back( sqrtf( powf(cluster[i*2]-midX,2.f)+powf(cluster[i*2+1]-midY,2.f) ) );
+		maxdist = MAX(maxdist,dist[i]);
+		meandist += dist[i];
+	}
+	meandist /= (double) numObjects;
+	
+	double plotValue = 1.0-(meandist/maxdist);
+
+	e.writeTableEntry("mean distance");
+	e.writeTableEntry((float)meandist);
+	e.newRow();
+
+	e.writeTableEntry("max distance");
+	e.writeTableEntry((float)maxdist);
+	e.newRow();
+
+	e.writeTableEntry("plot value");
+	e.writeTableEntry((float)plotValue);
+	e.newRow();
+
+
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrCatalogueName);
+	delete[] pRGBMap;
+
+}
+
+
+
+
 
 
 
 
 void main(int argc, char* argv[])
 {
+	int clusternum = 1;
+	if ( argc > 1 ) {
+		std::string strCommandLine = argv[1];
+		clusternum = Helpers::stringToNumber<int>(strCommandLine);
+	}
 	SpectraHelpers::init(0);
 
 	//spectroLisWrite();
@@ -2657,8 +2804,9 @@ void main(int argc, char* argv[])
 	//extractGalaxyZooData();
 	//analyseSineTestDistributions();
 	//clusterStatisticsSim();
-	analyseMarksClusters();
-	
+	//analyseMarksClusters1();
+	analyseMarksClusters2( clusternum );
+
 	printf ("fin.\n" );
 
 }
