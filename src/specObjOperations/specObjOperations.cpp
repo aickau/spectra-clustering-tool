@@ -96,6 +96,10 @@ typedef char _TCHAR;
 	ptr[CALC_MAPADRESS(x,y,xsize)*3+1] = val; \
 	ptr[CALC_MAPADRESS(x,y,xsize)*3+2] = val; 
 
+#define SETPIXELRGB(ptr,x,y,xsize,r,g,b) ptr[CALC_MAPADRESS(x,y,xsize)*3] = r; \
+	ptr[CALC_MAPADRESS(x,y,xsize)*3+1] = g; \
+	ptr[CALC_MAPADRESS(x,y,xsize)*3+2] = b; 
+
 struct TspecObj 
 {
 int plate;
@@ -2716,6 +2720,9 @@ void analyseMarksClusters2( int clusternum )
 	midX /= (double)numObjects;
 	midY /= (double)numObjects;
 
+	SETPIXEL(pRGBMap,(int)midX,(int)midY,gridSize,0.5);
+
+
 	midX = 0;
 	midY = 0;
 
@@ -2731,6 +2738,8 @@ void analyseMarksClusters2( int clusternum )
 	}
 	midX /= (double)numObjects;
 	midY /= (double)numObjects;
+
+
 
 
 	double meandist = 0.0;
@@ -2756,6 +2765,149 @@ void analyseMarksClusters2( int clusternum )
 	e.writeTableEntry("plot value");
 	e.writeTableEntry((float)plotValue);
 	e.newRow();
+
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrCatalogueName);
+	delete[] pRGBMap;
+
+}
+
+
+
+void displaySpectra()
+{
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	float *pRGBMap = new float[gridSizeSqr*3];
+	for ( size_t i=0;i<gridSizeSqr*3;i++)
+	{
+		pRGBMap[i] = 0.0f;
+	}
+
+	const std::string sstrCatalogueName("outimage");
+
+
+	// thats the stuff we are reading in:
+	// c:\sdss\r\data\spSpec-51614-0281-427.fit 255 0 128
+	// hui.fit 128 23 23
+	// spSpec-51614-0281-427.fit
+
+	std::string sstrSpectraList;
+	const bool bSuccess = FileHelpers::loadFileToString( "spectralist.txt", sstrSpectraList );
+	if ( !bSuccess ) 
+	{
+		printf("spectralist.txt missing.\n");
+	}
+
+	std::stringstream fin(sstrSpectraList);
+
+	std::string sstrLine;
+	void *a = NULL;
+	int count = 0;
+
+	int *pIndexlist= new int[gridSizeSqr];
+	std::string sstrIndexList = "indexlist";
+	sstrIndexList += Helpers::numberToString(199,4);
+	sstrIndexList+= ".bin";
+	FILE *f=fopen(sstrIndexList.c_str(),"rb");
+	if ( f!= NULL)
+	{
+		fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+		fclose(f);
+	}
+	else
+	{
+		printf("indexlist0199.bin missing.\n");
+		return;
+	}
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const int numSourceSpecra = pSourceVFS->getNumSpectra();
+	const int numSpectra = gridSizeSqr;
+	if (numSourceSpecra <= 0 ) 
+	{
+		printf("allSpectra.bin missing.\n");
+		return;
+	}
+
+
+	for ( size_t i=0;i<numSpectra;i++ )
+	{
+		int index = pIndexlist[i];
+
+		// mark empty
+		if ( index < 0 )
+		{		
+			const int px = i%gridSize;
+			const int py = i/gridSize;
+
+			SETPIXEL(pRGBMap,px,py,gridSize,0.1);
+		}
+	}
+
+
+	do {
+		a = getline(fin, sstrLine, '\n');
+		std::stringstream sstr(sstrLine);
+		std::string sstrFilename;
+		sstr >> sstrFilename;
+		float r=255.f,g=255.f,b=255.f;
+		if (!sstr.eof()) sstr >> r;
+		if (!sstr.eof()) sstr >> g;
+		if (!sstr.eof()) sstr >> b;
+
+		r /= 255.f;
+		g /= 255.f;
+		b /= 255.f;
+
+		SSE_ALIGN Spectra sp;
+		if ( sp.loadFromFITS(sstrFilename) ) {
+
+			const int plate = sp.getPlate();
+			const int mjd = sp.getMJD();
+			const int fiber = sp.getFiber();
+
+			bool spectraFound = false;
+			// search spectrum
+			for ( size_t i=0;i<numSpectra;i++ )
+			{  
+				const int index = pIndexlist[i];
+ 
+				if ( index >= 0 && index < numSourceSpecra ) {
+ 					Spectra *spSpecSrc = pSourceVFS->beginRead(index);
+					if ( plate == spSpecSrc->getPlate() && 
+						 mjd == spSpecSrc->getMJD() &&
+						 fiber == spSpecSrc->getFiber() )
+					{
+						// match found
+						const int px = i%gridSize;
+						const int py = i/gridSize;
+
+						SETPIXELRGB(pRGBMap,px,py,gridSize,r,g,b);
+					 	spectraFound = true;
+						break;
+
+						count++;
+					}
+
+					pSourceVFS->endRead(index);
+				}
+			}
+			if ( !spectraFound ) {
+				printf("no matches found for %s\n",sstrFilename.c_str());
+			}
+
+
+			} else {
+				if ( !sstrFilename.empty() ) {
+					printf("could not load %s\n",sstrFilename.c_str());
+				}
+		}
+		
+
+	} while (a!=NULL);
+
+
 
 
 	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrCatalogueName);
@@ -2805,8 +2957,9 @@ void main(int argc, char* argv[])
 	//analyseSineTestDistributions();
 	//clusterStatisticsSim();
 	//analyseMarksClusters1();
-	analyseMarksClusters2( clusternum );
-
+	//analyseMarksClusters2( clusternum );
+	displaySpectra();
+	
 	printf ("fin.\n" );
 
 }
