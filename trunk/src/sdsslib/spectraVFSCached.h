@@ -37,7 +37,7 @@ class SpectraVFSCached
 public:
 
 	// number of cache lines
-	static const size_t CACHELINES = 16;
+	static const size_t CACHELINES = 24;
 
 	// construct a virtual file system by specifying a binary dump file which contains spectral data
 	// _readOnly if true no data can be written
