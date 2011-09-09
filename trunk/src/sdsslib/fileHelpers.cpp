@@ -23,6 +23,8 @@
 #include <algorithm>
 #include <fstream>
 #include <assert.h>
+#include <sys/stat.h>
+#include <direct.h>
 
 
 #ifdef WIN32
@@ -97,11 +99,21 @@ std::string FileHelpers::getCurrentDirectory()
 }
 
 
-bool FileHelpers::exitsDirectory(const std::string &_sstrFilename)
+bool FileHelpers::exitsDirectory(const std::string &_sstrDir)
 {
-	// TODO.
-	
-	return true;
+	std::string fullPath("");
+	if ( _sstrDir.size() > 0 && (_sstrDir[0] == '\\' || _sstrDir[0] == '/') ) {
+		char cwd[MAX_PATH];
+		_getcwd(cwd, sizeof(cwd));
+		fullPath += cwd;
+	}
+	fullPath += _sstrDir;
+
+	struct stat st;
+	if( stat( fullPath.c_str(), &st) != 0) {
+		return false;
+	}
+	return true; 	
 }
 
 size_t FileHelpers::getFileList( const std::string &_sstrSearchDir, std::vector<std::string> &_outFileNameList )

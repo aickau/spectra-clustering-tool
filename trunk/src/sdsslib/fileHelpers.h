@@ -39,7 +39,8 @@ namespace FileHelpers
 	std::string getCurrentDirectory();
 
 	// check if directory exits.
-	bool exitsDirectory(const std::string &_sstrFilename);
+	// works with relative and absolute directories
+	bool exitsDirectory(const std::string &_sstrDir);
 
 	// \return true if file exists, otherwise false.
 	bool fileExists(const std::string &_sstrFilename);
