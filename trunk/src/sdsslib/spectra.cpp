@@ -172,42 +172,44 @@ void Spectra::set( size_t type, float _noize )
 	{
 		m_strFileName = "lin inv";
 	}
-
+ 
 	if ( type == 4 )
 	{
 		m_strFileName = "sqr";
 	}
 */
 
+	pad[0] = type;
+
 	Rnd r;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
-		float x=static_cast<float>(i)*0.01f;
+		float x=static_cast<float>(i)*0.02f;
 
 		if ( type == 0 )
 		{
-			m_Amplitude[i] = sinf(x)*20.f+(r.randomFloat()-0.5f)*_noize;
+			m_Amplitude[i] = sinf(x)*5.f+5.f+(r.randomFloat()-0.5f)*_noize;
 		}
 
 		if ( type == 1 )
 		{
-			m_Amplitude[i] = cosf(x)*20.f+(r.randomFloat()-0.5f)*_noize;
+			m_Amplitude[i] = cosf(x)*5.f+5.f+(r.randomFloat()-0.5f)*_noize;
 		}
 
 		if ( type == 2 )
 		{
-			m_Amplitude[i] = x+(r.randomFloat()-0.5f)*_noize;
+			m_Amplitude[i] = 10.f*i/(float)Spectra::numSamples+(r.randomFloat()-0.5f)*_noize;
 		}
 
 		if ( type == 3 )
 		{
-			m_Amplitude[i] = -x+(r.randomFloat()-0.5f)*_noize;
+			m_Amplitude[i] = 10.f+10.f*-(float)i/(float)Spectra::numSamples+(r.randomFloat()-0.5f)*_noize;
 		}
 
 		if ( type == 4 )
 		{
-			m_Amplitude[i] = x*x+(r.randomFloat()-0.5f)*_noize;
+			m_Amplitude[i] = 10.f*((float)i/(float)Spectra::numSamples)*((float)i/(float)Spectra::numSamples)+(r.randomFloat()-0.5f)*_noize;
 		}
 	}
 

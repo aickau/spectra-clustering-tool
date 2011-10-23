@@ -2916,7 +2916,36 @@ void displaySpectra()
 }
 
 
+void pixelCounter()
+{
+	size_t gridSize = 859;
+	int s = gridSize*gridSize;
+	// load mask
+	ilLoadImage( (ILstring)"mask.png" );
+	ILenum err = ilGetError();
+	if( err != NULL )
+		return;
+	ilConvertImage( IL_LUMINANCE, IL_UNSIGNED_BYTE );
+	int width = ilGetInteger( IL_IMAGE_WIDTH );
+	int height = ilGetInteger( IL_IMAGE_HEIGHT );
+	if ( width != gridSize || height != gridSize ) {
+		// wrong dimensions
+		return;
+	}
+	unsigned char *pt = ilGetData();
+	if ( pt == NULL )  {
+		// nah, fail..
+		return;
+	}
 
+	int c=0;
+	for (int i=0;i<s;i++)
+	{
+		if (pt[i] > 128 ) 
+			c++;
+	}
+	printf("pixel count = %i\n",c);
+}
 
 
 
@@ -2958,8 +2987,8 @@ void main(int argc, char* argv[])
 	//clusterStatisticsSim();
 	//analyseMarksClusters1();
 	//analyseMarksClusters2( clusternum );
-	displaySpectra();
-	
+	//displaySpectra();
+	pixelCounter();
 	printf ("fin.\n" );
 
 }

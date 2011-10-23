@@ -24,10 +24,15 @@
 #include "sdsslib/spectraHelpers.h"
 #include "sdsslib/helpers.h"
 #include "sdsslib/sdssSoftwareVersion.h"
+#include "sdsslib/gltexture.h"
+#include "sdsslib/glshaderprogram.h"
+#include "sdsslib/filehelpers.h"
+#include "sdsslib/glFBO.h"
 
 #include "framework.h"	
 #include "SOFMNetwork.h"
 #include "QTClustering.h"
+#include "spectraMapper.h"
 
 #include "devil/include/il/il.h"
 #include "devil/include/il/ilu.h"
@@ -36,11 +41,14 @@
 
 #include <assert.h>
 #include <Windows.h>
+#include <conio.h>
 
 #include <string>
 
 // analyze or spectra mapper ?
-//#define SPECTRAMAPPER
+#define SPECTRAMAPPER
+
+
 
 extern HWND	fr_hWnd;
 extern HDC fr_hDC;		
@@ -61,184 +69,14 @@ size_t g_numSpectra = 0;
 SpectraVFS *g_pVFSSource = NULL; 
 
 
-#include "sdsslib/gltexture.h"
-#include "sdsslib/glshaderprogram.h"
-#include "sdsslib/filehelpers.h"
-#include "sdsslib/glFBO.h"
 
+#ifdef SPECTRAMAPPER
+bool g_writeData = false;
+int g_maskSelection = 0;
 
-// generate a combined diagram with all spectra from selection
-void mapSpectraFromSelection( bool _toRestFrame )
-{
-	const size_t gridSize(859);
-	const size_t gridSizeSqr(gridSize*gridSize);
+SpectraMapper *g_spectraMapper=NULL;
 
-	const float imgScale = 1.5f;		// 1.5, 3.5 6.5
-	const int imgYOffset = 100;
-	const float brightness = 1.f/255.f;//1.f/255.f; // 0.1f;//1.f/255.f;// 
-
-
-
-	// load mask
-	ilLoadImage( (ILstring)"mask.png" );
-	ILenum err = ilGetError();
-	if( err != NULL )
-		return;
-	ilConvertImage( IL_LUMINANCE, IL_UNSIGNED_BYTE );
-	int width = ilGetInteger( IL_IMAGE_WIDTH );
-	int height = ilGetInteger( IL_IMAGE_HEIGHT );
-	if ( width != gridSize || height != gridSize ) {
-		// wrong dimensions
-		return;
-	}
-	unsigned char *pt = ilGetData();
-	if ( pt == NULL )  {
-		// nah, fail..
-		return;
-	}
-
-
-
-
-	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
-	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
-
-	size_t j=199;
-	int *pIndexlist= new int[gridSize*gridSize];
-	std::string sstrIndexList = "indexlist";
-	sstrIndexList += Helpers::numberToString(j,4);
-	sstrIndexList+= ".bin";
-	FILE *f=fopen(sstrIndexList.c_str(),"rb");
-	if ( f== NULL) {
-		// no index list
-		return;
-	}
-	fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
-	fclose(f);
-
-
-	SSE_ALIGN Spectra spAvg;
-	SSE_ALIGN Spectra spMin;
-	SSE_ALIGN Spectra spMax;
-	spMin.add(FLT_MAX);
-
-	size_t count = 0;
-	spMax.add(-FLT_MAX);
-
-
-	for (size_t i=0;i<gridSizeSqr;i++)
-	{
-		// if mask is selected..
-		if (pt[i] > 200 ) {
-			int index = pIndexlist[i];
-
-			if ( index >= 0 && index < numSourceSpecra )
-			{
-				Spectra *sp = pSourceVFS->beginRead(index);
-				SSE_ALIGN Spectra tsp(*sp);	
-				tsp.normalizeByFlux();
-
-				spAvg.add( tsp );
-
-				// min / max
-				for ( size_t j=0;j<Spectra::numSamples;j++ )
-				{
-					if ( spMin.m_Amplitude[j] > tsp.m_Amplitude[j] ) 
-					{
-						spMin.m_Amplitude[j] = tsp.m_Amplitude[j];
-					}
-					if ( spMax.m_Amplitude[j] < tsp.m_Amplitude[j] ) 
-					{
-						spMax.m_Amplitude[j] = tsp.m_Amplitude[j];
-					}
-				}
-
-				pSourceVFS->endRead(index);
-				count++;
-
-			}
-		}
-	}
-
-	spAvg.multiply(1.f/static_cast<float>(count));
-	spAvg.calcMinMax();
-	spMax.calcMinMax();
-	spAvg.m_SamplesRead= Spectra::numSamples;
-	spMax.m_SamplesRead= Spectra::numSamples;
-	spMin.m_SamplesRead= Spectra::numSamples;
-
-	glClearColor(0.f,0.f,0.f,1.f);	
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
-
-
-	const float xDAll = Spectra::waveEndDst-Spectra::waveBeginDst;
-
-
-	GLHelper::SetBlendMode(GLHelper::kBlendMode_Add);
-	glColor3f(brightness,brightness,brightness);
-	for (size_t i=0;i<gridSizeSqr;i++)
-	{
-		// if mask is selected..
-		if (pt[i] > 200 ) {
-			int index = pIndexlist[i];
-
-			if ( index >= 0 && index < numSourceSpecra )
-			{
-				Spectra *sp = pSourceVFS->beginRead(index);
-				SSE_ALIGN Spectra tsp(*sp);	
-				tsp.normalizeByFlux();
-
-				float xO = 0.0f;
-				float xD = xDAll;
-				if ( _toRestFrame ) {
-					float xB = Spectra::waveLenghtToRestFrame( Spectra::waveBeginSrc,tsp.m_Z );
-					float xE = Spectra::waveLenghtToRestFrame( Spectra::waveEndSrc,tsp.m_Z );
-					xD = xE-xB;
-					xO = (xB-Spectra::waveBeginDst)/xDAll;
-				}
-
-
-//				sp->m_SamplesRead= Spectra::numSamples;
-				SpectraHelpers::drawSpectra(tsp, false, false, xO*scr_width, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max, xD/xDAll, 0 );
-
-				pSourceVFS->endRead(index);
-
-			}
-		}
-	}
-
-	if ( !_toRestFrame ) {
-		GLHelper::SetBlendMode(GLHelper::kBlendMode_Off);
-		glColor3f(0,1,0);
-		SpectraHelpers::drawSpectra(spAvg, false, false, 0, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max, 0 );
-		glColor3f(1,1,0);
-		SpectraHelpers::drawSpectra(spMin, false, false, 0, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max, 0 );
-		glColor3f(1,0,0);
-		SpectraHelpers::drawSpectra(spMax, false, false, 0, imgYOffset, scr_width, scr_height, imgScale/spMax.m_Max, 0 );
-	}
-
-
-
-	delete[] pIndexlist;
-
-	ILuint image;
-	ilGenImages( 1, &image );
-	ilBindImage(image);
-	ilTexImage(static_cast<ILuint>(scr_width),static_cast<ILuint>(scr_height),1,3,IL_RGB, IL_UNSIGNED_BYTE, NULL );
-	ilEnable(IL_FILE_OVERWRITE );
-	iluImageParameter(ILU_FILTER,ILU_SCALE_BSPLINE);
-
-	glReadPixels(0,0,scr_width,scr_height,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
-	std::string fn("spClusterWrongindexlist199.png");
-	if ( _toRestFrame ) {
-		fn = std::string("spClusterWrongindexlist199RestFrame.png");
-	}
-	ilSave( IL_PNG, const_cast<char*>(fn.c_str()) );
-	ilDeleteImage(image);
-
-	exit(0);
-}
-
+#endif
 
 bool testGPUcompare( const Spectra &_src, SpectraVFS &_vfs )
 {
@@ -369,8 +207,9 @@ int InitGL()
 	char **argv = Helpers::getCommandLineFromString( sstrCmdLine, argc );
 
 	Helpers::print("Welcome to SDSS Analyze "+sstrSDSSVersionString+" !\n\n\n", &logFile);
-#ifndef SPECTRAMAPPER
-
+#ifdef SPECTRAMAPPER
+	g_spectraMapper = new SpectraMapper();
+#else
 	std::string sstrSourceSpectraFilename("allSpectra.bin");
 	std::string sstrSelectionListFilename("");
 	bool bContinue = false;
@@ -542,7 +381,7 @@ void DrawNetwork( SOFMNetwork &network )
 		ShowWindow( fr_hWnd, SW_HIDE );
 		return;
 	}
-	glClearColor(0.f,0.f,0.f,1.f);	
+	glClearColor(1.f,1.f,1.f,1.f);	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
 
@@ -553,16 +392,18 @@ void DrawNetwork( SOFMNetwork &network )
 
 	float w = scr_width/(gridSize);
 	float h = scr_height/(gridSize);
-	glColor3f(1,0,0);
+	glColor3f(0.0,0,0);
 
 	std::vector<float> vectorField;
 	SpectraVFS &mapNew(network.getNetwork());
-	SpectraVFS mapOld( mapNew.getFileName()+"old" );
+//	SpectraVFS mapOld( mapNew.getFileName()+"old" );
 	bool bDrawVelocityField = false;
-	if ( mapOld.getNumSpectra() == mapNew.getNumSpectra() )
-	{
-		bDrawVelocityField = SpectraHelpers::calcVectorField( mapNew, mapOld, vectorField );
-	}
+//	if ( mapOld.getNumSpectra() == mapNew.getNumSpectra() )
+//	{
+//		bDrawVelocityField = SpectraHelpers::calcVectorField( mapNew, mapOld, vectorField );
+//	}
+
+	glLineWidth(2.f);
 
 	for ( size_t y=0;y<gridSize;y++)
 	{
@@ -598,7 +439,7 @@ void DrawNetwork( SOFMNetwork &network )
 	}
 
 
-	float yscale = 1.f/fabsf(maxAmplitude*0.75f);
+	float yscale = 1.f;//1.f/fabsf(maxAmplitude*1.05f);
 
 	size_t vecCount = 0;
 
@@ -626,26 +467,39 @@ void DrawNetwork( SOFMNetwork &network )
 					vecCount++;
 				}
 			}
+			glLineWidth(2.f);
+
 
 			SSE_ALIGN Spectra spectra;
 			network.getSOFMSpectra(x,y,spectra);
 			if ( spectra.isEmpty() )
 			{
-				glColor3f(0.8,0.8,0);
+				GLHelper::SetLineStipple(3);
+				glColor3f(0.0,0.0,0.5);
 			}
 			else
 			{
-				glColor3f(1,1,1);
+				glColor3f(0,0,0);
 			}
-			float lp[3] = {xp*w,yp*h+h,-10};
+			float lp[3] = {xp*w+w/10,gridSize*h-(yp*h+h-h/8),-10};
 
 			SpectraHelpers::drawSpectra(spectra, false, false, xp*w, yp*h, w, h, yscale );
+			GLHelper::SetLineStipple(0,0);
+			glLineWidth(1.f);
 
-//			if ( !spectra.m_strFileName.empty() )
-//			{
-//			glColor3f(1,1,1);
-//			GLHelper::Print(SpectraHelpers::s_FontID, lp, spectra.m_strFileName.c_str() );
-//			}
+// 			SSE_ALIGN Spectra sourceSpectrum;
+// 			if ( network.getInputSpectrum(x,y,sourceSpectrum) )
+// 			{
+// 				glColor3f(0,0,0 );
+// 				if ( sourceSpectrum.pad[0] == 1 )
+// 					GLHelper::Print(SpectraHelpers::getDefaultFontID(), lp, "cos(x)" );
+// 				if ( sourceSpectrum.pad[0] == 2 )
+// 					GLHelper::Print(SpectraHelpers::getDefaultFontID(), lp, "x" );
+// 				if ( sourceSpectrum.pad[0] == 3 )
+// 					GLHelper::Print(SpectraHelpers::getDefaultFontID(), lp, "-x" );
+// 				if ( sourceSpectrum.pad[0] == 4 )
+// 					GLHelper::Print(SpectraHelpers::getDefaultFontID(), lp, "x*x" );
+// 			}
 			xp++;
 		}
 	}
@@ -708,11 +562,23 @@ void ShowTrainData()
 	up = 0;
 	down = 0;
 }
-
+bool bFirst = true;
 void SOFM()
 {
-	g_pSOFM->process();
+	if ( !bFirst )
+	{
+		g_pSOFM->process();
+	}
 	DrawNetwork( *g_pSOFM );
+
+	if ( bFirst )
+	{
+		bFirst = false;
+		SwapBuffers(fr_hDC);
+		_getch(); // wait for user input..
+		SwapBuffers(fr_hDC);
+	}
+
 }
 
 void DrawGLScene()
@@ -737,21 +603,20 @@ void DrawGLScene()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
 #ifdef SPECTRAMAPPER
-	mapSpectraFromSelection( true );
-	exit(0);
+	g_spectraMapper->draw( scr_width, scr_height, false, g_maskSelection, g_writeData );
+	g_writeData = false;
 #else
 	sprintf( &captiontext[13], "%i / %i", g_pSOFM->m_currentStep, g_pSOFM->m_params.numSteps);
-#endif
 
-
-	if (g_Mode==0)
+//	if (g_Mode==0)
 	{
-		ShowTrainData();
+//		ShowTrainData();
 	}
-	if (g_Mode==1)
+//	if (g_Mode==1)
 	{
 		SOFM();
 	}
+#endif
 	
 
 	Sleep(100);
@@ -784,12 +649,20 @@ void DisableOutput()
 void ArrowLeft()
 {
 	left = 1;
+
+#ifdef SPECTRAMAPPER
+	g_maskSelection--;
+#endif
 }
 
 
 void ArrowRight()
 {
 	right = 1;
+
+#ifdef SPECTRAMAPPER
+	g_maskSelection++;
+#endif
 }
 
 void ArrowUp()
@@ -805,4 +678,7 @@ void ArrowDown()
 void Space()
 {
 	g_Mode++;
+#ifdef SPECTRAMAPPER
+	g_writeData = true;
+#endif // SPECTRAMAPPER
 }
