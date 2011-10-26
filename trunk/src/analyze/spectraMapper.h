@@ -41,4 +41,5 @@ private:
 	SpectraVFS *m_pSourceVFS;
 	size_t m_numSourceSpecra;
 	int m_numSpectraToDraw;
+	int m_currentIndex;
 };
