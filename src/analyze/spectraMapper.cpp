@@ -30,8 +30,9 @@
 #include <assert.h>
 #include <Windows.h>
 #include <conio.h>
+#include <iostream>
 
-
+std::ofstream spectraMapperlogFile("selection_log.txt");
 
 // generate a combined diagram with all spectra from selection
 SpectraMapper::SpectraMapper()
@@ -39,6 +40,7 @@ SpectraMapper::SpectraMapper()
 ,m_gridSizeSqr(m_gridSize*m_gridSize)
 ,m_numSourceSpecra(0)
 ,m_pSourceVFS(NULL)
+,m_currentIndex(-1)
 {
 	// load mask
 	ilLoadImage( (ILstring)"mask.png" );
@@ -138,9 +140,9 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, int _selec
 	if ( m_numSourceSpecra <= 0 || m_pSourceVFS == NULL || m_numSpectraToDraw <= 0 )
 		return;
 
-	const float imgScale = 1.5f;		// 1.5, 3.5 6.5
+	const float imgScale = 2.5f;		// 1.5, 3.5 6.5
 	const int imgYOffset = 100;
-	const float brightness = 40.f/255.f;//1.f/255.f; // 0.1f;//1.f/255.f;// 
+	const float brightness = 8.f/255.f;//1.f/255.f; // 0.1f;//1.f/255.f;// 
 
 	glClearColor(0.f,0.f,0.f,1.f);	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
@@ -170,11 +172,23 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, int _selec
 				xO = (xB-Spectra::waveBeginDst)/xDAll;
 			}
 
-			if ( count ==  (_selection % m_numSpectraToDraw) )
+			if ( count ==  (_selection % m_numSpectraToDraw) && (_selection > 0))
 			{
 				glColor3f(0.f,1.f,0.f);
 
-				_cprintf("MJD:%i  plateID:%i  fiberId:%i\n", sp->getMJD(), sp->getPlate(), sp->getFiber() );
+				if ( m_currentIndex != _selection )
+				{
+					std::string sstrInfo("MJD:");
+					sstrInfo += Helpers::numberToString<int>(sp->getMJD());
+					sstrInfo += "  plateID:";
+					sstrInfo += Helpers::numberToString<int>(sp->getPlate());
+					sstrInfo += "  fiberID:";
+					sstrInfo += Helpers::numberToString<int>(sp->getFiber());
+					sstrInfo += "\n";
+					Helpers::print(sstrInfo, &spectraMapperlogFile );
+					Helpers::print(sp->getURL()+"\n", &spectraMapperlogFile );
+					m_currentIndex = _selection;
+				}
 			}
 			else
 			{

@@ -2948,6 +2948,126 @@ void pixelCounter()
 }
 
 
+void printNeighboursFromMask()
+{
+	size_t gridSize = 859;
+	int s = gridSize*gridSize;
+	// load mask
+	ilLoadImage( (ILstring)"mask.png" );
+	ILenum err = ilGetError();
+	if( err != NULL )
+		return;
+	ilConvertImage( IL_LUMINANCE, IL_UNSIGNED_BYTE );
+	int width = ilGetInteger( IL_IMAGE_WIDTH );
+	int height = ilGetInteger( IL_IMAGE_HEIGHT );
+	if ( width != gridSize || height != gridSize ) {
+		// wrong dimensions
+		return;
+	}
+	unsigned char *pt = ilGetData();
+	if ( pt == NULL )  {
+		// nah, fail..
+		return;
+	}
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+	if (numSourceSpecra == 0 )
+		return;
+
+	int *pIndexlist= new int[gridSize*gridSize];
+	std::string sstrIndexList = "indexlist";
+	std::string sstrFileName = "fluxMap";
+	int j=199;
+	sstrIndexList += Helpers::numberToString(j,4);
+	sstrFileName += Helpers::numberToString(j,4);
+	sstrIndexList+= ".bin";
+	FILE *f=fopen(sstrIndexList.c_str(),"rb");
+	if ( f!= NULL)
+	{
+		fread(pIndexlist, 1, s*sizeof(int), f);
+		fclose(f);
+	}
+	else
+	{
+		return;
+	}
+
+	std::ofstream logFile("selectionList.html");
+
+
+	unsigned char *m2 = new unsigned char[s];
+	float *m3 = new float[s*3];
+	memset(m2,0,s);
+
+	int c=0;
+	for (int i=0;i<s;i++)
+	{
+		if (pt[i] > 128 ) 
+		{
+			const int x=i%gridSize;
+			const int y=i/gridSize;
+
+			const int we = CALC_MAPADRESS(x-1,y,gridSize);
+			const int ea = CALC_MAPADRESS(x+1,y,gridSize);
+			const int no = CALC_MAPADRESS(x,y-1,gridSize);
+			const int so = CALC_MAPADRESS(x,y+1,gridSize) ;
+			const int weno = CALC_MAPADRESS(x-1,y+1,gridSize);
+			const int eano = CALC_MAPADRESS(x+1,y+1,gridSize);
+			const int weso = CALC_MAPADRESS(x-1,y-1,gridSize);
+			const int easo = CALC_MAPADRESS(x+1,y-1,gridSize);
+/*
+			if ( pt[we] == 0)
+				m2[we] = 255;
+			if ( pt[ea] == 0)
+				m2[ea] = 255;
+			if ( pt[no] == 0)
+				m2[no] = 255;
+			if ( pt[so] == 0)
+				m2[so] = 255;
+*/
+			if ( pt[weno] == 0)
+				m2[weno] = 255;
+			if ( pt[eano] == 0)
+				m2[eano] = 255;
+			if ( pt[weso] == 0)
+				m2[weso] = 255;
+			if ( pt[easo] == 0)
+				m2[easo] = 255;
+			c++;
+		}
+	}
+	Helpers::print("num objects in mask "+Helpers::numberToString<int>(c)+"\n", &logFile, false );
+
+	int c2 = 0;
+	for (int i=0;i<s;i++)
+	{
+		float val = (float)m2[i]/255.f;
+		m3[i*3] = val;
+		m3[i*3+1] = val;
+		m3[i*3+2] = val;
+
+		if (m2[i] == 255)
+		{
+			int index = pIndexlist[i];
+			if ( index >= 0 && index < numSourceSpecra )
+			{
+				Spectra *sp = pSourceVFS->beginRead(index);
+
+				Helpers::print( "<a href=\""+sp->getURL()+"\">"+Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber()) +"</a><br>\n", &logFile, false );
+				pSourceVFS->endRead(index);
+				c2++;
+			}
+		}
+	}
+	Helpers::print(Helpers::numberToString<int>(c2)+" direct neighbors\n", &logFile, false );
+
+
+
+	SpectraHelpers::saveIntensityMap( m3, gridSize, gridSize, "slectionMask" );
+
+}
+
 
 
 
@@ -2988,7 +3108,8 @@ void main(int argc, char* argv[])
 	//analyseMarksClusters1();
 	//analyseMarksClusters2( clusternum );
 	//displaySpectra();
-	pixelCounter();
+	//pixelCounter();
+	printNeighboursFromMask();
 	printf ("fin.\n" );
 
 }
