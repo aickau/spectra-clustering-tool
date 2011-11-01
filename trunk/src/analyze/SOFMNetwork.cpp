@@ -140,13 +140,17 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 	}
 
 #ifdef SDSS_SINETEST
-	float freq = 0.00001f;
+	const float freqMin = 0.002f;
+	const float freqMax = 0.05f;
+	const float freqStepSize = (freqMax-freqMin)/static_cast<float>(m_numSpectra);
+	float freq = freqMin;
+
 	for (size_t i=0;i<m_numSpectra;i++)
 	{
 		Spectra *a = _pSourceVFS->beginRead(i);
 		a->setSine(freq);
 		a->m_Z = static_cast<float>(i)/static_cast<float>(m_numSpectra);
-		freq += 0.0000005625f;
+		freq += freqStepSize;
 		_pSourceVFS->endRead(i);
 	}
 #endif // SDSS_SINETEST
