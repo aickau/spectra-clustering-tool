@@ -54,7 +54,7 @@ typedef char _TCHAR;
 //#define DATADIR std::string("G:/SDSS_ANALYZE/fits/spectro/data/")
 //#define DATADIR std::string("c:/prj/sdss_trunk/data/")
 //#define DATADIR std::string("d:/dr7/1d_25/")
-#define DATADIR std::string("f:/DR6SpectroFITS/")
+#define DATADIR std::string("e:/DR6SpectroFITS/")
 
 
 
@@ -680,67 +680,97 @@ void writePrimTargetFromBin()
 			float g=0;
 			float b=0;
 
+			const float orangeR = 204.f/255.f;
+			const float orangeG = 0.72f/255.f;
 
-			if (primTargets[c]== TARGET_GALAXY_RED ) { r=1.f;g=0; b= 0.0; // red 
-				} else
-			if (primTargets[c]== TARGET_GALAXY_RED_II ) { r= 0.8; g=0.0; b= 0.0;// darker red
-				} else
-			if (primTargets[c]== TARGET_GALAXY ) { r= 1.0; g=0.5; b=0.0;// orange
-				} else
-			if (primTargets[c]== TARGET_GALAXY_BIG ) { r= 1.0; g=0.75; b= 0.0;// light orange
-				} else
-			if (primTargets[c]== TARGET_GALAXY_BRIGHT_CORE ) { r= 1.0; g=0.0; b= 0.5; // red pink
-				} else
-			if (primTargets[c]==  TARGET_QSO_HIZ ) { r= 1.0; g=1.0; b= 0.0; // yellow
-				} else
-			if (primTargets[c]==  TARGET_QSO_FAINT ) { r= 0.0; g=0.5; b= 1.0;// light blue
-				} else
-			if (primTargets[c]==  TARGET_QSO_CAP ) { r= 0.0; g=0.0; b= 0.5;// dark blue
-				} else
-			if (primTargets[c]==  TARGET_QSO_REJECT ) { r= 0.8; g=0.8; b= 0.8; // light gray
-				} else
-			if (primTargets[c]==  TARGET_QSO_SKIRT ) {  r= 0.2; g=0.2; b= 0.2; // dark gray
-				} else
-			if (primTargets[c]==  TARGET_QSO_FIRST_CAP ) { r= 0.0; g=1.0; b= 0.6; // light green
-				} else
-			if (primTargets[c]==  TARGET_QSO_FIRST_SKIRT ) { r= 0.0; g=0.5; b= 0.0; // dark green
-				} else
+			const float cyanG = 1.0f;
+			const float cyanB= 1.0f;
 
-			if (primTargets[c]==  TARGET_STAR_RED_DWARF ) { r= 0.5; g=0.0; b= 0.0; // low red
-				} else
-			if (primTargets[c]==  TARGET_STAR_BROWN_DWARF ) { r= 0.5; g=0.25; b= 0.0; // brown
-				} else
-			if (primTargets[c]==  TARGET_STAR_CARBON ) { r= 1.0; g=0.0; b= 1.0; // pink
-				} else
-			if (primTargets[c]==  TARGET_STAR_WHITE_DWARF ) { r= 1.0; g=1.0; b= 1.0; // white
-				} else
-			if (primTargets[c]==  TARGET_STAR_PN ) { r= 0.5; g=0.5; b= 1.0;// light blue
-				} else
-			if (primTargets[c]==  TARGET_STAR_BHB ) { r= 0.5; g=0.0; b= 1.0;// violet
-				} else
-			if (primTargets[c]==  TARGET_STAR_SUB_DWARF ) { r= 0.0; g=1.0; b= 0.0;// green
-				} else
-	
-			if (primTargets[c]==  TARGET_ROSAT_A ) { r= 0.0; g=1.0; b= 1.0;// cyan
-				} else
-			if (primTargets[c]==  TARGET_ROSAT_B ) { r= 0.0; g=0.95; b= 0.0;// cyan
-				} else
-			if (primTargets[c]==  TARGET_ROSAT_C ) { r= 0.0; g=0.9; b= 0.0;// cyan
-				} else
-			if (primTargets[c]==  TARGET_ROSAT_D ) { r= 0.0; g=0.85; b= 0.0;// cyan
-				} else
-			if (primTargets[c]==  TARGET_ROSAT_E ) { r= 0.0; g=0.08; b= 0.0;// cyan
-				} else
-			if (primTargets[c]==  TARGET_SERENDIP_FIRST ) { r= 0.0; g=0.0; b= 1.0;// blue
-				} else
-			if (primTargets[c]==  TARGET_SERENDIP_RED ) { r= 0.0; g=0.0; b= 0.95;// blue
-				} else
-			if (primTargets[c]==  TARGET_SERENDIP_DISTANT ) {r= 0.0; g=0.0; b= 0.9;// blue
-				} else
-			if (primTargets[c]==  TARGET_SERENDIP_MANUAL ) { r= 0.0; g=0.0; b= 0.85;// blue
-				} else
-			if (primTargets[c]== TARGET_SERENDIP_BLUE ) { r= 0.0; g=0.0; b= 0.8;// blue
-			}
+			const int primTarget = primTargets[c];
+
+
+		switch ( primTarget )
+		{
+				case TARGET_GALAXY_RED : r=1.f;g=0; b= 0.0; // LRG: red 1
+					break;
+				case TARGET_GALAXY_RED_II : r= 1.0; g=0.0; b= 0.0;//  LRG: red 
+					break;
+				case TARGET_GALAXY : r= orangeR; g=orangeG; b=0.0;// GAL: orange 
+					break; 
+				case TARGET_GALAXY_BIG : r= orangeR; g=orangeG; b= 0.0;// GAL: orange 
+					break;
+				case TARGET_GALAXY_BRIGHT_CORE : r= orangeR; g=orangeG; b= 0.0; // GAL: orange 
+					break;
+				case TARGET_QSO_HIZ : r= 0.0; g=0.0; b= 1.0; // HIZ QSO: blue 3
+					break;
+				case TARGET_QSO_FAINT : r= 0.0; g=cyanG; b= cyanB;// QSO: cyan 
+					break;
+				case TARGET_QSO_CAP : r= 0.0;  g=cyanG; b= cyanB;// QSO: cyan 
+					break;
+				case TARGET_QSO_REJECT :  r= 0.0;  g=cyanG; b= cyanB;// QSO: cyan 
+					break;
+
+				case TARGET_QSO_SKIRT :  r= 0.0;  g=cyanG; b= cyanB;// QSO: cyan
+					break;
+				case TARGET_QSO_FIRST_CAP :  r= 0.0;  g=cyanG; b= cyanB;// QSO: cyan
+					break;
+				case TARGET_QSO_FIRST_SKIRT :  r= 0.0;  g=cyanG; b= cyanB;// QSO: cyan 4
+					break;
+
+				case TARGET_STAR_RED_DWARF : r= 1.0; g=1.0; b= 0.0; // late-type star: yellow 
+					break;
+				case TARGET_STAR_BROWN_DWARF : r= 1.0; g=1.0; b= 0.0; // late-type star: yellow 5
+					break;
+				case TARGET_STAR_CARBON : r= 0.0; g=1.0; b= 0.0; // green 6
+					break;
+				case TARGET_STAR_WHITE_DWARF : r= 1.0; g=0.0; b= 1.0;// WD etc. : pink
+					break;
+				case TARGET_STAR_PN : r= 1.0; g=0.0; b= 1.0;// WD etc. : pink
+					break;
+				case TARGET_STAR_BHB : r= 1.0; g=0.0; b= 1.0;// WD etc. : pink
+					break;
+				case TARGET_STAR_SUB_DWARF : r= 1.0; g=0.0; b= 1.0;// WD etc. : pink 7
+					break;
+				case TARGET_ROSAT_A : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+					break;
+				case TARGET_ROSAT_B : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+					break;
+				case TARGET_ROSAT_C : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+					break;
+				case TARGET_ROSAT_D : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+					break;
+				case TARGET_ROSAT_E : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+					break;
+				case TARGET_SERENDIP_BLUE : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+					break;
+				case TARGET_SERENDIP_FIRST : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+					break;
+				case TARGET_SERENDIP_RED : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+					break;
+				case TARGET_SERENDIP_DISTANT : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+					break;
+				case TARGET_SERENDIP_MANUAL : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+					break;
+				default:
+					{
+						// we have multiple flags set, try to find  if flags matches our classes:
+						if ( ( primTarget & (TARGET_ROSAT_A|TARGET_ROSAT_B|TARGET_ROSAT_C|TARGET_ROSAT_D|TARGET_ROSAT_E|TARGET_SERENDIP_BLUE|TARGET_SERENDIP_FIRST|TARGET_SERENDIP_RED|TARGET_SERENDIP_DISTANT|TARGET_SERENDIP_MANUAL)) == primTarget ) {
+							r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+						} else if ( (primTarget & (TARGET_STAR_WHITE_DWARF|TARGET_STAR_PN|TARGET_STAR_BHB|TARGET_STAR_SUB_DWARF)) == primTarget ) {
+							r= 1.0; g=0.0; b= 1.0;// WD etc. : pink
+						} else if ( (primTarget & (TARGET_STAR_RED_DWARF|TARGET_STAR_BROWN_DWARF)) == primTarget ) {
+							r= 1.0; g=1.0; b= 0.0; // late-type star: yellow 5
+						} else if ( (primTarget & (TARGET_QSO_FAINT|TARGET_QSO_CAP|TARGET_QSO_REJECT|TARGET_QSO_SKIRT|TARGET_QSO_FIRST_CAP|TARGET_QSO_FIRST_SKIRT)) == primTarget ) {
+							r= 0.0;  g=cyanG; b= cyanB;// QSO: cyan 
+						} else if ( (primTarget & (TARGET_GALAXY_RED|TARGET_GALAXY_RED_II)) == primTarget ) {
+							r=1.f;g=0; b= 0.0; // LRG: red 1
+						} else if ( (primTarget & (TARGET_GALAXY|TARGET_GALAXY_BIG|TARGET_GALAXY_BRIGHT_CORE)) == primTarget ) {
+							r= orangeR; g=orangeG; b= 0.0;// GAL: orange 
+						}
+
+
+					}
+				}
 
 			pRGBMap[i*3] =r;
 			pRGBMap[i*3+1] = g;
@@ -753,9 +783,9 @@ void writePrimTargetFromBin()
 		}
 		else
 		{
-			pRGBMap[i*3] = 0.5;
-			pRGBMap[i*3+1] = 0.5;
-			pRGBMap[i*3+2] = 0.5;
+			pRGBMap[i*3] = 0.3;
+			pRGBMap[i*3+1] = 0.3;
+			pRGBMap[i*3+2] = 0.3;
 		}
 	}
 
@@ -834,70 +864,75 @@ void writePrimaryTarget()
 
 				switch ( primTarget )
 				{
-
-
-
-
-				case TARGET_GALAXY_RED : r=1.f;g=0; b= 0.0; // red
+				case TARGET_GALAXY_RED : r=1.f;g=0; b= 0.0; // LRG: red 1
 					break;
-				case TARGET_GALAXY_RED_II : r= 0.8; g=0.0; b= 0.0;// darker red
+				case TARGET_GALAXY_RED_II : r= 1.0; g=0.0; b= 0.0;//  LRG: red 
 					break;
-				case TARGET_GALAXY : r= 1.0; g=0.5; b=0.0;// orange
+				case TARGET_GALAXY : r= 1.0; g=0.5; b=0.0;// GAL: orange 
+					break; 
+				case TARGET_GALAXY_BIG : r= 1.0; g=0.5; b= 0.0;// GAL: orange 
 					break;
-				case TARGET_GALAXY_BIG : r= 1.0; g=0.75; b= 0.0;// light orange
+				case TARGET_GALAXY_BRIGHT_CORE : r= 1.0; g=0.5; b= 0.0; // GAL: orange 
 					break;
-				case TARGET_GALAXY_BRIGHT_CORE : r= 0.0; g=1.0; b= 0.0; // green
+				case TARGET_QSO_HIZ : r= 1.0; g=1.0; b= 0.0; // HIZ QSO: yellow 3
 					break;
-				case TARGET_QSO_HIZ : r= 1.0; g=1.0; b= 0.0; // yellow
+				case TARGET_QSO_FAINT : r= 0.0; g=0.5; b= 1.0;// QSO: cyan 
 					break;
-				case TARGET_QSO_FAINT : r= 0.0; g=0.5; b= 1.0;// cyan
+				case TARGET_QSO_CAP : r= 0.0; g=0.5; b= 1.0;// QSO: cyan 
 					break;
-				case TARGET_QSO_CAP : r= 0.2; g=0.2; b= 0.2;// dark grey
-					break;
-				case TARGET_QSO_REJECT : r= 1.0; g=1.0; b= 0.5; // light yellow
+				case TARGET_QSO_REJECT :  r= 0.0; g=0.5; b= 1.0;// QSO: cyan 
 					break;
 
-				case TARGET_QSO_SKIRT : r= 1.0; g=0.95; b= 0.5; // light yellow
+				case TARGET_QSO_SKIRT :  r= 0.0; g=0.5; b= 1.0;// QSO: cyan
 					break;
-				case TARGET_QSO_FIRST_CAP : r= 1.0; g=0.9; b= 0.5; // light yellow
+				case TARGET_QSO_FIRST_CAP :  r= 0.0; g=0.5; b= 1.0;// QSO: cyan
 					break;
-				case TARGET_QSO_FIRST_SKIRT : r= 1.0; g=0.85; b= 0.5; // light yellow
+				case TARGET_QSO_FIRST_SKIRT :  r= 0.0; g=0.5; b= 1.0;// QSO: cyan 4
 					break;
 
-				case TARGET_STAR_RED_DWARF : r= 0.5; g=0.0; b= 0.0; // low red
+				case TARGET_STAR_RED_DWARF : r= 0.5; g=0.25; b= 0.5; // late-type star: brown 
 					break;
-				case TARGET_STAR_BROWN_DWARF : r= 0.5; g=0.25; b= 0.5; // brown
+				case TARGET_STAR_BROWN_DWARF : r= 0.5; g=0.25; b= 0.5; // late-type star: brown 5
 					break;
-				case TARGET_STAR_CARBON : r= 0.8; g=0.8; b= 0.8; // light grey
+				case TARGET_STAR_CARBON : r= 0.8; g=0.8; b= 0.8; // light grey 6
 					break;
-				case TARGET_STAR_WHITE_DWARF : r= 1.0; g=1.0; b= 1.0; // white
+				case TARGET_STAR_WHITE_DWARF : r= 1.0; g=0.0; b= 1.0;// WD etc. : violet
 					break;
-				case TARGET_STAR_PN : r= 0.5; g=0.5; b= 1.0;// light blue
+				case TARGET_STAR_PN : r= 1.0; g=0.0; b= 1.0;// WD etc. : violet
 					break;
-				case TARGET_STAR_BHB : r= 1.0; g=0.0; b= 1.0;// violet
+				case TARGET_STAR_BHB : r= 1.0; g=0.0; b= 1.0;// WD etc. : violet
 					break;
-				case TARGET_STAR_SUB_DWARF : r= 0.0; g=0.5; b= 0.0;// dark green
+				case TARGET_STAR_SUB_DWARF : r= 1.0; g=0.0; b= 1.0;// WD etc. : violet 7
 					break;
-				case TARGET_SERENDIP_BLUE : r= 0.0; g=0.0; b= 1.0;// blue
+				case TARGET_ROSAT_A : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
 					break;
-				case TARGET_ROSAT_A : r= 1.0; g=0.0; b= 0.55;// pink
+				case TARGET_ROSAT_B : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
 					break;
-				case TARGET_ROSAT_B : r= 1.0; g=0.0; b= 0.5;// pink
+				case TARGET_ROSAT_C : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
 					break;
-				case TARGET_ROSAT_C : r= 1.0; g=0.0; b= 0.45;// pink
+				case TARGET_ROSAT_D : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
 					break;
-				case TARGET_ROSAT_D : r= 1.0; g=0.0; b= 0.4;// pink
+				case TARGET_ROSAT_E : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
 					break;
-				case TARGET_ROSAT_E : r= 1.0; g=0.0; b= 0.35;// pink
+				case TARGET_SERENDIP_BLUE : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
 					break;
-				case TARGET_SERENDIP_FIRST : r= 0.5; g=1.0; b= 0.0;// light green
+				case TARGET_SERENDIP_FIRST : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
 					break;
-				case TARGET_SERENDIP_RED : r= 0.5; g=0.95; b= 0.0;// light green
+				case TARGET_SERENDIP_RED : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
 					break;
-				case TARGET_SERENDIP_DISTANT : r= 0.5; g=0.9; b= 0.0;// light green
+				case TARGET_SERENDIP_DISTANT : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
 					break;
-				case TARGET_SERENDIP_MANUAL : r= 0.5; g=0.85; b= 0.0;// light green
+				case TARGET_SERENDIP_MANUAL : r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
 					break;
+				default:
+					{
+	/*					// we have multiple flags set, try to find  if flags matches our classes:
+						if ( ( primTarget & (TARGET_ROSAT_A|TARGET_ROSAT_B|TARGET_ROSAT_C|TARGET_ROSAT_D|TARGET_ROSAT_E|TARGET_SERENDIP_BLUE|TARGET_SERENDIP_FIRST|TARGET_SERENDIP_RED|TARGET_SERENDIP_DISTANT|TARGET_SERENDIP_MANUAL)) == primTarget ) 
+						{
+							r= 1.0; g=1.0; b= 1.0;// ROSAT, SERENDIPITY: white 8 
+						} else if ( )
+*/
+					}
 				}
 
 				pRGBMap[i*3] =r;
@@ -3086,7 +3121,7 @@ void main(int argc, char* argv[])
 	//writeFlux();
 	//writeMagUGRIZ();
 	//writePrimaryTarget();
-	//writePrimTargetFromBin();
+	writePrimTargetFromBin();
 	//writePlate();
 	//writePlate336();
 	//writeRADEC();
@@ -3109,7 +3144,7 @@ void main(int argc, char* argv[])
 	//analyseMarksClusters2( clusternum );
 	//displaySpectra();
 	//pixelCounter();
-	printNeighboursFromMask();
+	//printNeighboursFromMask();
 	printf ("fin.\n" );
 
 }
