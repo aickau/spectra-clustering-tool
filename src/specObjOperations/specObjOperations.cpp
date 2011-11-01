@@ -3104,6 +3104,64 @@ void printNeighboursFromMask()
 }
 
 
+void writeDifferenceMap()
+{
+	SSE_ALIGN Spectra compare;
+	compare.loadFromFITS("spSpec-53700-2285-421.fit");
+
+	const size_t gridSize(859);
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+
+
+	//for (size_t j=0;j<=200;j++)
+	size_t j=199;
+	{
+		int *pIndexlist= new int[gridSize*gridSize];
+		std::string sstrIndexList = "indexlist";
+		std::string sstrFileName = "differencemap";
+		sstrIndexList += Helpers::numberToString(j,4);
+		sstrFileName += Helpers::numberToString(j,4);
+		sstrIndexList+= ".bin";
+		FILE *f=fopen(sstrIndexList.c_str(),"rb");
+		if ( f!= NULL)
+		{
+			fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
+			fclose(f);
+		}
+
+		float *pRGBMap = new float[gridSizeSqr*3];
+		for ( size_t i=0;i<gridSizeSqr*3;i++)
+		{
+			pRGBMap[i] = 0.5f;
+		}
+
+
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int index = pIndexlist[i];
+			if ( index >= 0 && index < numSourceSpecra )
+			{
+				Spectra *sp = pSourceVFS->beginRead(index);
+
+				const float err = compare.compareSuperAdvanced(*sp,0.1);
+				float intensity = (err-226.f)/255.f;
+
+				SpectraHelpers::intensityToRGB( intensity, &pRGBMap[i*3], true );			
+				pSourceVFS->endRead(index);
+			}
+		}
+
+		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrFileName);
+
+
+		delete[] pIndexlist;
+		delete[] pRGBMap;
+	}
+}
+
 
 
 void main(int argc, char* argv[])
@@ -3121,7 +3179,7 @@ void main(int argc, char* argv[])
 	//writeFlux();
 	//writeMagUGRIZ();
 	//writePrimaryTarget();
-	writePrimTargetFromBin();
+	//writePrimTargetFromBin();
 	//writePlate();
 	//writePlate336();
 	//writeRADEC();
@@ -3144,7 +3202,9 @@ void main(int argc, char* argv[])
 	//analyseMarksClusters2( clusternum );
 	//displaySpectra();
 	//pixelCounter();
-	//printNeighboursFromMask();
+	printNeighboursFromMask();
+	//writeDifferenceMap();
+
 	printf ("fin.\n" );
 
 }
