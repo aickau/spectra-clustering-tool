@@ -35,6 +35,8 @@ namespace SpectraHelpers
 	/** @name DRAWING
 	*/
 	//@{
+	static int s_FontID = -1;
+	static int s_largeFontID = -1;
 
 	// init system (for rendering of diagrams etc)
 	void init( HDC _hDC );
