@@ -43,8 +43,6 @@ namespace SpectraHelpers
 
 
 static bool s_IsInitialized = false;
-static int s_FontID = -1;
-
 
 
 size_t getFBWidth()
@@ -80,7 +78,9 @@ void init( HDC _hDC )
 	if (s_IsInitialized)
 		return;
 
-	s_FontID = GLHelper::BuildFont(_hDC, "Arial", 10, false, false);
+	s_FontID = GLHelper::BuildFont(_hDC, "Arial", 20, false, false);
+	s_largeFontID = GLHelper::BuildFont(_hDC, "Arial", 30, false, false);
+
 	ilInit();
 	s_IsInitialized = true;
 }
@@ -190,7 +190,7 @@ void drawSpectra(Spectra &_spectra,
 	float yoffset=Y2Win(_yp)-_height*(1.f-xAxisCenter); 
 	float xscale=(static_cast<float>(_width-10)/static_cast<float>(Spectra::numSamples))*_xScale;
 	float yscale=_yscale*static_cast<float>(_height*xAxisCenter);
-
+ 
 	if ( _smooth>0 ) 
 	{
 		float values[Spectra::numSamples];
@@ -200,10 +200,21 @@ void drawSpectra(Spectra &_spectra,
 	else
 	{
 		GLHelper::DrawDiagram( &_spectra.m_Amplitude[0], _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
-	}
-
+	}	
+/*	
+	GLHelper::SetLineStipple(0,0);
+	glColor3f(0,0,0);
+	glLineWidth(2.f);
 	// draw x-axis
 	GLHelper::DrawLine( xoffset, yoffset, xoffset+static_cast<float>(_width-10), yoffset );
+*/
+	// output specobj ID
+// 	float pos[]={X2Win(_width/2),Y2Win(_height-_height/2),-10};
+// 	std::stringstream sstream;
+// 	sstream << (_spectra.m_SpecObjID>>22); 
+// 	std::string sstrOut( sstream.str() );
+// 	GLHelper::Print( s_largeFontID, pos, sstrOut.c_str() );
+
 
 #ifdef _USE_SPECTRALINES
 	if ( _showSpectraLines )
@@ -266,11 +277,13 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 {
 	// take the n-biggest sample for resize
 	const size_t spectraCutOFF = 10;
+	const float lineWidth = 4.f;
 	
-	if ( FileHelpers::fileExists(_sstrFilename) )
-		return;
+ 	if ( FileHelpers::fileExists(_sstrFilename) )
+ 		return;
 
-	size_t saa = 8;
+ 
+	size_t saa = 4;
 
 	size_t w4=_width*saa;
 	size_t h4=_height*saa;
@@ -280,7 +293,7 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 		w4 = _width;
 		h4 = _height;
 		saa = 1;
-	}
+	} 
 
 	ILuint image;
 	ilGenImages( 1, &image );
@@ -290,7 +303,7 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	iluImageParameter(ILU_FILTER,ILU_SCALE_BSPLINE);
 
 	glColor3f(1,1,1);
-	glLineWidth(saa);
+	glLineWidth(saa*lineWidth);
 
 	float g = MAX(_redness-1.f, 0.f);
 
@@ -327,7 +340,7 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	{
 		globalMax = 1.f;
 	}
-
+ 
 	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/globalMax, 1.f, 2 );
 
 	glReadPixels(0,getFBHeight()-h4,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
