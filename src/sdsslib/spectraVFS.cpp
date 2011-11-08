@@ -40,7 +40,7 @@ SpectraVFS::SpectraVFS( const std::string &_sstrFilename, bool _readOnly )
 :m_sstrDumpFilename(_sstrFilename)
 ,m_logFile(std::string(_sstrFilename+std::string(".log")).c_str())
 {
-#ifdef X64
+#ifdef X64 
 	m_pSpectraVFS = new SpectraVFSMemOnly(_sstrFilename, m_logFile, _readOnly );
 #else
 	m_pSpectraVFS = new SpectraVFSCached(_sstrFilename, m_logFile, _readOnly );
@@ -265,9 +265,9 @@ void SpectraVFS::write( size_t _count, float _noize, const std::string &_sstrFil
 
 	for ( size_t i=0;i<_count;i++)
 	{
+	//	spec.set((i%4)+1,0.f);
 		spec.setSine( freq, 0.f, 1.f, _noize );
-		freq += freqStepSize; //0.000000125f;
-
+		freq += freqStepSize; 
 		w.write(spec);
 	}
 }
