@@ -62,7 +62,7 @@ void main(int argc, char* argv[])
 	Helpers::print("Order spectra relative to a set of reference spectra by their absolute error.\nCompare spectra should be located as FITS files in subdirectory /compare\n\n", &logFile);
 
 	std::string sstrDumpFile(DUMPFILE);
-	unsigned int spectraFilter = SPT_DEFAULTFILTER;
+	unsigned int spectraFilter = 0;//SPT_DEFAULTFILTER;
 	unsigned int compareFunc = 2;
 	float compareInvariance = 0.1f;
 	bool bNormalize = false;
