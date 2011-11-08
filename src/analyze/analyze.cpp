@@ -46,7 +46,7 @@
 #include <string>
 
 // analyze or spectra mapper ?
-#define SPECTRAMAPPER
+//#define SPECTRAMAPPER
 
 
 
