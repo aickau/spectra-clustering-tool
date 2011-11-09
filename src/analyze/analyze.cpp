@@ -439,7 +439,7 @@ void DrawNetwork( SOFMNetwork &network )
 	}
 
 
-	float yscale = 1.f;//1.f/fabsf(maxAmplitude*1.05f);
+	float yscale = 1.f/fabsf(maxAmplitude*1.05f);
 
 	size_t vecCount = 0;
 
@@ -575,7 +575,6 @@ void SOFM()
 	{
 		bFirst = false;
 		SwapBuffers(fr_hDC);
-		_getch(); // wait for user input..
 		SwapBuffers(fr_hDC);
 	}
 
@@ -594,11 +593,7 @@ void DrawGLScene()
 		else return;
 	}
 */
-/*
-	Spectra *a = g_pVFSSource->beginRead(1);
-	testGPUcompare( *a, *g_pVFSSource );
-	g_pVFSSource->endRead(1);
-*/
+
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
