@@ -1,28 +1,19 @@
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "search", "search\search.vcproj", "{BDFCEB6C-99B3-490F-ACB4-9A32AA44B4D5}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "search", "search\search.vcxproj", "{BDFCEB6C-99B3-490F-ACB4-9A32AA44B4D5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "analyzer", "analyze\analyze.vcxproj", "{C615842B-338A-4046-8D35-07C030BC2762}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dump", "dump\dump.vcxproj", "{950DB279-1AAD-4A7F-B5BE-3DC5FF5B49AA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sdsslib", "sdsslib\sdsslib.vcxproj", "{C70E88BF-3020-4C30-BDD0-9131B9E859E3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compare", "compare\compare.vcxproj", "{E8DB291F-7F86-4C22-9369-1BF4BAF08205}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C70E88BF-3020-4C30-BDD0-9131B9E859E3} = {C70E88BF-3020-4C30-BDD0-9131B9E859E3}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "analyzer", "analyze\analyze.vcproj", "{C615842B-338A-4046-8D35-07C030BC2762}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C70E88BF-3020-4C30-BDD0-9131B9E859E3} = {C70E88BF-3020-4C30-BDD0-9131B9E859E3}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dump", "dump\dump.vcproj", "{950DB279-1AAD-4A7F-B5BE-3DC5FF5B49AA}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C70E88BF-3020-4C30-BDD0-9131B9E859E3} = {C70E88BF-3020-4C30-BDD0-9131B9E859E3}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sdsslib", "sdsslib\sdsslib.vcproj", "{C70E88BF-3020-4C30-BDD0-9131B9E859E3}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compare", "compare\compare.vcproj", "{E8DB291F-7F86-4C22-9369-1BF4BAF08205}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "specObjOperations", "specObjOperations\specObjOperations.vcproj", "{4ADFDDAB-FB91-4716-873C-6BBD29A7EA7D}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C70E88BF-3020-4C30-BDD0-9131B9E859E3} = {C70E88BF-3020-4C30-BDD0-9131B9E859E3}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "specObjOperations", "specObjOperations\specObjOperations.vcxproj", "{4ADFDDAB-FB91-4716-873C-6BBD29A7EA7D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

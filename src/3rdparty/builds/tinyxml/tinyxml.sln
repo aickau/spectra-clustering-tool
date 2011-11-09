@@ -1,19 +1,13 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinyXmlTest", "tinyXmlTest.vcproj", "{E600BAD2-F787-4A67-907C-E5C119877808}"
-	ProjectSection(ProjectDependencies) = postProject
-		{D2B6BD8A-E686-405B-A2F1-0BB5C7788DB8} = {D2B6BD8A-E686-405B-A2F1-0BB5C7788DB8}
-	EndProjectSection
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinyXmlTest", "tinyXmlTest.vcxproj", "{E600BAD2-F787-4A67-907C-E5C119877808}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinyXmlTestSTL", "tinyXmlTestSTL.vcproj", "{36D970E8-E648-4A63-ABB9-A44B0CB486AE}"
-	ProjectSection(ProjectDependencies) = postProject
-		{2B58867E-A333-41B1-91AB-2F88198D1E42} = {2B58867E-A333-41B1-91AB-2F88198D1E42}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinyXmlTestSTL", "tinyXmlTestSTL.vcxproj", "{36D970E8-E648-4A63-ABB9-A44B0CB486AE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinyxml", "tinyxml_lib.vcproj", "{D2B6BD8A-E686-405B-A2F1-0BB5C7788DB8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinyxml", "tinyxml_lib.vcxproj", "{D2B6BD8A-E686-405B-A2F1-0BB5C7788DB8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinyxmlSTL", "tinyxmlSTL.vcproj", "{2B58867E-A333-41B1-91AB-2F88198D1E42}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinyxmlSTL", "tinyxmlSTL.vcxproj", "{2B58867E-A333-41B1-91AB-2F88198D1E42}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
