@@ -277,7 +277,7 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 {
 	// take the n-biggest sample for resize
 	const size_t spectraCutOFF = 10;
-	const float lineWidth = 4.f;
+	const float lineWidth = 2.f;
 	
  	if ( FileHelpers::fileExists(_sstrFilename) )
  		return;
@@ -337,13 +337,14 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	float globalMax = MAX(fabsf(ymin), fabsf(ymax));
 
 	if (globalMax==0.0f)
-	{
+	{ 
 		globalMax = 1.f;
 	}
  
 	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/globalMax, 1.f, 2 );
+	const int yo = 0; // was: getFBHeight()-h4 - do not know why..
+	glReadPixels(0,yo,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 
-	glReadPixels(0,getFBHeight()-h4,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 	iluScale(_width,_height,1);
 	ilSave( IL_PNG, const_cast<char*>(_sstrFilename.c_str()) );
 	ilDeleteImage(image);

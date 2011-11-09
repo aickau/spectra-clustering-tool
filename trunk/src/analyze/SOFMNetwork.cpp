@@ -512,8 +512,6 @@ void SOFMNetwork::exportHistograms( const std::string &_sstrExportDirectory )
 }
 
 
-
-
 void SOFMNetwork::renderIcons()
 {
 	Helpers::print( std::string("Rendering Icons.\n"), m_pLogStream );
