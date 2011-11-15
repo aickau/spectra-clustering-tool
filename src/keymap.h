@@ -37,6 +37,9 @@ extern void Space();
 extern void Export();
 extern void DisableOutput();
 
+extern void KeyOne();
+extern void KeyTwo();
+
 TKEYMAP fr_keymap[] = {
 							{KB_LEFT,	&ArrowLeft},
 							{KB_RIGHT,	&ArrowRight},
@@ -45,7 +48,9 @@ TKEYMAP fr_keymap[] = {
 							{KB_SPACE,	&Space},
 							{KB_E,		&Export},
 							{KB_V,		&DisableOutput},
-							
+							{KB_1,		&KeyOne},			
+							{KB_2,		&KeyTwo},
+
 };
 
 #endif

@@ -542,3 +542,11 @@ void Space()
 {
 	g_Mode++;
 }
+
+void KeyOne()
+{
+}
+
+void KeyTwo()
+{
+}
