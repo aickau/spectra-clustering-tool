@@ -22,18 +22,17 @@
 
 
  // draw multiple spectra into one diagram from a mask selection
-
 class SpectraMapper
 {
 public:
-	SpectraMapper();
+	SpectraMapper( const std::string &sstrSourceSpectraFilename, const std::string &sstSelectionMaskFilename, const std::string &sstrPlotImageFilename );
 	virtual ~SpectraMapper();
 
 	void draw( int _width, int _height, bool _toRestFrame, int _selection, bool _writeDataToPNG );
 
 private:
-	const size_t m_gridSize;
-	const size_t m_gridSizeSqr;
+	size_t m_gridSize;
+	size_t m_gridSizeSqr;
 	std::vector<int> m_mappedSpectra;
 	SSE_ALIGN Spectra m_spAvg;
 	SSE_ALIGN Spectra m_spMax;
@@ -42,4 +41,6 @@ private:
 	size_t m_numSourceSpecra;
 	int m_numSpectraToDraw;
 	int m_currentIndex;
+	std::string m_sstrPlotImageFilename;
+	int m_imageWriteCount;
 };

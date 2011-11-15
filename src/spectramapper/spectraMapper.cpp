@@ -32,36 +32,64 @@
 #include <conio.h>
 #include <iostream>
 
-std::ofstream spectraMapperlogFile("selection_log.txt");
+extern std::ofstream logFile;
 
 // generate a combined diagram with all spectra from selection
-SpectraMapper::SpectraMapper()
-:m_gridSize(859)
+SpectraMapper::SpectraMapper( const std::string &sstrSourceSpectraFilename, const std::string &sstSelectionMaskFilename, const std::string &sstrPlotImageFilename )
+:m_sstrPlotImageFilename(sstrPlotImageFilename)
+,m_gridSize(859)
 ,m_gridSizeSqr(m_gridSize*m_gridSize)
 ,m_numSourceSpecra(0)
 ,m_pSourceVFS(NULL)
 ,m_currentIndex(-1)
+,m_imageWriteCount(0)
 {
 	// load mask
-	ilLoadImage( (ILstring)"mask.png" );
+	ilLoadImage( (ILstring)sstSelectionMaskFilename.c_str() );
 	ILenum err = ilGetError();
 	if( err != NULL )
+	{
+		Helpers::print("Error: Mask image "+sstSelectionMaskFilename+" could not be loaded.\n", &logFile);
 		return;
+	}
 	ilConvertImage( IL_LUMINANCE, IL_UNSIGNED_BYTE );
 	int width = ilGetInteger( IL_IMAGE_WIDTH );
 	int height = ilGetInteger( IL_IMAGE_HEIGHT );
-	if ( width != m_gridSize || height != m_gridSize ) {
+	if ( width != height ) {
 		// wrong dimensions
+		Helpers::print("Error: image dimensions do not match. Must be rectangular.\n", &logFile);
+
 		return;
 	}
 	unsigned char *pt = ilGetData();
 	if ( pt == NULL )  {
+		Helpers::print("Error: Mask image "+sstSelectionMaskFilename+" could not be loaded.\n", &logFile);
+
 		// nah, fail..
 		return;
 	}
 
-	m_pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	m_gridSize = width;
+	m_gridSizeSqr = m_gridSize*m_gridSize;
+
+	Helpers::print( "Reading dump file "+sstrSourceSpectraFilename+ "\n", &logFile );
+
+
+	m_pSourceVFS = new SpectraVFS( sstrSourceSpectraFilename, false );
 	m_numSourceSpecra = m_pSourceVFS->getNumSpectra();
+
+	if ( m_numSourceSpecra <= 0 )
+	{
+		Helpers::print("Error: No spectral data found.\n", &logFile);
+
+		// nah, fail..
+		return;
+	}
+	else
+	{
+		Helpers::print(Helpers::numberToString<size_t>(m_numSourceSpecra)+" spectra found.\n", &logFile);
+	}
+
 
 	size_t j=199;
 	int *pIndexlist= new int[m_gridSizeSqr];
@@ -70,6 +98,8 @@ SpectraMapper::SpectraMapper()
 	sstrIndexList+= ".bin";
 	FILE *f=fopen(sstrIndexList.c_str(),"rb");
 	if ( f== NULL) {
+		Helpers::print("Error: Missing index list.\n", &logFile);
+
 		// no index list
 		return;
 	}
@@ -172,7 +202,7 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, int _selec
 				xO = (xB-Spectra::waveBeginDst)/xDAll;
 			}
 
-			if ( count ==  (_selection % m_numSpectraToDraw) && (_selection > 0))
+			if ( count ==  (_selection % m_numSpectraToDraw) && (_selection >= 0))
 			{
 				glColor3f(0.f,1.f,0.f);
 
@@ -185,8 +215,8 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, int _selec
 					sstrInfo += "  fiberID:";
 					sstrInfo += Helpers::numberToString<int>(sp->getFiber());
 					sstrInfo += "\n";
-					Helpers::print(sstrInfo, &spectraMapperlogFile );
-					Helpers::print(sp->getURL()+"\n", &spectraMapperlogFile );
+					Helpers::print(sstrInfo, &logFile );
+					Helpers::print(sp->getURL()+"\n", &logFile );
 					m_currentIndex = _selection;
 				}
 			}
@@ -219,8 +249,11 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, int _selec
 
 	if ( _writeDataToPNG )
 	{
+		std::string sstrFilename(m_sstrPlotImageFilename);
+		sstrFilename += Helpers::numberToString<int>(m_imageWriteCount,2);
+		sstrFilename += ".png";
 
-		Helpers::print("writing mask output.");
+		Helpers::print("writing spectra plot to "+sstrFilename+".", &logFile);
 		ILuint image;
 		ilGenImages( 1, &image );
 		ilBindImage(image);
@@ -229,11 +262,10 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, int _selec
 		iluImageParameter(ILU_FILTER,ILU_SCALE_BSPLINE);
 
 		glReadPixels(0,0,_width,_height,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
-		std::string fn("spClusterWrongindexlist199.png");
-		if ( _toRestFrame ) {
-			fn = std::string("spClusterWrongindexlist199RestFrame.png");
-		}
-		ilSave( IL_PNG, const_cast<char*>(fn.c_str()) );
+
+		ilSave( IL_PNG, const_cast<char*>(sstrFilename.c_str()) );
 		ilDeleteImage(image);
+
+		m_imageWriteCount++;
 	}
 }
