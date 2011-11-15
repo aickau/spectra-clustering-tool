@@ -183,7 +183,6 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, bool _norm
 
 	GLHelper::SetBlendMode(GLHelper::kBlendMode_Add);
 
-	SSE_ALIGN Spectra tsp;
 
 	int count = 0;
 	for (size_t i=0;i<m_mappedSpectra.size();i++)
@@ -193,13 +192,11 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, bool _norm
 		if ( index >= 0 && index < m_numSourceSpecra )
 		{
 			Spectra *sp = m_pSourceVFS->beginRead(index);
+			SSE_ALIGN Spectra tsp(*sp);
 
 			if ( _normalizeByFlux )
 			{
-				tsp = *sp;	
-
 				tsp.normalizeByFlux();
-				sp = &tsp;
 			}
 
 			float xO = 0.0f;
@@ -236,7 +233,7 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, bool _norm
 
 
 //				sp->m_SamplesRead= Spectra::numSamples;
-			SpectraHelpers::drawSpectra(*sp, false, false, xO*_width, imgYOffset, _width, _height, imgScale/m_spMax.m_Max, xD/xDAll, 0 );
+			SpectraHelpers::drawSpectra(tsp, false, false, xO*_width, imgYOffset, _width, _height, imgScale/m_spMax.m_Max, xD/xDAll, 0 );
 
 			m_pSourceVFS->endRead(index);
 			count++;
