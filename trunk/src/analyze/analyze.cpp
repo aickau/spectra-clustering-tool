@@ -32,7 +32,6 @@
 #include "framework.h"	
 #include "SOFMNetwork.h"
 #include "QTClustering.h"
-#include "spectraMapper.h"
 
 #include "devil/include/il/il.h"
 #include "devil/include/il/ilu.h"
@@ -44,10 +43,6 @@
 #include <conio.h>
 
 #include <string>
-
-// analyze or spectra mapper ?
-#define SPECTRAMAPPER
-
 
 
 extern HWND	fr_hWnd;
@@ -67,17 +62,6 @@ bool g_DisableOutput = false;
 
 size_t g_numSpectra = 0;
 SpectraVFS *g_pVFSSource = NULL; 
-
-
-
-#ifdef SPECTRAMAPPER
-bool g_writeData = false;
-int g_maskSelection = 0;
-
-SpectraMapper *g_spectraMapper=NULL;
-
-#endif
-
 
 
 int InitGL()		
@@ -107,9 +91,7 @@ int InitGL()
 	char **argv = Helpers::getCommandLineFromString( sstrCmdLine, argc );
 
 	Helpers::print("Welcome to SDSS Analyze "+sstrSDSSVersionString+" !\n\n\n", &logFile);
-#ifdef SPECTRAMAPPER
-	g_spectraMapper = new SpectraMapper();
-#else
+
 	std::string sstrSourceSpectraFilename("allSpectra.bin");
 	std::string sstrSelectionListFilename("");
 	bool bContinue = false;
@@ -245,7 +227,6 @@ int InitGL()
 	//g_QTCluster->Process();
 	//g_QTCluster->Export(std::string("export/qtclustering"));
 	//exit(0);
-#endif //SPECTRAMAPPER
 
 	return TRUE;
 }
@@ -497,10 +478,6 @@ void DrawGLScene()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-#ifdef SPECTRAMAPPER
-	g_spectraMapper->draw( scr_width, scr_height, false, g_maskSelection, g_writeData );
-	g_writeData = false;
-#else
 	sprintf( &captiontext[13], "%i / %i", g_pSOFM->m_currentStep, g_pSOFM->m_params.numSteps);
 
 //	if (g_Mode==0)
@@ -511,7 +488,6 @@ void DrawGLScene()
 	{
 		SOFM();
 	}
-#endif
 	
 
 	Sleep(100);
@@ -544,20 +520,12 @@ void DisableOutput()
 void ArrowLeft()
 {
 	left = 1;
-
-#ifdef SPECTRAMAPPER
-	g_maskSelection--;
-#endif
 }
 
 
 void ArrowRight()
 {
 	right = 1;
-
-#ifdef SPECTRAMAPPER
-	g_maskSelection++;
-#endif
 }
 
 void ArrowUp()
@@ -573,7 +541,4 @@ void ArrowDown()
 void Space()
 {
 	g_Mode++;
-#ifdef SPECTRAMAPPER
-	g_writeData = true;
-#endif // SPECTRAMAPPER
 }
