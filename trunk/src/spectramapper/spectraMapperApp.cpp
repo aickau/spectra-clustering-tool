@@ -63,8 +63,10 @@ bool g_writeData = false;
 int g_maskSelection = 0;
 
 SpectraMapper *g_spectraMapper=NULL;
-
-
+bool g_bNormalizeByFlux = true;
+bool g_bToRestFrame = false; // project spectrum to its restframe based on the z estimate from SDSS. 
+float g_yScale = 1.0;
+float g_brightness = 1.f;
 
 
 int InitGL()		
@@ -97,7 +99,7 @@ int InitGL()
 	std::string sstrSourceSpectraFilename("allSpectra.bin");
 	std::string sstrMaskFilename("mask.png");
 	std::string sstrOutPlotFilename("spectraMapperPlot");
-	bool bToRestFrame = false; // project spectrum to its restframe based on the z estimate from SDSS. 
+	
 
 	try {  
 
@@ -109,19 +111,23 @@ int InitGL()
 		TCLAP::ValueArg<std::string> dumpFilenameArg("i", "inputdumpfile", "example: allSpectra.bin", false, sstrSourceSpectraFilename, "input dump file that contains all source spectra.");
 		TCLAP::ValueArg<std::string> maskFilenameArg("m", "mask", "Image mask.", false, sstrMaskFilename, "mask.png");
 		TCLAP::ValueArg<std::string> outFilenameArg("o", "outfile", "Output filename.", false, sstrOutPlotFilename, "spectraMapperPlot");		
-		TCLAP::SwitchArg toRestframeArg("r","restframe","Project spectrum to its rest frame based on the z estimate from SDSS.", false);
+		TCLAP::SwitchArg toRestframeArg("r","restframe","Project spectrum to its rest frame based on the z estimate from SDSS.", g_bToRestFrame);
+		TCLAP::SwitchArg normalizeArg("n","normalize","Normalize all spectra by flux before plotting.", g_bNormalizeByFlux);
 
 		cmd.add( dumpFilenameArg );
 		cmd.add( maskFilenameArg );
 		cmd.add( outFilenameArg );
 		cmd.add( toRestframeArg );
+		cmd.add( normalizeArg );
+		
 
 		cmd.parse( argc, argv );
 
 		sstrSourceSpectraFilename = dumpFilenameArg.getValue();
 		sstrMaskFilename = maskFilenameArg.getValue();
 		sstrOutPlotFilename = outFilenameArg.getValue();
-		bToRestFrame = toRestframeArg.getValue();
+		g_bToRestFrame = toRestframeArg.getValue();
+		g_bNormalizeByFlux = normalizeArg.getValue();
 	}
 	catch (TCLAP::ArgException &e)  
 	{ 
@@ -166,7 +172,7 @@ void DrawGLScene()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-	g_spectraMapper->draw( scr_width, scr_height, false, g_maskSelection, g_writeData );
+	g_spectraMapper->draw( scr_width, scr_height, g_bToRestFrame, g_bNormalizeByFlux, g_yScale, g_brightness, g_maskSelection, g_writeData );
 	g_writeData = false;
 
 	Sleep(100);
@@ -204,11 +210,14 @@ void ArrowRight()
 
 void ArrowUp()
 {
+	g_yScale +=0.05f;
 	up = 1;
 }
 
 void ArrowDown()
 {
+	g_yScale -=0.05f;
+
 	down = 1;
 }
 
@@ -216,4 +225,15 @@ void Space()
 {
 	g_Mode++;
 	g_writeData = true;
+}
+
+void KeyOne()
+{
+	g_brightness += 0.05f;
+}
+
+void KeyTwo()
+{
+	if ( g_brightness >= 0.1)
+		g_brightness -= 0.05f;
 }

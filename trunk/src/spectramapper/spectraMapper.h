@@ -28,7 +28,7 @@ public:
 	SpectraMapper( const std::string &sstrSourceSpectraFilename, const std::string &sstSelectionMaskFilename, const std::string &sstrPlotImageFilename );
 	virtual ~SpectraMapper();
 
-	void draw( int _width, int _height, bool _toRestFrame, int _selection, bool _writeDataToPNG );
+	void draw( int _width, int _height, bool _toRestFrame, bool _normalizeByFlux, float _yscale, float _brightness, int _selection, bool _writeDataToPNG );
 
 private:
 	size_t m_gridSize;
@@ -43,4 +43,5 @@ private:
 	int m_currentIndex;
 	std::string m_sstrPlotImageFilename;
 	int m_imageWriteCount;
+	float m_plotCount;// number of plotted spectra
 };

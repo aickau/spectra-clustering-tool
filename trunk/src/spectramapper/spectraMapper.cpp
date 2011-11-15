@@ -43,6 +43,7 @@ SpectraMapper::SpectraMapper( const std::string &sstrSourceSpectraFilename, cons
 ,m_pSourceVFS(NULL)
 ,m_currentIndex(-1)
 ,m_imageWriteCount(0)
+,m_plotCount(0.f)
 {
 	// load mask
 	ilLoadImage( (ILstring)sstSelectionMaskFilename.c_str() );
@@ -165,14 +166,14 @@ SpectraMapper::~SpectraMapper()
 }
 
 // generate a combined diagram with all spectra from selection
-void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, int _selection, bool _writeDataToPNG )
+void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, bool _normalizeByFlux, float _yscale, float _brightness, int _selection, bool _writeDataToPNG )
 {
 	if ( m_numSourceSpecra <= 0 || m_pSourceVFS == NULL || m_numSpectraToDraw <= 0 )
 		return;
 
-	const float imgScale = 2.5f;		// 1.5, 3.5 6.5
+	const float imgScale = _yscale;		// 1.5, 3.5 6.5
 	const int imgYOffset = 100;
-	const float brightness = 8.f/255.f;//1.f/255.f; // 0.1f;//1.f/255.f;// 
+	const float brightness = (10.f*_brightness/(m_plotCount+1.f));//1.f/255.f; // 0.1f;//1.f/255.f;// 
 
 	glClearColor(0.f,0.f,0.f,1.f);	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
@@ -182,6 +183,8 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, int _selec
 
 	GLHelper::SetBlendMode(GLHelper::kBlendMode_Add);
 
+	SSE_ALIGN Spectra tsp;
+
 	int count = 0;
 	for (size_t i=0;i<m_mappedSpectra.size();i++)
 	{
@@ -190,8 +193,14 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, int _selec
 		if ( index >= 0 && index < m_numSourceSpecra )
 		{
 			Spectra *sp = m_pSourceVFS->beginRead(index);
-			SSE_ALIGN Spectra tsp(*sp);	
-			tsp.normalizeByFlux();
+
+			if ( _normalizeByFlux )
+			{
+				tsp = *sp;	
+
+				tsp.normalizeByFlux();
+				sp = &tsp;
+			}
 
 			float xO = 0.0f;
 			float xD = xDAll;
@@ -227,12 +236,13 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, int _selec
 
 
 //				sp->m_SamplesRead= Spectra::numSamples;
-			SpectraHelpers::drawSpectra(tsp, false, false, xO*_width, imgYOffset, _width, _height, imgScale/m_spMax.m_Max, xD/xDAll, 0 );
+			SpectraHelpers::drawSpectra(*sp, false, false, xO*_width, imgYOffset, _width, _height, imgScale/m_spMax.m_Max, xD/xDAll, 0 );
 
 			m_pSourceVFS->endRead(index);
 			count++;
 		}
 	}
+	m_plotCount = count;
 /*
 	if ( !_toRestFrame ) {
 		GLHelper::SetBlendMode(GLHelper::kBlendMode_Off);
