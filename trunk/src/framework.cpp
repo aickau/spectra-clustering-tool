@@ -21,6 +21,8 @@
 #include "keycodes.h"
 #include "keymap.h"
 
+#include "sdsslib/helpers.h"
+
 #include <string>
 
 extern int		InitGL();
@@ -434,6 +436,15 @@ int WINAPI WMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, 
 
 void main(int argc, char* argv[])
 {
-	// we use void main as entry point to get console print feedback to caller window
-	WMain(GetModuleHandle(NULL), NULL, GetCommandLine(), SW_SHOW);
+	__try
+	{
+		//
+		// we use void main as entry point to get console print feedback to caller window
+		WMain(GetModuleHandle(NULL), NULL, GetCommandLine(), SW_SHOW);
+	}
+	__except( Helpers::writeMiniDump( GetExceptionInformation() ), EXCEPTION_EXECUTE_HANDLER )
+	{
+		printf("Program Termination. Crashdump (.dmp) written.");
+	}
+
 };

@@ -22,6 +22,7 @@
 
 #include <string>
 #include <sstream>
+#include <Windows.h>
 
 namespace Helpers
 {
@@ -76,6 +77,15 @@ namespace Helpers
 	// returns char** argv, even if command line string was empty.
 	// make sure to proper deallocate the resulting pointer via delete[].
 	char **getCommandLineFromString( const std::string &sstrCommandLineString, int &outArgC );
+
+	// usage:
+	//
+	//  __try {
+	//		[..]
+	// }
+	// __except( writeMiniDump( GetExceptionInformation() ) { }
+	//
+	void WINAPI writeMiniDump( PEXCEPTION_POINTERS ep );
 
 };
 
