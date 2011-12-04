@@ -27,7 +27,7 @@
 #include <fcntl.h>
 #include <io.h>
 #include <shellapi.h>
-
+#include <DbgHelp.h>
 
 
 
@@ -147,4 +147,42 @@ char **Helpers::getCommandLineFromString( const std::string &_sstrCommandLineStr
 	argv[_outArgC] = NULL; // terminate with zero.
 
 	return argv;
+}
+
+typedef BOOL (WINAPI * MINIDUMP_WRITE_DUMP)(
+    IN HANDLE           hProcess,
+    IN DWORD            ProcessId,
+    IN HANDLE           hFile,
+    IN MINIDUMP_TYPE    DumpType,
+    IN CONST PMINIDUMP_EXCEPTION_INFORMATION    ExceptionParam, OPTIONAL
+    IN PMINIDUMP_USER_STREAM_INFORMATION        UserStreamParam, OPTIONAL
+    IN PMINIDUMP_CALLBACK_INFORMATION           CallbackParam OPTIONAL
+    );
+
+
+void WINAPI Helpers::writeMiniDump( PEXCEPTION_POINTERS ep )
+{
+	HMODULE hDbgHelp = LoadLibrary("DBGHELP.DLL");
+	MINIDUMP_WRITE_DUMP MiniDumpWriteDump = (MINIDUMP_WRITE_DUMP)GetProcAddress(hDbgHelp, "MiniDumpWriteDump");
+
+	if (MiniDumpWriteDump)
+	{
+		MINIDUMP_EXCEPTION_INFORMATION  M;
+		HANDLE  hDump_File;
+		CHAR    Dump_Path[MAX_PATH];
+
+		M.ThreadId = GetCurrentThreadId();
+		M.ExceptionPointers = ep;
+
+		M.ClientPointers = 0;
+
+		GetModuleFileName(NULL, Dump_Path, sizeof(Dump_Path));
+		lstrcpy(Dump_Path + lstrlen(Dump_Path) - 3, "dmp");
+
+		hDump_File = CreateFile(Dump_Path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hDump_File, MiniDumpNormal, (M.ExceptionPointers) ? &M : NULL, NULL, NULL);
+
+		CloseHandle(hDump_File);
+	}
 }
