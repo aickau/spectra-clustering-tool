@@ -2222,11 +2222,14 @@ void medianSpectrumFromSelection()
 
 void extractGalaxyZooData()
 {
+
+
 	// photo obj id -> spec obj id
 	std::map<unsigned __int64,unsigned __int64> specObjIDLookup;
 
 	// spec obj id -> index
 	std::map<unsigned __int64,int> indexLookup;
+	std::map<unsigned __int64,int> indexSrcLookup;
 
 	// our map
 	const size_t gridSize = 859;
@@ -2234,9 +2237,23 @@ void extractGalaxyZooData()
 	float *pRGBMap = new float[gridSizeSqr*3];
 	for ( size_t i=0;i<gridSizeSqr*3;i++)
 	{
-		pRGBMap[i] = 0.5f;
+		pRGBMap[i] = 0.0f;
 	}
+	/*
 
+	for ( int y=0;y<20;y++)
+	{
+		for (int x=0;x<gridSize;x++)
+		{
+			int a = x+y*gridSize;
+			a*=3;
+
+			SpectraHelpers::intesityToRGBGradient( (float)x/(float)(gridSize-1.f), &pRGBMap[a], 0 );	 
+			SpectraHelpers::intesityToRGBGradient( (float)x/(float)(gridSize-1.f), &pRGBMap[a+20*gridSize*3], 1 );	 
+		}
+	}
+	*/
+	
 	size_t j=199;
 	int *pIndexlist= new int[gridSize*gridSize];
 	std::string sstrIndexList = "indexlist";
@@ -2254,7 +2271,6 @@ void extractGalaxyZooData()
 	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
 
 
-
 	// build dictionary spec obj id -> index
 	if ( pIndexlist != NULL )
 	{
@@ -2265,9 +2281,17 @@ void extractGalaxyZooData()
 			{
 				Spectra *spSpec = pSourceVFS->beginRead( index );
 				if ( spSpec != NULL && spSpec->m_SpecObjID > 0 ) {
+					indexSrcLookup.insert(std::make_pair<unsigned __int64,int>(spSpec->m_SpecObjID,index));
 					indexLookup.insert(std::make_pair<unsigned __int64,int>(spSpec->m_SpecObjID,i));
 				}
 				pSourceVFS->endRead( i );
+			}
+			else
+			{
+				// mark empty space dark gray
+				pRGBMap[i*3+0] = 0.1f;
+				pRGBMap[i*3+1] = 0.1f;
+				pRGBMap[i*3+2] = 0.1f;
 			}
 		}
 	}
@@ -2319,6 +2343,10 @@ void extractGalaxyZooData()
 	getline(fin, sstrTemp, '\n');
 	int mappingCount = 0;
 
+	std::set<float,std::greater<float>> zValuesMax;
+	std::set<float> zValuesMin;
+	
+
 	while( fin >> sstrTemp ) 
 	{	
 		std::replace(sstrTemp.begin(), sstrTemp.end(), ',', ' ');
@@ -2356,29 +2384,42 @@ void extractGalaxyZooData()
 		st0 >> fElliptical;
 		st0 >> fUncertain;
 
+		double zMax = 0.35;
+
 		std::map<unsigned __int64,unsigned __int64>::iterator it = specObjIDLookup.find(photoObjID);
 		if ( it != specObjIDLookup.end() ) {
 			specObjID = it->second;
-			std::map<unsigned __int64,int>::iterator it2 = indexLookup.find(specObjID);
-			if (it2 != indexLookup.end() ) {
-				int index = it2->second;
-				if ( vClockWise+vAntiClockwise >= 0.8f ) {
-					pRGBMap[index*3] = 1.0f;
-					pRGBMap[index*3+1] = 1.0f;
-					pRGBMap[index*3+2] = 1.0f;
-				} else {
-					pRGBMap[index*3] = 0.0f;
-					pRGBMap[index*3+1] = 0.0f;
-					pRGBMap[index*3+2] = 0.0f;
+			std::map<unsigned __int64,int>::iterator it2 = indexSrcLookup.find(specObjID);
+			if (it2 != indexSrcLookup.end() ) {
+				int srcindex = it2->second;
+				std::map<unsigned __int64,int>::iterator it3 = indexLookup.find(specObjID);
+				int mapIndex = it3->second;
+				Spectra *spSpec = pSourceVFS->beginRead( srcindex );
+
+				float intensity = MIN(spSpec->m_Z/zMax,1.0);
+				
+				zValuesMax.insert(spSpec->m_Z);
+				zValuesMin.insert(spSpec->m_Z);
+
+				if ( vdElliptical >= 0.8f ) {//|| vdCombinedSpiral >= 0.8 || vMerger >= 0.4 ) {
+
+					SpectraHelpers::intesityToRGBGradient( (float)intensity, &pRGBMap[mapIndex*3], 1 );	
+				} 
+				if ( vdCombinedSpiral >= 0.8f ) {
+					SpectraHelpers::intesityToRGBGradient( (float)intensity, &pRGBMap[mapIndex*3], 0 );	
 				}
-				SpectraHelpers::intensityToRGB( (float)MIN(vClockWise+vAntiClockwise,1.0f), &pRGBMap[index*3], false );	
+
+
+
+				pSourceVFS->endRead( srcindex );
+
 				mappingCount++;
 			}
 		}
 
 	}
-
-	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooSpiralNoEdgeOn");
+	
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooElliptical");
 
 	delete[] pRGBMap;
 }
@@ -3195,14 +3236,14 @@ void main(int argc, char* argv[])
 	//writeParamsFromSelection();
 	//writeIndexListFromSOFMBin();
 	//medianSpectrumFromSelection();
-	//extractGalaxyZooData();
+	extractGalaxyZooData();
 	//analyseSineTestDistributions();
 	//clusterStatisticsSim();
 	//analyseMarksClusters1();
 	//analyseMarksClusters2( clusternum );
 	//displaySpectra();
 	//pixelCounter();
-	printNeighboursFromMask();
+	//printNeighboursFromMask();
 	//writeDifferenceMap();
 
 	printf ("fin.\n" );
