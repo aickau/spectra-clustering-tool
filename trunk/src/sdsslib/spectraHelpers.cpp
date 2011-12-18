@@ -907,6 +907,74 @@ void intensityToRGB(float _intensity, float *_pRGB, bool _bRed )
 }
 
 
+void intesityToRGBGradient(float _intensity, float *_pRGB, int gradientType )
+{
+	_intensity = CLAMP(_intensity,0.f,1.f);
+
+	// 0..1: blue->lightblue->cyan->white
+	if ( gradientType == 0 )
+	{
+		if ( _intensity <= 0.3333f )
+		{
+			// 0..0.333 -> 0..1
+			_intensity = _intensity*3.f;
+			_pRGB[0] = _intensity*0.5f;
+			_pRGB[1] = _intensity*0.5f;
+			_pRGB[2] = 1.f;
+
+		} 
+		else if ( _intensity <= 0.6666f )
+		{
+			// 0.333..0.666 -> 0..1
+			_intensity = (_intensity-0.3333f)*3.f;
+			_pRGB[0] = 0.5f-_intensity*0.5f;
+			_pRGB[1] = 0.5f+_intensity*0.5f;
+			_pRGB[2] = 1.f;
+
+		}
+		else
+		{
+			// 0.666..1.0 -> 0..1
+			_intensity = (_intensity-0.6666f)*3.f;
+			_pRGB[0] = _intensity;
+			_pRGB[1] = 1.f;
+			_pRGB[2] = 1.f;
+		}
+	}
+	else 
+	{
+		// 0..1: violet->red->oragne->light yellow
+
+		if ( _intensity <= 0.3333f )
+		{
+			// 0..0.333 -> 0..1
+			_intensity = _intensity*3.f;
+			_pRGB[0] = 0.5f+_intensity*0.5f;
+			_pRGB[1] = 0.f;
+			_pRGB[2] = 1.f-_intensity;
+
+		} 
+		else if ( _intensity <= 0.6666f )
+		{
+			// 0.333..0.666 -> 0..1
+			_intensity = (_intensity-0.3333f)*3.f;
+			_pRGB[0] = 1.f;
+			_pRGB[1] = _intensity*0.5f;
+			_pRGB[2] = 0.f;
+
+		}
+		else
+		{
+			// 0.666..1.0 -> 0..1
+			_intensity = (_intensity-0.6666f)*3.f;
+			_pRGB[0] = 1.f;
+			_pRGB[1] = 0.5f+_intensity*0.5f;
+			_pRGB[2] = _intensity*0.5f;
+		}
+	}
+}
+
+
 
 
 void calcUMatrix( SpectraVFS &_network, const std::string &_sstrFilenName, bool _bUseLogScale, bool _bShowEmpty, bool _bNormalize, bool _showRanges, size_t _planSize )

@@ -176,6 +176,9 @@ namespace SpectraHelpers
 	// otherwise       map intensity to black->red->yellow->white color gradient
 	void intensityToRGB(float _intensity, float *_pRGB, bool _bRed=false );
 
+	// intensity [0..1]
+	// _pRGB pointer to location where out rgb triple is written to.
+	void intesityToRGBGradient( float _intensity, float *_pRGB, int gradientType = 0 );
 	//@}
 
 
