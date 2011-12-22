@@ -35,7 +35,7 @@
 extern std::ofstream logFile;
 
 // generate a combined diagram with all spectra from selection
-SpectraMapper::SpectraMapper( const std::string &sstrSourceSpectraFilename, const std::string &sstSelectionMaskFilename, const std::string &sstrPlotImageFilename )
+SpectraMapper::SpectraMapper( const std::string &sstrSourceSpectraFilename, const std::string &sstrIndexlistFilename, const std::string &sstSelectionMaskFilename, const std::string &sstrPlotImageFilename )
 :m_sstrPlotImageFilename(sstrPlotImageFilename)
 ,m_gridSize(859)
 ,m_gridSizeSqr(m_gridSize*m_gridSize)
@@ -94,10 +94,7 @@ SpectraMapper::SpectraMapper( const std::string &sstrSourceSpectraFilename, cons
 
 	size_t j=199;
 	int *pIndexlist= new int[m_gridSizeSqr];
-	std::string sstrIndexList = "indexlist";
-	sstrIndexList += Helpers::numberToString(j,4);
-	sstrIndexList+= ".bin";
-	FILE *f=fopen(sstrIndexList.c_str(),"rb");
+	FILE *f=fopen(sstrIndexlistFilename.c_str(),"rb");
 	if ( f== NULL) {
 		Helpers::print("Error: Missing index list.\n", &logFile);
 
