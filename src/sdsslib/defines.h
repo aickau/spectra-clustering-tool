@@ -31,6 +31,16 @@
 
 #define POINTER2INDEX(pointer,basepointer,type) (((unsigned int)(pointer)-(unsigned int)basepointer)/sizeof(type))
 
+#define CALC_MAPADRESS(x,y,xsize) ((CLAMP(x,0,xsize-1))+((CLAMP(y,0,xsize-1))*(xsize)))
+#define SETPIXEL(ptr,x,y,xsize,val) ptr[CALC_MAPADRESS(x,y,xsize)*3] = val; \
+	ptr[CALC_MAPADRESS(x,y,xsize)*3+1] = val; \
+	ptr[CALC_MAPADRESS(x,y,xsize)*3+2] = val; 
+
+#define SETPIXELRGB(ptr,x,y,xsize,r,g,b) ptr[CALC_MAPADRESS(x,y,xsize)*3] = r; \
+	ptr[CALC_MAPADRESS(x,y,xsize)*3+1] = g; \
+	ptr[CALC_MAPADRESS(x,y,xsize)*3+2] = b; 
+
+
 #ifndef EPS
 #define EPS (FLT_MIN*10.f)
 #endif 
