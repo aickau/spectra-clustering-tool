@@ -2996,6 +2996,7 @@ void printNeighboursFromMask()
 
 void writeDifferenceMap()
 {
+
 	SSE_ALIGN Spectra compare;
 	compare.loadFromFITS("spSpec-53700-2285-421.fit");
 
@@ -3053,6 +3054,144 @@ void writeDifferenceMap()
 }
 
 
+void analyzeSpectraJumps()
+{
+	std::ofstream logFile("specObjOperations_log.txt");
+
+	Helpers::print("Analyze spectra travel distance.\n", &logFile, true );
+	Helpers::print("Input: indexListXXXX.bin .. indexListYYYY.bin in continuous range.\n", &logFile, true );
+
+	size_t j = 0;
+	size_t fileSize = 0;
+	std::string sstrIndexList1;
+
+	do
+	{
+		sstrIndexList1 = "indexlist";
+		sstrIndexList1 += Helpers::numberToString(j,4);
+		sstrIndexList1 += ".bin";
+		fileSize = FileHelpers::getFileSize(sstrIndexList1);
+		if ( fileSize == 0 )
+		{
+			j++;
+		}
+	}
+	while ( j<9999 && fileSize == 0 );
+
+
+
+	const size_t gridSize(sqrtf(fileSize/4));
+	const size_t gridSizeSqr(gridSize*gridSize);
+
+	if ( gridSizeSqr !=  (fileSize/4) )
+	{
+		Helpers::print("Error: "+sstrIndexList1+" wrong filesize. Abort.\n", &logFile, true );
+		return;
+	}
+	Helpers::print("Starting with: "+sstrIndexList1+"\n", &logFile, true );
+
+
+	int *pIndexlist1= new int[gridSizeSqr];
+	int *pIndexlist2= new int[gridSizeSqr];
+
+	std::ofstream resultFile("spectrajumps.csv");
+	std::string sstrResult;
+	int numSourceSpecra = 0;
+	
+
+
+	do
+	{
+		std::string sstrIndexList1 = "indexlist";
+		std::string sstrIndexList2 = "indexlist";
+		sstrIndexList1 += Helpers::numberToString(j,4);
+		sstrIndexList1 += ".bin";
+		sstrIndexList2 += Helpers::numberToString(j+1,4);
+		sstrIndexList2 += ".bin";
+		FILE *f1=fopen(sstrIndexList1.c_str(),"rb");
+		if ( f1!= NULL)
+		{
+			fread(pIndexlist1, 1, gridSizeSqr*sizeof(int), f1);
+			fclose(f1);
+		}
+		else
+		{
+			break;
+		}
+
+		if ( numSourceSpecra == 0 )
+		{
+			// determine number of source spectra
+			for (size_t i=0;i<gridSizeSqr;i++)		
+			{
+				numSourceSpecra = MAX(numSourceSpecra, pIndexlist1[i]);
+			}
+			Helpers::print(Helpers::numberToString<int>(numSourceSpecra)+" source spectra.\n", &logFile, true );
+			if ( numSourceSpecra<=0)
+			{
+				Helpers::print("Error: No source spectra. Abort.\n", &logFile, true );
+				return;
+			}
+
+		}
+
+		FILE *f2=fopen(sstrIndexList2.c_str(),"rb");
+		if ( f2!= NULL)
+		{
+			fread(pIndexlist2, 1, gridSizeSqr*sizeof(int), f2);
+			fclose(f2);
+		}
+		else
+		{
+			break;
+		}
+
+		Helpers::print("Analyzing learning step ("+Helpers::numberToString<int>(j)+","+Helpers::numberToString<int>(j+1)+")\n", &logFile, true );
+
+
+		double summedD = 0.0;
+
+		for (size_t i=0;i<gridSizeSqr;i++)
+		{
+			int x1 = i%gridSize;
+			int y1 = i/gridSize;
+			int index1 = pIndexlist1[i];
+			if ( index1 < numSourceSpecra && index1 >= 0) 
+			{
+				// if spectrum stays at the same position, skip
+				if ( index1 == pIndexlist2[i] )
+					continue;
+				// search for match
+				for (size_t j=0;j<gridSizeSqr;j++)
+				{
+					int index2 = pIndexlist2[j];
+					if ( index2 == index1 )
+					{
+						int x2 = j%gridSize;
+						int y2 = j/gridSize;
+						int dx = x2-x1;
+						int dy = y2-y1;
+						dx *= dx;
+						dy *= dy;
+						summedD += sqrtf(dx+dy);
+						break;
+					}
+				}
+			}
+		}
+		sstrResult = Helpers::numberToString<double>(summedD)+ "\n";
+		resultFile << sstrResult;
+		resultFile.flush();
+		j++;
+	} while (true);
+
+	Helpers::print("Results written to spectrajumps.csv. Fin.\n", &logFile, true );
+
+	delete[] pIndexlist1;
+	delete[] pIndexlist2;
+}
+
+
 
 void main(int argc, char* argv[])
 {
@@ -3085,7 +3224,7 @@ void main(int argc, char* argv[])
 	//writeParamsFromSelection();
 	//writeIndexListFromSOFMBin();
 	//medianSpectrumFromSelection();
-	extractGalaxyZooData();
+	//extractGalaxyZooData();
 	//analyseSineTestDistributions();
 	//clusterStatisticsSim();
 	//analyseMarksClusters1();
@@ -3094,6 +3233,7 @@ void main(int argc, char* argv[])
 	//pixelCounter();
 	//printNeighboursFromMask();
 	//writeDifferenceMap();
+	analyzeSpectraJumps();
 
 	printf ("fin.\n" );
 
