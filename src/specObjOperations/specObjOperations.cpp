@@ -1972,63 +1972,92 @@ void test()
 
 void writeParamsFromSelection()
 {
-	const size_t gridSize(859);
-	const size_t gridSizeSqr(gridSize*gridSize);
+	printf("Write SDSS params from selection.\n\n Input:\n selection mask: mask.png\n source spectra index positions: indexlist0199.bin\n source spectra file: allSpectra.bin\n [optional] spectra in %s\n", DATADIR);
 
 
 	// load mask
 	ilLoadImage( (ILstring)"mask.png" );
 	ILenum err = ilGetError();
 	if( err != NULL )
+	{
+		printf("Error: could not load image.\n"); 
 		return;
+	}
 	ilConvertImage( IL_LUMINANCE, IL_UNSIGNED_BYTE );
 	int width = ilGetInteger( IL_IMAGE_WIDTH );
 	int height = ilGetInteger( IL_IMAGE_HEIGHT );
-	if ( width != gridSize || height != gridSize ) {
+	if ( width !=  height  ) {
 		// wrong dimensions
+		printf("Error: image not quadratic.\n"); 
 		return;
 	}
 	unsigned char *pt = ilGetData();
 	if ( pt == NULL )  {
 		// nah, fail..
+		printf("Error: could not load image data.\n"); 
 		return;
 	}
+
+	const size_t gridSize(width);
+	const size_t gridSizeSqr(gridSize*gridSize);
 
 
 
 
 	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
 	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+	if ( numSourceSpecra <= 0 )
+	{
+		printf("Error: could not load allSpectra.bin.\n"); 
+		return;
+	}
 
 	size_t j=199;
 	int *pIndexlist= new int[gridSize*gridSize];
 	std::string sstrIndexList = "indexlist";
 	sstrIndexList += Helpers::numberToString(j,4);
+	
 	sstrIndexList+= ".bin";
+
+
+	const size_t fileSize = FileHelpers::getFileSize( sstrIndexList.c_str() );
+
 	FILE *f=fopen(sstrIndexList.c_str(),"rb");
 	if ( f== NULL) {
+		printf("Error: could not load indexlist0199.bin.\n"); 
 		// no index list
 		return;
 	}
+	if ( fileSize != gridSizeSqr*4 )
+	{
+		printf("Error: indexlist0199.bin has  wrong filesize.\n"); 
+		fclose(f);
+		return;
+	}
+
 	fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
 	fclose(f);
 
 
-	std::string sstrOutTable = "specOBJID; mjd; plate id; fiber id; z; total flux;	RAOBJ; DECOBJ; Z_ERR; Z_CONF; Z_STATUS;	Z_WARNIN; spectra type; MAG (fiber Mags ugriz)\n";
+	std::string sstrOutTable = "url; specOBJID; mjd; plate id; fiber id; z; total flux;	RAOBJ; DECOBJ; Z_ERR; Z_CONF; Z_STATUS;	Z_WARNIN; spectra type; MAG (fiber Mags ugriz)\n";
 
-
+	int numObjectsSelected = 0;
+	int numObjectsFound = 0;
 	for (size_t i=0;i<gridSizeSqr;i++)
 	{
 		// if mask is selected..
 		if (pt[i] > 128 ) {
+			numObjectsSelected++;
 			int index = pIndexlist[i];
 			if ( index >= 0 && index < numSourceSpecra )
 			{
+				numObjectsFound++;
 				Spectra *sp = pSourceVFS->beginRead(index);
 				sp->calculateFlux();
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
 				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
+				std::string sstrUrl = sp->getURL();
 
 
 				fitsfile *f;
@@ -2067,6 +2096,7 @@ void writeParamsFromSelection()
 				pSourceVFS->endRead(index);
 
 		
+				sstrOutTable += sstrUrl+"; ";
 				sstrOutTable += Helpers::numberToString<unsigned __int64>(sp->m_SpecObjID)+"; ";
 				sstrOutTable += Helpers::numberToString<int>(sp->getMJD())+"; ";
 				sstrOutTable += Helpers::numberToString<int>(sp->getPlate())+"; ";
@@ -2097,6 +2127,8 @@ void writeParamsFromSelection()
 			}
 		}
 	}
+
+	sstrOutTable += Helpers::numberToString<unsigned int>(numObjectsFound)+"found from "+Helpers::numberToString<unsigned int>(numObjectsSelected)+"selected.";
 
 	std::ofstream fon("maskTable.csv");
 	fon<<sstrOutTable;
@@ -3221,7 +3253,7 @@ void main(int argc, char* argv[])
 	//writeUMatrix();
 	//writeUMatrixForSource(); 
 	//test();
-	//writeParamsFromSelection();
+	writeParamsFromSelection();
 	//writeIndexListFromSOFMBin();
 	//medianSpectrumFromSelection();
 	//extractGalaxyZooData();
@@ -3233,7 +3265,7 @@ void main(int argc, char* argv[])
 	//pixelCounter();
 	//printNeighboursFromMask();
 	//writeDifferenceMap();
-	analyzeSpectraJumps();
+	//analyzeSpectraJumps();
 
 	printf ("fin.\n" );
 
