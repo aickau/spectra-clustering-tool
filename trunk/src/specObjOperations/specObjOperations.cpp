@@ -2308,7 +2308,7 @@ void extractGalaxyZooData()
 					indexSrcLookup.insert(std::make_pair<unsigned __int64,int>(spSpec->m_SpecObjID,index));
 					indexLookup.insert(std::make_pair<unsigned __int64,int>(spSpec->m_SpecObjID,i));
 				}
-				pSourceVFS->endRead( i );
+				pSourceVFS->endRead( index );
 			}
 			else
 			{
@@ -2370,6 +2370,9 @@ void extractGalaxyZooData()
 	std::set<float,std::greater<float>> zValuesMax;
 	std::set<float> zValuesMin;
 	
+	// the table
+	// 00     01  02   03     04    05    06     07      08    09    10    11             12             13      14          15
+	// OBJID, RA, DEC, NVOTE, P_EL, P_CW, P_ACW, P_EDGE, P_DK, P_MG, P_CS, P_EL_DEBIASED, P_CS_DEBIASED, SPIRAL, ELLIPTICAL, UNCERTAIN
 
 	while( fin >> sstrTemp ) 
 	{	
@@ -2425,13 +2428,42 @@ void extractGalaxyZooData()
 				zValuesMax.insert(spSpec->m_Z);
 				zValuesMin.insert(spSpec->m_Z);
 
-				if ( vdElliptical >= 0.8f ) {//|| vdCombinedSpiral >= 0.8 || vMerger >= 0.4 ) {
+// 				if ( vdElliptical >= 0.8f ) {//|| vdCombinedSpiral >= 0.8 || vMerger >= 0.4 ) {
+// 
+// 					SpectraHelpers::intesityToRGBGradient( (float)intensity, &pRGBMap[mapIndex*3], 1 );	
+// 				} 
+// 				if ( vdCombinedSpiral >= 0.8f ) {
+// 					SpectraHelpers::intesityToRGBGradient( (float)intensity, &pRGBMap[mapIndex*3], 0 );	
+// 				}
 
-					SpectraHelpers::intesityToRGBGradient( (float)intensity, &pRGBMap[mapIndex*3], 1 );	
-				} 
-				if ( vdCombinedSpiral >= 0.8f ) {
-					SpectraHelpers::intesityToRGBGradient( (float)intensity, &pRGBMap[mapIndex*3], 0 );	
+				// select what you want to output:
+				//if ( vEdge >= 0.8 )
+				//if ( vdElliptical >= 0.8 )
+				//if ( fElliptical == 1 )
+				//if ( vElliptical >= 0.8 )
+				//if ( vdCombinedSpiral >= 0.8 )
+				//if ( fSpiral == 1 )
+				//if ( vCombinedSpiral >= 0.8 )
+				if ( vMerger >= 0.4 )
+				
+				{
+ 					pRGBMap[mapIndex*3] = 1.f;
+ 					pRGBMap[mapIndex*3+1] = 1.f;
+ 					pRGBMap[mapIndex*3+2] = 1.f;
+/* uncomment to draw cross around pixels
+					// draw cross
+					int ix = mapIndex%gridSize;
+					int iy = mapIndex/gridSize;
+					for (int k=1;k<=1;k++) {
+						SETPIXEL(pRGBMap,ix+k,iy,gridSize,1.f);
+						SETPIXEL(pRGBMap,ix-k,iy,gridSize,1.f);
+						SETPIXEL(pRGBMap,ix,iy+k,gridSize,1.f);
+						SETPIXEL(pRGBMap,ix,iy-k,gridSize,1.f);
+					}
+*/
 				}
+
+
 
 
 
@@ -2443,7 +2475,7 @@ void extractGalaxyZooData()
 
 	}
 	
-	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooElliptical");
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, "galaxyZooMergerVotes");
 
 	delete[] pRGBMap;
 }
@@ -3225,6 +3257,7 @@ void analyzeSpectraJumps()
 
 
 
+
 void main(int argc, char* argv[])
 {
 	int clusternum = 1;
@@ -3253,10 +3286,10 @@ void main(int argc, char* argv[])
 	//writeUMatrix();
 	//writeUMatrixForSource(); 
 	//test();
-	writeParamsFromSelection();
+	//writeParamsFromSelection();
 	//writeIndexListFromSOFMBin();
 	//medianSpectrumFromSelection();
-	//extractGalaxyZooData();
+	extractGalaxyZooData();
 	//analyseSineTestDistributions();
 	//clusterStatisticsSim();
 	//analyseMarksClusters1();
