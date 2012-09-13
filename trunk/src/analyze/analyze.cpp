@@ -90,7 +90,7 @@ int InitGL()
 	std::string sstrCmdLine(GetCommandLine());
 	char **argv = Helpers::getCommandLineFromString( sstrCmdLine, argc );
 
-	Helpers::print("Welcome to SDSS Analyze "+sstrSDSSVersionString+" !\n\n\n", &logFile);
+	Helpers::print("Welcome to ASPECT "+sstrSDSSVersionString+" !\n\n\n", &logFile);
 
 	std::string sstrSourceSpectraFilename("allSpectra.bin");
 	std::string sstrSelectionListFilename("");
@@ -463,9 +463,12 @@ void SOFM()
 
 void DrawGLScene()
 {
-	char captiontext[]={"SDSS Analyze                   "};
+	std::string sstrTitle("ASPECT: A spectra clustering tool for exploration of large spectral surveys. Step ");
 
-	SetWindowText( fr_hWnd, captiontext );
+	sstrTitle += Helpers::numberToString( g_pSOFM->m_currentStep ) + " / "+  Helpers::numberToString( g_pSOFM->m_params.numSteps );
+
+
+	SetWindowText( fr_hWnd, sstrTitle.c_str() );
 	g_Mode = g_Mode % 2;
 /*
 	if (g_Mode==1)
@@ -478,7 +481,6 @@ void DrawGLScene()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-	sprintf( &captiontext[13], "%i / %i", g_pSOFM->m_currentStep, g_pSOFM->m_params.numSteps);
 
 //	if (g_Mode==0)
 	{

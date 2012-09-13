@@ -20,7 +20,7 @@
 #include <gl\gl.h>			
 #include <gl\glu.h>			
 
-#define		FR_NAME				"SDSS ANALYZE"
+#define		FR_NAME				"ASPECT"
 								
 #define		FR_WIDTH			1800
 #define		FR_HEIGHT			1100
