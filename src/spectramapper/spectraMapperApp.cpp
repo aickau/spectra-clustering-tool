@@ -100,12 +100,12 @@ int InitGL()
 	std::string sstrCmdLine(GetCommandLine());
 	char **argv = Helpers::getCommandLineFromString( sstrCmdLine, argc );
 
-	Helpers::print("Welcome to SDSS SpectraMapper "+sstrSDSSVersionString+" !\n\n\n", &logFile);
+	Helpers::print("Welcome to ASPECT SpectraMapper "+sstrSDSSVersionString+" !\n\n\n", &logFile);
 	Helpers::print("Two operational modes:\n", &logFile);
 	Helpers::print("(1) Plots multiple spectra into one graph.\n", &logFile);
-	Helpers::print("    Needs binary file with source spectra, an image mask for spectra selection and an index list from SDSS analyze that contains clustered positions.\n\n", &logFile);
+	Helpers::print("    Needs binary file with source spectra, an image mask for spectra selection and an index list from ASPECT that contains clustered positions.\n\n", &logFile);
 	Helpers::print("(2) In map display mode, takes a list of spectra and plots their locations into a map if they are found in the clustered pool.\n", &logFile);
-	Helpers::print("    Needs binary file with source spectra, a text file which contains a list of spectra filenames and an index list from SDSS analyze that contains clustered positions.\n\n", &logFile);
+	Helpers::print("    Needs binary file with source spectra, a text file which contains a list of spectra filenames and an index list from ASPECT that contains clustered positions.\n\n", &logFile);
 	
 
 
@@ -199,7 +199,7 @@ void UpdateGLView(int width, int height)
 
 void DrawGLScene()
 {
-	char captiontext[]={"SDSS Analyze                   "};
+	char captiontext[]={"ASPECT"};
 
 	SetWindowText( fr_hWnd, captiontext );
 
