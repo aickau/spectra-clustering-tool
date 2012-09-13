@@ -1,6 +1,6 @@
 //! \verbatim
 //! ###########################################################################
-//! # SDSS sorting prototype - Stage I
+//! # ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I
 //! #
 //! # Copyright (c) 2009 Aick in der Au
 //! # All rights reserved.
@@ -267,7 +267,7 @@ void SOFMNetwork::writeSettings( const std::string &_sstrFileName )
 	std::string sstrXML;
 	XMLExport::xmlHeader(sstrXML);
 
-	XMLExport::xmlSingleComment("Analyzer config file, SDSS sorting prototype - Stage I, Copyright (c) 2009 "+sstrSDSSVersionString, sstrXML);
+	XMLExport::xmlSingleComment("Analyzer config file, ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I, Copyright (c) 2009 "+sstrSDSSVersionString, sstrXML);
 
 	XMLExport::xmlElementBegin( SOFMNET_SETTINGS, 0, sstrXML );
 	XMLExport::xmlElementEndBegin( sstrXML );

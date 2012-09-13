@@ -1,6 +1,6 @@
 //! \verbatim
 //! ###########################################################################
-//! # SDSS sorting prototype - Stage I
+//! # ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I
 //! #
 //! # Copyright (c) 2009 Aick in der Au
 //! # All rights reserved.
