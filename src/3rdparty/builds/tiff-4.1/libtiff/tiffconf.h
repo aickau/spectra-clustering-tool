@@ -45,7 +45,7 @@
 #define CCITT_SUPPORT 1
 
 /* Support JPEG compression (requires IJG JPEG library) */
-#define JPEG_SUPPORT 1
+//#define JPEG_SUPPORT 1
 
 /* Support LogLuv high dynamic range encoding */
 #define LOGLUV_SUPPORT 1
@@ -64,7 +64,7 @@
 #define PACKBITS_SUPPORT 1
 
 /* Support Pixar log-format algorithm (requires Zlib) */
-#define PIXARLOG_SUPPORT 1
+//#define PIXARLOG_SUPPORT 1
 
 /* Support ThunderScan 4-bit RLE algorithm */
 #define THUNDER_SUPPORT 1
