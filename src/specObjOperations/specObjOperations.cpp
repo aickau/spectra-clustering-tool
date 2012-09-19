@@ -3313,10 +3313,20 @@ void writeMapToTIFF()
 				{
 					ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE);
 				}
-			
+
+				
 				unsigned char *pt = ilGetData();
 				bigTIFF.writeTile(i,pt);
 				
+				{
+// 					BigTIFF bigTIFF2("test.tif",1,1,iconSize);
+// 					bigTIFF2.writeTile(0,pt);
+// 
+				}
+
+//				FileHelpers::writeFile("test.raw",pt,iconSize*iconSize*3);
+
+
 				
 			}
 			else
