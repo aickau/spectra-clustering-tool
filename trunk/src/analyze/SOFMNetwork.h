@@ -28,26 +28,15 @@
 class SpectraVFS;
 
 // Builds, processes and exports a Self Organizing Feature Map of a given training spectra data set which you want to cluster.
-// See T. Kohonen. Self-organized formation of topologically correct feature maps. Biological Cybernetics, 43:-69, 1982. 
-// .. or just use Google to get a hell lot of material which explain the algorithm.
-//
-// Good code names for a prototype:
-//
-// Arzamas-16
-// Chelyabinsk-70 
-// Krasnoyarsk-26
-// Tomsk-7
-// Penza-19
-// Semipalatinsk-16
-// Sverdlovsk-44
-// Zlatoust-36
-// Chita-46 
+// See A. in der Au, H. Meusinger, P. Schalldach, M. Newholm. ASPECT: A spectra clustering tool for exploration of large spectral surveys. 2012, arXiv:1209.3615 
+//    http://arxiv.org/abs/1209.3615 
 class SOFMNetwork
 {
 public:
 
 	// number of columns and rows of spectra output table per HTML page.
 	static const size_t s_outputPlanSize = 5;
+	static const int s_iconSize = 128;
 
 	// SOFM parameters
 	class Parameters
