@@ -547,7 +547,7 @@ void SOFMNetwork::renderIcons()
 #ifdef SDSS_SINETEST
 		redness = (float)i*2.f/(float)m_numSpectra;
 #endif // SDSS_SINETEST
-		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, 100, 100, redness );
+		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, s_iconSize, s_iconSize, redness );
 
 		m_pSourceVFS->endRead( i );
 	}

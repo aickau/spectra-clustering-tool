@@ -47,6 +47,7 @@
 #include "sdsslib/defines.h"
 #include "sdsslib/CSVExport.h"
 #include "sdsslib/random.h"
+#include "sdsslib/BigTiff.h"
 
 
 typedef char _TCHAR;
@@ -3255,6 +3256,79 @@ void analyzeSpectraJumps()
 	delete[] pIndexlist2;
 }
 
+void writeMapToTIFF()
+{
+	std::string sstrFilename("map.tif");
+	const int iconSize = 128;
+
+	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
+	if ( pNetworkVFS != NULL )
+	{
+		const int gridSizeSqr = pNetworkVFS->getNumSpectra();
+		const int gridSize = sqrtf(gridSizeSqr);
+		const int gridSizeSqr2 = gridSize*gridSize;
+		if ( gridSizeSqr2 != gridSizeSqr || gridSizeSqr==0 )
+		{
+			// could not load network.
+			printf("Error: could not load network.\n"); 
+
+			delete pNetworkVFS;
+			return;
+		}
+
+		BigTIFF bigTIFF(sstrFilename.c_str(),gridSize,gridSize,iconSize);
+
+		unsigned char empty[iconSize*iconSize*3];
+		memset( empty,255,iconSize*iconSize*3);
+
+		for (int i=0;i<gridSizeSqr;i++ )
+		{
+			Spectra *spSpec = pNetworkVFS->beginRead( i );
+
+			const int index = spSpec->m_Index;
+			if ( index >= 0 && index < gridSizeSqr )
+			{
+				std::string sstrIconFilename = spSpec->getFileName();
+				sstrIconFilename += ".png";
+				std::string sstrPath = "export/" + Helpers::numberToString(spSpec->getPlate(),4)+"/"+sstrIconFilename;
+
+
+				// load mask
+				ilLoadImage( (ILstring)sstrPath.c_str() );
+				ILenum err = ilGetError();
+				if( err != NULL )
+				{
+					printf("Error: could not load image.\n"); 
+					return;
+				}
+				int width = ilGetInteger( IL_IMAGE_WIDTH );
+				int height = ilGetInteger( IL_IMAGE_HEIGHT );
+				int bpp = ilGetInteger( IL_IMAGE_BPP ); //bytes per pixel
+				if ( width !=  height && width != iconSize ) {
+					// wrong dimensions
+					printf("Error: wrong icon dimensions.\n"); 
+					return;
+				}
+				if ( bpp != 3)
+				{
+					ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE);
+				}
+			
+				unsigned char *pt = ilGetData();
+				bigTIFF.writeTile(i,pt);
+				
+				
+			}
+			else
+			{
+				// empty 
+				bigTIFF.writeTile(i,empty);
+			}
+
+			pNetworkVFS->endRead( i );
+		}
+	}
+}
 
 
 
@@ -3289,7 +3363,7 @@ void main(int argc, char* argv[])
 	//writeParamsFromSelection();
 	//writeIndexListFromSOFMBin();
 	//medianSpectrumFromSelection();
-	extractGalaxyZooData();
+	//extractGalaxyZooData();
 	//analyseSineTestDistributions();
 	//clusterStatisticsSim();
 	//analyseMarksClusters1();
@@ -3299,6 +3373,7 @@ void main(int argc, char* argv[])
 	//printNeighboursFromMask();
 	//writeDifferenceMap();
 	//analyzeSpectraJumps();
+	writeMapToTIFF();
 
 	printf ("fin.\n" );
 
