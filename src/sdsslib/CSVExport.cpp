@@ -62,6 +62,13 @@ void CSVExport::writeTableEntry( int _number, unsigned int _width )
 	m_sstrTable += m_sstrSeperator;
 }
 
+void CSVExport::writeTableEntry( __int64 _number, unsigned int _width )
+{
+	m_sstrTable += Helpers::numberToString<__int64>(_number,_width);
+	m_sstrTable += m_sstrSeperator;
+}
+
+
 void CSVExport::newRow()
 {
 	m_sstrTable += "\n";

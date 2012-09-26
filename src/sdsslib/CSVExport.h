@@ -37,6 +37,7 @@ public:
 
 	// \param _width fill number with preceding zeros
 	void writeTableEntry( int _number, unsigned int _width = -1 );
+	void writeTableEntry( __int64 _number, unsigned int _width = -1 );
 
 	void newRow();
 

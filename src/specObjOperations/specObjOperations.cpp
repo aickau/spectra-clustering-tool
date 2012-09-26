@@ -3261,6 +3261,21 @@ void writeMapToTIFF()
 	std::string sstrFilename("map.tif");
 	const int iconSize = 128;
 
+	CSVExport spectraTable("spectraTbl.cvs");
+
+	spectraTable.writeTableEntry("mapindex");
+	spectraTable.writeTableEntry("xpos");
+	spectraTable.writeTableEntry("ypos");
+	spectraTable.writeTableEntry("specObjID");
+	spectraTable.writeTableEntry("spectraIndex");
+	spectraTable.writeTableEntry("plateID");
+	spectraTable.writeTableEntry("MJD");
+	spectraTable.writeTableEntry("fiberID");
+	spectraTable.writeTableEntry("z");
+	spectraTable.writeTableEntry("objtype");
+	spectraTable.newRow();
+
+
 	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
 	if ( pNetworkVFS != NULL )
 	{
@@ -3276,68 +3291,120 @@ void writeMapToTIFF()
 			return;
 		}
 
-		BigTIFF bigTIFF(sstrFilename.c_str(),gridSize,gridSize,iconSize);
+		BigTIFF bigTIFF(sstrFilename.c_str(),gridSize,gridSize,iconSize,false);
+
 
 		unsigned char empty[iconSize*iconSize*3];
 		memset( empty,255,iconSize*iconSize*3);
 
-		for (int i=0;i<gridSizeSqr;i++ )
+
+		
+		int currentTileSize = iconSize;
+		int lod = 0;
+		do 
 		{
-			Spectra *spSpec = pNetworkVFS->beginRead( i );
 
-			const int index = spSpec->m_Index;
-			if ( index >= 0 && index < gridSizeSqr )
+			for (int i=0;i<gridSizeSqr;i++ )
 			{
-				std::string sstrIconFilename = spSpec->getFileName();
-				sstrIconFilename += ".png";
-				std::string sstrPath = "export/" + Helpers::numberToString(spSpec->getPlate(),4)+"/"+sstrIconFilename;
+				Spectra *spSpec = pNetworkVFS->beginRead( i );
+
+				const int xpos = i % gridSize;
+				const int ypos = i / gridSize;
+
+				spectraTable.writeTableEntry(i);
+				spectraTable.writeTableEntry(xpos);
+				spectraTable.writeTableEntry(ypos);
 
 
-				// load mask
-				ilLoadImage( (ILstring)sstrPath.c_str() );
-				ILenum err = ilGetError();
-				if( err != NULL )
+				const int index = spSpec->m_Index;
+				if ( index >= 0 && index < gridSizeSqr )
 				{
-					printf("Error: could not load image.\n"); 
-					return;
-				}
-				int width = ilGetInteger( IL_IMAGE_WIDTH );
-				int height = ilGetInteger( IL_IMAGE_HEIGHT );
-				int bpp = ilGetInteger( IL_IMAGE_BPP ); //bytes per pixel
-				if ( width !=  height && width != iconSize ) {
-					// wrong dimensions
-					printf("Error: wrong icon dimensions.\n"); 
-					return;
-				}
-				if ( bpp != 3)
-				{
-					ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE);
-				}
+					std::string sstrIconFilename = spSpec->getFileName();
+					sstrIconFilename += ".png";
+					std::string sstrPath = "export/" + Helpers::numberToString(spSpec->getPlate(),4)+"/"+sstrIconFilename;
+
+					spectraTable.writeTableEntry(spSpec->m_SpecObjID);
+					spectraTable.writeTableEntry(index);
+					spectraTable.writeTableEntry(spSpec->getPlate());
+					spectraTable.writeTableEntry(spSpec->getMJD());
+					spectraTable.writeTableEntry(spSpec->getFiber());
+					spectraTable.writeTableEntry((float)spSpec->m_Z);
+					spectraTable.writeTableEntry(spSpec->m_Type);
+					spectraTable.newRow();
+
+
+
+					// load mask
+					ilLoadImage( (ILstring)sstrPath.c_str() );
+					ILenum err = ilGetError();
+					if( err != NULL )
+					{
+						printf("Error: could not load image.\n"); 
+						return;
+					}
+					int width = ilGetInteger( IL_IMAGE_WIDTH );
+					int height = ilGetInteger( IL_IMAGE_HEIGHT );
+					int bpp = ilGetInteger( IL_IMAGE_BPP ); //bytes per pixel
+					if ( width !=  height && width != iconSize ) {
+						// wrong dimensions
+						printf("Error: wrong icon dimensions.\n"); 
+						return;
+					}
+					if ( bpp != 3)
+					{
+						ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE);
+					}
+					if ( currentTileSize != iconSize )
+						iluScale( currentTileSize, currentTileSize, 1);
 
 				
-				unsigned char *pt = ilGetData();
-				bigTIFF.writeTile(i,pt);
+					unsigned char *pt = ilGetData();
+
+
+ 					bigTIFF.writeTile( i, currentTileSize, pt);
+	// 				
+	// 				{
+	// 					BigTIFF bigTIFF2("test.tif",1,1,iconSize);
+	//  					bigTIFF2.writeTile(0,pt);
+	// 					return;
+	// 				}
+
+	//				FileHelpers::writeFile("test.raw",pt,iconSize*iconSize*3);
+
+
 				
+				}
+				else
 				{
-// 					BigTIFF bigTIFF2("test.tif",1,1,iconSize);
-// 					bigTIFF2.writeTile(0,pt);
-// 
+					// empty 
+					bigTIFF.writeTile( i, currentTileSize, empty);
+
+
+					spectraTable.writeTableEntry(0);
+					spectraTable.writeTableEntry(index);
+					spectraTable.writeTableEntry(0);
+					spectraTable.writeTableEntry(0);
+					spectraTable.writeTableEntry(0);
+					spectraTable.writeTableEntry(0.0f);
+					spectraTable.writeTableEntry(0);
+					spectraTable.newRow();
+
 				}
 
-//				FileHelpers::writeFile("test.raw",pt,iconSize*iconSize*3);
-
-
-				
+				pNetworkVFS->endRead( i );
 			}
-			else
-			{
-				// empty 
-				bigTIFF.writeTile(i,empty);
-			}
 
-			pNetworkVFS->endRead( i );
-		}
+			currentTileSize /= 2;
+			lod++;
+
+			bigTIFF.writeHeader(currentTileSize, lod);
+		} while ( currentTileSize > 16 );
+
+
 	}
+	
+	BigTIFF::test();
+
 }
 
 
