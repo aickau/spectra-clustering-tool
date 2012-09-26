@@ -3256,11 +3256,11 @@ void analyzeSpectraJumps()
 	delete[] pIndexlist2;
 }
 
-void writeMapToTIFF()
-{
-	std::string sstrFilename("map.tif");
-	const int iconSize = 128;
 
+
+void writeSpectraInfoToTable()
+{
+	printf("Welcome to ASPECT spectra table writer.\n\nWrites mapindex, xpos, ypos, specObjID, aspect internal spectraIndex, plate ID, MJD, fiber ID, z, objtype to cvs table.\n Input: sofmnet.bin, allSpectra.bin.\n\n");
 	CSVExport spectraTable("spectraTbl.cvs");
 
 	spectraTable.writeTableEntry("mapindex");
@@ -3274,6 +3274,105 @@ void writeMapToTIFF()
 	spectraTable.writeTableEntry("z");
 	spectraTable.writeTableEntry("objtype");
 	spectraTable.newRow();
+
+
+	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
+	if ( pNetworkVFS == NULL )
+	{
+		printf("Error opening sofmnet.bin\n");
+		return;
+	}
+
+	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
+	if ( pSourceVFS == NULL )
+	{
+		printf("Error opening allSpectra.bin\n");
+		return;
+	}
+
+	const int gridSizeSqr = pNetworkVFS->getNumSpectra();
+	const int gridSize = sqrtf(gridSizeSqr);
+	const int gridSizeSqr2 = gridSize*gridSize;
+	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+	if ( gridSizeSqr2 != gridSizeSqr || gridSizeSqr==0 )
+	{
+		printf("Error: could not load network sofmnet.bin.\n"); 
+
+		delete pNetworkVFS;
+		return;
+	}
+
+	if ( numSourceSpecra == 0 )
+	{
+		printf("Error: could not load allSpectra.bin.\n"); 
+		return;
+	}
+	if ( numSourceSpecra > gridSizeSqr )
+	{
+		printf("Error: Mismatch between allSpectra.bin and sofmnet.bin. Files do not belong together?\n"); 
+		return;
+	}
+
+	for (int i=0;i<gridSizeSqr;i++ )
+	{
+		Spectra *spSpec = pNetworkVFS->beginRead( i );
+
+		const int xpos = i % gridSize;
+		const int ypos = i / gridSize;
+
+		spectraTable.writeTableEntry(i);
+		spectraTable.writeTableEntry(xpos);
+		spectraTable.writeTableEntry(ypos);
+
+
+		const int index = spSpec->m_Index;
+		if ( index >= 0 && index < numSourceSpecra )
+		{
+			Spectra *sp = pSourceVFS->beginRead(index);
+
+			if ( sp != NULL )
+			{
+				spectraTable.writeTableEntry(sp->m_SpecObjID);
+				spectraTable.writeTableEntry(index);
+				spectraTable.writeTableEntry(sp->getPlate());
+				spectraTable.writeTableEntry(sp->getMJD());
+				spectraTable.writeTableEntry(sp->getFiber());
+				spectraTable.writeTableEntry((float)sp->m_Z);
+				spectraTable.writeTableEntry(sp->m_Type);
+				spectraTable.newRow();
+			}
+			else
+			{
+				printf("Error: could not read source spectra.\n");
+				return;
+			}
+
+			pSourceVFS->endRead(index);
+		
+		}
+		else
+		{
+			spectraTable.writeTableEntry(0);
+			spectraTable.writeTableEntry(index);
+			spectraTable.writeTableEntry(0);
+			spectraTable.writeTableEntry(0);
+			spectraTable.writeTableEntry(0);
+			spectraTable.writeTableEntry(0.0f);
+			spectraTable.writeTableEntry(0);
+			spectraTable.newRow();
+
+		}
+
+		pNetworkVFS->endRead( i );
+	}
+}
+
+
+
+void writeMapToTIFF()
+{
+	std::string sstrFilename("map.tif");
+	const int iconSize = 128;
 
 
 	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
@@ -3308,31 +3407,12 @@ void writeMapToTIFF()
 			{
 				Spectra *spSpec = pNetworkVFS->beginRead( i );
 
-				const int xpos = i % gridSize;
-				const int ypos = i / gridSize;
-
-				spectraTable.writeTableEntry(i);
-				spectraTable.writeTableEntry(xpos);
-				spectraTable.writeTableEntry(ypos);
-
-
 				const int index = spSpec->m_Index;
 				if ( index >= 0 && index < gridSizeSqr )
 				{
 					std::string sstrIconFilename = spSpec->getFileName();
 					sstrIconFilename += ".png";
 					std::string sstrPath = "export/" + Helpers::numberToString(spSpec->getPlate(),4)+"/"+sstrIconFilename;
-
-					spectraTable.writeTableEntry(spSpec->m_SpecObjID);
-					spectraTable.writeTableEntry(index);
-					spectraTable.writeTableEntry(spSpec->getPlate());
-					spectraTable.writeTableEntry(spSpec->getMJD());
-					spectraTable.writeTableEntry(spSpec->getFiber());
-					spectraTable.writeTableEntry((float)spSpec->m_Z);
-					spectraTable.writeTableEntry(spSpec->m_Type);
-					spectraTable.newRow();
-
-
 
 					// load mask
 					ilLoadImage( (ILstring)sstrPath.c_str() );
@@ -3356,46 +3436,21 @@ void writeMapToTIFF()
 					}
 					if ( currentTileSize != iconSize )
 						iluScale( currentTileSize, currentTileSize, 1);
-
 				
 					unsigned char *pt = ilGetData();
-
-
  					bigTIFF.writeTile( i, currentTileSize, pt);
-	// 				
-	// 				{
-	// 					BigTIFF bigTIFF2("test.tif",1,1,iconSize);
-	//  					bigTIFF2.writeTile(0,pt);
-	// 					return;
-	// 				}
-
-	//				FileHelpers::writeFile("test.raw",pt,iconSize*iconSize*3);
-
-
-				
 				}
 				else
 				{
 					// empty 
 					bigTIFF.writeTile( i, currentTileSize, empty);
-
-
-					spectraTable.writeTableEntry(0);
-					spectraTable.writeTableEntry(index);
-					spectraTable.writeTableEntry(0);
-					spectraTable.writeTableEntry(0);
-					spectraTable.writeTableEntry(0);
-					spectraTable.writeTableEntry(0.0f);
-					spectraTable.writeTableEntry(0);
-					spectraTable.newRow();
-
 				}
 
 				pNetworkVFS->endRead( i );
 			}
 
-			currentTileSize /= 2;
-			lod++;
+ 			currentTileSize /= 2;
+ 			lod++;
 
 			bigTIFF.writeHeader(currentTileSize, lod);
 		} while ( currentTileSize > 16 );
@@ -3403,7 +3458,7 @@ void writeMapToTIFF()
 
 	}
 	
-	BigTIFF::test();
+//	BigTIFF::test();
 
 }
 
@@ -3450,7 +3505,8 @@ void main(int argc, char* argv[])
 	//printNeighboursFromMask();
 	//writeDifferenceMap();
 	//analyzeSpectraJumps();
-	writeMapToTIFF();
+	//writeMapToTIFF();
+	writeSpectraInfoToTable();
 
 	printf ("fin.\n" );
 
