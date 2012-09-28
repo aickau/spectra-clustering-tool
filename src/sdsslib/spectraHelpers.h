@@ -132,6 +132,10 @@ namespace SpectraHelpers
 	// returns the millions of spectra adaption (one to many) per second.
 	void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAdaptionPerSecond );
 
+	// Writes mapindex, xpos, ypos, specObjID, aspect internal spectraIndex, plate ID, MJD, fiber ID, z, objtype into cvs table
+	// \param pLogFile optional pointer to log file.
+	void writeSpectraInfoToTable( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrTableFilename, std::ofstream *pLogFile=NULL );
+
 	//@}
 
 

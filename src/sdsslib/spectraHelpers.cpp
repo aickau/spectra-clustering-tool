@@ -35,6 +35,7 @@
 #include "sdsslib/glhelper.h"
 #include "sdsslib/HTMLexport.h"
 #include "sdsslib/Timer.h"
+#include "sdsslib/CSVExport.h"
 
 
 namespace SpectraHelpers
@@ -811,6 +812,102 @@ void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAd
 	_outMioAdaptionPerSecond = (static_cast<double>(numSpectra)/dt)/1000000.0;
 
 } 
+
+
+void writeSpectraInfoToTable( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrTableFilename, std::ofstream *pLogFile )
+{
+	const int gridSizeSqr = _network.getNumSpectra();
+	const int gridSize = sqrtf(gridSizeSqr);
+	const int gridSizeSqr2 = gridSize*gridSize;
+	const size_t numSourceSpecra = _sourceSpectra.getNumSpectra();
+
+
+	
+	if ( gridSizeSqr2 != gridSizeSqr || gridSizeSqr==0 )
+	{
+		Helpers::print("Error: could not load network sofmnet.bin.\n", pLogFile ); 
+		return;
+	}
+
+	if ( numSourceSpecra == 0 )
+	{
+		Helpers::print("Error: could not load allSpectra.bin.\n", pLogFile ); 
+		return;
+	}
+	if ( numSourceSpecra > gridSizeSqr )
+	{
+		Helpers::print("Error: Mismatch between allSpectra.bin and sofmnet.bin. Files do not belong together?\n", pLogFile ); 
+		return;
+	}
+
+	CSVExport spectraTable(_sstrTableFilename);
+
+	spectraTable.writeTableEntry("mapindex");
+	spectraTable.writeTableEntry("xpos");
+	spectraTable.writeTableEntry("ypos");
+	spectraTable.writeTableEntry("specObjID");
+	spectraTable.writeTableEntry("spectraIndex");
+	spectraTable.writeTableEntry("plateID");
+	spectraTable.writeTableEntry("MJD");
+	spectraTable.writeTableEntry("fiberID");
+	spectraTable.writeTableEntry("z");
+	spectraTable.writeTableEntry("objtype");
+	spectraTable.newRow();
+
+	for (int i=0;i<gridSizeSqr;i++ )
+	{
+		Spectra *spSpec = _network.beginRead( i );
+
+		const int xpos = i % gridSize;
+		const int ypos = i / gridSize;
+
+		spectraTable.writeTableEntry(i);
+		spectraTable.writeTableEntry(xpos);
+		spectraTable.writeTableEntry(ypos);
+
+
+		const int index = spSpec->m_Index;
+		if ( index >= 0 && index < numSourceSpecra )
+		{
+			Spectra *sp = _sourceSpectra.beginRead(index);
+
+			if ( sp != NULL )
+			{
+				spectraTable.writeTableEntry(sp->m_SpecObjID);
+				spectraTable.writeTableEntry(index);
+				spectraTable.writeTableEntry(sp->getPlate());
+				spectraTable.writeTableEntry(sp->getMJD());
+				spectraTable.writeTableEntry(sp->getFiber());
+				spectraTable.writeTableEntry((float)sp->m_Z);
+				spectraTable.writeTableEntry(sp->m_Type);
+				spectraTable.newRow();
+			}
+			else
+			{
+				printf("Error: could not read source spectra.\n");
+				return;
+			}
+
+			_sourceSpectra.endRead(index);
+
+		}
+		else
+		{
+			spectraTable.writeTableEntry(0);
+			spectraTable.writeTableEntry(index);
+			spectraTable.writeTableEntry(0);
+			spectraTable.writeTableEntry(0);
+			spectraTable.writeTableEntry(0);
+			spectraTable.writeTableEntry(0.0f);
+			spectraTable.writeTableEntry(0);
+			spectraTable.newRow();
+
+		}
+
+		_network.endRead( i );
+	}
+}
+
 
 void writeFloatList( float *_pArray, size_t _size, const std::string &_sstrFilename )
 {

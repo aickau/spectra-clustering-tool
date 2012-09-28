@@ -3260,111 +3260,26 @@ void analyzeSpectraJumps()
 
 void writeSpectraInfoToTable()
 {
-	printf("Welcome to ASPECT spectra table writer.\n\nWrites mapindex, xpos, ypos, specObjID, aspect internal spectraIndex, plate ID, MJD, fiber ID, z, objtype to cvs table.\n Input: sofmnet.bin, allSpectra.bin.\n\n");
-	CSVExport spectraTable("spectraTbl.cvs");
+	std::ofstream logFile("specObjOperations_log.txt");
 
-	spectraTable.writeTableEntry("mapindex");
-	spectraTable.writeTableEntry("xpos");
-	spectraTable.writeTableEntry("ypos");
-	spectraTable.writeTableEntry("specObjID");
-	spectraTable.writeTableEntry("spectraIndex");
-	spectraTable.writeTableEntry("plateID");
-	spectraTable.writeTableEntry("MJD");
-	spectraTable.writeTableEntry("fiberID");
-	spectraTable.writeTableEntry("z");
-	spectraTable.writeTableEntry("objtype");
-	spectraTable.newRow();
-
-
+	Helpers::print("Welcome to ASPECT spectra table writer.\n\nWrites mapindex, xpos, ypos, specObjID, aspect internal spectraIndex, plate ID, MJD, fiber ID, z, objtype to cvs table.\n Input: sofmnet.bin, allSpectra.bin.\n\n", &logFile, true );
+	
 	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
 	if ( pNetworkVFS == NULL )
 	{
-		printf("Error opening sofmnet.bin\n");
+		Helpers::print("Error opening sofmnet.bin\n", &logFile, true );
 		return;
 	}
 
 	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
 	if ( pSourceVFS == NULL )
 	{
-		printf("Error opening allSpectra.bin\n");
+		Helpers::print("Error opening allSpectra.bin\n", &logFile, true );
 		return;
 	}
 
-	const int gridSizeSqr = pNetworkVFS->getNumSpectra();
-	const int gridSize = sqrtf(gridSizeSqr);
-	const int gridSizeSqr2 = gridSize*gridSize;
-	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
-	if ( gridSizeSqr2 != gridSizeSqr || gridSizeSqr==0 )
-	{
-		printf("Error: could not load network sofmnet.bin.\n"); 
+	SpectraHelpers::writeSpectraInfoToTable( *pSourceVFS, *pNetworkVFS, "spectraTbl.csv", &logFile);
 
-		delete pNetworkVFS;
-		return;
-	}
-
-	if ( numSourceSpecra == 0 )
-	{
-		printf("Error: could not load allSpectra.bin.\n"); 
-		return;
-	}
-	if ( numSourceSpecra > gridSizeSqr )
-	{
-		printf("Error: Mismatch between allSpectra.bin and sofmnet.bin. Files do not belong together?\n"); 
-		return;
-	}
-
-	for (int i=0;i<gridSizeSqr;i++ )
-	{
-		Spectra *spSpec = pNetworkVFS->beginRead( i );
-
-		const int xpos = i % gridSize;
-		const int ypos = i / gridSize;
-
-		spectraTable.writeTableEntry(i);
-		spectraTable.writeTableEntry(xpos);
-		spectraTable.writeTableEntry(ypos);
-
-
-		const int index = spSpec->m_Index;
-		if ( index >= 0 && index < numSourceSpecra )
-		{
-			Spectra *sp = pSourceVFS->beginRead(index);
-
-			if ( sp != NULL )
-			{
-				spectraTable.writeTableEntry(sp->m_SpecObjID);
-				spectraTable.writeTableEntry(index);
-				spectraTable.writeTableEntry(sp->getPlate());
-				spectraTable.writeTableEntry(sp->getMJD());
-				spectraTable.writeTableEntry(sp->getFiber());
-				spectraTable.writeTableEntry((float)sp->m_Z);
-				spectraTable.writeTableEntry(sp->m_Type);
-				spectraTable.newRow();
-			}
-			else
-			{
-				printf("Error: could not read source spectra.\n");
-				return;
-			}
-
-			pSourceVFS->endRead(index);
-		
-		}
-		else
-		{
-			spectraTable.writeTableEntry(0);
-			spectraTable.writeTableEntry(index);
-			spectraTable.writeTableEntry(0);
-			spectraTable.writeTableEntry(0);
-			spectraTable.writeTableEntry(0);
-			spectraTable.writeTableEntry(0.0f);
-			spectraTable.writeTableEntry(0);
-			spectraTable.newRow();
-
-		}
-
-		pNetworkVFS->endRead( i );
-	}
 }
 
 
