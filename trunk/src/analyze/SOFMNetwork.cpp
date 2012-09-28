@@ -1241,6 +1241,8 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 	Helpers::print( sstrLog, m_pLogStream );
 
+
+
 	std::string sstrHTMLDocTemplate = HTMLExport::loadHTMLTemplate();	
 	std::string sstrHTMLDoc;
 	std::string sstrMainHTMLDoc;
@@ -1261,6 +1263,10 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 	SpectraHelpers::renderDiagramToDisk( m_pAvgDistanceToBMU, m_params.numSteps, 1, 4, 0, 800, 533, sstrDirectory+std::string("avgDistanceBMU.png") );
 	SpectraHelpers::writeFloatList( m_pAvgDistanceToBMU, m_params.numSteps, std::string("avgDistanceBMU.txt"));
+
+	const std::string sstrTableFilename = sstrDirectory + "spectraTbl_" + sstrZMap + ".csv";
+	SpectraHelpers::writeSpectraInfoToTable( *m_pSourceVFS, *m_pNet, sstrTableFilename, m_pLogStream);
+
 
 	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+HTMLExport::lineBreak();
 	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+HTMLExport::lineBreak();
