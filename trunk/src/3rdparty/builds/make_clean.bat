@@ -7,6 +7,7 @@ del /S *.ncb
 del /S *.plg
 del /S *.pdb
 del /S *.bsc
+del /S *.sdf
 
 
 
