@@ -1,0 +1,159 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head>
+<title>Data model: spec</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="dr9spec_files/datamodel.css" type="text/css">
+<link rel="icon" href="http://data.sdss3.org/datamodel/sdss3.ico" type="image/x-icon">
+<link rel="shortcut icon" href="http://data.sdss3.org/datamodel/sdss3.ico" type="image/x-icon">
+</head>
+<body>
+<h1>Data model: spec</h1>
+<div id="intro">
+<dl>
+<dt>General Description</dt>
+<dd>
+<p>
+The spec-PLATE-MJD-FIBER.fits files contain a repackaging of all
+spectral data for a given plugging (plate, mjd, fiber), including both the
+coadded spectrum and optionally the individual exposure frames.
+This groups the information from
+<a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/spectra/PLATE4/spFrame.html">spFrame</a>,
+<a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/spectra/PLATE4/spCFrame.html">spCFrame</a>,
+<a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/spectra/PLATE4/spFlat.html">spFlat</a>,
+<a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/spectra/PLATE4/spPlate.html">spPlate</a>,
+<a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/spectra/PLATE4/RUN1D/spZbest.html">spZbest</a>,
+<a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/spectra/PLATE4/RUN1D/spZline.html">spZline</a>, and
+<a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/spAll.html">spAll</a>
+so that for each object one only needs to read
+a single file.
+</p>
+<pre>    HDU 0  : Header info from spPlate
+    HDU 1  : Coadded spectrum from spPlate
+    HDU 2  : Summary metadata copied from spAll
+    HDU 3  : Line fitting metadata from spZline
+    HDU 4+ : [Optional] Individual spCFrame spectra [B, R for each exposure]
+</pre>
+<p>
+A <a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/spectra/lite/PLATE4/spec.html">"lite" version of these files</a>
+also exists in the "lite" subdirectory tree.
+These contain HDUS 0-3, but do not have the individual frame data and thus
+are much smaller.
+</p>
+</dd>
+
+<dt>Naming Convention</dt>
+<dd id="filename"><code>spec-[0-9]{4}-[0-9]{5}-[0-9]{4}\.fits</code>, where
+<code>[0-9]{4}</code> is a zero-padded, four-digit number containing the plate
+number, <code>[0-9]{5}</code> is a five-digit number containing the MJD
+number and <code>[0-9]{4}</code> is a four-digit number containing the fiber id.</dd>
+
+<dt>Approximate Size</dt>
+<dd id="filesize">1.5 Mbytes</dd>
+
+<dt>File Type</dt>
+<dd id="filetype">FITS</dd>
+
+<dt>Written by Products</dt>
+<dd>idlspec2d/bin/reformat_spectra.py and reformat_sdss_spectra.py</dd>
+</dl>
+</div>
+<!-- =================================================================== -->
+<div id="hdu0">
+<h2>HDU 0: Header keywords only</h2>
+<p>
+Copied from
+<a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/PLATE4/spPlate.html">spPlate</a>
+with the following additions/modifications:
+</p>
+<ul>
+  <li>PLUG_RA, PLUG_DEC, THING_ID, FIBERID: added from spAll</li>
+  <li>NEXP and EXPID*: modified to just include the frames which
+    contributed to this fiber</li>
+  <li>Removed keywords which apply only to single exposures</li>
+</ul>
+</div>
+
+<!-- =================================================================== -->
+<div id="hdu1">
+<h2>HDU 1 (extname COADD): Coadded Spectrum from spPlate</h2>
+<p>
+Binary table with columns:
+</p>
+
+<table class="columns">
+<caption>Required Columns</caption>
+  <tbody><tr> <th>Name    </th>  <th>Type   </th>  <th>Comment</th>                                                    </tr>
+  <tr> <td>flux    </td>  <td>float32</td>  <td>coadded calibrated flux [10<sup>-17</sup> ergs/s/cm<sup>2</sup>/Å]</td>                        </tr>
+  <tr> <td>loglam  </td>  <td>float32</td>  <td>log10(wavelength [Å])</td>                                          </tr>
+  <tr> <td>ivar    </td>  <td>float32</td>  <td>inverse variance of flux</td>                                       </tr>
+  <tr> <td>and_mask</td>  <td>int32  </td>  <td>AND mask</td>                                                       </tr>
+  <tr> <td>or_mask </td>  <td>int32  </td>  <td>OR mask</td>                                                        </tr>
+  <tr> <td>wdisp   </td>  <td>float32</td>  <td>wavelength dispersion in pixel=dloglam units</td>                         </tr>
+  <tr> <td>sky     </td>  <td>float32</td>  <td>subtracted sky flux [10<sup>-17</sup> ergs/s/cm<sup>2</sup>/Å]</td>                            </tr>
+  <tr> <td>model   </td>  <td>float32</td>  <td>pipeline best model fit used for classification and redshift</td>   </tr>
+</tbody></table>
+</div>
+<!-- =================================================================== -->
+<div id="hdu2">
+<h2>HDU 2 (extname SPALL)</h2>
+<p>
+  BOSS spectra: copy of row from <a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/spAll.html">spAll</a>
+  for this (plate, mjd, fiber)
+</p>
+<p>
+  SDSS-I/-II spectra: copy of row from <a href="http://data.sdss3.org/datamodel/files/SPECTRO_REDUX/specObj.html">specObj</a>
+  for this (plate, mjd, fiber)
+</p>
+</div>
+<!-- =================================================================== -->
+<div id="hdu3">
+<h2>HDU 3 (extname SPZLINE)</h2>
+<p>
+  copy of row from <a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/PLATE4/RUN1D/spZline.html">spZLine</a>
+  for this (plate, mjd, fiber)
+</p>
+</div>
+<!-- =================================================================== -->
+<div id="hdu4">
+<h2>HDU 4 (extname EXPIDxxx): individual frames</h2>
+<p>For each exposure there is one HDU for the red camera and one for the blue.
+These are in the order of the EXPIDnn keywords in the HDU 0 header, and
+their EXTNAME keywords match the EXPIDnn keywords from HDU 0.
+</p>
+<p>
+  <b>Required Header Keywords:</b>
+  Taken from <a href="http://data.sdss3.org/datamodel/files/BOSS_SPECTRO_REDUX/RUN2D/spectra/PLATE4/spCFrame.html">spCFrame</a> files.
+  BOSS spectra have the addition of YPIX0 defining the y-pixel
+  location of the first flux bin.
+</p>
+<p>
+Binary table with columns:
+</p>
+
+<table class="columns">
+<caption>Required Columns</caption>
+  <tbody><tr> <th>Name    </th>  <th>Type   </th>  <th>Comment</th>                                              </tr>
+  <tr> <td>flux  </td>  <td>float32</td>  <td>coadded calibrated flux [10<sup>-17</sup> ergs/s/cm<sup>2</sup>/Å]                        </td> </tr>
+  <tr> <td>loglam</td>  <td>float32</td>  <td>log10(wavelength [Å])                                          </td> </tr>
+  <tr> <td>ivar  </td>  <td>float32</td>  <td>inverse variance of flux                                       </td> </tr>
+  <tr> <td>mask  </td>  <td>int32  </td>  <td>mask                                                           </td> </tr>
+  <tr> <td>wdisp </td>  <td>float32</td>  <td>wavelength dispersion in dloglam units                         </td> </tr>
+  <tr> <td>sky   </td>  <td>float32</td>  <td>subtracted sky flux [10<sup>-17</sup> ergs/s/cm<sup>2</sup>/Å]                            </td> </tr>
+  <tr> <td>calib </td>  <td>float32</td>  <td>conversion between flux and electrons: flux = electrons*calib  </td> </tr>
+  <tr> <td>x     </td>  <td>float32</td>  <td>x-pixel location of trace on CCD (BOSS spectra only)           </td> </tr>
+</tbody></table>
+</div>
+<div id="example">
+<h2>Conversion between flux, sky, and electrons</h2>
+<p>
+How to convert flux, sky, and ivar back to extracted photons (electrons):
+</p>
+<pre>    obj_photons  = flux / calib
+    sky_photons  = sky / calib
+    ivar_photons = ivar * calib^2
+</pre>
+</div>
+
+
+</body></html>
