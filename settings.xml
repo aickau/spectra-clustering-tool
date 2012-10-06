@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Analyzer config file, SDSS sorting prototype - Stage I, Copyright (c) 2009 Version 0.17, Revision 201, Build date 2011/02/27 20:19:10 -->
+<!-- Analyzer config file, ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I, Copyright (c) 2009 Version 0.18, Revision 240, Build date 2012/09/13 22:48:10 -->
 <SETTINGS>
-	<STEP current="201" total="200"/>
-	<GRIDSIZE value="3"/>
+	<STEP current="199" total="200"/>
+	<GRIDSIZE value="74"/>
 	<RANDOMSEED value="15"/>
 	<LEARNRATE begin="0.25" end="0.01"/>
 	<RADIUS begin="1" end="0.125"/>
@@ -11,6 +11,6 @@
 		<SUBPAGES value="0"/>
 		<WAITFORUSER value="0"/>
 	</EXPORT>
-	<SEARCHMODE value="localfast"/><!-- localfast / local / global -->
-	<NORMALIZATION value="flux"/><!-- amplitude / flux / none -->
+	<SEARCHMODE value="global"/><!-- localfast / local / global -->
+	<NORMALIZATION value="none"/><!-- amplitude / flux / none -->
 </SETTINGS>

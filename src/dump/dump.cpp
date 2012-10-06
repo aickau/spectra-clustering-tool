@@ -32,7 +32,7 @@
 
 typedef char _TCHAR;
 
-#define DATADIR std::string("/data/*")
+#define DATADIR std::string("/../../data/*")
 //#define DATADIR std::string("G:/SDSS_ANALYZE/fits/spectro/data/*")
 #define DUMPFILE std::string("allSpectra.bin")
  
