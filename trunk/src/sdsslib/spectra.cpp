@@ -42,8 +42,6 @@
 
 // spectra read from SDSS FITS have a wavelength of 3800..9200 Angström
 // full spectrum range should range from ~540 Amgström to 9200 assuming max redshifts of 6.
-const float Spectra::waveBeginSrc = 3800.f;	
-const float Spectra::waveEndSrc = 9200.f;
 const float Spectra::waveBeginDst = 540.f;	
 const float Spectra::waveEndDst = 9200.f;
 
@@ -398,12 +396,12 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 		// try to calculate it form the other data.
 		if ( mjd > 0 && plate > 0 && fiberID >= 0 ) 
 		{
-			m_SpecObjID = Spectra::calcSpecObjID( plate, mjd, fiberID, 0 );
+			m_SpecObjID = Spectra::calcSpecObjID_DR7( plate, mjd, fiberID, 0 );
 		} 
 		else
 		{
 			// generate fake spec obj ID
-			m_SpecObjID = Spectra::calcSpecObjID( nCounter/640, 0, nCounter%640, 0 );
+			m_SpecObjID = Spectra::calcSpecObjID_DR7( nCounter/640, 0, nCounter%640, 0 );
 			nCounter++;
 		}
 	}
@@ -460,33 +458,330 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 }
 
 
-
-
-bool Spectra::loadFromFITS(const std::string &_filename)
+Spectra::SpectraVersion checkVersion(fitsfile *f)
 {
-	fitsfile *f;
 	int status = 0;
+
+	// MJD, plate ID, fiber ID must be in every SDSS FITS file
+	int mjd, plateID, fiber;
+	fits_read_key( f, TINT, "MJD", &mjd, NULL, &status );
+	fits_read_key( f, TINT, "PLATEID", &plateID, NULL, &status );
+	fits_read_key( f, TINT, "FIBERID", &fiber, NULL, &status );
+	if ( status != 0 )
+		return Spectra::SP_VERSION_INVALID;
+
+
+	int bitpix = 0;
+	fits_get_img_type(f, &bitpix, &status );
+	if ( status != 0 )
+		return Spectra::SP_VERSION_INVALID;
+	
+	double z=0.0;
+	int specType = 0;
+	int statusDR7 = 0;
+
+
+
+	// if we can read the spectra type, z and bitpix==-32 we have DR7 and below spectra. 
+	fits_read_key( f, TDOUBLE, "Z", &z, NULL, &statusDR7 );
+	fits_read_key( f, TINT, "SPEC_CLN", &specType, NULL, &statusDR7 );
+	if (statusDR7 == 0 && bitpix == -32 )
+	{
+		return Spectra::SP_VERSION_DR7;
+	}
+
+	// DR8, DR9 spectra have bitpix set to 8
+	if ( bitpix != 8 )
+		return Spectra::SP_VERSION_INVALID;
+	char run2d[FLEN_VALUE];
+	fits_read_key( f, TSTRING, "RUN2D", run2d, NULL, &status );
+
+	// 	run2d can be an integer, like 26, 
+	// 	or a string of the form 'vN_M_P', 
+	if  (status == 0 && (run2d[0]=='v' || run2d[0]=='V'))
+	{
+		// RUN2D keyword found, must be DR9 spectra.
+		return Spectra::SP_VERSION_DR9;
+	}
+
+	return Spectra::SP_VERSION_DR8;
+}
+
+
+bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
+{
+	fitsfile *f=NULL;
+
+	// According to FITS standard, to perform a specific action, status must be always 0 before.
+	int status = 0;
+	int statusclose = 0; // we always want to close a given FITs file, even if a previous operation failed
+
 
 	fits_open_file( &f, _filename.c_str(), READONLY, &status );
 	if ( status != 0 )
 		return false;
 
-	int bitpix = 0;
-	fits_get_img_type(f, &bitpix, &status );
-	if ( bitpix != -32 )
+	SpectraVersion version = checkVersion( f );
+
+	if ( version != SP_VERSION_DR9 )
 	{
-		// image has not float32 type
-		fits_close_file(f, &status);
+		// wrong version
+		fits_close_file(f, &statusclose);
 		return false;
 	}
+
+
+	// read important info of spectrum 
+	// 	run2d can be an integer, like 26, 
+	// 	or a string of the form 'vN_M_P', 
+	// 	where N, M and P are integers, 
+	// 		with the restriction 5<=N<=6, 0<=M<=99, and 0<=P<=99. 
+	// 		This is understood to be the run2d value for a spectrum. 
+	int mjd, plateID, fiber;
+	char run2d[FLEN_VALUE];
+	fits_read_key( f, TINT, "MJD", &mjd, NULL, &status );
+	fits_read_key( f, TINT, "PLATEID", &plateID, NULL, &status );
+	fits_read_key( f, TINT, "FIBERID", &fiber, NULL, &status );
+	fits_read_key( f, TSTRING, "RUN2D", run2d, NULL, &status );
+
+	if ( status != 0 )
+	{
+		// could not read important spectra info.
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
+	// encode run2d string to numbers n,m,p.
+	char m[3];
+	char p[3];
+	m[0] = run2d[3]; m[1]=0; m[2] =0;
+	p[1]=0; p[2] =0;
+	
+	int o=5;
+	if ( run2d[4] != '_' ) {
+		m[1] = run2d[4];
+		o=6;
+	}
+	p[0] = run2d[o];
+	if ( run2d[o+1] >= 48 && run2d[o+1] <= 57  ) 
+		p[1] = run2d[o+1];
+
+
+	const int run2d_n = run2d[1]-48;
+	const int run2d_m = Helpers::stringToNumber<int>( m );
+	const int run2d_p = Helpers::stringToNumber<int>( p );
+
+	if ( run2d_n < 5 || mjd < 50000 )
+	{
+		// wrong mjd or run 2D version number.
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
+	
+	m_SpecObjID = calcSpecObjID_DR8( plateID, mjd, fiber, run2d_m, run2d_n, run2d_p);
+
+
+
+	int numhdus = 0;
+	int hdutype = 0; // should be BINARY_TBL
+	long tblrows = 0; // should be numLines
+	int tblcols = 0; // should be 23
+	fits_get_num_hdus( f, &numhdus, &status );
+	fits_movabs_hdu( f, 1, &hdutype, &status );
+	fits_get_num_rows( f, &tblrows, &status );
+	fits_get_num_cols( f, &tblcols, &status );
+
+	fits_close_file(f, &status);
+
+	calcMinMax();
+
+	bool bConsistent = checkConsistency();
+	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
+}
+
+
+
+
+bool Spectra::loadFromFITS_SDSS_DR8(const std::string &_filename)
+{
+	fitsfile *f=NULL;
+
+	// According to FITS standard, to perform a specific action, status must be always 0 before.
+	int status = 0;
+	int statusclose = 0; // we always want to close a given FITs file, even if a previous operation failed
+
+	fits_open_file( &f, _filename.c_str(), READONLY, &status );
+	if ( status != 0 )
+		return false;
+
+	SpectraVersion version = checkVersion( f );
+
+	if ( version != SP_VERSION_DR8 )
+	{
+		// wrong version
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
 
 	int naxis=0;
 	long size[2];
 	fits_get_img_dim(f, &naxis, &status );
 	if (naxis!=2)
 	{
-		// no 2-dimenional image
-		fits_close_file(f, &status);
+		// no 2-dimensional image
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
+	// read important info of spectrum
+	int mjd, plateID, fiber;
+	fits_read_key( f, TINT, "MJD", &mjd, NULL, &status );
+	fits_read_key( f, TINT, "PLATEID", &plateID, NULL, &status );
+	fits_read_key( f, TINT, "FIBERID", &fiber, NULL, &status );
+
+	if ( status != 0 )
+	{
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
+	//m_Type = TODO
+	m_SpecObjID = Spectra::calcSpecObjID_DR8( plateID, mjd, fiber, 0,0,0 );
+
+	// read spectral data
+	int numhdus = 0;
+	int hdutype = 0; // should be BINARY_TBL
+	long tblrows = 0; // should be numLines
+	int tblcols = 0; // should be 23
+	fits_get_num_hdus( f, &numhdus, &status );
+	fits_movabs_hdu( f, 3, &hdutype, &status );
+
+	fits_get_num_rows( f, &tblrows, &status );
+	fits_get_num_cols( f, &tblcols, &status );
+
+
+	fits_get_img_size(f, 2, size, &status );
+	const size_t spectrumMaxSize = 3900; 
+	float spectrum[spectrumMaxSize];
+	unsigned long maskarray[spectrumMaxSize];
+
+	// number of elements should be 2 at least.
+	size_t elementsToRead = size[0];
+	assert( elementsToRead <= spectrumMaxSize );
+	elementsToRead = MIN( elementsToRead, spectrumMaxSize );
+	if ( elementsToRead < 3 )
+	{
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
+	// spec says:
+	// The first row is the spectrum,
+	// the second row is the continuum subtracted spectrum, 
+	// the third row is the noise in the spectrum (standard deviation, in the same units as the spectrum), 
+	// the forth row is the mask array. The spectra are binned log-linear. Units are 10^(-17) erg/cm/s^2/Ang.
+	long adress[2]={1,1};
+	fits_read_pix( f, TFLOAT, adress, elementsToRead, NULL, (void*)spectrum, NULL, &status );
+
+	// mask array
+	const unsigned int maskErr = (~static_cast<unsigned int>(SpectraMask::SP_MASK_OK)) & (~static_cast<unsigned int>(SpectraMask::SP_MASK_EMLINE));
+	adress[1] = 4;
+	fits_read_pix( f, TLONG, adress, elementsToRead, NULL, (void*)maskarray, NULL, &status );
+
+	// count bad pixels 
+	size_t badPixelCount = 0;
+	for (size_t i=0;i<elementsToRead;i++)
+	{
+		if ( (maskarray[i] & maskErr) != 0 )
+		{
+			// bad pixel detected.
+			badPixelCount++;
+		}
+	}
+
+	//..and repair isolated pixel errors
+	for (size_t i=1;i<elementsToRead-1;i++)
+	{
+		if ( (maskarray[i] & maskErr) != 0 )
+		{
+			if ( ((maskarray[i-1] & maskErr) == 0) &&
+				((maskarray[i+1] & maskErr) == 0) )
+			{
+				const float pixelRepaired = (spectrum[i-1] + spectrum[i+1]) / 2.0f;
+				spectrum[i] = pixelRepaired;
+			}
+		}
+	}
+
+	// pixel repair at boundaries
+	if ( ((maskarray[0] & maskErr) != 0) && 
+		(maskarray[1] & maskErr) == 0 )
+	{
+		spectrum[0] = spectrum[1];
+	}
+	{
+		const size_t l1 = elementsToRead-1;
+		const size_t l2 = elementsToRead-2;
+
+		if ( ((maskarray[l1] & maskErr) != 0) && 
+			(maskarray[l2] & maskErr) == 0 )
+		{
+			spectrum[l1] = spectrum[l2];
+		}
+	}
+
+	// mark spectrum as bad if more than 5 % are bad pixels
+	if ( badPixelCount > elementsToRead/20 ) 
+	{
+		m_status = 1;
+	}
+
+	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, m_Amplitude, numSamples, 3 );
+	elementsToRead /= 8; 
+	m_SamplesRead = static_cast<__int16>(elementsToRead);
+
+	fits_close_file(f, &statusclose);
+
+	calcMinMax();
+
+	bool bConsistent = checkConsistency();
+	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
+}
+
+
+
+
+bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
+{
+	fitsfile *f=NULL;
+
+	// According to FITS standard, to perform a specific action, status must be always 0 before.
+	int status = 0;
+	int statusclose = 0; // we always want to close a given FITs file, even if a previous operation failed
+
+	fits_open_file( &f, _filename.c_str(), READONLY, &status );
+	if ( status != 0 )
+		return false;
+
+	SpectraVersion version = checkVersion( f );
+
+	if ( version != SP_VERSION_DR7 )
+	{
+		// wrong version
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
+
+	int naxis=0;
+	long size[2];
+	fits_get_img_dim(f, &naxis, &status );
+	if (naxis!=2)
+	{
+		// no 2-dimensional image
+		fits_close_file(f, &statusclose);
 		return false;
 	}
 
@@ -497,8 +792,16 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 	fits_read_key( f, TINT, "FIBERID", &fiber, NULL, &status );
 	fits_read_key( f, TDOUBLE, "Z", &m_Z, NULL, &status );
 	fits_read_key( f, TINT, "SPEC_CLN", &m_Type, NULL, &status );
+
+	if ( status != 0 )
+	{
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
+
 	m_Type = static_cast<SpectraType>(1<<m_Type);
-	m_SpecObjID = Spectra::calcSpecObjID( plateID, mjd, fiber, 0 );
+	m_SpecObjID = Spectra::calcSpecObjID_DR7( plateID, mjd, fiber, 0 );
 
 	// read spectral data
 	fits_get_img_size(f, 2, size, &status );
@@ -506,12 +809,13 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 	float spectrum[spectrumMaxSize];
 	unsigned long maskarray[spectrumMaxSize];
 
-	// number of elemtns should be 2 at least.
+	// number of elements should be 2 at least.
 	size_t elementsToRead = size[0];
 	assert( elementsToRead <= spectrumMaxSize );
 	elementsToRead = MIN( elementsToRead, spectrumMaxSize );
 	if ( elementsToRead < 3 )
 	{
+		fits_close_file(f, &statusclose);
 		return false;
 	}
 
@@ -594,8 +898,8 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 	m_SamplesRead = numSamples;
 
 	// calculate redshift back
-	float wBegin = waveBeginSrc / (1.f+m_Z);
-	float wEnd = waveEndSrc / (1.f+m_Z);
+	float wBegin = waveLenStartSDSS / (1.f+m_Z);
+	float wEnd = waveLenEndSDSS / (1.f+m_Z);
 
 	float d = (waveEndDst-waveBeginDst) / static_cast<float>(numSamples);
 	float w = waveBeginDst;
@@ -674,7 +978,7 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 		}
 	}
 #endif // _USE_SPECTRALINES
-	fits_close_file(f, &status);
+	fits_close_file(f, &statusclose);
 
 	calcMinMax();
 
@@ -1374,6 +1678,7 @@ int Spectra::getPlate() const
 
 std::string Spectra::getURL()const
 {
+	// for SDSS3 http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?sid=
 	std::string sstrUrl("http://cas.sdss.org/dr7/en/tools/explore/obj.asp?sid=");
 	sstrUrl += Helpers::numberToString( m_SpecObjID );
 	return sstrUrl;
@@ -1440,15 +1745,15 @@ unsigned __int64 Spectra::calcPhotoObjID( int _run, int _rerun, int _camcol, int
 	return photoObjID;
 }
 
-unsigned __int64 Spectra::calcSpecObjID( int _plate, int _mjd, int _fiber, int _type )
+unsigned __int64 Spectra::calcSpecObjID_DR7( int _plate, int _mjd, int _fiber, int _type )
 {
 	// taken from: http://cas.sdss.org/dr6/en/help/docs/algorithm.asp#O
-	//Bits #of bits Mask				Assignment 			Description
-	//0-15 		16	0xFFFF000000000000 	plate 				number of spectroscopic plate
-	//16-31		16	0x0000FFFF00000000 	MJD 				MJD (date) plate was observed
-	//32-41		10	0x00000000FFC00000 	fiberID 			number of spectroscopic fiber on plate (1-640)
-	//42-47		6 	0x00000000003F0000 	type 				type of targeted object
-	//48-63		16	0x000000000000FFFF 	line/redshift/index 0 for SpecObj, else number of spectroscopic line (SpecLine) or index (SpecLineIndex) or redshift (ELRedhsift or XCRedshift)
+	//Bits #of bits Mask				Assignment 			 Description
+	//0-15 		16	0xFFFF000000000000 	plate 				 number of spectroscopic plate
+	//16-31		16	0x0000FFFF00000000 	MJD 				 MJD (date) plate was observed
+	//32-41		10	0x00000000FFC00000 	fiberID 			 number of spectroscopic fiber on plate (1-640)
+	//42-47		6 	0x00000000003F0000 	type 				 type of targeted object
+	//48-63		16	0x000000000000FFFF 	line/redshift/index  0 for SpecObj, else number of spectroscopic line (SpecLine) or index (SpecLineIndex) or redshift (ELRedhsift or XCRedshift)
 
 	unsigned __int64 specObjID;
 	specObjID  = (unsigned __int64) 0xFFFF000000000000&((unsigned __int64)_plate<<48);
@@ -1456,6 +1761,43 @@ unsigned __int64 Spectra::calcSpecObjID( int _plate, int _mjd, int _fiber, int _
 	specObjID |= (unsigned __int64) 0x00000000FFC00000&((unsigned __int64)_fiber<<22);
 	specObjID |= (unsigned __int64) 0x00000000003F0000&((unsigned __int64)_type<<16);
 	specObjID |= (unsigned __int64) 0x000000000000FFFF&((unsigned __int64)0);
+
+	return specObjID;
+}
+
+
+unsigned __int64 Spectra::calcSpecObjID_DR8( int _plate, int _mjd, int _fiber, int _run2d_m, int _run2d_n, int _run2d_p )
+{
+	if ( _mjd < 50000 || _run2d_n < 5 )
+		return 0;
+
+	// taken from http://data.sdss3.org/datamodel/glossary.html
+	// Note that this definition differs from that in DR7. Note that implicitly MJD>=50000.
+	//  Bits   #of bits    Mask				   Assignment 			 Description
+	//	0-9    10          0xFFC0000000000000  line/redshift index   0 all for SpecObj
+	//	10-23  14                              run2d                 rerun number of pipeline reduction
+	//	24-37  14                              MJD                   (date) of plugging minus 50000 
+	//	38-49  12                              fiber id number 
+	//	50-63  14                              plate id number 
+	//
+	// 	run2d can be an integer, like 26, 
+	// 	or a string of the form 'vN_M_P', 
+	// 	where N, M and P are integers, 
+	// 		with the restriction 5<=N<=6, 0<=M<=99, and 0<=P<=99. 
+	// 		This is understood to be the run2d value for a spectrum. 
+	// 		In the latter case, the 14 bits corresponding to run2d are filled with (N-5)*10000+M*100+P.
+	unsigned int run2d = (_run2d_n-5)*10000+_run2d_m*100+_run2d_p;
+
+	unsigned __int64 specObjID;
+	
+	_mjd -= 50000;
+	                  
+	specObjID  = (unsigned __int64) 0xFFFC000000000000&((unsigned __int64)_plate<<50);
+	specObjID |= (unsigned __int64) 0x0003FFC000000000&((unsigned __int64)_fiber<<38);
+	specObjID |= (unsigned __int64) 0x0000003FFFC00000&((unsigned __int64)_mjd<<24);
+	specObjID |= (unsigned __int64) 0x00000000003FFC00&((unsigned __int64)run2d<<10);
+	specObjID |= (unsigned __int64) 0x00000000000003FF&((unsigned __int64)0);
+
 
 	return specObjID;
 }

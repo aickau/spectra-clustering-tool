@@ -153,7 +153,7 @@ void trackCatalogs()
 			const int plate = Helpers::stringToNumber<int>(sstrPlate);
 			const int mjd = Helpers::stringToNumber<int>(sstrMJD);
 			const int fiberID = Helpers::stringToNumber<int>(sstrFiberID);
-			const unsigned int sid = Spectra::calcSpecObjID(plate,mjd,fiberID,0);
+			const unsigned int sid = Spectra::calcSpecObjID_DR7(plate,mjd,fiberID,0);
 			std::string sstrFilename( Spectra::getSpecObjFileName(plate,mjd,fiberID));
 
 			for (size_t i=0;i<gridSizeSqr;i++)
@@ -1933,42 +1933,13 @@ void spectroLisWrite()
 
 void test()
 {	
-	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
-	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+	SSE_ALIGN Spectra spDR7;
+	SSE_ALIGN Spectra spDR8;
+	SSE_ALIGN Spectra spDR9;
 
-	double zmin = 100.f;
-	double zmax = -100.f;
-	size_t iZmin, iZmax;
-	for ( size_t i=0;i<numSourceSpecra;i++ )
-	{
-		Spectra *a = pSourceVFS->beginRead(i);
-		if ( a->m_Z < zmin )
-		{
-			zmin = a->m_Z;
-			iZmin = i;
-		}
-		if ( a->m_Z > zmax )
-		{
-			zmax = a->m_Z;
-			iZmax = i;
-		}
-
-		pSourceVFS->endRead(i);
-	}
-
-	Spectra *spmin = pSourceVFS->beginRead(iZmin);
-	Spectra *smax = pSourceVFS->beginRead(iZmax);
-
-	int fmax = smax->getFiber();
-	int pmax = smax->getPlate();
-	int mjdmax = smax->getMJD();
-/*
-	SSE_ALIGN Spectra spDR4;
-	SSE_ALIGN Spectra spDR6;
-
-	spDR4.loadFromFITS("c:/incoming/dr4/spSpec-53120-1448-351.fit");
-	spDR6.loadFromFITS("c:/incoming/dr6/spSpec-53120-1448-351.fit");
-*/	
+	spDR7.loadFromFITS_SDSS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/spSpec-51630-0266-633.fit");
+	spDR8.loadFromFITS_SDSS_DR8("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr8spec-2892-54552-0389.fits");
+	spDR9.loadFromFITS_BOSS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr9spec-3588-55184-0511.fits");	
 }
 
 void writeParamsFromSelection()
@@ -3063,7 +3034,7 @@ void writeDifferenceMap()
 {
 
 	SSE_ALIGN Spectra compare;
-	compare.loadFromFITS("spSpec-53700-2285-421.fit");
+	compare.loadFromFITS_SDSS("spSpec-53700-2285-421.fit");
 
 	const size_t gridSize(859);
 	const size_t gridSizeSqr(gridSize*gridSize);
@@ -3406,7 +3377,7 @@ void main(int argc, char* argv[])
 	//writeMJD();
 	//writeUMatrix();
 	//writeUMatrixForSource(); 
-	//test();
+	test();
 	//writeParamsFromSelection();
 	//writeIndexListFromSOFMBin();
 	//medianSpectrumFromSelection();
@@ -3421,7 +3392,7 @@ void main(int argc, char* argv[])
 	//writeDifferenceMap();
 	//analyzeSpectraJumps();
 	//writeMapToTIFF();
-	writeSpectraInfoToTable();
+	//writeSpectraInfoToTable();
 
 	printf ("fin.\n" );
 

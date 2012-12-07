@@ -14,7 +14,7 @@
 //! \endverbatim
 //!
 //! \file  framework.cpp
-//! \brief OpenGL init code, ripped straight from the famous NeHe tutorials. 
+//! \brief OpenGL init code. 
 
 
 #include "framework.h"
@@ -135,7 +135,7 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, int freq, bool
 
 	if (!RegisterClass(&wc))									
 	{
-		MessageBox(NULL,"Failed To Register The Window Class.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Failed to register window class.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;											
 	}
 	
@@ -153,13 +153,12 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, int freq, bool
 
 		if (ChangeDisplaySettings(&dmScreenSettings,CDS_FULLSCREEN)!=DISP_CHANGE_SUCCESSFUL)
 		{
-			if (MessageBox(NULL,"The Requested Fullscreen Mode Is Not Supported By\nYour Video Card. Use Windowed Mode Instead?","NeHe GL",MB_YESNO|MB_ICONEXCLAMATION)==IDYES)
+			if (MessageBox(NULL,"The requested fullscreen mode is not supported. Use windowed mode?","",MB_YESNO|MB_ICONEXCLAMATION)==IDYES)
 			{
 				fr_fullscreen=FALSE;		
 			}
 			else
 			{
-				MessageBox(NULL,"Program Will Now Close.","ERROR",MB_OK|MB_ICONSTOP);
 				return FALSE;								
 			}
 		}
@@ -195,7 +194,7 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, int freq, bool
 								NULL)))								
 	{
 		KillGLWindow();								
-		MessageBox(NULL,"Window Creation Error.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Window creation error.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;							
 	}
 
@@ -224,35 +223,35 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, int freq, bool
 	if (!(fr_hDC=GetDC(fr_hWnd)))							
 	{
 		KillGLWindow();								
-		MessageBox(NULL,"Can't Create A GL Device Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Cannot create GL device context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;								
 	}
 
 	if (!(PixelFormat=ChoosePixelFormat(fr_hDC,&pfd)))	
 	{
 		KillGLWindow();							
-		MessageBox(NULL,"Can't Find A Suitable PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Cannot select GL pixel format.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;								
 	}
 
 	if(!SetPixelFormat(fr_hDC,PixelFormat,&pfd))		
 	{
 		KillGLWindow();								
-		MessageBox(NULL,"Can't Set The PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Cannot set GL pixel format.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;								
 	}
 
 	if (!(fr_hRC=wglCreateContext(fr_hDC)))				
 	{
 		KillGLWindow();							
-		MessageBox(NULL,"Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Cannot create GL render context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;								
 	}
 
 	if(!wglMakeCurrent(fr_hDC,fr_hRC))				
 	{
 		KillGLWindow();							
-		MessageBox(NULL,"Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Cannot activate GL rendering context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;								
 	}
 
@@ -264,7 +263,7 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, int freq, bool
 	if (!InitGL())									
 	{
 		KillGLWindow();							
-		MessageBox(NULL,"Initialization Failed.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Initialization failed.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;								
 	}
 
@@ -374,10 +373,6 @@ int WINAPI WMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, 
 	MSG		msg;									
 
 	fr_fullscreen=FALSE;
-	//if (MessageBox(NULL,"Would You Like To Run In Fullscreen Mode?", "Start FullScreen?",MB_YESNO|MB_ICONQUESTION)==IDNO)
-	//{
-	//	fr_fullscreen=FALSE;							
-	//}
 
 	if (!CreateGLWindow(FR_NAME, FR_WIDTH, FR_HEIGHT, FR_BPP, FR_FRQ, fr_fullscreen, lpCmdLine))
 	{
@@ -400,20 +395,18 @@ int WINAPI WMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, 
 		}
 		else										
 		{
-			// enable this line if you want to pause computation on minimized window
-			//if (fr_active)								
+
+			if (fr_keys[KB_ESCAPE])				
 			{
-				if (fr_keys[KB_ESCAPE])				
-				{
-					done = TRUE;						
-				}
-				else								
-				{
-					ProcessInput();
-					DrawGLScene();					
-					SwapBuffers(fr_hDC);				
-				}
+				done = TRUE;						
 			}
+			else								
+			{
+				ProcessInput();
+				DrawGLScene();					
+				SwapBuffers(fr_hDC);				
+			}
+
 
 			if (fr_keys[KB_F1])						
 			{

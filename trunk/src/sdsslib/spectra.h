@@ -34,17 +34,32 @@
 class Spectra
 {
 public:
-	static const int numSamples = 3900/8;		// number of samples in spectrum 
-	static const int numSpectraLines = 44;		// number of stored emission and absorption lines
-	static const float waveBeginSrc;			// spectrum measurement start (in Angström)
-	static const float waveEndSrc;				// spectrum measurement end 
-	static const float waveBeginDst;			// spectrum start in destination system 
-	static const float waveEndDst;				// spectrum end in destination system 
+	static const int numSamplesSDSS			= 3900;					// number of samples in SDSS spectra
+	static const int waveLenStartSDSS		= 3800;					// wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
+	static const int waveLenEndSDSS			= 9200;						
+
+	static const int numSamplesBOSS			= 3900;					// number of samples in BOSS spectra
+	static const int waveLenStartBOSS		= 3650;					// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
+	static const int waveLenEndBOSS			= 10400;						
+
+	static const int numSamples				= numSamplesSDSS/8;		// number of samples in reduced spectra
+	static const int numSpectraLines		= 44;					// number of stored emission and absorption lines
+	static const float waveBeginDst;								// spectrum start in destination system 
+	static const float waveEndDst;									// spectrum end in destination system 
 
 
 	/** @name TYPES
 	*/
 	//@{
+
+
+	enum SpectraVersion
+	{
+		SP_VERSION_INVALID,				//< invalid version or spectra
+		SP_VERSION_DR7,					//<	Spectra DR1..DR7
+		SP_VERSION_DR8,					
+		SP_VERSION_DR9					//< BOSS spectra, new spectrograph, different wavelenght range
+	};
 
 
 	enum SpectraType
@@ -283,10 +298,16 @@ public:
 	//
 	bool loadFromCSV(const std::string &_filename);
 
-	// load from SDSS .fit file
+	// load from SDSS .fit file up to DR7
+	// e.g. spSpec-51630-0266-633.fit
 	// FITS file description see http://www.sdss.org/DR6/dm/flatFiles/spSpec.html
 	// general info here: http://www.sdss.org/DR6/dm/flatFiles/FILES.html
-	bool loadFromFITS(const std::string &_filename);
+	bool loadFromFITS_SDSS(const std::string &_filename);
+
+	bool loadFromFITS_SDSS_DR8(const std::string &_filename);
+
+	// e.g. dr9spec-3588-55184-0511.fits
+	bool loadFromFITS_BOSS(const std::string &_filename);
 
 	// save to ASCII CSV
 	bool saveToCSV(const std::string &_filename);
@@ -345,8 +366,11 @@ public:
 	// calc unique photo object identifier from a bunch of parameters
 	static unsigned __int64 calcPhotoObjID( int _run, int _rerun, int _camcol, int _field, int _obj );
 
-	// calc unique spec object identifier from a bunch of parameters
-	static unsigned __int64 calcSpecObjID( int _plate, int _mjd, int _fiber, int _type );
+	// calc unique spec object identifier from a bunch of parameters (DR7 or below)
+	static unsigned __int64 calcSpecObjID_DR7( int _plate, int _mjd, int _fiber, int _type );
+
+	// calc unique spec object identifier from a bunch of parameters for spectra (DR8 and above)
+	static unsigned __int64 calcSpecObjID_DR8( int _plate, int _mjd, int _fiber, int _run2d_m, int _run2d_n, int _run2d_p );
 
 	// convert plate number to string, e.g 266 -> "0266"
 	static std::string plateToString( int _plate );

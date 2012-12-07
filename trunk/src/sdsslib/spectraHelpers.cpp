@@ -226,7 +226,7 @@ void drawSpectra(Spectra &_spectra,
 			glLineStipple(1.f, 61680 );
 			if ( _spectra.m_Lines[i].wave>0.0f )
 			{
-				float x = static_cast<float>(Spectra::waveLengthToIndex(_spectra.m_Lines[i].wave, Spectra::waveBeginSrc, Spectra::waveEndSrc, Spectra::numSamples))*xscale+xoffset;
+				float x = static_cast<float>(Spectra::waveLengthToIndex(_spectra.m_Lines[i].wave, Spectra::waveLenStartSDSS, Spectra::waveLenEndSDSS, Spectra::numSamples))*xscale+xoffset;
 				float l1[3]={x,100,-10.f};
 				float l2[3]={x,800,-10.f};
 				GLHelper::DrawLine( l1, l2 );

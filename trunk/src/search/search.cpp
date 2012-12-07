@@ -201,7 +201,7 @@ void main(int argc, char* argv[])
 	for ( size_t i=0;i<numCompareSpectra;i++ )
 	{
 
-		bool bSuccess = compareSpectra[i].loadFromFITS( g_compareFileList.at(i) );
+		bool bSuccess = compareSpectra[i].loadFromFITS_SDSS( g_compareFileList.at(i) );
 		if ( !bSuccess )
 		{
 			Helpers::print("error: loading compare fits file "+g_compareFileList.at(i)+".\n", &logFile );

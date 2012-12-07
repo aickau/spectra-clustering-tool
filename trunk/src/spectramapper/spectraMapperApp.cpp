@@ -371,7 +371,7 @@ void displaySpectra( const std::string &_sstrSpectraListFilename, const std::str
 		b /= 255.f;
 
 		SSE_ALIGN Spectra sp;
-		if ( sp.loadFromFITS(sstrFilename) ) {
+		if ( sp.loadFromFITS_SDSS(sstrFilename) ) {
 
 			const int plate = sp.getPlate();
 			const int mjd = sp.getMJD();
