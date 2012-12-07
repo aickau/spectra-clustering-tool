@@ -199,8 +199,8 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, bool _norm
 			float xO = 0.0f;
 			float xD = xDAll;
 			if ( _toRestFrame ) {
-				float xB = Spectra::waveLenghtToRestFrame( Spectra::waveBeginSrc,tsp.m_Z );
-				float xE = Spectra::waveLenghtToRestFrame( Spectra::waveEndSrc,tsp.m_Z );
+				float xB = Spectra::waveLenghtToRestFrame( Spectra::waveLenStartSDSS,tsp.m_Z );
+				float xE = Spectra::waveLenghtToRestFrame( Spectra::waveLenEndSDSS,tsp.m_Z );
 				xD = xE-xB;
 				xO = (xB-Spectra::waveBeginDst)/xDAll;
 			}
