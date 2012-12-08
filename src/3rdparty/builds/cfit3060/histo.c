@@ -337,7 +337,7 @@ getweight:
         /* creat a float datatype histogram by default, if weight */
         /* factor is not = 1.0  */
 
-        if (defaulttype && *wt != 1.0)
+        if ( (defaulttype && *wt != 1.0) || (defaulttype && *wtname) )
             *imagetype = TFLOAT;
     }
 
@@ -1545,7 +1545,7 @@ int fits_calc_binning(
          if (ffgky(fptr, TDOUBLE, keyname, binsizein + ii, NULL, &tstatus) > 0)
          {
 	    /* make at least 10 bins */
-            binsize[ii] = (amax[ii] - amin[ii]) / 10. ;
+            binsize[ii] = (amax[ii] - amin[ii]) / 10.F ;
             if (binsize[ii] > 1.)
                 binsize[ii] = 1.;  /* use default bin size */
          }
@@ -1701,7 +1701,7 @@ int fits_rebin_wcs(
    /*  Update the  WCS keywords that define the location of the reference */
    /*  pixel, and the pixel size, along each axis.   */
 
-    int ii, jj, tstatus;
+    int ii, jj, tstatus, reset ;
     char keyname[FLEN_KEYWORD], svalue[FLEN_VALUE];
     double dvalue;
     
@@ -1710,6 +1710,14 @@ int fits_rebin_wcs(
   
     for (ii = 0; ii < naxis; ii++)
     {
+       reset = 0;  /* flag to reset the reference pixel */
+       tstatus = 0;
+       ffkeyn("CRVAL", ii + 1, keyname, &tstatus);
+       /* get previous (pre-binning) value */
+       ffgky(fptr, TDOUBLE, keyname, &dvalue, NULL, &tstatus); 
+       if (!tstatus && dvalue == 1.0)
+           reset = 1;
+
        tstatus = 0;
        /*  CRPIXn - update location of the ref. pix. in the binned image */
        ffkeyn("CRPIX", ii + 1, keyname, &tstatus);
@@ -1719,10 +1727,15 @@ int fits_rebin_wcs(
 
        if (!tstatus)
        {
+           if (dvalue != 1.0)
+	      reset = 0;
+
            /* updated value to give pixel location after binning */
            dvalue = (dvalue - amin[ii]) / ((double) binsize[ii]) + .5;  
 
            fits_modify_key_dbl(fptr, keyname, dvalue, -14, NULL, &tstatus);
+       } else {
+          reset = 0;
        }
 
        /*  CDELTn - update unit size of pixels  */
@@ -1734,6 +1747,9 @@ int fits_rebin_wcs(
 
        if (!tstatus)
        {
+           if (dvalue != 1.0)
+	      reset = 0;
+
            /* updated to give post-binning value */
            dvalue = dvalue * binsize[ii];  
 
@@ -1741,6 +1757,8 @@ int fits_rebin_wcs(
        }
        else
        {   /* no CDELTn keyword, so look for a CDij keywords */
+          reset = 0;
+
           for (jj = 0; jj < naxis; jj++)
 	  {
              tstatus = 0;
@@ -1760,6 +1778,21 @@ int fits_rebin_wcs(
              }
 	  }
        }
+
+       if (reset) {
+          /* the original CRPIX, CRVAL, and CDELT keywords were all = 1.0 */
+	  /* In this special case, reset the reference pixel to be the */
+	  /* first pixel in the array (instead of possibly far off the array) */
+ 
+           dvalue = 1.0;
+           ffkeyn("CRPIX", ii + 1, keyname, &tstatus);
+           fits_modify_key_dbl(fptr, keyname, dvalue, -14, NULL, &tstatus);
+
+           ffkeyn("CRVAL", ii + 1, keyname, &tstatus);
+	   dvalue = amin[ii] + (binsize[ii] / 2.0);	  
+           fits_modify_key_dbl(fptr, keyname, dvalue, -14, NULL, &tstatus);
+	}
+
     }
     return(*status);
 }
@@ -1832,7 +1865,7 @@ int fits_make_hist(fitsfile *fptr, /* IO - pointer to table with X and Y cols; *
 
     for (ii = 0; ii < naxis; ii++)
     {
-      taxes[ii] = naxes[ii];
+      taxes[ii] = (float) naxes[ii];
       tmin[ii] = amin[ii];
       tmax[ii] = amax[ii];
       if ( (amin[ii] > amax[ii] && binsize[ii] > 0. ) ||
@@ -1841,9 +1874,9 @@ int fits_make_hist(fitsfile *fptr, /* IO - pointer to table with X and Y cols; *
       else
           tbin[ii] =   binsize[ii];  /* binsize has the correct sign */
           
-      imin = tmin[ii];
-      imax = tmax[ii];
-      ibin = tbin[ii];
+      imin = (long) tmin[ii];
+      imax = (long) tmax[ii];
+      ibin = (long) tbin[ii];
     
       /* get the datatype of the column */
       fits_get_coltype(fptr, colnum[ii], &datatype, NULL, NULL, status);
@@ -1856,17 +1889,17 @@ int fits_make_hist(fitsfile *fptr, /* IO - pointer to table with X and Y cols; *
         /* Shift the lower and upper histogramming limits by 0.5, so that */
         /* the values fall in the center of the bin, not on the edge. */
 
-        maxbin[ii] = (taxes[ii] + 1.);  /* add 1. instead of .5 to avoid roundoff */
+        maxbin[ii] = (taxes[ii] + 1.F);  /* add 1. instead of .5 to avoid roundoff */
 
         if (tmin[ii] < tmax[ii])
         {
-          tmin[ii] = tmin[ii] - 0.5;
-          tmax[ii] = tmax[ii] + 0.5;
+          tmin[ii] = tmin[ii] - 0.5F;
+          tmax[ii] = tmax[ii] + 0.5F;
         }
         else
         {
-          tmin[ii] = tmin[ii] + 0.5;
-          tmax[ii] = tmax[ii] - 0.5;
+          tmin[ii] = tmin[ii] + 0.5F;
+          tmax[ii] = tmax[ii] - 0.5F;
         }
       } else {  /* not an integer column with integer limits */
           maxbin[ii] = (tmax[ii] - tmin[ii]) / tbin[ii]; 
@@ -1881,7 +1914,7 @@ int fits_make_hist(fitsfile *fptr, /* IO - pointer to table with X and Y cols; *
     histData.amin1 = tmin[0];
     histData.maxbin1 = maxbin[0];
     histData.binsize1 = tbin[0];
-    histData.haxis1 = taxes[0];
+    histData.haxis1 = (long) taxes[0];
 
     if (histData.haxis > 1)
     {
@@ -1889,7 +1922,7 @@ int fits_make_hist(fitsfile *fptr, /* IO - pointer to table with X and Y cols; *
       histData.amin2 = tmin[1];
       histData.maxbin2 = maxbin[1];
       histData.binsize2 = tbin[1];
-      histData.haxis2 = taxes[1];
+      histData.haxis2 = (long) taxes[1];
 
       if (histData.haxis > 2)
       {
@@ -1897,7 +1930,7 @@ int fits_make_hist(fitsfile *fptr, /* IO - pointer to table with X and Y cols; *
         histData.amin3 = tmin[2];
         histData.maxbin3 = maxbin[2];
         histData.binsize3 = tbin[2];
-        histData.haxis3 = taxes[2];
+        histData.haxis3 = (long) taxes[2];
 
         if (histData.haxis > 3)
         {
@@ -1905,7 +1938,7 @@ int fits_make_hist(fitsfile *fptr, /* IO - pointer to table with X and Y cols; *
           histData.amin4 = tmin[3];
           histData.maxbin4 = maxbin[3];
           histData.binsize4 = tbin[3];
-          histData.haxis4 = taxes[3];
+          histData.haxis4 = (long) taxes[3];
         }
       }
     }
@@ -1916,7 +1949,7 @@ int fits_make_hist(fitsfile *fptr, /* IO - pointer to table with X and Y cols; *
     fits_iter_set_iotype(imagepars, OutputCol);    /* image is output  */
 
     /* call the iterator function to write out the histogram image */
-   fits_iterate_data(n_cols, imagepars, offset, n_per_loop,
+    fits_iterate_data(n_cols, imagepars, offset, n_per_loop,
                           ffwritehisto, (void*)&histData, status);
        
     return(*status);
@@ -2011,8 +2044,14 @@ int ffwritehisto(long totaln, long pixoffset, long firstn, long nvalues,
     }
 
     /* call iterator function to calc the histogram pixel values */
+
+    /* must lock this call in multithreaded environoments because */
+    /* the ffcalchist work routine uses static vaiables that would */
+    /* get clobbered if multiple threads were running at the same time */
+    FFLOCK;
     fits_iterate_data(ncols, colpars, offset, rows_per_loop,
                           ffcalchist, (void*)histData, &status);
+    FFUNLOCK;
 
     return(status);
 }

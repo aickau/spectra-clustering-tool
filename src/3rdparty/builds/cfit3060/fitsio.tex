@@ -47,7 +47,7 @@ USA}
 \vfill
 \bigskip
 \begin{center}
-{\Large February 2006\\}
+{\Large May 2011\\}
 \end{center}
 \vfill
 \end{titlepage}
@@ -106,7 +106,7 @@ package should be sent to the primary author:
 
 \begin{verbatim}
         Dr. William Pence                 Telephone:  (301) 286-4599
-        HEASARC, Code 662                 E-mail: pence@tetra.gsfc.nasa.gov
+        HEASARC, Code 662                 E-mail: William.D.Pence@nasa.gov
         NASA/Goddard Space Flight Center
         Greenbelt, MD 20771, USA
 \end{verbatim}
@@ -186,6 +186,7 @@ The CFITSIO library is built on Unix systems by typing:
 
 \begin{verbatim}
  >  ./configure [--prefix=/target/installation/path]
+                [--enable-sse2] [--enable-ssse3]
  >  make          (or  'make shared')
  >  make install  (this step is optional)
 \end{verbatim}
@@ -202,11 +203,16 @@ the CFITSIO library and include files should be installed via the later
    > ./configure --prefix=/usr1/local
 \end{verbatim}
 will cause the 'make install' command to copy the CFITSIO libcfitsio file
-to /usr1/local/lib and the necessary include file to /usr1/local/include
-(assuming of course that the process has permission to write to these
+to /usr1/local/lib and the necessary include files to /usr1/local/include
+(assuming of course that the  process has permission to write to these
 directories).
 
-By default this also builds the set of Fortran-callable
+The optional --enable-sse2 and --enable-ssse3 flags will cause configure to
+attempt to build CFITSIO using faster byte-swapping algorithms.
+See the "Optimizing Programs" section of this manual for
+more information about these options.
+
+By default, the Makefile will be configured to build the set of Fortran-callable
 wrapper routines whose calling sequences are described later in this
 document.
 
@@ -241,7 +247,7 @@ The disadvantages are:
 On HP/UX systems, the environment variable CFLAGS should be set
 to -Ae before running configure to enable "extended ANSI" features.
 
-It may not be possible to staticly link programs that use CFITSIO on
+It may not be possible to statically link programs that use CFITSIO on
 some platforms (namely, on Solaris 2.6) due to the network drivers
 (which provide FTP and HTTP access to FITS files).  It is possible to
 make both a dynamic and a static version of the CFITSIO library, but
@@ -262,8 +268,8 @@ because of the inherent complexities of calling the CFITSIO C routines
 from Fortran.  Two different versions of the CFITSIO dll library are
 available, compiled with the Borland C++ compiler and the Microsoft
 Visual C++ compiler, respectively, in the files
-cfitsiodll\_2xxx\_borland.zip and cfitsiodll\_2xxx\_vcc.zip, where
-'2xxx' represents the current release number.  Both these dll libraries
+cfitsiodll\_2xxx\_borland.zip and cfitsiodll\_3xxx\_vcc.zip, where
+'3xxx' represents the current release number.  Both these dll libraries
 contain a set of Fortran wrapper routines which may be compatible with
 some, but probably not all, available Fortran compilers.  To test if
 they are compatible, compile the program testf77.f and try linking to
@@ -354,13 +360,25 @@ may be called 'f77' or 'g77', depending on the system.
 \end{verbatim}
 On machines running SUN O/S, Fortran programs must be compiled with the
 '-f' option to force double precision variables to be aligned on 8-byte
-boundarys to make the fortran-declared variables compatible with C.  A
+boundaries to make the fortran-declared variables compatible with C.  A
 similar compiler option may be required on other platforms.  Failing to
 use this option may cause the program to crash on FITSIO routines that
 read or write double precision variables.
 
-Also note that on some systems, the output listing of the testf77
-program may differ slightly from the testf77.std template, if leading
+On Windows platforms, linking Fortran programs with a C library
+often depends on the particular compilers involved.  Some users have
+found the following commands work when using the Intel Fortran compiler:
+
+\begin{verbatim}
+ifort /libs.dll cfitsio.lib /MD testf77.f /Gm
+
+or possibly,
+
+ifort /libs:dll cfitsio.lib /MD /fpp /extfpp:cfortran.h,fitsio.h
+    /iface:cvf testf77.f
+\end{verbatim}
+Also note that on some systems the output listing of the testf77
+program may differ slightly from the testf77.std template if leading
 zeros are not printed by default before the decimal point when using F
 format.
 
@@ -399,7 +417,7 @@ These latter 2 libraries are not needed on VMS and Windows platforms,
 because FTP file access is not currently supported on those platforms.
 
 Note that when upgrading to a newer version of CFITSIO it is usually
-necessay to recompile, as well as relink, the programs that use CFITSIO,
+necessary to recompile, as well as relink, the programs that use CFITSIO,
 because the definitions in fitsio.h often change.
 
 
@@ -500,8 +518,6 @@ claimed in the United States under Title 17, U.S. Code.
 Permission to freely use, copy, modify, and distribute this software
 and its documentation without fee is hereby granted, provided that this
 copyright notice and disclaimer of warranty appears in all copies.
-(However, see the restriction on the use of the gzip compression code,
-below).
 
 DISCLAIMER:
 
@@ -520,35 +536,8 @@ PERSONS OR PROPERTY OR OTHERWISE, AND WHETHER OR NOT LOSS WAS SUSTAINED
 FROM, OR AROSE OUT OF THE RESULTS OF, OR USE OF, THE SOFTWARE OR
 SERVICES PROVIDED HEREUNDER."
 
-The file compress.c contains (slightly modified) source code that
-originally came from gzip-1.2.4, copyright (C) 1992-1993 by Jean-loup
-Gailly.  This gzip code is distributed under the GNU General Public
-License and thus requires that any software that uses the CFITSIO
-library (which in turn uses the gzip code) must conform to the
-provisions in the GNU General Public License.  A copy of the GNU
-license is included at the beginning of compress.c file.
 
-Similarly, the file wcsutil.c contains 2 slightly modified routines
-from the Classic AIPS package that are also distributed under the GNU
-General Public License.
-
-Alternate versions of the compress.c and wcsutil.c files (called
-compress\_alternate.c and wcsutil\_alternate.c) are provided for users
-who want to use the CFITSIO
-library but are unwilling or unable to publicly release their software
-under the terms of the GNU General Public License.   These alternate
-versions contains non-functional stubs for the file compression and
-uncompression routines and the world coordinate transformation routines
-used by CFITSIO.  Replace the file `compress.c'
-with `compress\_alternate.c' and 'wcsutil.c' with 'wcsutil\_alternate.c
-before compiling the CFITSIO library.  This
-will produce a version of CFITSIO which does not support reading or
-writing compressed FITS files, or doing image coordinate transformations,
-but is otherwise identical to the standard version.
-
-
-
-\section{Acknowledgements}
+\section{Acknowledgments}
 
 The development of many of the powerful features in CFITSIO was made
 possible through collaborations with many people or organizations from
@@ -606,6 +595,9 @@ Martin Reinecke (Max Planck Institute, Garching)) provided the modifications to
 cfortran.h that are necessary to support 64-bit integer values when calling
 C routines from fortran programs.  The cfortran.h macros were originally developed
 by Burkhard Burow (CERN).
+
+Julian Taylor (ESO, Garching) provided the fast byte-swapping algorithms
+that use the SSE2 and SSSE3 machine instructions available on x86\_64 CPUs.
 
 In addition, many other people have made valuable contributions to the
 development of CFITSIO.  These include (with apologies to others that may
@@ -736,7 +728,7 @@ TUNITn -- the physical units of the column (optional)
 \end{itemize}
 
 Users should refer to the FITS Support Office at {\tt http://fits.gsfc.nasa.gov}
-for futher information about the FITS format and related software
+for further information about the FITS format and related software
 packages.
 
 
@@ -759,14 +751,6 @@ The C symbolic constant FOPEN\_MAX is intended to define the maximum
 number of files that may open at once (including any other text or
 binary files that may be open, not just FITS files).  On some systems it
 has been found that gcc supports a maximum of 255 opened files.
-
-Note that opening and operating on many FITS files simultaneously in
-parallel may be less efficient than operating on smaller groups of files
-in series.  CFITSIO only has NIOBUF number of internal buffers (set = 40
-by default) that are used for temporary storage of the most recent data
-records that have been read or written in the FITS files.  If the number
-of opened files is greater than NIOBUF, then CFITSIO may waste more time
-flushing and re-reading or re-writing the same records in the FITS files.
 
 2.  By default, CFITSIO can handle FITS files up to 2.1 GB in size (2**31
 bytes).  This file size limit is often imposed by 32-bit operating
@@ -1090,7 +1074,13 @@ of the NULLVAL parameter.  This will force FITSIO to simply pass the
 IEEE values through to the application program, without any
 modification.  This does not work for double precision values on
 VAX/VMS machines, however, where there is no easy way to bypass the
-default interpretation of the IEEE special values.
+default interpretation of the IEEE special values. This is also not
+supported when reading floating-point images that have been compressed
+with the FITS tiled image compression convention that is discussed in
+section 5.6;  the pixels values in tile compressed images are
+represented by scaled integers, and a reserved integer value
+(not a NaN) is used to represent undefined pixels.
+
 
 
 \section{When the Final Size of the FITS HDU is Unknown}
@@ -1203,7 +1193,7 @@ ordinary string values less than 68 characters in length.
 
 CFITSIO supports 2 ways to specify that a character column in a binary
 table contains an array of fixed-length strings.  The first way, which
-is offically supported by the FITS Standard document, uses the TDIMn keyword.
+is officially supported by the FITS Standard document, uses the TDIMn keyword.
 For example, if TFORMn = '60A' and TDIMn = '(12,5)' then that
 column will be interpreted as containing an array of 5 strings, each 12
 characters long.
@@ -1399,7 +1389,57 @@ being read then flushed from a IO buffer multiple times.
 The following section gives more specific suggestions for optimizing
 the use of CFITSIO.
 
-1.  When dealing with a FITS primary array or IMAGE extension, it is
+
+\subsection{Optimization Strategies}
+
+1.  Because the data in FITS files is always stored in "big-endian" byte order,
+where the first byte of numeric values contains the most significant bits and the
+last byte contains the least significant bits, CFITSIO must swap the order of the bytes
+when reading or writing FITS files when running on little-endian machines (e.g.,
+Linux and Microsoft Windows operating systems running on PCs with x86 CPUs).
+
+On fairly new CPUs that support "SSSE3" machine instructions
+(e.g., starting with Intel Core 2 CPUs in 2007, and in AMD CPUs
+beginning in 2011) significantly faster 4-byte and 8-byte swapping
+algorithms are available. These faster byte swapping functions are
+not used by default in CFITSIO (because of the potential code
+portablility issues), but users can enable them on supported
+platforms by adding the appropriate compiler flags (-mssse3 with gcc
+or icc on linux) when compiling the swapproc.c source file, which will
+allow the compiler to generate code using the SSSE3 instruction set.
+A convenient way to do this is to configure the CFITSIO library
+with the following command:
+
+\begin{verbatim}
+  >  ./configure --enable-ssse3
+\end{verbatim}
+Note, however, that a binary executable file that is
+created using these faster functions will only run on
+machines that support the SSSE3 machine instructions. It will
+crash on machines that do not support them.
+
+For faster 2-byte swaps on virtually all x86-64 CPUs (even those that
+do not support SSSE3), a variant using only SSE2 instructions exists.
+SSE2 is enabled by default on x86\_64 CPUs with 64-bit operating systems
+(and is also automatically enabled by the --enable-ssse3 flag).
+When running on x86\_64 CPUs with 32-bit operating systems, these faster
+2-byte swapping algorithms are not used by default in CFITSIO, but can be
+enabled explicitly with:
+
+\begin{verbatim}
+./configure --enable-sse2
+\end{verbatim}
+Preliminary testing indicates that these SSSE3 and SSE2 based
+byte-swapping algorithms can boost the CFITSIO performance when
+reading or writing FITS images by 20\% - 30\% or more.
+It is important to note, however, that compiler optimization must be
+turned on (e.g., by using the -O1 or -O2 flags in gcc) when building
+programs that use these fast byte-swapping algorithms in order
+to reap the full benefit of the SSSE3 and SSE2 instructions; without
+optimization, the code may actually run slower than when using
+more traditional byte-swapping techniques.
+
+2.  When dealing with a FITS primary array or IMAGE extension, it is
 more efficient to read or write large chunks of the  image at a time
 (at least 3 FITS blocks = 8640 bytes) so that the direct IO mechanism
 will be used as described in the previous section.  Smaller chunks of
@@ -1411,7 +1451,7 @@ possible, however, if the array becomes so large that the operating
 system cannot store it all in RAM, then the performance may be degraded
 because of the increased swapping of virtual memory to disk.
 
-2.  When dealing with FITS tables, the most important efficiency factor
+3.  When dealing with FITS tables, the most important efficiency factor
 in the software design is to read or write the data in the FITS file in
 a single pass through the file.  An example of poor program design
 would be to read a large, 3-column table by sequentially reading the
@@ -1444,28 +1484,19 @@ subroutine calls.
 
 The optimal number of rows returned by ftgrsz is valid only as long as
 the application program is only reading or writing data in the
-specified table.  Any other calls to access data in the table header or
-in any other FITS file would  cause additional blocks of data to be
+specified table.  Any other calls to access data in the table header
+would  cause additional blocks of data to be
 loaded into the I/O buffers displacing data from the original table,
 and should be avoided during the critical period while the table is
 being read or written.
 
-Occasionally it is necessary to simultaneously access more than one
-FITS table, for example when transferring values from an input table to
-an output table.  In cases like this, one should call ftgrsz to get the
-optimal number of rows for each table separately, than reduce the
-number of rows proportionally.  For example, if the optimal number of
-rows in the input table is 3600 and is 1400 in the output table, then
-these values should be cut in half to 1800 and 700, respectively, if
-both tables are going to be accessed at the same time.
-
-3.  Use binary table extensions rather than ASCII table
+4.  Use binary table extensions rather than ASCII table
 extensions for better efficiency  when dealing with tabular data.  The
 I/O to ASCII tables is slower because of the overhead in formatting or
 parsing the ASCII data fields, and because ASCII tables are about twice
 as large as binary tables with the same information content.
 
-4. Design software so that it reads the FITS header keywords in the
+5. Design software so that it reads the FITS header keywords in the
 same order in which they occur in the file.  When reading keywords,
 FITSIO searches forward starting from the position of the last keyword
 that was read.  If it reaches the end of the header without finding the
@@ -1475,20 +1506,20 @@ the entire FITS header can fit at one time in the available internal I/O
 buffers, then the header keyword access will be very fast and it makes
 little difference which order they are accessed.
 
-5. Avoid the use of scaling (by using the BSCALE and BZERO or TSCAL and
+6. Avoid the use of scaling (by using the BSCALE and BZERO or TSCAL and
 TZERO keywords) in FITS files since the scaling operations add to the
 processing time needed to read or write the data.  In some cases it may
 be more efficient to temporarily turn off the scaling (using ftpscl or
 fttscl) and then read or write the raw unscaled values in the FITS
 file.
 
-6. Avoid using the 'implicit datatype conversion' capability in
+7. Avoid using the 'implicit datatype conversion' capability in
 FITSIO.  For instance, when reading a FITS image with BITPIX = -32
 (32-bit floating point pixels), read the data into a single precision
 floating point data array in the program.  Forcing FITSIO to convert
 the data to a different datatype can significantly slow the program.
 
-7. Where feasible, design FITS binary tables using vector column
+8. Where feasible, design FITS binary tables using vector column
 elements so that the data are written as a contiguous set of bytes,
 rather than as single elements in multiple rows.  For example, it is
 faster to access the data in a table that contains a single row
@@ -1502,12 +1533,12 @@ in the first column is interleaved with the integer value in the second
 column of the same row so CFITSIO has to explicitly move to the
 position of each element to be read or written.
 
-8. Avoid the use of variable length vector columns in binary tables,
+9. Avoid the use of variable length vector columns in binary tables,
 since any reading or writing of these data requires that CFITSIO first
 look up or compute the starting address of each row of data in the
-heap.
+heap.  In practice, this is probably not a significant efficiency issue.
 
-9. When copying data from one FITS table to another, it is faster to
+10. When copying data from one FITS table to another, it is faster to
 transfer the raw bytes instead of reading then writing each column of
 the table.  The FITSIO subroutines FTGTBS and FTPTBS (for ASCII
 tables), and  FTGTBB and FTPTBB (for binary tables) will perform
@@ -1525,7 +1556,7 @@ and should only be used by programmers who thoroughly understand the
 internal byte structure of the FITS tables they are reading or
 writing.
 
-10. Another strategy for improving the speed of writing a FITS table,
+11. Another strategy for improving the speed of writing a FITS table,
 similar to the previous one, is to directly construct the entire byte
 stream for a whole table row (or multiple rows) within the application
 program and then write it to the FITS file with
@@ -1536,7 +1567,7 @@ difficult to understand and maintain, and it makes the code more system
 dependent (e.g., do the bytes need to be swapped before writing to the
 FITS file?).
 
-11.  Finally, external factors such as the type of magnetic disk
+12.  Finally, external factors such as the type of magnetic disk
 controller (SCSI or IDE), the size of the disk cache, the average seek
 speed of the disk, the amount of disk fragmentation, and the amount of
 RAM available on the system can all have a significant impact on
@@ -1754,7 +1785,9 @@ used by these interface routines.
     routine is identical
     to the FTITAB routine except that the 2nd and 3rd parameters (that give
     the size of the table) are 64-bit integers rather than
-   32-bit integers.
+    32-bit integers.  Under normal circumstances, the nrows and nrowsll
+    paramenters should have a value of 0; CFITSIO will automatically update
+   the number of rows as data is written to the table.
 \end{description}
 
 \begin{verbatim}
@@ -1773,7 +1806,9 @@ used by these interface routines.
     routine is identical
     to the FTIBIN routine except that the 2nd parameter (that gives
     the length of the table) is a 64-bit integer rather than
-   a 32-bit integer.
+    a 32-bit integer. Under normal circumstances, the nrows and nrowsll
+    paramenters should have a value of 0; CFITSIO will automatically update
+   the number of rows as data is written to the table.
 \end{description}
 
 \begin{verbatim}
@@ -3609,7 +3644,7 @@ spaces in the name).  Trailing blank characters are not significant.
 
 \begin{description}
 \item[7 ] Put (append) a TDIMn keyword whose value has the form '(l,m,n...)'
-    where l, m, n... are the dimensions of a multidimension array
+    where l, m, n... are the dimensions of a multidimensional array
    column in a binary table.
 \end{description}
 
@@ -3725,7 +3760,10 @@ do not use ASCII character codes in the internal data representations
     All the rows FOLLOWING row FROW are shifted down by NROWS rows.  If
     FROW or FROWLL equals 0 then the blank rows are inserted at the beginning of the
     table.  These routines modify the NAXIS2 keyword to reflect the new
-   number of rows in the table.
+    number of rows in the table.  Note that it is *not* necessary to insert rows in a table before
+    writing data to those rows (indeed, it would be inefficient to do so).
+    Instead, one may simply write data to any row of the table, whether that
+   row of data already exists or not.
 \end{description}
 
 \begin{verbatim}
@@ -3825,8 +3863,11 @@ differs from the data type of the calling subroutine.  The data values are also
 scaled by the TSCALn and TZEROn header values as they are being written to
 or read from the FITS array.  The fttscl subroutine MUST be used to define the
 scaling parameters when writing data to the table or to override the default
-scaling values given in the header
-when reading from the table.
+scaling values given in the header when reading from the table.
+Note that it is *not* necessary to insert rows in a table before
+writing data to those rows (indeed, it would be inefficient to do so).
+Instead, one may simply write data to any row of the table, whether that
+row of data already exists or not.
 
     In the case of binary tables with vector elements, the 'felem'
 parameter defines the starting pixel within the element vector.  This
@@ -3872,11 +3913,17 @@ of flags which defines whether the corresponding data pixel is undefined.
 \item[1 ] Put elements into an ASCII or binary table column (in the CDU).
     (The SPP FSPCLS routine has an additional integer argument after
     the VALUES character string which specifies the size of the 1st
-   dimension of this 2-D CHAR array).
+    dimension of this 2-D CHAR array).
+
+    The alternate version of these routines, whose names end in 'LL'
+    after the datatype character, support large tables with more then
+    2*31 rows.  When calling these routines, the frow and felem parameters
+   *must* be 64-bit integer*8 variables, instead of normal 4-byte integers.
 \end{description}
 
 \begin{verbatim}
         FTPCL[SLBIJKEDCM](unit,colnum,frow,felem,nelements,values, > status)
+        FTPCL[LBIJKEDCM]LL(unit,colnum,frow,felem,nelements,values, > status)
 \end{verbatim}
 
 \begin{description}
@@ -3887,11 +3934,18 @@ of flags which defines whether the corresponding data pixel is undefined.
     For integer FITS columns, in a binary table  the null value
     defined by the previous call to FTTNUL will be substituted;
     For floating point FITS columns a special IEEE NaN (Not-a-Number)
-   value will be substituted.
+    value will be substituted.
+
+    The alternate version of these routines, whose names end in 'LL'
+    after the datatype character, support large tables with more then
+    2*31 rows.  When calling these routines, the frow and felem parameters
+   *must* be 64-bit integer*8 variables, instead of normal 4-byte integers.
 \end{description}
 
 \begin{verbatim}
-        FTPCN[BIJKED](unit,colnum,frow,felem,nelements,values,nullval > status)
+        FTPCN[SBIJKED](unit,colnum,frow,felem,nelements,values,nullval > status)
+        FTPCN[SBIJKED]LL(unit,colnum,(I*8) frow,(I*8) felem,nelements,values,
+	                nullval > status)
 \end{verbatim}
 
 \begin{description}
@@ -3931,13 +3985,20 @@ of flags which defines whether the corresponding data pixel is undefined.
     the ftgcfl routine to check for undefined logical elements).
     (The SPP FSGCVS routine has an additional integer argument after
     the VALUES character string which specifies the size of the 1st
-   dimension of this 2-D CHAR array).
+    dimension of this 2-D CHAR array).
+
+    The alternate version of these routines, whose names end in 'LL'
+    after the datatype character, support large tables with more then
+    2*31 rows.  When calling these routines, the frow and felem parameters
+   *must* be 64-bit integer*8 variables, instead of normal 4-byte integers.
 \end{description}
 
 \begin{verbatim}
         FTGCL(unit,colnum,frow,felem,nelements, > values,status)
         FTGCV[SBIJKEDCM](unit,colnum,frow,felem,nelements,nullval, >
                        values,anyf,status)
+        FTGCV[BIJKEDCM]LL(unit,colnum,(I*8) frow, (I*8) felem, nelements,
+	               nullval, > values,anyf,status)
 \end{verbatim}
 
 \begin{description}
@@ -3948,11 +4009,18 @@ of flags which defines whether the corresponding data pixel is undefined.
     returned elements are undefined.
     (The SPP FSGCFS routine has an additional integer argument after
     the VALUES character string which specifies the size of the 1st
-   dimension of this 2-D CHAR array).
+    dimension of this 2-D CHAR array).
+
+    The alternate version of these routines, whose names end in 'LL'
+    after the datatype character, support large tables with more then
+    2*31 rows.  When calling these routines, the frow and felem parameters
+   *must* be 64-bit integer*8 variables, instead of normal 4-byte integers.
 \end{description}
 
 \begin{verbatim}
         FTGCF[SLBIJKEDCM](unit,colnum,frow,felem,nelements, >
+                         values,flagvals,anyf,status)
+        FTGCF[BIJKED]LL(unit,colnum, (I*8) frow, (I*8) felem,nelements, >
                          values,flagvals,anyf,status)
 \end{verbatim}
 
@@ -4093,7 +4161,9 @@ may be used to add comments to the file.
 
 \begin{description}
 \item[3 ]Evaluate an expression on all rows of a table.  If the input and output
-files are not the same, copy the TRUE rows to the output file.  If the
+files are not the same, copy the TRUE rows to the output file;  if the output
+table is not empty, then this routine will append the new
+selected rows after the existing rows.  If the
 files are the same, delete the FALSE rows (preserve the TRUE rows).
 \end{description}
 
@@ -4150,11 +4220,15 @@ and lastrow give the starting and ending row number of each range.
 \end{verbatim}
 
 \begin{description}
-\item[7 ]Evaluate the given expression and return information on the result.
+\item[7 ]Evaluate the given expression and return dimension and type information
+on the result.  The returned dimensions correspond to a single row entry
+of the requested expression, and are equivalent to the result of fits\_read\_tdim().
+Note that strings are considered to be one element regardless of string length.
+If maxdim == 0, then naxes is optional.
 \end{description}
 
 \begin{verbatim}
-         FTTEXP(unit, expr, > datatype, nelem, naxis, naxes, status)
+         FTTEXP(unit, expr, maxdim > datatype, nelem, naxis, naxes, status)
 \end{verbatim}
 
 
@@ -4183,7 +4257,7 @@ http://fits.gsfc.nasa.gov under the WCS link.
 
 The functions provided in these external WCS libraries will need access to
 the  WCS information contained in the FITS file headers.  One convenient
-way to pass this information to the extermal library is to use  FITSIO
+way to pass this information to the external library is to use  FITSIO
 to copy the header keywords into one long character string, and then
 pass this string to an interface routine in the external library that
 will extract the necessary WCS information (e.g., see the astFitsChan
@@ -4709,16 +4783,16 @@ The following utility subroutines may be useful for certain applications:
         (numeric, logical, or character string) is automatically determined
         and  the output CARD string is formatted accordingly.  The value
         token may be forced to be interpreted as a string (e.g. if it is a
-       string of numeric digits) by enclosing it in single quotes.
+        string of numeric digits) by enclosing it in single quotes.
+        If the value token is a character string that contains 1 or more
+        embedded blank space characters or slash ('/') characters then the
+       entire character string must be enclosed in single quotes.
 \end{description}
 
 
 \begin{description}
 \item[- ]     The COMMENT token is optional, but if present must be separated from
-        the VALUE token by at least one blank space.  A leading '/' character
-        may be used to mark the beginning of the comment field, otherwise the
-        comment field begins with the first non-blank character following the
-       value token.
+       the VALUE token by a blank space or a  '/' character.
 \end{description}
 
 
@@ -4820,7 +4894,7 @@ file, passing them to the work function, and then writing any output
 data back to the FITS file after the work function exits.  Because
 it is often more efficient to process only a subset of the total table
 rows at one time, the iterator function can determine the optimum
-amount of data to pass in each iteration and repeatly call the work
+amount of data to pass in each iteration and repeatedly call the work
 function until the entire table been processed.
 
 For many applications this single CFITSIO iterator function can
@@ -4894,7 +4968,7 @@ read the image header or data.  Similarly, raw binary data arrays can
 be read by converting them on the fly into virtual FITS images.
 
 \item
-FITS files on the internet can be read (and sometimes written) using the FTP,
+FITS files on the Internet can be read (and sometimes written) using the FTP,
 HTTP, or ROOT protocols.
 
 \item
@@ -4981,7 +5055,7 @@ the stdout stream.
 
 \item
 {\tt 'ftp://legacy.gsfc.nasa.gov/test/vela.fits'}:  FITS files in any ftp
-archive site on the internet may be directly opened with read-only
+archive site on the Internet may be directly opened with read-only
 access.
 
 \item
@@ -5020,7 +5094,7 @@ in this case.
 a temporary file on the fly (in memory or on disk) that is identical to
 myfile.fits except that it will contain a new column in the EVENTS
 extension called 'Rad' whose value is computed using the indicated
-expresson which is a function of the values in the X and Y columns.
+expression which is a function of the values in the X and Y columns.
 
 \item
 {\tt 'myfile.fits[EVENTS][PHA > 5]'}:  creates and opens a temporary FITS
@@ -5091,9 +5165,15 @@ CFITSIO to read and/or write the file.  Currently supported types are
                    It also supports  ftp://username:password@hostname/...
                    for accessing password-protected ftp sites.
         http://  - a readonly file accessed with the HTTP protocol.  It
-                   does not  support username:password like the ftp driver.
+                   supports username:password just like the ftp driver.
                    Proxy HTTP servers are supported using the http_proxy
-                   environment variable.
+                   environment variable (see following note).
+      stream://  - special driver to read an input FITS file from the stdin
+                   stream, and/or write an output FITS file to the stdout
+		   stream.  This driver is fragile and has limited
+		   functionality (see the following note).
+      gsiftp://  - access files on a computational grid using the gridftp
+                   protocol in the Globus toolkit (see following note).
         root://  - uses the CERN root protocol for writing as well as
                    reading files over the network.
         shmem:// - opens or creates a file which persists in the computer's
@@ -5118,6 +5198,99 @@ For example
 \end{verbatim}
 will cause CFITSIO to use port 3128 on the heasarc proxy server whenever
 reading a FITS file with HTTP.
+
+
+\subsection{Notes about the stream filetype driver}
+
+The stream driver can be used to efficiently read a FITS file from the stdin
+file stream or write a FITS to the stdout file stream.  However, because these
+input and output streams must be accessed sequentially, the FITS file reading or
+writing application must also read and write the file sequentially, at least
+within the tolerances described below.
+
+CFITSIO supports 2 different methods for accessing FITS files on the stdin and
+stdout streams.  The original method, which is invoked by specifying a dash
+character, "-", as the name of the file when opening or creating it, works by
+storing a complete copy of the entire FITS file in memory.  In this case, when
+reading from stdin, CFITSIO will copy the entire stream into memory before doing
+any processing of the file.  Similarly, when writing to stdout, CFITSIO will
+create a copy of the entire FITS file in memory, before finally flushing it out
+to  the stdout stream when the FITS file is closed.  Buffering the entire FITS
+file in this way allows the application to randomly access any part of the FITS
+file, in any order, but it also requires that the user have sufficient available
+memory (or virtual memory) to store the entire file, which may not be possible
+in the case of very large files.
+
+The newer stream filetype provides a more memory-efficient method of accessing
+FITS files on the stdin or stdout streams.  Instead of storing a copy of the
+entire FITS file in memory, CFITSIO only uses a set of internal  buffer which by
+default can store  40 FITS blocks, or about  100K bytes of the FITS file.  The
+application program must process the FITS file sequentially from beginning to
+end, within this 100K buffer.  Generally speaking the application  program must
+conform to the following restrictions:
+
+\begin{itemize}
+\item
+The program must finish reading or writing the header keywords
+before reading or writing any data in the HDU.
+\item
+The HDU can contain at most about 1400 header keywords.  This is the
+maximum that can fit in the nominal 40 FITS block buffer.  In principle,
+this limit could be increased by recompiling CFITSIO with a larger
+buffer limit, which is set by the NIOBUF parameter in fitsio2.h.
+\item
+The program must read or write the data in a sequential manner from the
+beginning to the end of the HDU.  Note that CFITSIO's internal
+100K buffer allows a little latitude in meeting this requirement.
+\item
+The program cannot move back to a previous HDU in the FITS file.
+\item
+Reading or writing of variable length array columns in binary tables is not
+supported on streams, because this requires moving back and forth between the
+fixed-length portion of the binary table and the following heap area where the
+arrays are actually stored.
+\item
+Reading or writing of tile-compressed images is not supported on streams,
+because the images are internally stored using variable length arrays.
+\end{itemize}
+
+
+\subsection{Notes about the gsiftp filetype}
+
+DEPENDENCIES: Globus toolkit (2.4.3 or higher) (GT) should be installed.
+There are two different ways to install GT:
+
+1) goto the globus toolkit web page www.globus.org and follow the
+   download and compilation instructions;
+
+2) goto the Virtual Data Toolkit web page http://vdt.cs.wisc.edu/
+   and follow the instructions (STRONGLY SUGGESTED);
+
+Once a globus client has been installed in your system with a specific flavour
+it is possible to compile and install the CFITSIO libraries.
+Specific configuration flags must be used:
+
+1)  --with-gsiftp[[=PATH]] Enable Globus Toolkit gsiftp protocol support
+    PATH=GLOBUS\_LOCATION i.e. the location of your globus installation
+
+2)  --with-gsiftp-flavour[[=PATH] defines the specific Globus flavour
+        ex. gcc32
+
+Both the flags must be used and it is mandatory to set  both the PATH and the
+flavour.
+
+USAGE: To access files on a gridftp server it is necessary to use a gsiftp prefix:
+
+example: gsiftp://remote\_server\_fqhn/directory/filename
+
+The gridftp driver uses a local buffer on a temporary file the file is located
+in the /tmp directory. If you have special permissions on /tmp or you do not have a /tmp
+directory, it is possible to force another location setting the GSIFTP\_TMPFILE environment
+variable (ex. export GSIFTP\_TMPFILE=/your/location/yourtmpfile).
+
+Grid FTP supports multi channel transfer. By default a single channel transmission is
+available. However, it is possible to modify this behavior setting the GSIFTP\_STREAMS
+environment variable (ex. export GSIFTP\_STREAMS=8).
 
 
 \subsection{Notes about the root filetype}
@@ -5218,7 +5391,7 @@ shared memory files in CFITSIO by calling:
    fit_create_file(&fitsfileptr, "shmem://h2", &status);
 \end{verbatim}
 where the root `file' names are currently restricted to be 'h0', 'h1',
-'h2', 'h3', etc., up to a maximumn number defined by the the value of
+'h2', 'h3', etc., up to a maximum number defined by the the value of
 SHARED\_MAXSEG (equal to 16 by default).  This is a prototype
 implementation of the shared memory interface and a more robust
 interface, which will have fewer restrictions on the number of files
@@ -5615,11 +5788,11 @@ of every pixel in a FITS image, thus creating a new virtual image
 in computer memory that is then opened and read by the application
 program.  The original FITS image is not modified by this process.
 
-The image tranformation specifier is appended to the input
+The image transformation specifier is appended to the input
 FITS file name and is enclosed in square brackets.  It begins with the
 letters 'PIX' to distinguish it from other types of FITS file filters
 that are recognized by CFITSIO.  The image transforming function may
-use any of the mathmatical operators listed in the following
+use any of the mathematical operators listed in the following
 'Row Filtering Specification' section of this document.
 Some examples of  image transform filters are:
 
@@ -5730,7 +5903,7 @@ also supplied.
 
 The column/keyword filter can be used to perform the following
 operations.  More than one operation may be specified by separating
-them with semi-colons.
+them with commas or semi-colons.
 
 \begin{itemize}
 
@@ -5800,7 +5973,7 @@ If the expression contains both a list of columns to be included and
 columns to be deleted, then all the columns in the original table
 except the explicitly deleted columns will appear in the filtered
 table.  If no columns to be deleted are specified, then only the
-columns that are explicitely listed will be included in the filtered
+columns that are explicitly listed will be included in the filtered
 output table.  To include all the columns, add the '*' wildcard
 specifier at the end of the list, as shown in the examples.
 
@@ -5815,10 +5988,10 @@ used to add comments into the file.
 Examples:
 
 \begin{verbatim}
-   [col Time;rate]               - only the Time and rate columns will
+   [col Time; rate]              - only the Time and rate columns will
                                    appear in the filtered input file.
 
-   [col Time;*raw]               - include the Time column and any other
+   [col Time, *raw]              - include the Time column and any other
                                    columns whose name ends with 'raw'.
 
    [col -TIME; Good == STATUS]   - deletes the TIME column and
@@ -5893,7 +6066,7 @@ Examples:
     keyword name with a single pound sign, '\#', as in '\#NAXIS2'.  Due to
     the generalities of FITS column and  keyword names, if the column or
     keyword name  contains a space or a  character which might appear as
-    an arithmetic  term then inclose  the  name in '\$'  characters as in
+    an arithmetic  term then enclose  the  name in '\$'  characters as in
     \$MAX PHA\$ or \#\$MAX-PHA\$.  Names are case insensitive.
 
     To access a table entry in a row other  than the current one, follow
@@ -5941,11 +6114,12 @@ by a backslash to force the UNIX shell to ignore it.
     "exponential"        exp(x)     "square root"          sqrt(x)
     "natural log"        log(x)     "common log"           log10(x)
     "modulus"            x % y      "random # [0.0,1.0)"   random()
-    "random Gausian"     randomn()  "random Poisson"       randomp(x)
+    "random Gaussian"    randomn()  "random Poisson"       randomp(x)
     "minimum"            min(x,y)   "maximum"              max(x,y)
     "cumulative sum"     accum(x)  "sequential difference" seqdiff(x)
     "if-then-else"       b?x:y
     "angular separation"  angsep(ra1,dec1,ra2,de2) (all in degrees)
+    "substring"      strmid(s,p,n) "string search"         strstr(s,r)
 \end{verbatim}
 Three different random number functions are provided:  random(), with no
 arguments, produces a uniform random deviate between 0 and 1; randomn(),
@@ -5955,8 +6129,8 @@ deviate whose expected number of counts is X.  X may be any positive real
 number of expected counts, including fractional values, but the return value
 is an integer.
 
-When the random functions are used in a vector expresion, by default
-the same random value will be used when evalutating each element of the vector.
+When the random functions are used in a vector expression, by default
+the same random value will be used when evaluating each element of the vector.
 If different random numbers are desired, then the name of a vector
 column should be supplied as the single argument to the random
 function (e.g., "flux + 0.1 * random(flux)", where "flux' is the
@@ -5977,14 +6151,32 @@ element of the vector expression.
     accum functions are functional inverses, i.e., seqdiff(accum(x)) == x
     as long as no null values are present.
 
+In the if-then-else expression, "b?x:y", b is an explicit boolean
+value or expression.  There is no automatic type conversion from
+numeric to boolean values, so one needs to use "iVal!=0" instead of
+merely "iVal" as the boolean argument. x and y can be any scalar data
+type (including string).
+
     The angsep function computes the angular separation in degrees
     between 2 celestial positions, where the first 2 parameters
     give the RA-like and Dec-like coordinates (in decimal degrees)
     of the first position, and the 3rd and 4th parameters give the
     coordinates of the second position.
 
+The substring function strmid(S,P,N) extracts a substring from S,
+starting at string position P, with a substring length N.  The first
+character position in S is labeled as 1. If P is 0, or refers to a
+position beyond the end of S, then the extracted substring will be
+NULL.   S, P, and N may be functions of other columns.
+
+The string search function strstr(S,R) searches for the first occurrence
+of the substring R in S.  The result is an integer, indicating the
+character position of the first match (where 1 is the first character
+position of S).  If no match is found, then strstr() returns a NULL
+value.
+
     The  following  type  casting  operators  are  available,  where the
-    inclosing parentheses are required and taken  from  the  C  language
+    enclosing parentheses are required and taken  from  the  C  language
     usage. Also, the integer to real casts values to double precision:
 
 \begin{verbatim}
@@ -6120,13 +6312,15 @@ element of the vector expression.
 \begin{verbatim}
     "minimum"      MIN(V)          "maximum"               MAX(V)
     "average"      AVERAGE(V)      "median"                MEDIAN(V)
-    "sumation"     SUM(V)          "standard deviation"    STDDEV(V)
+    "summation"    SUM(V)          "standard deviation"    STDDEV(V)
     "# of values"  NELEM(V)        "# of non-null values"  NVALID(V)
 \end{verbatim}
     where V represents the name of a vector column or a manually
     constructed vector using curly brackets as described below.  The
     first 6 of these functions ignore any null values in the vector when
-    computing the result.
+    computing the result.  The STDDEV() function computes the sample
+    standard deviation, i.e. it is proportional to 1/SQRT(N-1) instead
+    of 1/SQRT(N), where N is NVALID(V).
 
     The SUM function literally sums all  the elements in x,  returning a
     scalar value.   If x  is  a  boolean  vector, SUM returns the number
@@ -6247,17 +6441,20 @@ element of the vector expression.
 \end{verbatim}
     where each "[]" demarks optional parameters. The region file name
     is required and must be  enclosed in quotes.  The remaining
-    parameters are optional.  The region file is an ASCII text file
-    which contains a list of one or more geometric shapes (circle,
+    parameters are optional.  There are 2 supported formats for the
+    region file: ASCII file or FITS binary table.  The region file
+    contains a list of one or more geometric shapes (circle,
     ellipse, box, etc.) which defines a region on the celestial sphere
     or an area within a particular 2D image.  The region file is
     typically generated using an image display program such as fv/POW
     (distribute by the HEASARC), or ds9 (distributed by the Smithsonian
     Astrophysical Observatory).  Users should refer to the documentation
     provided with these programs for more details on the syntax used in
-    the region files.
+    the region files.  The FITS region file format is defined in a document
+    available from the FITS Support Office at
+    http://fits.gsfc.nasa.gov/ registry/ region.html
 
-    In its simpliest form, (e.g., regfilter("region.reg") ) the
+    In its simplest form, (e.g., regfilter("region.reg") ) the
     coordinates in the default 'X' and 'Y' columns will be used to
     determine if each row is inside or outside the area specified in
     the region file.  Alternate position column names, or expressions,
@@ -6325,7 +6522,7 @@ element of the vector expression.
 \end{verbatim}
     where (Xc,Yc) is  the coordinate of  the shape's center; (X\#,Y\#) are
     the coordinates  of the shape's edges;  Rxxx are the shapes' various
-    Radii or semimajor/minor  axes; and Axxx  are the angles of rotation
+    Radii or semi-major/minor  axes; and Axxx  are the angles of rotation
     (or bounding angles for Sector) in degrees.  For rotated shapes, the
     rotation angle  can  be left  off, indicating  no rotation.   Common
     alternate  names for the regions  can also be  used: rotbox = box;

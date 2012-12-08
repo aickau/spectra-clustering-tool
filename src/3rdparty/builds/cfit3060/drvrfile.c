@@ -162,7 +162,7 @@ int file_openfile(char *filename, int rwmode, FILE **diskfile)
     char mode[4];
 
 #if defined(unix) || defined(__unix__) || defined(__unix)
-    char tempname[512], *cptr, user[80];
+    char tempname[1024], *cptr, user[80];
     struct passwd *pwd;
     int ii = 0;
 
@@ -201,11 +201,17 @@ int file_openfile(char *filename, int rwmode, FILE **diskfile)
             cptr = getenv("HOME");
             if (cptr)
             {
+                 if (strlen(cptr) + strlen(filename+1) > 1023)
+		      return(FILE_NOT_OPENED); 
+
                  strcpy(tempname, cptr);
                  strcat(tempname, filename+1);
             }
             else
             {
+                 if (strlen(filename) > 1023)
+		      return(FILE_NOT_OPENED); 
+
                  strcpy(tempname, filename);
             }
         }
@@ -225,6 +231,9 @@ int file_openfile(char *filename, int rwmode, FILE **diskfile)
             pwd = getpwnam(user);
 
             /* copy user's home directory */
+            if (strlen(pwd->pw_dir) + strlen(cptr) > 1023)
+		      return(FILE_NOT_OPENED); 
+
             strcpy(tempname, pwd->pw_dir);
             strcat(tempname, cptr);
         }
@@ -249,6 +258,10 @@ int file_openfile(char *filename, int rwmode, FILE **diskfile)
            {
               if ((f1 = fopen(filename, "rb")) != 0) /* try opening READONLY */
               {
+
+                 if (strlen(filename) + 7 > 1023)
+		      return(FILE_NOT_OPENED); 
+
                  strcpy(tempname, filename);
                  strcat(tempname, ".TmxFil");
                  if ((f2 = fopen(tempname, "wb")) != 0) /* create temp file */
@@ -305,6 +318,72 @@ int file_create(char *filename, int *handle)
     int ii;
     char mode[4];
 
+#if defined(BUILD_HERA) 
+
+    /* special code to verify that the path to the file to be created */
+    /* is within the users data directory on Hera */
+ 
+    int status = 0, rootlen, slen;
+    char *cpos;
+    char cwd[FLEN_FILENAME], absURL[FLEN_FILENAME];
+    /* note that "/heradata/users/" is actually "/.hera_mountpnt/hera_users/"  */
+    char rootstring[]="/.hera_mountpnt/hera_users/";
+    char username[FLEN_FILENAME], userroot[FLEN_FILENAME];
+
+    /* Get the current working directory */
+    fits_get_cwd(cwd, &status);  
+    slen = strlen(cwd);
+    if (cwd[slen-1] != '/') strcat(cwd,"/"); /* make sure the CWD ends with slash */
+
+/*    printf("CWD = %s\n", cwd);  */
+
+    /* check that CWD string matches the rootstring */
+    rootlen = strlen(rootstring);
+    if (strncmp(rootstring, cwd, rootlen)) {
+       ffpmsg("invalid CWD: does not match Hera data directory");
+/*       ffpmsg(rootstring);  */
+       return(FILE_NOT_CREATED); 
+    } else {
+
+       /* get the user name from CWD (it follows the root string) */
+       strcpy(username, cwd+rootlen);  
+       cpos=strchr(username, '/');
+       if (!cpos) {
+          ffpmsg("invalid CWD: not equal to Hera data directory + username");
+/*          ffpmsg(cwd); */
+          return(FILE_NOT_CREATED); 
+       } else {
+          *(cpos+1) = '\0';   /* truncate user name string */
+
+          /* construct full user root name */
+          strcpy(userroot, rootstring);
+          strcat(userroot, username);
+          rootlen = strlen(userroot);
+
+          /* convert the input filename to absolute path relative to the CWD */
+          fits_relurl2url(cwd,  filename,  absURL, &status);
+/*
+          printf("username = %s\n", username);
+          printf("userroot = %s\n", userroot);
+          printf("filename = %s\n", filename);
+          printf("ABS = %s\n", absURL);
+*/
+          /* check that CWD string matches the rootstring */
+
+          if (strncmp(userroot, absURL, rootlen)) {
+             ffpmsg("invalid filename: path not within user directory");
+/*
+             ffpmsg(absURL);
+             ffpmsg(userroot);
+*/
+             return(FILE_NOT_CREATED); 
+          }
+       }
+    }
+    /* if we got here, then the input filename appears to be valid */
+
+#endif
+
     *handle = -1;
     for (ii = 0; ii < NMAXFILES; ii++)  /* find empty slot in table */
     {
@@ -358,9 +437,10 @@ int file_truncate(int handle, LONGLONG filesize)
 
     fdesc = fileno(handleTable[handle].fileptr);
     ftruncate(fdesc, (OFF_T) filesize);
+    file_seek(handle, filesize);
 
     handleTable[handle].currentpos = filesize;
-    handleTable[handle].last_io_op = IO_WRITE;
+    handleTable[handle].last_io_op = IO_SEEK;
 
 #endif
 
@@ -377,7 +457,26 @@ int file_size(int handle, LONGLONG *filesize)
 
     diskfile = handleTable[handle].fileptr;
 
-#if _FILE_OFFSET_BITS - 0 == 64
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+ 
+/* call the VISUAL C++ version of the routines which support */
+/*  Large Files (> 2GB) if they are supported (since VC 8.0)  */
+
+    position1 = _ftelli64(diskfile);   /* save current postion */
+    if (position1 < 0)
+        return(SEEK_ERROR);
+
+    if (_fseeki64(diskfile, 0, 2) != 0)  /* seek to end of file */
+        return(SEEK_ERROR);
+
+    position2 = _ftelli64(diskfile);     /* get file size */
+    if (position2 < 0)
+        return(SEEK_ERROR);
+
+    if (_fseeki64(diskfile, position1, 0) != 0)  /* seek back to original pos */
+        return(SEEK_ERROR);
+
+#elif _FILE_OFFSET_BITS - 0 == 64
 
 /* call the newer ftello and fseeko routines , which support */
 /*  Large Files (> 2GB) if they are supported.  */
@@ -470,7 +569,15 @@ int file_seek(int handle, LONGLONG offset)
 */
 {
 
-#if _FILE_OFFSET_BITS - 0 == 64
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+    
+     /* Microsoft visual studio C++ */
+     /* _fseeki64 supported beginning with version 8.0 */
+ 
+    if (_fseeki64(handleTable[handle].fileptr, (OFF_T) offset, 0) != 0)
+        return(SEEK_ERROR);
+	
+#elif _FILE_OFFSET_BITS - 0 == 64
 
     if (fseeko(handleTable[handle].fileptr, (OFF_T) offset, 0) != 0)
         return(SEEK_ERROR);
@@ -552,7 +659,7 @@ int file_compress_open(char *filename, int rwmode, int *hdl)
 */
 {
     FILE *indiskfile, *outdiskfile;
-    int status, clobber = 0;
+    int status;
     char *cptr;
 
     /* open the compressed disk file */
@@ -571,7 +678,6 @@ int file_compress_open(char *filename, int rwmode, int *hdl)
     if (*cptr == '!')
     {
         /* clobber any existing file with the same name */
-        clobber = 1;
         cptr++;
         remove(cptr);
     }
@@ -634,6 +740,9 @@ int file_is_compressed(char *filename) /* I - FITS file name          */
     /* Open file.  Try various suffix combinations */  
     if (file_openfile(filename, 0, &diskfile))
     {
+      if (strlen(filename) > FLEN_FILENAME - 1)
+          return(0);
+
       strcpy(tmpfilename,filename);
       strcat(filename,".gz");
       if (file_openfile(filename, 0, &diskfile))
@@ -731,12 +840,127 @@ int file_checkfile (char *urltype, char *infile, char *outfile)
         /* and copied to this newly created output file.  The original file */
         /* will be closed, and the copy will be opened by CFITSIO for     */
         /* subsequent processing (possibly with READWRITE access).        */
-        if (strlen(outfile))
-            strcpy(file_outfile,outfile);
+        if (strlen(outfile)) {
+	    file_outfile[0] = '\0';
+            strncat(file_outfile,outfile,FLEN_FILENAME-1);
+        }
     }
 
     return 0;
 }
+/**********************************************************************/
+/**********************************************************************/
+/**********************************************************************/
+
+/****  driver routines for stream//: device (stdin or stdout)  ********/
+
+
+/*--------------------------------------------------------------------------*/
+int stream_open(char *filename, int rwmode, int *handle)
+{
+    /*
+        read from stdin
+    */
+    if (filename)
+      rwmode = 1;  /* dummy statement to suppress unused parameter compiler warning */
+
+    *handle = 1;     /*  1 = stdin */   
+
+    return(0);
+}
+/*--------------------------------------------------------------------------*/
+int stream_create(char *filename, int *handle)
+{
+    /*
+        write to stdout
+    */
+
+    if (filename)  /* dummy statement to suppress unused parameter compiler warning */
+       *handle = 2;
+    else
+       *handle = 2;         /*  2 = stdout */       
+
+    return(0);
+}
+/*--------------------------------------------------------------------------*/
+int stream_size(int handle, LONGLONG *filesize)
+/*
+  return the size of the file in bytes
+*/
+{
+    handle = 0;  /* suppress unused parameter compiler warning */
+    
+    /* this operation is not supported in a stream; return large value */
+    *filesize = LONG_MAX;
+    return(0);
+}
+/*--------------------------------------------------------------------------*/
+int stream_close(int handle)
+/*
+     don't have to close stdin or stdout 
+*/
+{
+    handle = 0;  /* suppress unused parameter compiler warning */
+    
+    return(0);
+}
+/*--------------------------------------------------------------------------*/
+int stream_flush(int handle)
+/*
+  flush the file
+*/
+{
+    if (handle == 2)
+       fflush(stdout);  
+
+    return(0);
+}
+/*--------------------------------------------------------------------------*/
+int stream_seek(int handle, LONGLONG offset)
+   /* 
+      seeking is not allowed in a stream
+   */
+{
+    offset = handle;  /* suppress unused parameter compiler warning */
+    return(1);
+}
+/*--------------------------------------------------------------------------*/
+int stream_read(int hdl, void *buffer, long nbytes)
+/*
+     reading from stdin stream 
+*/
+
+{
+    long nread;
+    
+    if (hdl != 1)
+       return(1);  /* can only read from stdin */
+
+    nread = (long) fread(buffer, 1, nbytes, stdin);
+
+    if (nread != nbytes)
+    {
+/*        return(READ_ERROR); */
+        return(END_OF_FILE);
+    }
+
+    return(0);
+}
+/*--------------------------------------------------------------------------*/
+int stream_write(int hdl, void *buffer, long nbytes)
+/*
+  write bytes at the current position in the file
+*/
+{
+    if (hdl != 2)
+       return(1);  /* can only write to stdout */
+
+    if((long) fwrite(buffer, 1, nbytes, stdout) != nbytes)
+        return(WRITE_ERROR);
+
+    return(0);
+}
+
 
 
 
