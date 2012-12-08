@@ -183,6 +183,12 @@ namespace SpectraHelpers
 	// intensity [0..1]
 	// _pRGB pointer to location where out rgb triple is written to.
 	void intesityToRGBGradient( float _intensity, float *_pRGB, int gradientType = 0 );
+
+	// repair isolated pixel errors of a given spectrum
+	// _pixels pointer to spectrum data
+	// _maskarray boolean array with flags set to true at pixel indicies where errors occur
+	// _numsamples number of pixels 
+	void repairSpectra( float *_pixels, bool *_maskarray, int _numsamples );
 	//@}
 
 

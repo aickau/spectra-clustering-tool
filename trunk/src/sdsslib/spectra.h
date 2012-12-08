@@ -38,11 +38,11 @@ public:
 	static const int waveLenStartSDSS		= 3800;					// wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
 	static const int waveLenEndSDSS			= 9200;						
 
-	static const int numSamplesBOSS			= 3900;					// number of samples in BOSS spectra
+	static const int numSamplesBOSS			= 4700;					// number of samples in BOSS spectra
 	static const int waveLenStartBOSS		= 3650;					// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
 	static const int waveLenEndBOSS			= 10400;						
 
-	static const int numSamples				= numSamplesSDSS/8;		// number of samples in reduced spectra
+	static const int numSamples				= numSamplesBOSS/8;		// number of samples in reduced spectra
 	static const int numSpectraLines		= 44;					// number of stored emission and absorption lines
 	static const float waveBeginDst;								// spectrum start in destination system 
 	static const float waveEndDst;									// spectrum end in destination system 
@@ -61,19 +61,43 @@ public:
 		SP_VERSION_DR9					//< BOSS spectra, new spectrograph, different wavelenght range
 	};
 
-
+	// was called objecttype in SDSS II
+	// is now called source type in SDSS III
 	enum SpectraType
 	{
-		SPT_NOT_SET		 = 0,
-		SPT_SPEC_UNKNOWN = 1,
-		SPT_SPEC_STAR    = 2,
-		SPT_SPEC_GALAXY  = 4,
-		SPT_SPEC_QSO     = 8,
-		SPT_SPEC_HIZ_QSO = 16, // high redshift QSO, z>2.3, Ly-alpha finding code is triggered  
-		SPT_SPEC_SKY     = 32, 
-		SPT_STAR_LATE    = 64, // star dominated by molecular bands, Type M or later           
-		SPT_GAL_EM       = 128, // emission line galaxy -- not set by the code                  
+		SPT_NOT_SET				= 0,
+		SPT_UNKNOWN				= 0x000000001,
+		SPT_STAR				= 0x000000002,
+		SPT_GALAXY				= 0x000000004,
+		SPT_QSO					= 0x000000008,
+		SPT_HIZ_QSO				= 0x000000010,					//< high redshift QSO, z>2.3, Ly-alpha finding code is triggered  
+		SPT_SKY					= 0x000000020,					//< blank sky
+		SPT_STAR_LATE			= 0x000000040,					//< star dominated by molecular bands, Type M or later           
+		SPT_GAL_EM				= 0x000000080,					//< emission line galaxy -- not set by the code       
+		// the following types are SDSS III only
+		SPT_QA					= 0x000000100,					//<  Quality assurance (assigned to more than one tile)
+		SPT_STAR_PN				= 0x000000200,	
+		SPT_STAR_CARBON			= 0x000000400,	
+		SPT_STAR_BROWN_DWARF	= 0x000000800,	
+		SPT_STAR_SUB_DWARF		= 0x000001000,	
+		SPT_STAR_CATY_VAR		= 0x000002000,	
+		SPT_STAR_RED_DWARF		= 0x000004000,	
+		SPT_STAR_WHITE_DWARF	= 0x000008000,	
+		SPT_STAR_BHB			= 0x000010000,	
+		SPT_ROSAT_A				= 0x000020000,
+		SPT_ROSAT_B				= 0x000040000,
+		SPT_ROSAT_C				= 0x000080000,
+		SPT_ROSAT_D				= 0x000100000,
+		SPT_SPECTROPHOTO_STD	= 0x000200000,	 
+		SPT_HOT_STD				= 0x000400000,	 
+		SPT_SERENDIPITY_BLUE	= 0x000800000,	 
+		SPT_SERENDIPITY_FIRST	= 0x001000000,	 
+		SPT_SERENDIPITY_RED		= 0x002000000, 
+		SPT_SERENDIPITY_DISTANT	= 0x004000000, 	
+		SPT_SERENDIPITY_MANUAL	= 0x008000000,	 
+		SPT_REDDEN_STD			= 0x010000000
 	};
+		
 
 	enum SpectraMask
 	{
@@ -304,9 +328,9 @@ public:
 	// general info here: http://www.sdss.org/DR6/dm/flatFiles/FILES.html
 	bool loadFromFITS_SDSS(const std::string &_filename);
 
-	bool loadFromFITS_SDSS_DR8(const std::string &_filename);
+//	bool loadFromFITS_SDSS_DR8(const std::string &_filename);
 
-	// e.g. dr9spec-3588-55184-0511.fits
+	// BOSS Spectra from DR9. e.g. dr9spec-3588-55184-0511.fits
 	bool loadFromFITS_BOSS(const std::string &_filename);
 
 	// save to ASCII CSV
@@ -382,12 +406,14 @@ public:
 
 	// returns any combination of SpectraTypes as filter
 	static std::string spectraFilterToString( unsigned int _spectraFilter );
+	static SpectraType spectraTypeFromString( const std::string &_spectraType );
+
 
 	// generate spectra filename from plate, MJD and fiber, e.g. spSpec-52203-0716-002.fit
 	// MJD has always five digits
 	// plate number has always four digits
 	// fiber id has always three digits
-	static std::string Spectra::getSpecObjFileName(int _plate, int _mjd, int _fiberID );
+	static std::string getSpecObjFileName(int _plate, int _mjd, int _fiberID );
 
 	//@}
 

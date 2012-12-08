@@ -38,14 +38,14 @@
 #include "sdsslib/defines.h"
 #include "sdsslib/spectrahelpers.h"
 #include "sdsslib/CSVExport.h"
-
+#include "sdsslib/spectraDB.h"
 
 // spectra read from SDSS FITS have a wavelength of 3800..9200 Angström
 // full spectrum range should range from ~540 Amgström to 9200 assuming max redshifts of 6.
 const float Spectra::waveBeginDst = 540.f;	
 const float Spectra::waveEndDst = 9200.f;
 
-
+SpectraDB g_spectraDB;
 
 Spectra::Spectra()
 {
@@ -378,7 +378,7 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	sstr >> type;
 	sstr >> z;
 
-	m_Type = SPT_SPEC_UNKNOWN;
+	m_Type = SPT_UNKNOWN;
 	if ( type > 0 )
 	{
 		m_Type = (SpectraType)type;
@@ -510,6 +510,7 @@ Spectra::SpectraVersion checkVersion(fitsfile *f)
 
 bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 {
+
 	fitsfile *f=NULL;
 
 	// According to FITS standard, to perform a specific action, status must be always 0 before.
@@ -588,13 +589,95 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	long tblrows = 0; // should be numLines
 	int tblcols = 0; // should be 23
 	fits_get_num_hdus( f, &numhdus, &status );
-	fits_movabs_hdu( f, 1, &hdutype, &status );
+	fits_movabs_hdu( f, 2, &hdutype, &status );
 	fits_get_num_rows( f, &tblrows, &status );
 	fits_get_num_cols( f, &tblcols, &status );
+	if ( status != 0 || tblcols <= 0 || tblrows <= 0 || hdutype != BINARY_TBL )
+	{
+		// wrong table
+		fits_close_file(f, &statusclose);
+		return false;
+	}
 
-	fits_close_file(f, &status);
 
+
+	float spectrum[numSamplesBOSS];
+	float invar[numSamplesBOSS];		//inverse variance of flux
+	unsigned long maskArray[numSamplesBOSS];
+	bool maskArrayBool[numSamplesBOSS];
+
+	// number of elements should be 2 at least.
+	size_t elementsToRead = tblrows;
+	assert( elementsToRead <= numSamplesBOSS );
+	elementsToRead = MIN( elementsToRead, numSamplesBOSS );
+	if ( elementsToRead < 3 )
+	{
+		// to few spectrum samples/pixels to read.
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
+	// spec says:
+	// 	Name 		Type 	Comment
+	// 	flux 		float32	coadded calibrated flux [10-17 ergs/s/cm2/Å]
+	// 	loglam 		float32	log10(wavelength [Å])
+	// 	ivar 		float32	inverse variance of flux
+	// 	and_mask	int32 	AND mask
+	// 	or_mask 	int32 	OR mask
+	// 	wdisp 		float32	wavelength dispersion in pixel=dloglam units
+	// 	sky 		float32	subtracted sky flux [10-17 ergs/s/cm2/Å]
+	// 	model 		float32	pipeline best model fit used for classification and redshift	
+	fits_read_col( f, TFLOAT, 1, 1, 1, elementsToRead, NULL, spectrum, NULL, &status );
+	fits_read_col( f, TFLOAT, 3, 1, 1, elementsToRead, NULL, invar, NULL, &status );
+	fits_read_col( f, TINT, 4, 1, 1, elementsToRead, NULL, maskArray, NULL, &status );
+
+	// count bad pixels 
+	size_t badPixelCount = 0;
+	for (size_t i=0;i<elementsToRead;i++)
+	{
+		// pixels are bad where inverse variance of flux is 0.0 or the mask array says "bright sky")
+		if ( invar[i] == 0.0 || ((maskArray[i] & SP_MASK_BRIGHTSKY)>0) )
+		{
+			maskArrayBool[i] = true;
+			// bad pixel detected.
+			badPixelCount++;
+		}
+		else
+		{
+			maskArrayBool[i] = false;
+		}
+	}
+
+
+	SpectraHelpers::repairSpectra( spectrum, maskArrayBool, elementsToRead );
+	// mark spectrum as bad if more than 5 % are bad pixels
+	if ( badPixelCount > elementsToRead/20 ) 
+	{
+		m_status = 1;
+	}
+
+
+
+	//BRIGHTSKY
+
+	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, m_Amplitude, numSamples, 3 );
+	elementsToRead /= 8; 
+	m_SamplesRead = static_cast<__int16>(elementsToRead);
+
+	fits_close_file(f, &statusclose);
 	calcMinMax();
+
+	// retrieve add. info.
+	if( g_spectraDB.loadDR9DB() )
+	{
+		SpectraDB::Info spectraInfo = g_spectraDB.getInfo( m_SpecObjID );
+		if ( spectraInfo.success )
+		{
+			m_Z = spectraInfo.z;
+		}
+
+
+	}
 
 	bool bConsistent = checkConsistency();
 	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
@@ -602,6 +685,8 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 
 
 
+/*
+Not supported ATM.
 
 bool Spectra::loadFromFITS_SDSS_DR8(const std::string &_filename)
 {
@@ -663,14 +748,14 @@ bool Spectra::loadFromFITS_SDSS_DR8(const std::string &_filename)
 
 
 	fits_get_img_size(f, 2, size, &status );
-	const size_t spectrumMaxSize = 3900; 
-	float spectrum[spectrumMaxSize];
-	unsigned long maskarray[spectrumMaxSize];
+	float spectrum[numSamplesSDSS];
+	unsigned long maskArray[numSamplesSDSS];
+	bool maskArrayBool[numSamplesSDSS];
 
 	// number of elements should be 2 at least.
 	size_t elementsToRead = size[0];
-	assert( elementsToRead <= spectrumMaxSize );
-	elementsToRead = MIN( elementsToRead, spectrumMaxSize );
+	assert( elementsToRead <= numSamplesSDSS );
+	elementsToRead = MIN( elementsToRead, numSamplesSDSS );
 	if ( elementsToRead < 3 )
 	{
 		fits_close_file(f, &statusclose);
@@ -688,49 +773,26 @@ bool Spectra::loadFromFITS_SDSS_DR8(const std::string &_filename)
 	// mask array
 	const unsigned int maskErr = (~static_cast<unsigned int>(SpectraMask::SP_MASK_OK)) & (~static_cast<unsigned int>(SpectraMask::SP_MASK_EMLINE));
 	adress[1] = 4;
-	fits_read_pix( f, TLONG, adress, elementsToRead, NULL, (void*)maskarray, NULL, &status );
+	fits_read_pix( f, TLONG, adress, elementsToRead, NULL, (void*)maskArray, NULL, &status );
 
-	// count bad pixels 
+	// count bad pixels, eval mask array 
 	size_t badPixelCount = 0;
 	for (size_t i=0;i<elementsToRead;i++)
 	{
-		if ( (maskarray[i] & maskErr) != 0 )
+		if ( (maskArray[i] & maskErr) != 0 )
 		{
+			maskArrayBool[i] = true;
 			// bad pixel detected.
 			badPixelCount++;
 		}
-	}
-
-	//..and repair isolated pixel errors
-	for (size_t i=1;i<elementsToRead-1;i++)
-	{
-		if ( (maskarray[i] & maskErr) != 0 )
+		else
 		{
-			if ( ((maskarray[i-1] & maskErr) == 0) &&
-				((maskarray[i+1] & maskErr) == 0) )
-			{
-				const float pixelRepaired = (spectrum[i-1] + spectrum[i+1]) / 2.0f;
-				spectrum[i] = pixelRepaired;
-			}
+			maskArrayBool[i] = false;
 		}
 	}
 
-	// pixel repair at boundaries
-	if ( ((maskarray[0] & maskErr) != 0) && 
-		(maskarray[1] & maskErr) == 0 )
-	{
-		spectrum[0] = spectrum[1];
-	}
-	{
-		const size_t l1 = elementsToRead-1;
-		const size_t l2 = elementsToRead-2;
 
-		if ( ((maskarray[l1] & maskErr) != 0) && 
-			(maskarray[l2] & maskErr) == 0 )
-		{
-			spectrum[l1] = spectrum[l2];
-		}
-	}
+	SpectraHelpers::repairSpectra( spectrum, maskArrayBool, elementsToRead );
 
 	// mark spectrum as bad if more than 5 % are bad pixels
 	if ( badPixelCount > elementsToRead/20 ) 
@@ -749,7 +811,7 @@ bool Spectra::loadFromFITS_SDSS_DR8(const std::string &_filename)
 	bool bConsistent = checkConsistency();
 	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
 }
-
+*/
 
 
 
@@ -807,7 +869,8 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 	fits_get_img_size(f, 2, size, &status );
 	const size_t spectrumMaxSize = 3900; 
 	float spectrum[spectrumMaxSize];
-	unsigned long maskarray[spectrumMaxSize];
+	unsigned long maskArray[spectrumMaxSize];
+	bool maskArrayBool[numSamplesSDSS];
 
 	// number of elements should be 2 at least.
 	size_t elementsToRead = size[0];
@@ -830,49 +893,27 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 	// mask array
 	const unsigned int maskErr = (~static_cast<unsigned int>(SpectraMask::SP_MASK_OK)) & (~static_cast<unsigned int>(SpectraMask::SP_MASK_EMLINE));
 	adress[1] = 4;
-	fits_read_pix( f, TLONG, adress, elementsToRead, NULL, (void*)maskarray, NULL, &status );
+	fits_read_pix( f, TLONG, adress, elementsToRead, NULL, (void*)maskArray, NULL, &status );
 
 	// count bad pixels 
 	size_t badPixelCount = 0;
 	for (size_t i=0;i<elementsToRead;i++)
 	{
-		if ( (maskarray[i] & maskErr) != 0 )
+		if ( (maskArray[i] & maskErr) != 0 )
 		{
+			maskArrayBool[i] = true;
 			// bad pixel detected.
 			badPixelCount++;
 		}
-	}
-
-	//..and repair isolated pixel errors
-	for (size_t i=1;i<elementsToRead-1;i++)
-	{
-		if ( (maskarray[i] & maskErr) != 0 )
+		else
 		{
-			if ( ((maskarray[i-1] & maskErr) == 0) &&
-				 ((maskarray[i+1] & maskErr) == 0) )
-			{
-				const float pixelRepaired = (spectrum[i-1] + spectrum[i+1]) / 2.0f;
-				spectrum[i] = pixelRepaired;
-			}
+			maskArrayBool[i] = false;
 		}
 	}
 
-	// pixel repair at boundaries
-	if ( ((maskarray[0] & maskErr) != 0) && 
-		 (maskarray[1] & maskErr) == 0 )
-	{
-		spectrum[0] = spectrum[1];
-	}
-	{
-		const size_t l1 = elementsToRead-1;
-		const size_t l2 = elementsToRead-2;
 
-		if ( ((maskarray[l1] & maskErr) != 0) && 
-			(maskarray[l2] & maskErr) == 0 )
-		{
-			spectrum[l1] = spectrum[l2];
-		}
-	}
+	SpectraHelpers::repairSpectra( spectrum, maskArrayBool, elementsToRead );
+
 
 	// mark spectrum as bad if more than 5 % are bad pixels
 	if ( badPixelCount > elementsToRead/20 ) 
@@ -1811,6 +1852,8 @@ std::string Spectra::plateToString( int _plate )
 }
 
 
+
+
 float Spectra::indexToWaveLength( size_t _index, float _waveBegin, float _waveEnd, int _numSamples )
 {
 	float d = (_waveEnd-_waveBegin)/static_cast<float>(_numSamples);
@@ -1839,27 +1882,27 @@ float Spectra::waveLenghtToRestFrame( float _waveLength, float _z )
 std::string Spectra::spectraFilterToString( unsigned int _spectraFilter )
 {
 	std::string sstrOutString;
-	if ( _spectraFilter & Spectra::SPT_SPEC_UNKNOWN )
+	if ( _spectraFilter & Spectra::SPT_UNKNOWN )
 	{
 		sstrOutString += "SPEC_UNKNOWN ";
 	}
-	if ( _spectraFilter & Spectra::SPT_SPEC_STAR )
+	if ( _spectraFilter & Spectra::SPT_STAR )
 	{
 		sstrOutString += "SPEC_STAR ";
 	}
-	if ( _spectraFilter & Spectra::SPT_SPEC_GALAXY )
+	if ( _spectraFilter & Spectra::SPT_GALAXY )
 	{
 		sstrOutString += "SPEC_GALAXY ";
 	}
-	if ( _spectraFilter & Spectra::SPT_SPEC_QSO )
+	if ( _spectraFilter & Spectra::SPT_QSO )
 	{
 		sstrOutString += "SPEC_QSO ";
 	}
-	if ( _spectraFilter & Spectra::SPT_SPEC_HIZ_QSO )
+	if ( _spectraFilter & Spectra::SPT_HIZ_QSO )
 	{
 		sstrOutString += "SPEC_HIZ_QSO ";
 	}
-	if ( _spectraFilter & Spectra::SPT_SPEC_SKY )
+	if ( _spectraFilter & Spectra::SPT_SKY )
 	{
 		sstrOutString += "SPEC_SKY ";
 	}
@@ -1871,7 +1914,182 @@ std::string Spectra::spectraFilterToString( unsigned int _spectraFilter )
 	{
 		sstrOutString += "GAL_EM ";
 	}
+
+
+	if ( _spectraFilter & Spectra::SPT_QA )
+	{
+		sstrOutString += "QA ";
+	}
+	if ( _spectraFilter & Spectra::SPT_STAR_PN )
+	{
+		sstrOutString += "STAR_PN ";
+	}
+	if ( _spectraFilter & Spectra::SPT_STAR_CARBON )
+	{
+		sstrOutString += "STAR_CARBON ";
+	}
+	if ( _spectraFilter & Spectra::SPT_STAR_BROWN_DWARF )
+	{
+		sstrOutString += "BROWN_DWARF ";
+	}
+	if ( _spectraFilter & Spectra::SPT_STAR_SUB_DWARF )
+	{
+		sstrOutString += "STAR_SUB_DWARF ";
+	}
+	if ( _spectraFilter & Spectra::SPT_STAR_CATY_VAR )
+	{
+		sstrOutString += "STAR_CATY_VAR ";
+	}
+	if ( _spectraFilter & Spectra::SPT_STAR_RED_DWARF )
+	{
+		sstrOutString += "STAR_RED_DWARF ";
+	}
+	if ( _spectraFilter & Spectra::SPT_STAR_WHITE_DWARF )
+	{
+		sstrOutString += "STAR_WHITE_DWARF ";
+	}
+	if ( _spectraFilter & Spectra::SPT_STAR_BHB )
+	{
+		sstrOutString += "STAR_BHB ";
+	}
+	if ( _spectraFilter & Spectra::SPT_ROSAT_A )
+	{
+		sstrOutString += "ROSAT_A ";
+	}
+	if ( _spectraFilter & Spectra::SPT_ROSAT_B )
+	{
+		sstrOutString += "ROSAT_B ";
+	}
+	if ( _spectraFilter & Spectra::SPT_ROSAT_C )
+	{
+		sstrOutString += "ROSAT_C ";
+	}
+	if ( _spectraFilter & Spectra::SPT_ROSAT_D )
+	{
+		sstrOutString += "ROSAT_D ";
+	}	
+	if ( _spectraFilter & Spectra::SPT_SPECTROPHOTO_STD )
+	{
+		sstrOutString += "SPECTROPHOTO_STD ";
+	}	
+	if ( _spectraFilter & Spectra::SPT_HOT_STD )
+	{
+		sstrOutString += "HOT_STD ";
+	}			
+	if ( _spectraFilter & Spectra::SPT_SERENDIPITY_BLUE )
+	{
+		sstrOutString += "SERENDIPITY_BLUE ";
+	}			
+	if ( _spectraFilter & Spectra::SPT_SERENDIPITY_FIRST )
+	{
+		sstrOutString += "SERENDIPITY_FIRST ";
+	}			
+	if ( _spectraFilter & Spectra::SPT_SERENDIPITY_RED )
+	{
+		sstrOutString += "SERENDIPITY_RED ";
+	}			
+	if ( _spectraFilter & Spectra::SPT_SERENDIPITY_DISTANT )
+	{
+		sstrOutString += "SERENDIPITY_DISTANT ";
+	}			
+	if ( _spectraFilter & Spectra::SPT_SERENDIPITY_MANUAL )
+	{
+		sstrOutString += "SERENDIPITY_MANUAL ";
+	}			
+	if ( _spectraFilter & Spectra::SPT_REDDEN_STD )
+	{
+		sstrOutString += "REDDEN_STD ";
+	}			
+
 	return sstrOutString;
+}
+
+
+
+Spectra::SpectraType Spectra::spectraTypeFromString( const std::string &_spectraType )
+{
+	std::string ssstrSpectraType( Helpers::upperCase(_spectraType) );
+
+	if ( ssstrSpectraType == "GALAXY" )
+		return SPT_GALAXY;
+
+	if ( ssstrSpectraType == "STAR" )
+		return SPT_STAR;
+
+	if ( ssstrSpectraType == "QSO" )
+		return SPT_QSO;
+
+	if ( ssstrSpectraType == "HIZQSO" || ssstrSpectraType == "HIZ_QSO" )
+		return SPT_HIZ_QSO;
+
+	if ( ssstrSpectraType == "SKY" )
+		return SPT_SKY;
+
+	if ( ssstrSpectraType == "STAR_LATE" || ssstrSpectraType == "LATESTAR"  || ssstrSpectraType == "LATE_STAR" )
+		return SPT_STAR_LATE;
+
+
+	if ( ssstrSpectraType == "QA" )
+		return SPT_QA;
+
+	if ( ssstrSpectraType == "STAR_PN" )
+		return SPT_STAR_PN;
+
+	if ( ssstrSpectraType == "STAR_CARBON" )
+		return SPT_STAR_CARBON;
+
+	if ( ssstrSpectraType == "STAR_BROWN_DWARF" )
+		return SPT_STAR_BROWN_DWARF;
+
+	if ( ssstrSpectraType == "STAR_SUB_DWARF" )
+		return SPT_STAR_SUB_DWARF;
+
+	if ( ssstrSpectraType == "STAR_CATY_VAR" )
+		return SPT_STAR_CATY_VAR;
+
+	if ( ssstrSpectraType == "SPT_STAR_RED_DWARF" )
+		return SPT_STAR_RED_DWARF;
+
+	if ( ssstrSpectraType == "STAR_WHITE_DWARF" )
+		return SPT_STAR_WHITE_DWARF;
+
+	if ( ssstrSpectraType == "STAR_BHB" )
+		return SPT_STAR_BHB;
+
+	if ( ssstrSpectraType == "ROSAT_A" )
+		return SPT_ROSAT_A;
+	if ( ssstrSpectraType == "ROSAT_B" )
+		return SPT_ROSAT_B;
+	if ( ssstrSpectraType == "ROSAT_C" )
+		return SPT_ROSAT_C;
+	if ( ssstrSpectraType == "ROSAT_D" )
+		return SPT_ROSAT_D;
+
+	if ( ssstrSpectraType == "SPECTROPHOTO_STD" )
+		return SPT_SPECTROPHOTO_STD;
+
+	if ( ssstrSpectraType == "HOT_STD" )
+		return SPT_HOT_STD;
+
+	if ( ssstrSpectraType == "SERENDIPITY_BLUE" )
+		return SPT_SERENDIPITY_BLUE;
+
+	if ( ssstrSpectraType == "SERENDIPITY_FIRST" )
+		return SPT_SERENDIPITY_FIRST;
+
+	if ( ssstrSpectraType == "SERENDIPITY_RED" )
+		return SPT_SERENDIPITY_RED;
+
+	if ( ssstrSpectraType == "SERENDIPITY_DISTANT" )
+		return SPT_SERENDIPITY_DISTANT;
+
+	if ( ssstrSpectraType == "SERENDIPITY_MANUAL" )
+		return SPT_SERENDIPITY_MANUAL;
+
+	if ( ssstrSpectraType == "REDDEN_STD" )
+		return SPT_REDDEN_STD;
+
+	return SPT_UNKNOWN;
 }
 
 
