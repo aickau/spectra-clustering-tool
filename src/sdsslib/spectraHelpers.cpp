@@ -1374,5 +1374,37 @@ void calcZMap( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::stri
 }
 
 
+void repairSpectra( float *_pixels, bool *_maskarray, int _numsamples )
+{
+	// repair isolated pixel errors
+	for (size_t i=1;i<_numsamples-1;i++)
+	{
+		if (_maskarray[i] )
+		{
+			if ( !_maskarray[i-1] && !_maskarray[i+1] )
+			{
+				const float pixelRepaired = (_pixels[i-1] + _pixels[i+1]) / 2.0f;
+				_pixels[i] = pixelRepaired;
+			}
+		}
+	}
+
+	// pixel repair at boundaries
+	if ( _maskarray[0] && !_maskarray[1] )
+	{
+		_pixels[0] = _pixels[1];
+	}
+	{
+		const size_t l1 = _numsamples-1;
+		const size_t l2 = _numsamples-2;
+
+		if ( _maskarray[l1] && !_maskarray[l2] )
+		{
+			_pixels[l1] = _pixels[l2];
+		}
+	}
+}
+
+
 
 }
