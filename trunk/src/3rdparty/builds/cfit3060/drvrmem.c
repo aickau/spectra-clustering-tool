@@ -9,6 +9,15 @@
 #include <stddef.h>  /* apparently needed to define size_t */
 #include "fitsio2.h"
 
+/* prototype for .Z file uncompression function in zuncompress.c */
+int zuncompress2mem(char *filename, 
+             FILE *diskfile, 
+             char **buffptr, 
+             size_t *buffsize, 
+             void *(*mem_realloc)(void *p, size_t newsize),
+             size_t *filesize,
+             int *status);
+
 #define RECBUFLEN 1000
 
 static char stdin_outfile[FLEN_FILENAME];
@@ -261,6 +270,7 @@ int mem_truncate(int handle, LONGLONG filesize)
         *(memTable[handle].memsizeptr) = (size_t) (filesize);
     }
 
+    memTable[handle].currentpos = filesize;
     memTable[handle].fitsfilesize = filesize;
     return(0);
 }
@@ -272,7 +282,8 @@ int stdin_checkfile(char *urltype, char *infile, char *outfile)
 {
     if (strlen(outfile))
     {
-        strcpy(stdin_outfile,outfile); /* an output file is specified */
+        stdin_outfile[0] = '\0';
+        strncat(stdin_outfile,outfile,FLEN_FILENAME-1); /* an output file is specified */
 	strcpy(urltype,"stdinfile://");
     }
     else
@@ -287,7 +298,7 @@ int stdin_open(char *filename, int rwmode, int *handle)
   The file name is ignored in this case.
 */
 {
-    int status = 0;
+    int status;
     char cbuff;
 
     if (*stdin_outfile)
@@ -455,9 +466,9 @@ int stdin2file(int handle)  /* handle number */
   Copy the stdin stream to a file.  .
 */
 {
-    size_t nread = 0;
+    size_t nread;
     char simple[] = "SIMPLE";
-    int c, ii, jj, status = 0;
+    int c, ii, jj, status;
     char recbuf[RECBUFLEN];
 
     ii = 0;
@@ -1007,11 +1018,21 @@ int mem_uncompress2mem(char *filename, FILE *diskfile, int hdl)
   int status;
   /* uncompress file into memory */
   status = 0;
-  uncompress2mem(filename, diskfile,
+
+    if (strstr(filename, ".Z")) {
+         zuncompress2mem(filename, diskfile,
 		 memTable[hdl].memaddrptr,   /* pointer to memory address */
 		 memTable[hdl].memsizeptr,   /* pointer to size of memory */
 		 realloc,                     /* reallocation function */
 		 &finalsize, &status);        /* returned file size nd status*/
+    } else {
+         uncompress2mem(filename, diskfile,
+		 memTable[hdl].memaddrptr,   /* pointer to memory address */
+		 memTable[hdl].memsizeptr,   /* pointer to size of memory */
+		 realloc,                     /* reallocation function */
+		 &finalsize, &status);        /* returned file size nd status*/
+    } 
+
   memTable[hdl].currentpos = 0;           /* save starting position */
   memTable[hdl].fitsfilesize=finalsize;   /* and initial file size  */
   return status;

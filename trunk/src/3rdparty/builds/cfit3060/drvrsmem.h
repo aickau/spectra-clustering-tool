@@ -6,7 +6,7 @@
 09-Mar-98 : initial version 1.0 released
 23-Mar-98 : shared_malloc now accepts new handle as an argument
 */
-#ifdef _WURST
+
 
 #include <sys/ipc.h>		/* this is necessary for Solaris/Linux */
 #include <sys/shm.h>
@@ -176,5 +176,4 @@ int	smem_write(int driverhandle, void *buffer, long nbytes);
 
 #ifdef __cplusplus
 }
-#endif
 #endif

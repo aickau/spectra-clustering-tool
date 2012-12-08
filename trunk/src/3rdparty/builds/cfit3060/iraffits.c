@@ -147,11 +147,46 @@ static void hputs(char* hstring,char* keyword,char* cval);
 static void hputcom(char* hstring,char* keyword,char* comment);
 static void hputl(char* hstring,char* keyword,int lval);
 static void hputc(char* hstring,char* keyword,char* cval);
-
+static int getirafpixname (char *hdrname, char *irafheader, char *pixfilename, int *status);
 int iraf2mem(char *filename, char **buffptr, size_t *buffsize, 
       size_t *filesize, int *status);
 
 void ffpmsg(const char *err_message);
+
+/*--------------------------------------------------------------------------*/
+int fits_delete_iraf_file(char *filename,     /* name of input file                 */
+             int *status)        /* IO - error status                       */
+
+/*
+   Delete the iraf .imh header file and the associated .pix data file
+*/
+{
+    char *irafheader;
+    int lenirafhead;
+
+    char pixfilename[SZ_IM2PIXFILE+1];
+
+    /* read IRAF header into dynamically created char array (free it later!) */
+    irafheader = irafrdhead(filename, &lenirafhead);
+
+    if (!irafheader)
+    {
+	return(*status = FILE_NOT_OPENED);
+    }
+
+    getirafpixname (filename, irafheader, pixfilename, status);
+
+    /* don't need the IRAF header any more */
+    free(irafheader);
+
+    if (*status > 0)
+       return(*status);
+
+    remove(filename);
+    remove(pixfilename);
+    
+    return(*status);
+}
 
 /*--------------------------------------------------------------------------*/
 int iraf2mem(char *filename,     /* name of input file                 */
@@ -290,7 +325,7 @@ static int irafrdimage (
     int nax = 1, naxis1 = 1, naxis2 = 1, naxis3 = 1, naxis4 = 1, npaxis1 = 1, npaxis2;
     int bitpix, bytepix, i;
     char *fitsheader, *image;
-    int nbr, nbimage, nbaxis, nbl, nbx, nbdiff;
+    int nbr, nbimage, nbaxis, nbl, nbdiff;
     char *pixheader;
     char *linebuff;
     int imhver, lpixhead = 0;
@@ -299,7 +334,6 @@ static int irafrdimage (
     size_t newfilesize;
  
     fitsheader = *buffptr;           /* pointer to start of header */
-    image = fitsheader + *filesize;  /* pointer to start of the data */
 
     /* Convert pixel file name to character string */
     hgets (fitsheader, "PIXFILE", SZ_IM2PIXFILE, pixname);
@@ -407,7 +441,7 @@ static int irafrdimage (
 	for (i = 0; i < naxis2; i++) {
 	    nbl = fread (linebuff, 1, nbaxis, fd);
 	    nbr = nbr + nbl;
-	    nbx = fseek (fd, nbdiff, 1);
+	    fseek (fd, nbdiff, 1);
 	    linebuff = linebuff + nbaxis;
 	    }
 	}
@@ -512,7 +546,8 @@ static int iraftofits (
     char irafchar;
     char fitsline[81];
     int pixtype;
-    int imhver, n, imu, pixoff, impixoff, immax, immin, imtime;
+    int imhver, n, imu, pixoff, impixoff;
+/*    int immax, immin, imtime;  */
     int imndim, imlen, imphyslen, impixtype;
     char errmsg[81];
 
@@ -536,9 +571,9 @@ static int iraftofits (
 	imphyslen = IM2_PHYSLEN;
 	impixtype = IM2_PIXTYPE;
 	impixoff = IM2_PIXOFF;
-	imtime = IM2_MTIME;
-	immax = IM2_MAX;
-	immin = IM2_MIN;
+/*	imtime = IM2_MTIME; */
+/*	immax = IM2_MAX;  */
+/*	immin = IM2_MIN; */
 	}
     else {
 	nlines = 24 + ((nbiraf - LEN_IMHDR) / 162);
@@ -547,9 +582,9 @@ static int iraftofits (
 	imphyslen = IM_PHYSLEN;
 	impixtype = IM_PIXTYPE;
 	impixoff = IM_PIXOFF;
-	imtime = IM_MTIME;
-	immax = IM_MAX;
-	immin = IM_MIN;
+/*	imtime = IM_MTIME; */
+/*	immax = IM_MAX; */
+/*	immin = IM_MIN; */
 	}
 
     /*  Initialize FITS header */
@@ -698,13 +733,17 @@ static int iraftofits (
 	pixname = irafgetc2 (irafheader, IM_PIXFILE, SZ_IMPIXFILE);
     if (strncmp(pixname, "HDR", 3) == 0 ) {
 	newpixname = same_path (pixname, hdrname);
-	free (pixname);
-	pixname = newpixname;
+        if (newpixname) {
+          free (pixname);
+          pixname = newpixname;
+	  }
 	}
     if (strchr (pixname, '/') == NULL && strchr (pixname, '$') == NULL) {
 	newpixname = same_path (pixname, hdrname);
-	free (pixname);
-	pixname = newpixname;
+        if (newpixname) {
+          free (pixname);
+          pixname = newpixname;
+	  }
 	}
 	
     if ((bang = strchr (pixname, '!')) != NULL )
@@ -833,6 +872,58 @@ static int iraftofits (
 
     return (*status);
 }
+/*--------------------------------------------------------------------------*/
+
+/* get the IRAF pixel file name */
+
+static int getirafpixname (
+    char    *hdrname,  /* IRAF header file name (may be path) */
+    char    *irafheader,  /* IRAF image header */
+    char    *pixfilename,     /* IRAF pixel file name */
+    int     *status)
+{
+    int imhver;
+    char *pixname, *newpixname, *bang;
+
+    /* Check header magic word */
+    imhver = head_version (irafheader);
+    if (imhver < 1) {
+	ffpmsg("File not valid IRAF image header");
+        ffpmsg(hdrname);
+	return(*status = FILE_NOT_OPENED);
+	}
+
+    /* get image pixel file pathname in header */
+    if (imhver == 2)
+	pixname = irafgetc (irafheader, IM2_PIXFILE, SZ_IM2PIXFILE);
+    else
+	pixname = irafgetc2 (irafheader, IM_PIXFILE, SZ_IMPIXFILE);
+
+    if (strncmp(pixname, "HDR", 3) == 0 ) {
+	newpixname = same_path (pixname, hdrname);
+        if (newpixname) {
+          free (pixname);
+          pixname = newpixname;
+	  }
+	}
+
+    if (strchr (pixname, '/') == NULL && strchr (pixname, '$') == NULL) {
+	newpixname = same_path (pixname, hdrname);
+        if (newpixname) {
+          free (pixname);
+          pixname = newpixname;
+	  }
+	}
+	
+    if ((bang = strchr (pixname, '!')) != NULL )
+	strcpy(pixfilename,bang+1);
+    else
+	strcpy(pixfilename,pixname);
+
+    free (pixname);
+
+    return (*status);
+}
 
 /*--------------------------------------------------------------------------*/
 /* Put filename and header path together */
@@ -846,7 +937,14 @@ char	*hdrname)	/* IRAF image header file pathname */
     int len;
     char *newpixname;
 
-    newpixname = (char *) calloc (SZ_IM2PIXFILE, sizeof (char));
+/*  WDP - 10/16/2007 - increased allocation to avoid possible overflow */
+/*    newpixname = (char *) calloc (SZ_IM2PIXFILE, sizeof (char)); */
+
+    newpixname = (char *) calloc (2*SZ_IM2PIXFILE+1, sizeof (char));
+    if (newpixname == NULL) {
+            ffpmsg("iraffits same_path: Cannot alloc memory for newpixname");
+	    return (NULL);
+	}
 
     /* Pixel file is in same directory as header */
     if (strncmp(pixname, "HDR$", 4) == 0 ) {
@@ -1356,7 +1454,7 @@ char *keyword0;	/* character string containing the name of the keyword
 
 /* Extract value and remove excess spaces */
 	if (q1 != NULL) {
-	    v1 = q1 + 1;;
+	    v1 = q1 + 1;
 	    v2 = q2;
 	    c1 = strsrch (q2,"/");
 	    }

@@ -1077,8 +1077,6 @@ int ffiter(int n_cols,
         return(*status = BAD_COL_NUM);  /* negative number of columns */
     }
 
-    col = calloc(n_cols, sizeof(colNulls) ); /* memory for the null values */
-
     /*------------------------------------------------------------*/
     /* Make sure column numbers and datatypes are in legal range  */
     /* and column numbers and datatypes are legal.                */ 
@@ -1129,7 +1127,7 @@ int ffiter(int n_cols,
 
         ffghdt(cols[jj].fptr, &jtype, status);  /* get HDU type */
 
-        if (hdutype == IMAGE_HDU)
+        if (hdutype == IMAGE_HDU) /* operating on FITS images */
         {
             if (jtype != IMAGE_HDU)
             {
@@ -1146,7 +1144,7 @@ int ffiter(int n_cols,
             tstatus = 0;
             ffgkys(cols[jj].fptr, "BUNIT", cols[jj].tunit, 0, &tstatus);
         }
-        else
+        else  /* operating on FITS tables */
         {
             if (jtype == IMAGE_HDU)
             {
@@ -1170,6 +1168,7 @@ int ffiter(int n_cols,
                 }
             }
 
+            /* check that the column number is valid */
             if (cols[jj].colnum < 1 || 
                 cols[jj].colnum > ((cols[jj].fptr)->Fptr)->tfield)
             {
@@ -1203,7 +1202,7 @@ int ffiter(int n_cols,
             ffkeyn("TDISP", cols[jj].colnum, keyname, &tstatus);
             ffgkys(cols[jj].fptr, keyname, cols[jj].tdisp, 0, &tstatus);
         }
-    }
+    }  /* end of loop over all columns */
 
     /*-----------------------------------------------------------------*/
     /* use the first file to set the total number of values to process */
@@ -1275,6 +1274,7 @@ int ffiter(int n_cols,
             }
         }
 
+        /* divid n_optimum by the number of files that will be processed */
         n_optimum = n_optimum / nfiles;
         n_optimum = maxvalue(n_optimum, 1);
     }
@@ -1291,6 +1291,14 @@ int ffiter(int n_cols,
     /* allocate work arrays for each column */
     /* and determine the null pixel value   */
     /*--------------------------------------*/
+
+    col = calloc(n_cols, sizeof(colNulls) ); /* memory for the null values */
+    if (!col)
+    {
+        ffpmsg("ffiter failed to allocate memory for null values");
+        *status = MEMORY_ALLOCATION;  /* memory allocation failed */
+        return(*status);
+    }
 
     for (jj = 0; jj < n_cols; jj++)
     {
@@ -1512,7 +1520,7 @@ int ffiter(int n_cols,
 
           if (abs(typecode) == TBYTE || abs(typecode) == TSHORT || abs(typecode) == TLONG)
           {
-              tnull = minvalue(tnull, USHRT_MAX);
+              tnull = minvalue(tnull, (long) USHRT_MAX);
               tnull = maxvalue(tnull, 0);  /* don't allow negative value */
               col[jj].null.ushortnull = (unsigned short) tnull;
           }
@@ -1912,7 +1920,8 @@ cleanup:
                 free(col[jj].null.stringnull); /* free the null string */
             }
         }
-        free(cols[jj].array); /* memory for the array of values from the col */
+        if (cols[jj].array)
+            free(cols[jj].array); /* memory for the array of values from the col */
     }
     free(col);   /* the structure containing the null values */
     return(*status);

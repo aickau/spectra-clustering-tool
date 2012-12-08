@@ -355,10 +355,10 @@ int ffpclj( fitsfile *fptr,  /* I - FITS file pointer                       */
   and will be inverse-scaled by the FITS TSCALn and TZEROn values if necessary.
 */
 {
-    int tcode, maxelem, hdutype, writeraw;
+    int tcode, maxelem2, hdutype, writeraw;
     long twidth, incre;
     long ntodo;
-    LONGLONG repeat, startpos, elemnum, wrtptr, rowlen, rownum, remain, next, tnull;
+    LONGLONG repeat, startpos, elemnum, wrtptr, rowlen, rownum, remain, next, tnull, maxelem;
     double scale, zero;
     char tform[20], cform[20];
     char message[FLEN_ERRMSG];
@@ -377,9 +377,10 @@ int ffpclj( fitsfile *fptr,  /* I - FITS file pointer                       */
     /*  Check input and get parameters about the column: */
     /*---------------------------------------------------*/
     if (ffgcprll( fptr, colnum, firstrow, firstelem, nelem, 1, &scale, &zero,
-        tform, &twidth, &tcode, &maxelem, &startpos,  &elemnum, &incre,
+        tform, &twidth, &tcode, &maxelem2, &startpos,  &elemnum, &incre,
         &repeat, &rowlen, &hdutype, &tnull, snull, status) > 0)
         return(*status);
+    maxelem = maxelem2;
 
     if (tcode == TSTRING)   
          ffcfmt(tform, cform);     /* derive C format for writing strings */
@@ -395,7 +396,7 @@ int ffpclj( fitsfile *fptr,  /* I - FITS file pointer                       */
        MACHINE == NATIVE && tcode == TLONG && LONGSIZE == 32)
     {
         writeraw = 1;
-        maxelem = (int) nelem;  /* we can write the entire array at one time */
+        maxelem = nelem;  /* we can write the entire array at one time */
     }
     else
         writeraw = 0;
@@ -961,7 +962,10 @@ int ffi4fstr(long *input,      /* I - array of values to be converted  */
 {
     long ii;
     double dvalue;
+    char *cptr;
 
+    cptr = output;
+    
     if (scale == 1. && zero == 0.)
     {       
         for (ii = 0; ii < ntodo; ii++)
@@ -985,6 +989,10 @@ int ffi4fstr(long *input,      /* I - array of values to be converted  */
             *status = OVERFLOW_ERR;
         }
     }
+
+    /* replace any commas with periods (e.g., in French locale) */
+    while ((cptr = strchr(cptr, ','))) *cptr = '.';
+
     return(*status);
 }
 
@@ -1329,10 +1337,10 @@ int ffpcljj(fitsfile *fptr,  /* I - FITS file pointer                       */
   and will be inverse-scaled by the FITS TSCALn and TZEROn values if necessary.
 */
 {
-    int tcode, maxelem, hdutype, writeraw;
+    int tcode, maxelem2, hdutype, writeraw;
     long twidth, incre;
     long  ntodo;
-    LONGLONG repeat, startpos, elemnum, wrtptr, rowlen, rownum, remain, next, tnull;
+    LONGLONG repeat, startpos, elemnum, wrtptr, rowlen, rownum, remain, next, tnull, maxelem;
     double scale, zero;
     char tform[20], cform[20];
     char message[FLEN_ERRMSG];
@@ -1351,9 +1359,10 @@ int ffpcljj(fitsfile *fptr,  /* I - FITS file pointer                       */
     /*  Check input and get parameters about the column: */
     /*---------------------------------------------------*/
     if (ffgcprll( fptr, colnum, firstrow, firstelem, nelem, 1, &scale, &zero,
-        tform, &twidth, &tcode, &maxelem, &startpos,  &elemnum, &incre,
+        tform, &twidth, &tcode, &maxelem2, &startpos,  &elemnum, &incre,
         &repeat, &rowlen, &hdutype, &tnull, snull, status) > 0)
         return(*status);
+    maxelem = maxelem2;
 
     if (tcode == TSTRING)   
          ffcfmt(tform, cform);     /* derive C format for writing strings */
@@ -1369,7 +1378,7 @@ int ffpcljj(fitsfile *fptr,  /* I - FITS file pointer                       */
        MACHINE == NATIVE && tcode == TLONGLONG)
     {
         writeraw = 1;
-        maxelem = (int) nelem;  /* we can write the entire array at one time */
+        maxelem = nelem;  /* we can write the entire array at one time */
     }
     else
         writeraw = 0;
@@ -1948,6 +1957,9 @@ int ffi8fstr(LONGLONG *input,  /* I - array of values to be converted  */
 {
     long ii;
     double dvalue;
+    char *cptr;
+    
+    cptr = output;
 
     if (scale == 1. && zero == 0.)
     {       
@@ -1972,5 +1984,9 @@ int ffi8fstr(LONGLONG *input,  /* I - array of values to be converted  */
             *status = OVERFLOW_ERR;
         }
     }
+
+    /* replace any commas with periods (e.g., in French locale) */
+    while ((cptr = strchr(cptr, ','))) *cptr = '.';
+    
     return(*status);
 }

@@ -30,7 +30,8 @@ int ffghsp(fitsfile *fptr,  /* I - FITS file pointer                     */
     if (fptr->HDUposition != (fptr->Fptr)->curhdu)
         ffmahd(fptr, (fptr->HDUposition) + 1, NULL, status);
 
-    *nexist = (int) (( ((fptr->Fptr)->headend) - 
+    if (nexist)
+        *nexist = (int) (( ((fptr->Fptr)->headend) - 
                 ((fptr->Fptr)->headstart[(fptr->Fptr)->curhdu]) ) / 80);
 
     if ((fptr->Fptr)->datastart == DATA_UNDEFINED)
@@ -271,7 +272,7 @@ int ffgnxk( fitsfile *fptr,     /* I - FITS file pointer              */
 /*--------------------------------------------------------------------------*/
 int ffgky( fitsfile *fptr,     /* I - FITS file pointer        */
            int  datatype,      /* I - datatype of the value    */
-           char *keyname,      /* I - name of keyword to read  */
+           const char *keyname,      /* I - name of keyword to read  */
            void *value,        /* O - keyword value            */
            char *comm,         /* O - keyword comment          */
            int  *status)       /* IO - error status            */
@@ -314,7 +315,7 @@ int ffgky( fitsfile *fptr,     /* I - FITS file pointer        */
     {
         if (ffgkyj(fptr, keyname, &longval, comm, status) <= 0)
         {
-            if (longval > USHRT_MAX || longval < 0)
+            if (longval > (long) USHRT_MAX || longval < 0)
                 *status = NUM_OVERFLOW;
             else
                 *(unsigned short *) value = (unsigned short) longval;
@@ -395,7 +396,7 @@ int ffgky( fitsfile *fptr,     /* I - FITS file pointer        */
 } 
 /*--------------------------------------------------------------------------*/
 int ffgkey( fitsfile *fptr,     /* I - FITS file pointer        */
-            char *keyname,      /* I - name of keyword to read  */
+            const char *keyname,      /* I - name of keyword to read  */
             char *keyval,       /* O - keyword value            */
             char *comm,         /* O - keyword comment          */
             int  *status)       /* IO - error status            */
@@ -444,7 +445,8 @@ int ffgrec( fitsfile *fptr,     /* I - FITS file pointer          */
     if (nrec == 0)
     {
         ffmaky(fptr, 1, status);  /* simply move to beginning of header */
-        card[0] = '\0';           /* and return null card */
+        if (card)
+            card[0] = '\0';           /* and return null card */
     }
     else if (nrec > 0)
     {
@@ -456,12 +458,12 @@ int ffgrec( fitsfile *fptr,     /* I - FITS file pointer          */
 }
 /*--------------------------------------------------------------------------*/
 int ffgcrd( fitsfile *fptr,     /* I - FITS file pointer        */
-            char *name,         /* I - name of keyword to read  */
+            const char *name,         /* I - name of keyword to read  */
             char *card,         /* O - keyword card             */
             int  *status)       /* IO - error status            */
 /*
   Read (get) the named keyword, returning the entire keyword card up to
-  80 characters long.  The first keyword in the header has nrec = 1, not 0.
+  80 characters long.  
   The returned card value is null terminated with any trailing blank 
   characters removed.
 
@@ -601,6 +603,11 @@ int ffgcrd( fitsfile *fptr,     /* I - FITS file pointer        */
                   return(*status);   /* found the matching keyword */
                 }
               }
+	      else if (namelen == 0 && cardlen == 0)
+	      {
+	         /* matched a blank keyword */
+		 return(*status);
+	      }
             }
           }
         }
@@ -608,6 +615,48 @@ int ffgcrd( fitsfile *fptr,     /* I - FITS file pointer        */
 
       if (wild || jj == 1)
             break;  /* stop at end of header if template contains wildcards */
+
+      ffmaky(fptr, 1, status);  /* reset pointer to beginning of header */
+      ntodo = nextkey - 1;      /* number of keyword to read */ 
+    }
+
+    return(*status = KEY_NO_EXIST);  /* couldn't find the keyword */
+}
+/*--------------------------------------------------------------------------*/
+int ffgstr( fitsfile *fptr,     /* I - FITS file pointer        */
+            const char *string, /* I - string to match  */
+            char *card,         /* O - keyword card             */
+            int  *status)       /* IO - error status            */
+/*
+  Read (get) the next keyword record that contains the input character string,
+  returning the entire keyword card up to 80 characters long.
+  The returned card value is null terminated with any trailing blank 
+  characters removed.
+*/
+{
+    int nkeys, nextkey, ntodo, stringlen;
+    int jj, kk;
+
+    if (*status > 0)
+        return(*status);
+
+    stringlen = strlen(string);
+    if (stringlen > 80) {
+        return(*status = KEY_NO_EXIST);  /* matching string is too long to exist */
+    }
+
+    ffghps(fptr, &nkeys, &nextkey, status); /* get no. keywords and position */
+    ntodo = nkeys - nextkey + 1;  /* first, read from next keyword to end */
+
+    for (jj=0; jj < 2; jj++)
+    {
+      for (kk = 0; kk < ntodo; kk++)
+      {
+        ffgnky(fptr, card, status);     /* get next keyword */
+        if (strstr(card, string) != 0) {
+            return(*status);   /* found the matching string */
+        }
+      }
 
       ffmaky(fptr, 1, status);  /* reset pointer to beginning of header */
       ntodo = nextkey - 1;      /* number of keyword to read */ 
@@ -685,7 +734,7 @@ int ffgknm( char *card,         /* I - keyword card                   */
 }
 /*--------------------------------------------------------------------------*/
 int ffgunt( fitsfile *fptr,     /* I - FITS file pointer         */
-            char *keyname,      /* I - name of keyword to read   */
+            const char *keyname,      /* I - name of keyword to read   */
             char *unit,         /* O - keyword units             */
             int  *status)       /* IO - error status             */
 /*
@@ -721,7 +770,7 @@ int ffgunt( fitsfile *fptr,     /* I - FITS file pointer         */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkys( fitsfile *fptr,     /* I - FITS file pointer         */
-            char *keyname,      /* I - name of keyword to read   */
+            const char *keyname,      /* I - name of keyword to read   */
             char *value,        /* O - keyword value             */
             char *comm,         /* O - keyword comment           */
             int  *status)       /* IO - error status             */
@@ -747,7 +796,7 @@ int ffgkys( fitsfile *fptr,     /* I - FITS file pointer         */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkls( fitsfile *fptr,     /* I - FITS file pointer         */
-            char *keyname,      /* I - name of keyword to read   */
+            const char *keyname,      /* I - name of keyword to read   */
             char **value,       /* O - pointer to keyword value  */
             char *comm,         /* O - keyword comment           */
             int  *status)       /* IO - error status             */
@@ -813,6 +862,22 @@ int ffgkls( fitsfile *fptr,     /* I - FITS file pointer         */
     return(*status);
 }
 /*--------------------------------------------------------------------------*/
+int fffree( void *value,       /* I - pointer to keyword value  */
+            int  *status)      /* IO - error status             */
+/*
+  Free the memory that was previously allocated by CFITSIO, 
+  such as by ffgkls or fits_hdr2str
+*/
+{
+    if (*status > 0)
+        return(*status);
+
+    if (value)
+        free(value);
+
+    return(*status);
+}
+ /*--------------------------------------------------------------------------*/
 int ffgcnt( fitsfile *fptr,     /* I - FITS file pointer         */
             char *value,        /* O - continued string value    */
             int  *status)       /* IO - error status             */
@@ -855,7 +920,7 @@ int ffgcnt( fitsfile *fptr,     /* I - FITS file pointer         */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkyl( fitsfile *fptr,     /* I - FITS file pointer         */
-            char *keyname,      /* I - name of keyword to read   */
+            const char *keyname,      /* I - name of keyword to read   */
             int  *value,        /* O - keyword value             */
             char *comm,         /* O - keyword comment           */
             int  *status)       /* IO - error status             */
@@ -877,7 +942,7 @@ int ffgkyl( fitsfile *fptr,     /* I - FITS file pointer         */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkyj( fitsfile *fptr,     /* I - FITS file pointer         */
-            char *keyname,      /* I - name of keyword to read   */
+            const char *keyname,      /* I - name of keyword to read   */
             long *value,        /* O - keyword value             */
             char *comm,         /* O - keyword comment           */
             int  *status)       /* IO - error status             */
@@ -899,7 +964,7 @@ int ffgkyj( fitsfile *fptr,     /* I - FITS file pointer         */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkyjj( fitsfile *fptr,     /* I - FITS file pointer         */
-            char *keyname,      /* I - name of keyword to read   */
+            const char *keyname,      /* I - name of keyword to read   */
             LONGLONG *value,    /* O - keyword value             */
             char *comm,         /* O - keyword comment           */
             int  *status)       /* IO - error status             */
@@ -921,7 +986,7 @@ int ffgkyjj( fitsfile *fptr,     /* I - FITS file pointer         */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkye( fitsfile *fptr,     /* I - FITS file pointer         */
-            char  *keyname,     /* I - name of keyword to read   */
+            const char  *keyname,     /* I - name of keyword to read   */
             float *value,       /* O - keyword value             */
             char  *comm,        /* O - keyword comment           */
             int   *status)      /* IO - error status             */
@@ -943,7 +1008,7 @@ int ffgkye( fitsfile *fptr,     /* I - FITS file pointer         */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkyd( fitsfile *fptr,      /* I - FITS file pointer         */
-            char   *keyname,     /* I - name of keyword to read   */
+            const char   *keyname,     /* I - name of keyword to read   */
             double *value,       /* O - keyword value             */
             char   *comm,        /* O - keyword comment           */
             int    *status)      /* IO - error status             */
@@ -965,7 +1030,7 @@ int ffgkyd( fitsfile *fptr,      /* I - FITS file pointer         */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkyc( fitsfile *fptr,     /* I - FITS file pointer         */
-            char  *keyname,     /* I - name of keyword to read   */
+            const char  *keyname,     /* I - name of keyword to read   */
             float *value,       /* O - keyword value (real,imag) */
             char  *comm,        /* O - keyword comment           */
             int   *status)      /* IO - error status             */
@@ -1005,7 +1070,7 @@ int ffgkyc( fitsfile *fptr,     /* I - FITS file pointer         */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkym( fitsfile *fptr,     /* I - FITS file pointer         */
-            char  *keyname,     /* I - name of keyword to read   */
+            const char  *keyname,     /* I - name of keyword to read   */
             double *value,      /* O - keyword value (real,imag) */
             char  *comm,        /* O - keyword comment           */
             int   *status)      /* IO - error status             */
@@ -1046,7 +1111,7 @@ int ffgkym( fitsfile *fptr,     /* I - FITS file pointer         */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkyt( fitsfile *fptr,      /* I - FITS file pointer                 */
-            char   *keyname,     /* I - name of keyword to read           */
+            const char   *keyname,     /* I - name of keyword to read           */
             long   *ivalue,      /* O - integer part of keyword value     */
             double *fraction,    /* O - fractional part of keyword value  */
             char   *comm,        /* O - keyword comment                   */
@@ -1135,7 +1200,7 @@ int ffgkyn( fitsfile *fptr,      /* I - FITS file pointer             */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkns( fitsfile *fptr,     /* I - FITS file pointer                    */
-            char *keyname,      /* I - root name of keywords to read        */
+            const char *keyname,      /* I - root name of keywords to read        */
             int  nstart,        /* I - starting index number                */
             int  nmax,          /* I - maximum number of keywords to return */
             char *value[],      /* O - array of pointers to keyword values  */
@@ -1207,7 +1272,7 @@ int ffgkns( fitsfile *fptr,     /* I - FITS file pointer                    */
 }
 /*--------------------------------------------------------------------------*/
 int ffgknl( fitsfile *fptr,     /* I - FITS file pointer                    */
-            char *keyname,      /* I - root name of keywords to read        */
+            const char *keyname,      /* I - root name of keywords to read        */
             int  nstart,        /* I - starting index number                */
             int  nmax,          /* I - maximum number of keywords to return */
             int  *value,        /* O - array of keyword values              */
@@ -1281,7 +1346,7 @@ int ffgknl( fitsfile *fptr,     /* I - FITS file pointer                    */
 }
 /*--------------------------------------------------------------------------*/
 int ffgknj( fitsfile *fptr,     /* I - FITS file pointer                    */
-            char *keyname,      /* I - root name of keywords to read        */
+            const char *keyname,      /* I - root name of keywords to read        */
             int  nstart,        /* I - starting index number                */
             int  nmax,          /* I - maximum number of keywords to return */
             long *value,        /* O - array of keyword values              */
@@ -1354,7 +1419,7 @@ int ffgknj( fitsfile *fptr,     /* I - FITS file pointer                    */
 }
 /*--------------------------------------------------------------------------*/
 int ffgknjj( fitsfile *fptr,    /* I - FITS file pointer                    */
-            char *keyname,      /* I - root name of keywords to read        */
+            const char *keyname,      /* I - root name of keywords to read        */
             int  nstart,        /* I - starting index number                */
             int  nmax,          /* I - maximum number of keywords to return */
             LONGLONG *value,    /* O - array of keyword values              */
@@ -1427,7 +1492,7 @@ int ffgknjj( fitsfile *fptr,    /* I - FITS file pointer                    */
 }
 /*--------------------------------------------------------------------------*/
 int ffgkne( fitsfile *fptr,     /* I - FITS file pointer                    */
-            char *keyname,      /* I - root name of keywords to read        */
+            const char *keyname,      /* I - root name of keywords to read        */
             int  nstart,        /* I - starting index number                */
             int  nmax,          /* I - maximum number of keywords to return */
             float *value,       /* O - array of keyword values              */
@@ -1500,7 +1565,7 @@ int ffgkne( fitsfile *fptr,     /* I - FITS file pointer                    */
 }
 /*--------------------------------------------------------------------------*/
 int ffgknd( fitsfile *fptr,     /* I - FITS file pointer                    */
-            char *keyname,      /* I - root name of keywords to read        */
+            const char *keyname,      /* I - root name of keywords to read        */
             int  nstart,        /* I - starting index number                */
             int  nmax,          /* I - maximum number of keywords to return */
             double *value,      /* O - array of keyword values              */
@@ -3071,7 +3136,9 @@ int ffhdr2str( fitsfile *fptr,  /* I - FITS file pointer                    */
     if (ffghsp(fptr, &totkeys, NULL, status) > 0)
         return(*status);
 
-    /* allocate memory for all the keywords (multiple of 2880 bytes) */
+    /* allocate memory for all the keywords */
+    /* (will reallocate it later to minimize the memory size) */
+    
     *header = (char *) calloc ( (totkeys + 1) * 80 + 1, 1);
     if (!(*header))
     {
@@ -3128,6 +3195,48 @@ int ffhdr2str( fitsfile *fptr,  /* I - FITS file pointer                    */
     *headptr = '\0';   /* terminate the header string */
     /* minimize the allocated memory */
     *header = (char *) realloc(*header, (*nkeys *80) + 1);  
+
+    return(*status);
+}
+/*--------------------------------------------------------------------------*/
+int ffcnvthdr2str( fitsfile *fptr,  /* I - FITS file pointer                    */
+            int exclude_comm,   /* I - if TRUE, exclude commentary keywords */
+            char **exclist,     /* I - list of excluded keyword names       */
+            int nexc,           /* I - number of names in exclist           */
+            char **header,      /* O - returned header string               */
+            int *nkeys,         /* O - returned number of 80-char keywords  */
+            int  *status)       /* IO - error status                        */
+/*
+  Same as ffhdr2str, except that if the input HDU is a tile compressed image
+  (stored in a binary table) then it will first convert that header back
+  to that of a normal uncompressed FITS image before concatenating the header
+  keyword records.
+*/
+{
+    fitsfile *tempfptr;
+    
+    if (*status > 0)
+        return(*status);
+
+    if (fits_is_compressed_image(fptr, status) )
+    {
+        /* this is a tile compressed image, so need to make an uncompressed */
+	/* copy of the image header in memory before concatenating the keywords */
+        if (fits_create_file(&tempfptr, "mem://", status) > 0) {
+	    return(*status);
+	}
+
+	if (fits_img_decompress_header(fptr, tempfptr, status) > 0) {
+	    fits_delete_file(tempfptr, status);
+	    return(*status);
+	}
+
+	ffhdr2str(tempfptr, exclude_comm, exclist, nexc, header, nkeys, status);
+	fits_close_file(tempfptr, status);
+
+    } else {
+        ffhdr2str(fptr, exclude_comm, exclist, nexc, header, nkeys, status);
+    }
 
     return(*status);
 }

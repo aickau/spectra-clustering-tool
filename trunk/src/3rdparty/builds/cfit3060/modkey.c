@@ -14,7 +14,7 @@
 /*--------------------------------------------------------------------------*/
 int ffuky( fitsfile *fptr,     /* I - FITS file pointer        */
            int  datatype,      /* I - datatype of the value    */
-           char *keyname,      /* I - name of keyword to write */
+           const char *keyname,      /* I - name of keyword to write */
            void *value,        /* I - keyword value            */
            char *comm,         /* I - keyword comment          */
            int  *status)       /* IO - error status            */
@@ -95,7 +95,7 @@ int ffuky( fitsfile *fptr,     /* I - FITS file pointer        */
 } 
 /*--------------------------------------------------------------------------*/
 int ffukyu(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
 {
@@ -115,7 +115,7 @@ int ffukyu(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffukys(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            char *value,       /* I - keyword value      */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */ 
@@ -136,7 +136,7 @@ int ffukys(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffukls(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            char *value,       /* I - keyword value      */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */ 
@@ -144,6 +144,7 @@ int ffukls(fitsfile *fptr,    /* I - FITS file pointer  */
     /* update a long string keyword */
 
     int tstatus;
+    char junk[FLEN_ERRMSG];
 
     if (*status > 0)           /* inherit input status value if > 0 */
         return(*status);
@@ -152,13 +153,16 @@ int ffukls(fitsfile *fptr,    /* I - FITS file pointer  */
 
     if (ffmkls(fptr, keyname, value, comm, status) == KEY_NO_EXIST)
     {
+        /* since the ffmkls call failed, it wrote a bogus error message */
+        fits_read_errmsg(junk);  /* clear the error message */
+	
         *status = tstatus;
         ffpkls(fptr, keyname, value, comm, status);
     }
     return(*status);
 }/*--------------------------------------------------------------------------*/
 int ffukyl(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            int value,         /* I - keyword value      */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
@@ -179,7 +183,7 @@ int ffukyl(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffukyj(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            LONGLONG value,    /* I - keyword value      */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
@@ -200,7 +204,7 @@ int ffukyj(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffukyf(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float value,       /* I - keyword value      */
            int decim,         /* I - no of decimals     */         
            char *comm,        /* I - keyword comment    */
@@ -222,7 +226,7 @@ int ffukyf(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffukye(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float value,       /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -244,7 +248,7 @@ int ffukye(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffukyg(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -266,7 +270,7 @@ int ffukyg(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffukyd(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -288,7 +292,7 @@ int ffukyd(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffukfc(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float *value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */         
            char *comm,        /* I - keyword comment    */
@@ -310,7 +314,7 @@ int ffukfc(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffukyc(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float *value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -332,7 +336,7 @@ int ffukyc(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffukfm(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double *value,     /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -354,7 +358,7 @@ int ffukfm(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffukym(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double *value,     /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -376,7 +380,7 @@ int ffukym(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffucrd(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            char *card,        /* I - card string value  */
            int *status)       /* IO - error status      */
 {
@@ -409,7 +413,7 @@ int ffmrec(fitsfile *fptr,    /* I - FITS file pointer               */
 }
 /*--------------------------------------------------------------------------*/
 int ffmcrd(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            char *card,        /* I - card string value  */
            int *status)       /* IO - error status      */
 {
@@ -449,8 +453,8 @@ int ffmcrd(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmnam(fitsfile *fptr,    /* I - FITS file pointer     */
-           char *oldname,     /* I - existing keyword name */
-           char *newname,     /* I - new name for keyword  */
+           const char *oldname,     /* I - existing keyword name */
+           const char *newname,     /* I - new name for keyword  */
            int *status)       /* IO - error status         */
 {
     char comm[FLEN_COMMENT];
@@ -470,7 +474,7 @@ int ffmnam(fitsfile *fptr,    /* I - FITS file pointer     */
 }
 /*--------------------------------------------------------------------------*/
 int ffmcom(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
 {
@@ -491,7 +495,7 @@ int ffmcom(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffpunt(fitsfile *fptr,    /* I - FITS file pointer   */
-           char *keyname,     /* I - keyword name        */
+           const char *keyname,     /* I - keyword name        */
            char *unit,        /* I - keyword unit string */
            int *status)       /* IO - error status       */
 /*
@@ -559,7 +563,7 @@ int ffpunt(fitsfile *fptr,    /* I - FITS file pointer   */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkyu(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
 {
@@ -586,7 +590,7 @@ int ffmkyu(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkys(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            char *value,       /* I - keyword value      */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
@@ -636,7 +640,7 @@ int ffmkys(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkls( fitsfile *fptr,     /* I - FITS file pointer        */
-            char *keyname,      /* I - name of keyword to write */
+            const char *keyname,      /* I - name of keyword to write */
             char *value,        /* I - keyword value            */
             char *incomm,       /* I - keyword comment          */
             int  *status)       /* IO - error status            */
@@ -653,7 +657,7 @@ int ffmkls( fitsfile *fptr,     /* I - FITS file pointer        */
 */
 {
     char valstring[FLEN_VALUE];
-    char card[FLEN_CARD];
+    char card[FLEN_CARD], tmpkeyname[FLEN_CARD];
     char comm[FLEN_COMMENT];
     char tstring[FLEN_VALUE], *cptr;
     char *longval;
@@ -676,9 +680,11 @@ int ffmkls( fitsfile *fptr,     /* I - FITS file pointer        */
         /* the right keyword in case there are more than one keyword */
         /* with this same name. */
         ffgrec(fptr, keypos - 1, card, status); 
+    } else {
+        /* copy the input comment string */
+        strncpy(comm, incomm, FLEN_COMMENT-1);
+        comm[FLEN_COMMENT-1] = '\0';
     }
-    else
-        strcpy(comm, incomm);  /* copy the input comment string */
 
     /* delete the old keyword */
     if (ffdkey(fptr, keyname, status) > 0)
@@ -701,7 +707,10 @@ int ffmkls( fitsfile *fptr,     /* I - FITS file pointer        */
         cptr = strchr(cptr, '\'');  /* search for another quote char */
     }
 
-    cptr = keyname;
+    strncpy(tmpkeyname, keyname, 80);
+    tmpkeyname[80] = '\0';
+    
+    cptr = tmpkeyname;
     while(*cptr == ' ')   /* skip over leading spaces in name */
         cptr++;
 
@@ -768,7 +777,7 @@ int ffmkls( fitsfile *fptr,     /* I - FITS file pointer        */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkyl(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            int value,         /* I - keyword value      */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
@@ -796,7 +805,7 @@ int ffmkyl(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkyj(fitsfile *fptr,   /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            LONGLONG value,    /* I - keyword value      */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
@@ -824,7 +833,7 @@ int ffmkyj(fitsfile *fptr,   /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkyf(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float value,       /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -853,7 +862,7 @@ int ffmkyf(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkye(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float value,       /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -882,7 +891,7 @@ int ffmkye(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkyg(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -911,7 +920,7 @@ int ffmkyg(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkyd(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -940,7 +949,7 @@ int ffmkyd(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkfc(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float *value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -975,7 +984,7 @@ int ffmkfc(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkyc(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float *value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -1010,7 +1019,7 @@ int ffmkyc(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkfm(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double *value,     /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -1045,7 +1054,7 @@ int ffmkfm(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffmkym(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double *value,     /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */
@@ -1080,7 +1089,7 @@ int ffmkym(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikyu(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
 /*
@@ -1101,7 +1110,7 @@ int ffikyu(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikys(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            char *value,       /* I - keyword value      */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
@@ -1120,7 +1129,7 @@ int ffikys(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikls( fitsfile *fptr,     /* I - FITS file pointer        */
-            char *keyname,      /* I - name of keyword to write */
+            const char *keyname,      /* I - name of keyword to write */
             char *value,        /* I - keyword value            */
             char *comm,         /* I - keyword comment          */
             int  *status)       /* IO - error status            */
@@ -1134,7 +1143,7 @@ int ffikls( fitsfile *fptr,     /* I - FITS file pointer        */
 */
 {
     char valstring[FLEN_VALUE];
-    char card[FLEN_CARD];
+    char card[FLEN_CARD], tmpkeyname[FLEN_CARD];
     char tstring[FLEN_VALUE], *cptr;
     int next, remain, vlen, nquote, nchar, namelen, contin, tstatus = -1;
 
@@ -1156,7 +1165,11 @@ int ffikls( fitsfile *fptr,     /* I - FITS file pointer        */
         cptr = strchr(cptr, '\'');  /* search for another quote char */
     }
 
-    cptr = keyname;
+
+    strncpy(tmpkeyname, keyname, 80);
+    tmpkeyname[80] = '\0';
+    
+    cptr = tmpkeyname;
     while(*cptr == ' ')   /* skip over leading spaces in name */
         cptr++;
 
@@ -1222,7 +1235,7 @@ int ffikls( fitsfile *fptr,     /* I - FITS file pointer        */
 }
 /*--------------------------------------------------------------------------*/
 int ffikyl(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            int value,         /* I - keyword value      */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
@@ -1241,7 +1254,7 @@ int ffikyl(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikyj(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            LONGLONG value,    /* I - keyword value      */
            char *comm,        /* I - keyword comment    */
            int *status)       /* IO - error status      */
@@ -1260,7 +1273,7 @@ int ffikyj(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikyf(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float value,       /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */ 
@@ -1280,7 +1293,7 @@ int ffikyf(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikye(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float value,       /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */ 
@@ -1300,7 +1313,7 @@ int ffikye(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikyg(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */ 
@@ -1320,7 +1333,7 @@ int ffikyg(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikyd(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */ 
@@ -1340,7 +1353,7 @@ int ffikyd(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikfc(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float *value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */ 
@@ -1367,7 +1380,7 @@ int ffikfc(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikyc(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            float *value,      /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */ 
@@ -1394,7 +1407,7 @@ int ffikyc(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikfm(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double *value,     /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */ 
@@ -1422,7 +1435,7 @@ int ffikfm(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffikym(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            double *value,     /* I - keyword value      */
            int decim,         /* I - no of decimals     */
            char *comm,        /* I - keyword comment    */ 
@@ -1495,6 +1508,11 @@ int ffikey(fitsfile *fptr,    /* I - FITS file pointer  */
     buff2[80] = '\0';
 
     len = strlen(buff2);
+
+    /* silently replace any illegal characters with a space */
+    for (ii=0; ii < len; ii++)   
+        if (buff2[ii] < ' ' || buff2[ii] > 126) buff2[ii] = ' ';
+
     for (ii=len; ii < 80; ii++)   /* fill buffer with spaces if necessary */
         buff2[ii] = ' ';
 
@@ -1502,7 +1520,9 @@ int ffikey(fitsfile *fptr,    /* I - FITS file pointer  */
         buff2[ii] = toupper(buff2[ii]);
 
     fftkey(buff2, status);        /* test keyword name contains legal chars */
-    fftrec(buff2, status);        /* test rest of keyword for legal chars   */
+
+/*  no need to do this any more, since any illegal characters have been removed
+    fftrec(buff2, status);  */      /* test rest of keyword for legal chars   */
 
     inbuff = buff1;
     outbuff = buff2;
@@ -1533,7 +1553,7 @@ int ffikey(fitsfile *fptr,    /* I - FITS file pointer  */
 }
 /*--------------------------------------------------------------------------*/
 int ffdkey(fitsfile *fptr,    /* I - FITS file pointer  */
-           char *keyname,     /* I - keyword name       */
+           const char *keyname,     /* I - keyword name       */
            int *status)       /* IO - error status      */
 /*
   delete a specified header keyword
@@ -1577,6 +1597,51 @@ int ffdkey(fitsfile *fptr,    /* I - FITS file pointer  */
     return(*status);
 }
 /*--------------------------------------------------------------------------*/
+int ffdstr(fitsfile *fptr,    /* I - FITS file pointer  */
+           const char *string,     /* I - keyword name       */
+           int *status)       /* IO - error status      */
+/*
+  delete a specified header keyword containing the input string
+*/
+{
+    int keypos, len;
+    char valstring[FLEN_VALUE], comm[FLEN_COMMENT], value[FLEN_VALUE];
+    char card[FLEN_CARD], message[FLEN_ERRMSG];
+
+    if (*status > 0)           /* inherit input status value if > 0 */
+        return(*status);
+
+    if (ffgstr(fptr, string, card, status) > 0) /* read keyword */
+    {
+        sprintf(message, "Could not find the %s keyword to delete (ffdkey)",
+                string);
+        ffpmsg(message);
+        return(*status);
+    }
+
+    /* calc position of keyword in header */
+    keypos = (int) ((((fptr->Fptr)->nextkey) - ((fptr->Fptr)->headstart[(fptr->Fptr)->curhdu])) / 80);
+
+    ffdrec(fptr, keypos, status);  /* delete the keyword */
+
+        /* check for string value which may be continued over multiple keywords */
+    ffpsvc(card, valstring, comm, status);
+    ffc2s(valstring, value, status);   /* remove quotes and trailing spaces */
+    len = strlen(value);
+
+    while (len && value[len - 1] == '&')  /* ampersand used as continuation char */
+    {
+        ffgcnt(fptr, value, status);
+        if (*value)
+        {
+            ffdrec(fptr, keypos, status);  /* delete the keyword */
+            len = strlen(value);
+        }
+        else   /* a null valstring indicates no continuation */
+            len = 0;
+    }
+    return(*status);
+}/*--------------------------------------------------------------------------*/
 int ffdrec(fitsfile *fptr,   /* I - FITS file pointer  */
            int keypos,       /* I - position in header of keyword to delete */
            int *status)      /* IO - error status      */
