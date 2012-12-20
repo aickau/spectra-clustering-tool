@@ -126,18 +126,17 @@ void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _numDiagram
 	}
 	GLHelper::DrawLine( 0.f, yo, static_cast<float>(_width), yo );
 
-	float pos[]={10.f,10.f,-10};
+	float pos[]={10.f,getFBHeight()-_height-50,10};
 	std::stringstream sstream;
 	sstream << "min: " << yMin << "  max: " << yMax;
 	std::string sstrOut( sstream.str() );
 	GLHelper::Print( s_FontID, pos, sstrOut.c_str() );
 
 
+	glReadPixels(0,getFBHeight()-_height-50,_width,_height,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
+	glClearColor(0.0f,0.0f,0.f,1.f);
 	glLineWidth(1.f);
 	glColor3f(1,1,1);
-	glClearColor(0.0f,0.0f,0.f,1.f);
-
-	glReadPixels(0,getFBHeight()-_height,_width,_height,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 	ilSave( IL_PNG, const_cast<char*>(_sstrFilename.c_str()) );
 	ilDeleteImage(image);
 }
@@ -415,7 +414,7 @@ void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstr
 	// insert link
 	if ( !sp->getFileName().empty() )
 	{
-		_sstrOutTable += HTMLExport::imageLink( std::string("http://cas.sdss.org/dr7/en/get/specById.asp?id=")+Helpers::numberToString<__int64>(sp->m_SpecObjID), sp->getURL() );
+		_sstrOutTable += HTMLExport::imageLink( sp->getImgURL(), sp->getURL() );
 		_sstrOutTable += HTMLExport::lineBreak();
 		_sstrOutTable += "err=";
 		_sstrOutTable += Helpers::numberToString<float>(_error);

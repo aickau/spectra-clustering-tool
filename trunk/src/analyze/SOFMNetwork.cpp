@@ -1018,7 +1018,6 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 				// fill comparison map
 				if ( src[k]->m_Index >= 0 && src[k]->m_Index < m_gridSizeSqr )
 				{
-					assert( pErrMap[src[k]->m_Index] == 0.0f );
 					pErrMap[src[k]->m_Index] = err[k];
 					maxErr = MAX( maxErr, err[k] );
 				}
@@ -1120,7 +1119,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 			sstrTable += HTMLExport::beginTableRow();
 
 			sstrTable += HTMLExport::beginTableCell();
-			sstrTable += HTMLExport::imageLink( std::string("http://cas.sdss.org/dr7/en/get/specById.asp?id=")+Helpers::numberToString<__int64>(b->m_SpecObjID), b->getURL() );
+			sstrTable += HTMLExport::imageLink( b->getImgURL(), b->getURL() );
 			sstrTable += HTMLExport::lineBreak();
 			sstrTable += "err=";
 			sstrTable += Helpers::numberToString<float>(error);

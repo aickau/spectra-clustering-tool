@@ -1756,11 +1756,37 @@ int Spectra::getPlate() const
 
 std::string Spectra::getURL()const
 {
-	// for SDSS3 http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?sid=
-	std::string sstrUrl("http://cas.sdss.org/dr7/en/tools/explore/obj.asp?sid=");
+	std::string sstrUrlDR9("http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?sid=");
+	std::string sstrUrlDR8("http://skyserver.sdss3.org/dr8/en/tools/explore/obj.asp?sid=");
+	std::string sstrUrlDR7("http://cas.sdss.org/dr7/en/tools/explore/obj.asp?sid=");
+	std::string sstrUrl(sstrUrlDR7);
+	
+	if ( m_version == SP_VERSION_DR8 )
+		sstrUrl = sstrUrlDR8;
+	else if ( m_version == SP_VERSION_DR9 )
+		sstrUrl = sstrUrlDR9;
+
 	sstrUrl += Helpers::numberToString( m_SpecObjID );
 	return sstrUrl;
 }
+
+std::string Spectra::getImgURL() const
+{
+	std::string sstrUrlDR9("http://skyserver.sdss3.org/dr9/en/get/specById.asp?id=");
+	std::string sstrUrlDR8("http://skyserver.sdss3.org/dr8/en/get/specById.asp?id=");
+	std::string sstrUrlDR7("http://cas.sdss.org/dr7/en/get/specById.asp?id=");
+	std::string sstrUrl(sstrUrlDR7);
+
+	if ( m_version == SP_VERSION_DR8 )
+		sstrUrl = sstrUrlDR8;
+	else if ( m_version == SP_VERSION_DR9 )
+		sstrUrl = sstrUrlDR9;
+
+	sstrUrl += Helpers::numberToString( m_SpecObjID );
+	return sstrUrl;
+
+}
+
 
 bool Spectra::isEmpty() const
 {
