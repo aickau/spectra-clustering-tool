@@ -222,6 +222,10 @@ public:
 	// get SDSS URL to spectrum overview page
 	std::string getURL() const;
 
+	// get URL to SDSS image of spectrum
+	std::string getImgURL() const;
+
+
 	// returns true if marked as empty spectrum (specObjID is set to zero).
 	bool isEmpty() const;
 
