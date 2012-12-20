@@ -73,6 +73,7 @@ void Spectra::clear()
 	m_Index = -1;
 	m_SpecObjID = 0;
 	m_Type = SPT_NOT_SET;
+	m_version = SP_ARTIFICIAL;
 	m_Z = 0.0;
 	m_flux = 0.0f;
 	m_status = 0;
@@ -117,15 +118,16 @@ void Spectra::randomize(float minrange, float maxrange )
 
 void Spectra::set(const Spectra &_spectra)
 {
-	m_SamplesRead = _spectra.m_SamplesRead;
-	m_Min = _spectra.m_Min;
-	m_Max = _spectra.m_Max;
-	m_Index = _spectra.m_Index;
-	m_SpecObjID = _spectra.m_SpecObjID;
-	m_Type = _spectra.m_Type;
-	m_Z = _spectra.m_Z;
-	m_flux = _spectra.m_flux;
-	m_status = _spectra.m_status;
+	m_SamplesRead		= _spectra.m_SamplesRead;
+	m_Min				= _spectra.m_Min;
+	m_Max				= _spectra.m_Max;
+	m_Index				= _spectra.m_Index;
+	m_SpecObjID			= _spectra.m_SpecObjID;
+	m_version			= _spectra.m_version;
+	m_Type				= _spectra.m_Type;
+	m_Z					= _spectra.m_Z;
+	m_flux				= _spectra.m_flux;
+	m_status			= _spectra.m_status;
 
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
@@ -146,7 +148,7 @@ void Spectra::set(const Spectra &_spectra)
 void Spectra::set( size_t type, float _noize )
 {
 	type = type %= 5;
-
+	m_version = SP_ARTIFICIAL;
 
 	static size_t UIDCount = 1;
 	m_SpecObjID =(UIDCount++)<<22;
@@ -227,6 +229,7 @@ void Spectra::setSine( float _frequency, float _phase, float _amplitude, float _
 {
 	static size_t UIDCount = 1;
 	m_SpecObjID =(UIDCount++)<<22;
+	m_version = SP_ARTIFICIAL;
 
 	Rnd r;
 	for (size_t i=0;i<Spectra::numSamples;i++)
@@ -242,6 +245,7 @@ void Spectra::setRect( float _width, float _phase, float _amplitude )
 {
 	static size_t UIDCount = 1;
 	m_SpecObjID =(UIDCount++)<<22;
+	m_version = SP_ARTIFICIAL;
 	
 	float x = 0.0f;
 	float xInc = 1.f/static_cast<float>(Spectra::numSamples);
@@ -379,6 +383,7 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	sstr >> z;
 
 	m_Type = SPT_UNKNOWN;
+	m_version = SP_CSV;
 	if ( type > 0 )
 	{
 		m_Type = (SpectraType)type;
@@ -507,6 +512,37 @@ Spectra::SpectraVersion checkVersion(fitsfile *f)
 	return Spectra::SP_VERSION_DR8;
 }
 
+bool Spectra::loadFromFITS(const std::string &_filename)
+{
+	fitsfile *f=NULL;
+
+	// According to FITS standard, to perform a specific action, status must be always 0 before.
+	int status = 0;
+
+	fits_open_file( &f, _filename.c_str(), READONLY, &status );
+	if ( status != 0 )
+		return false;
+
+	SpectraVersion version = checkVersion( f );
+	fits_close_file(f, &status);
+	
+	if ( version == SP_VERSION_DR9 )
+	{
+		return loadFromFITS_BOSS(_filename);
+	}
+	else if ( version == SP_VERSION_DR8 )
+	{
+		//loadFromFITS_SDSS_DR8(_filename);
+		return false;
+	}
+	else if ( version == SP_VERSION_DR7 )
+	{
+		return loadFromFITS_SDSS(_filename);
+	}
+	
+	return false;
+}
+
 
 bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 {
@@ -522,9 +558,9 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	if ( status != 0 )
 		return false;
 
-	SpectraVersion version = checkVersion( f );
+	m_version = checkVersion( f );
 
-	if ( version != SP_VERSION_DR9 )
+	if ( m_version != SP_VERSION_DR9 )
 	{
 		// wrong version
 		fits_close_file(f, &statusclose);
@@ -670,10 +706,11 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	// retrieve add. info.
 	if( g_spectraDB.loadDR9DB() )
 	{
-		SpectraDB::Info spectraInfo = g_spectraDB.getInfo( m_SpecObjID );
-		if ( spectraInfo.success )
+		SpectraDB::Info spectraInfo;
+		if ( g_spectraDB.getInfo( m_SpecObjID, spectraInfo ) )
 		{
-			m_Z = spectraInfo.z;
+			m_Z		= spectraInfo.z;
+			m_Type	= spectraInfo.type;
 		}
 
 
@@ -827,9 +864,9 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 	if ( status != 0 )
 		return false;
 
-	SpectraVersion version = checkVersion( f );
+	m_version = checkVersion( f );
 
-	if ( version != SP_VERSION_DR7 )
+	if ( m_version != SP_VERSION_DR7 )
 	{
 		// wrong version
 		fits_close_file(f, &statusclose);
@@ -2089,7 +2126,24 @@ Spectra::SpectraType Spectra::spectraTypeFromString( const std::string &_spectra
 	if ( ssstrSpectraType == "REDDEN_STD" )
 		return SPT_REDDEN_STD;
 
+	// i.e. NONLEGACY.
 	return SPT_UNKNOWN;
+}
+
+
+
+std::string Spectra::spectraVersionToString( SpectraVersion _spectraVersion )
+{
+	switch ( _spectraVersion )
+	{
+	case SP_VERSION_INVALID : return "Invalid";
+	case SP_ARTIFICIAL		: return "Artificial";
+	case SP_CSV				: return "Comma Separated Values (CSV)";
+	case SP_VERSION_DR7		: return "DR7 and below";
+	case SP_VERSION_DR8		: return "DR8";
+	case SP_VERSION_DR9		: return "DR9/BOSS";
+	}
+	return "Spectra version that should not exist";
 }
 
 

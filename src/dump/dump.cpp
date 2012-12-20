@@ -64,7 +64,7 @@ void main(int argc, char* argv[])
 
 	std::string sstrDataDir = FileHelpers::getCurrentDirectory()+DATADIR;
 	std::string sstrDumpFile = DUMPFILE;
-	unsigned int spectraFilter = 0x0fffff;//SPT_DEFAULTFILTER;
+	unsigned int spectraFilter = SPT_DEFAULTFILTER;
 	std::string sstrInputDumpFile("");
 	std::string sstrSelectionListFilename("");
 
@@ -87,7 +87,29 @@ void main(int argc, char* argv[])
 		sstrFilterDesc +=  std::string( "  SPEC_HIZ_QSO =  16\n");
 		sstrFilterDesc +=  std::string( "  SPEC_SKY     =  32\n");
 		sstrFilterDesc +=  std::string( "  STAR_LATE    =  64\n");
-		sstrFilterDesc +=  std::string( "  GAL_EM       = 128\n\n\n");
+	
+		sstrFilterDesc +=  std::string( "for BOSS spectra (SDSS DR9 and above) the additional following types can be used:\n");
+		sstrFilterDesc +=  std::string( "  QualityAssuarance    =   0x000000100\n");
+		sstrFilterDesc +=  std::string( "  STAR_PN              =   0x000000200\n");
+		sstrFilterDesc +=  std::string( "  STAR_CARBON          =   0x000000400\n");
+		sstrFilterDesc +=  std::string( "  STAR_BROWN_DWARF     =   0x000000800\n");
+		sstrFilterDesc +=  std::string( "  STAR_SUB_DWARF       =   0x000001000\n");
+		sstrFilterDesc +=  std::string( "  STAR_CATY_VAR        =   0x000002000\n");
+		sstrFilterDesc +=  std::string( "  STAR_RED_DWARF       =   0x000004000\n");
+		sstrFilterDesc +=  std::string( "  STAR_WHITE_DWARF     =   0x000008000\n");
+		sstrFilterDesc +=  std::string( "  STAR_BHB             =   0x000010000\n");
+		sstrFilterDesc +=  std::string( "  ROSAT_A              =   0x000020000\n");
+		sstrFilterDesc +=  std::string( "  ROSAT_B              =   0x000040000\n");
+		sstrFilterDesc +=  std::string( "  ROSAT_C              =   0x000080000\n");
+		sstrFilterDesc +=  std::string( "  ROSAT_D              =   0x000100000\n");
+		sstrFilterDesc +=  std::string( "  SPECTROPHOTO_STD     =   0x000200000\n");
+		sstrFilterDesc +=  std::string( "  HOT_STD              =   0x000400000\n");
+		sstrFilterDesc +=  std::string( "  SERENDIPITY_BLUE     =   0x000800000\n");
+		sstrFilterDesc +=  std::string( "  SERENDIPITY_FIRST    =   0x001000000\n");
+		sstrFilterDesc +=  std::string( "  SERENDIPITY_RED      =   0x002000000\n");
+		sstrFilterDesc +=  std::string( "  SERENDIPITY_DISTANT  =   0x004000000\n");
+		sstrFilterDesc +=  std::string( "  SERENDIPITY_MANUAL   =   0x008000000\n");
+		sstrFilterDesc +=  std::string( "  REDDEN_STD           =   0x010000000\n");
 
 		TCLAP::ValueArg<std::string> dataDirArg("d", "datadir", "example: F:/SDSS_ANALYZE/fits/spectro/data/*", false, sstrDataDir, "datadir/*");
 		TCLAP::ValueArg<std::string> outputFilenameArg("o", "outputdumpfile", "example: allSpectra.bin", false, sstrDumpFile, "outputfilename.bin");
