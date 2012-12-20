@@ -19,18 +19,16 @@
 #include "spectraDB.h"
 
 #include "helpers.h"
+#include "fileHelpers.h"
 
 #include "cfitsio/fitsio.h"
 #include "cfitsio/longnam.h"
 
+#include <fstream>
+#include <iostream>
 
-bool SpectraDB::loadDR9DB()
+bool SpectraDB::writeDB()
 {
-	// DB already loaded?
-	if ( m_spectraDB.size() >0 )
-		return true;
-
-
 	const std::string filename("specObj-dr9.fits");
 
 	fitsfile *f=NULL;
@@ -71,7 +69,6 @@ bool SpectraDB::loadDR9DB()
 	{
 		__int64 specObjID;
 		Info info;
-		info.success = true;
 		char *arrVal[2];
 
 		char val[4096];
@@ -88,22 +85,71 @@ bool SpectraDB::loadDR9DB()
 		m_spectraDB.insert( std::make_pair<__int64,Info>(specObjID, info) );
 	}
 
-
 	fits_close_file(f, &statusclose);
+
+
+	std::ofstream file("spectraParamDR9.bin", std::ios::out|std::ios::binary );
+	if ( !file.is_open() )
+	{
+		return false;
+	}
+	
+	// serialize map
+	std::map<__int64,Info>::iterator it = m_spectraDB.begin();
+	std::map<__int64,Info>::iterator itEnd = m_spectraDB.end();
+	while ( it != itEnd )
+	{
+		file.write((const char*)&it->first, sizeof(__int64) );
+		file.write((const char*)&it->second, sizeof(Info));
+		it++;
+	}
+	file.close();
+
+
 	return true;
 }
 
 
-SpectraDB::Info SpectraDB::getInfo( __int64 _specObjID )
+bool SpectraDB::loadDR9DB()
 {
-	Info info;
-	info.success = false;		
+	// DB already loaded?
+	if ( m_spectraDB.size() > 0 )
+		return true;
+
+	const size_t fileSize = FileHelpers::getFileSize("spectraParamDR9.bin");
+	const size_t elementSize = sizeof(Info)+4;
+
+	if ( fileSize < elementSize || fileSize%elementSize != 0 )
+		return false;
+	
+	const size_t numElements = fileSize / elementSize; 
+
+	std::ifstream file("spectraParamDR9.bin", std::ios::in|std::ios::binary );
+	if ( !file.is_open() )
+	{
+		return false;
+	}
+	for ( size_t i=0;i<numElements;i++ )
+	{
+		__int64 specObjID;
+		Info info;
+		file.read((char*)&specObjID, sizeof(__int64) );
+		file.read((char*)&info, sizeof(Info) );
+		m_spectraDB.insert( m_spectraDB.end(), std::make_pair<__int64,Info>(specObjID, info) );
+	}
+
+	return true;
+}
+
+
+bool SpectraDB::getInfo( __int64 _specObjID, Info &outInfo )
+{
 	std::map<__int64,Info>::iterator it = m_spectraDB.find(_specObjID);
 	if ( it == m_spectraDB.end() )
-		return info;
+		return false;
 
-	info = it->second;
+	outInfo = it->second;
 
-	return info; 
+	return true; 
 }
 

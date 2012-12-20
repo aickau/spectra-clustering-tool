@@ -16,28 +16,6 @@
 //! \file  specObjOperations.cpp
 //! \brief all kinds of operational stuff that has to be quick hacked
 
-
-#include <conio.h>
-
-#include <sstream>
-#include <iostream>
-#include <fstream>
-#include <conio.h>
-#include <math.h>
-#include <float.h>
-#include <assert.h>
-#include <vector>
-#include <set>
-#include <map>
-#include <algorithm>
-
-#include "devil/include/il/il.h"
-#include "devil/include/il/ilu.h"
-
-#include <windows.h>
-#include "cfitsio/fitsio.h"
-#include "cfitsio/longnam.h"
-
 #include "sdsslib/helpers.h"
 #include "sdsslib/filehelpers.h"
 #include "sdsslib/spectraWrite.h"
@@ -48,6 +26,29 @@
 #include "sdsslib/CSVExport.h"
 #include "sdsslib/random.h"
 #include "sdsslib/BigTiff.h"
+#include "sdsslib/spectraDB.h"
+
+#include "cfitsio/fitsio.h"
+#include "cfitsio/longnam.h"
+
+#include "devil/include/il/il.h"
+#include "devil/include/il/ilu.h"
+
+
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+
+#include <conio.h>
+#include <math.h>
+#include <float.h>
+#include <assert.h>
+
+#include <windows.h>
 
 
 typedef char _TCHAR;
@@ -271,17 +272,17 @@ void writeSpectrTypes()
 				{
 					case Spectra::SPT_NOT_SET : r=0;g=0; b= 0.5; // dark blue
 						break;
-					case Spectra::SPT_SPEC_UNKNOWN : r= 1.0; g=1.0; b= 1.0; // white
+					case Spectra::SPT_UNKNOWN : r= 1.0; g=1.0; b= 1.0; // white
 						break;
-					case Spectra::SPT_SPEC_STAR : r= 0.0; g=0.0; b= 1.0; // blue
+					case Spectra::SPT_STAR : r= 0.0; g=0.0; b= 1.0; // blue
 						break;
-					case Spectra::SPT_SPEC_GALAXY : r= 1.0; g=0.0; b= 0.0; // dark blue
+					case Spectra::SPT_GALAXY : r= 1.0; g=0.0; b= 0.0; // dark blue
 						break;
-					case Spectra::SPT_SPEC_QSO : r= 1.0; g=0.5; b= 0.0; // orange
+					case Spectra::SPT_QSO : r= 1.0; g=0.5; b= 0.0; // orange
 						break;
-					case Spectra::SPT_SPEC_HIZ_QSO : r= 1.0; g=1.0; b= 0.0; // yellow
+					case Spectra::SPT_HIZ_QSO : r= 1.0; g=1.0; b= 0.0; // yellow
 						break;
-					case Spectra::SPT_SPEC_SKY : r= 0.0; g=1.0; b= 1.0;// cyan
+					case Spectra::SPT_SKY : r= 0.0; g=1.0; b= 1.0;// cyan
 						break;
 					case Spectra::SPT_STAR_LATE : r= 0.0; g=1.0; b= 0.0;// green
 						break;
@@ -1934,11 +1935,9 @@ void spectroLisWrite()
 void test()
 {	
 	SSE_ALIGN Spectra spDR7;
-	SSE_ALIGN Spectra spDR8;
 	SSE_ALIGN Spectra spDR9;
 
 	spDR7.loadFromFITS_SDSS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/spSpec-51630-0266-633.fit");
-	//spDR8.loadFromFITS_SDSS_DR8("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr8spec-2892-54552-0389.fits");
 	spDR9.loadFromFITS_BOSS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr9spec-3588-55184-0511.fits");	
 }
 
@@ -3348,7 +3347,11 @@ void writeMapToTIFF()
 
 }
 
-
+void writeSpectraParmDR9()
+{
+	SpectraDB db;
+	db.writeDB();
+}
 
 void main(int argc, char* argv[])
 {
@@ -3393,6 +3396,7 @@ void main(int argc, char* argv[])
 	//analyzeSpectraJumps();
 	//writeMapToTIFF();
 	//writeSpectraInfoToTable();
+	//writeSpectraParmDR9();
 
 	printf ("fin.\n" );
 

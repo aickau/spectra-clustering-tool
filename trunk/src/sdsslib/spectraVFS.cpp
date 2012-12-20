@@ -136,6 +136,12 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 	Spectra compositeSpec;
 	compositeSpec.clear();
 
+	unsigned int versionStats[Spectra::SP_COUNT];
+	for (int i=0;i<(int)Spectra::SP_COUNT;i++)
+	{
+		versionStats[i] = 0;
+	}
+
 	{
 	SpectraWrite w(_sstrFileName);
 
@@ -166,9 +172,9 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 
 		bool bResult = false; // be pessimistic:)
 		
-		if ( sstrExtension == ".fit" )
+		if ( sstrExtension == ".fit" || sstrExtension == ".fits" )
 		{
-			bResult = spec.loadFromFITS_SDSS( sstrFilename );
+			bResult = spec.loadFromFITS( sstrFilename );
 		}
 		else if ( sstrExtension == ".csv" )
 		{
@@ -177,6 +183,7 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 
 		if ( bResult )
 		{
+			versionStats[spec.m_version%Spectra::SP_COUNT]++;
 			if ( (spec.m_Type & _spectraFilter) > 0 )
 			{
 				if ( spec.hasBadPixels() )
@@ -206,7 +213,14 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 	}
 
 	numSpectraWritten = c;
-	
+
+	// print version stats
+	for (int i=0;i<(int)Spectra::SP_COUNT;i++)
+	{
+		if ( versionStats[i] > 0 )
+			Helpers::print( "  "+ Helpers::numberToString<size_t>(versionStats[i]) +" "+Spectra::spectraVersionToString((Spectra::SpectraVersion)i)+" spectra written.\n", _logStream );
+	}
+
 	compositeSpec.multiply( 1.0f/static_cast<float>(c) );
 	Helpers::print( "writing composite spectra.\n", _logStream );
 	compositeSpec.saveToCSV( std::string("compositeSpectrum.csv") );

@@ -24,7 +24,7 @@
 
 #include "sdsslib/debug.h"
 
-#define SPT_DEFAULTFILTER (Spectra::SPT_SPEC_UNKNOWN|Spectra::SPT_SPEC_QSO|Spectra::SPT_SPEC_HIZ_QSO|Spectra::SPT_GAL_EM)
+#define SPT_DEFAULTFILTER (0x0ffffffff)
 
 // actually can hold only one spectrum so the name is a bit misleading here
 //
@@ -55,10 +55,13 @@ public:
 
 	enum SpectraVersion
 	{
-		SP_VERSION_INVALID,				//< invalid version or spectra
+		SP_VERSION_INVALID=0,			//< invalid version or spectra
+		SP_ARTIFICIAL,					//< artificial spectra, not loaded from any source.
+		SP_CSV,							//< from comma seperated values
 		SP_VERSION_DR7,					//<	Spectra DR1..DR7
-		SP_VERSION_DR8,					
-		SP_VERSION_DR9					//< BOSS spectra, new spectrograph, different wavelenght range
+		SP_VERSION_DR8,					//< not supported.
+		SP_VERSION_DR9,					//< BOSS spectra, new spectrograph, different wavelenght range
+		SP_COUNT						//< must be the last entry here.
 	};
 
 	// was called objecttype in SDSS II
@@ -322,12 +325,16 @@ public:
 	//
 	bool loadFromCSV(const std::string &_filename);
 
+	// automatically checks the version
+	bool loadFromFITS(const std::string &_filename);
+
 	// load from SDSS .fit file up to DR7
 	// e.g. spSpec-51630-0266-633.fit
 	// FITS file description see http://www.sdss.org/DR6/dm/flatFiles/spSpec.html
 	// general info here: http://www.sdss.org/DR6/dm/flatFiles/FILES.html
 	bool loadFromFITS_SDSS(const std::string &_filename);
 
+	// DR8 spectra are not supported.
 //	bool loadFromFITS_SDSS_DR8(const std::string &_filename);
 
 	// BOSS Spectra from DR9. e.g. dr9spec-3588-55184-0511.fits
@@ -372,6 +379,7 @@ public:
 	__int16 m_SamplesRead;
 	__int64 m_SpecObjID;	
 	SpectraType m_Type;
+	SpectraVersion m_version;
 	double m_Z;
 #ifdef _USE_SPECTRALINES
 	SpectraLines m_Lines[numSpectraLines];
@@ -407,6 +415,8 @@ public:
 	// returns any combination of SpectraTypes as filter
 	static std::string spectraFilterToString( unsigned int _spectraFilter );
 	static SpectraType spectraTypeFromString( const std::string &_spectraType );
+
+	static std::string spectraVersionToString( SpectraVersion _spectraVersion );
 
 
 	// generate spectra filename from plate, MJD and fiber, e.g. spSpec-52203-0716-002.fit
