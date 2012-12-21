@@ -80,7 +80,7 @@ void init( HDC _hDC )
 		return;
 
 	s_FontID = GLHelper::BuildFont(_hDC, "Arial", 20, false, false);
-	s_largeFontID = GLHelper::BuildFont(_hDC, "Arial", 30, false, false);
+	s_largeFontID = GLHelper::BuildFont(_hDC, "Arial", 60, true, false);
 
 	ilInit();
 	s_IsInitialized = true;
@@ -342,6 +342,16 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	}
  
 	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/globalMax, 1.f, 2 );
+
+	
+	// BOSS spectra -because of their extended wavelength range - get a little B on the lower right corner
+	if ( _spectra.m_version == Spectra::SP_VERSION_BOSS )
+	{
+		float pos[]={X2Win(w4-60.f),Y2Win(20.f),-10};
+		glColor3f(0,0,1.f);
+		GLHelper::Print( s_largeFontID, pos, "B" );
+	}
+
 	const int yo = 0; // was: getFBHeight()-h4 - do not know why..
 	glReadPixels(0,yo,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 

@@ -27,13 +27,16 @@
 
 #define DEFAULT_Z -10.f
 
+#define GLHELPER_NUMCHARACTERS 96
+
+
 int GLHelper::BuildFont(HDC hdc, char *fontname, int fontsize, bool bold, bool italic)								
 {
 
 	HFONT	font;
 	int		fontid;
 
-	fontid = glGenLists(96);							// Storage For 96 Characters
+	fontid = glGenLists(GLHELPER_NUMCHARACTERS);				// Storage For 96 Characters
 
 	int fontweight = (bold) ? FW_BOLD : FW_NORMAL;
 
@@ -53,7 +56,19 @@ int GLHelper::BuildFont(HDC hdc, char *fontname, int fontsize, bool bold, bool i
 						LPCSTR(fontname));					// Font Name
 
 	SelectObject(hdc, font);							
-	wglUseFontBitmaps(hdc, 32, 96, fontid);			// Builds 96 Characters Starting At Character 32
+	bool bSuccess = (wglUseFontBitmaps(hdc, 32, GLHELPER_NUMCHARACTERS, fontid) == TRUE);			// Builds 96 Characters Starting At Character 32
+
+	if ( !bSuccess )
+	{
+		// sometimes wglUseFontBitmaps() due to unknown reasons it works the second time.
+		bSuccess = (wglUseFontBitmaps(hdc, 32, GLHELPER_NUMCHARACTERS, fontid) == TRUE);		
+		if ( !bSuccess )
+		{
+			glDeleteLists(fontid, GLHELPER_NUMCHARACTERS);	
+			fontid = -1;
+		}
+	}
+
 	DeleteObject(font);
 
 	return fontid;
@@ -63,7 +78,7 @@ int GLHelper::BuildFont(HDC hdc, char *fontname, int fontsize, bool bold, bool i
 
 void GLHelper::KillFont(int fontid)							
 {
-  glDeleteLists(fontid, 96);							
+  glDeleteLists(fontid, GLHELPER_NUMCHARACTERS);							
 }
 
 

@@ -59,8 +59,8 @@ public:
 		SP_ARTIFICIAL,					//< artificial spectra, not loaded from any source.
 		SP_CSV,							//< from comma seperated values
 		SP_VERSION_DR7,					//<	Spectra DR1..DR7
-		SP_VERSION_DR8,					//< not supported.
-		SP_VERSION_DR9,					//< BOSS spectra, new spectrograph, different wavelenght range
+		SP_VERSION_DR8,					//< DR8, DR9
+		SP_VERSION_BOSS,				//< BOSS spectra from DR9, new spectrograph, different wavelenght range
 		SP_COUNT						//< must be the last entry here.
 	};
 
@@ -338,8 +338,8 @@ public:
 	// general info here: http://www.sdss.org/DR6/dm/flatFiles/FILES.html
 	bool loadFromFITS_SDSS(const std::string &_filename);
 
-	// DR8 spectra are not supported.
-//	bool loadFromFITS_SDSS_DR8(const std::string &_filename);
+	// load SDSS DR8 spectra
+	bool loadFromFITS_DR8(const std::string &_filename);
 
 	// BOSS Spectra from DR9. e.g. dr9spec-3588-55184-0511.fits
 	bool loadFromFITS_BOSS(const std::string &_filename);
