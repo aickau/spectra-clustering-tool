@@ -1935,9 +1935,11 @@ void spectroLisWrite()
 void test()
 {	
 	SSE_ALIGN Spectra spDR7;
+	SSE_ALIGN Spectra spDR8;
 	SSE_ALIGN Spectra spDR9;
 
 	spDR7.loadFromFITS_SDSS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/spSpec-51630-0266-633.fit");
+	spDR8.loadFromFITS_DR8("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr8spec-2917-54556-0382.fits");
 	spDR9.loadFromFITS_BOSS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr9spec-3588-55184-0511.fits");	
 }
 
