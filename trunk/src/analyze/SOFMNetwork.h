@@ -57,6 +57,11 @@ public:
 																	// SOFMNET_SETTINGS_SEARCHMODE_local      < uses local search for BMUs if possible.
 																	// SOFMNET_SETTINGS_SEARCHMODE_localfast  < uses very fast local search for BMUs if possible, runtime is O(n) 
 		Spectra::SpectraNormalization normaliziationType;			// type of normalization of spectra
+
+		bool useBOSSWavelengthRange;								// process spectra in an extended wavelength window of 3650..10400 Angstrom 
+																	// instead of the 3800..92000 SDSS default window.
+		
+
 		
 
 		static Parameters defaultParameters;

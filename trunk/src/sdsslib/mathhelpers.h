@@ -38,6 +38,8 @@ namespace MathHelpers
 
 	// logarithm with a certain base
 	float logf(float value, float base);
+
+	unsigned int log2(unsigned int val);
 	
 	// returns a!
 	// warning: no overfow detection
@@ -104,4 +106,15 @@ inline
 float MathHelpers::logf(float value, float base)
 {
 	return log(value)/log(base);
+}
+
+inline
+unsigned int MathHelpers::log2 (unsigned int val) 
+{
+	unsigned int ret = -1;
+	while (val != 0) {
+		val >>= 1;
+		ret++;
+	}
+	return ret;
 }

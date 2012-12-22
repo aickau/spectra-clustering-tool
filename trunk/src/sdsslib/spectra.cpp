@@ -19,18 +19,6 @@
 
 #include "spectra.h"
 
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <conio.h>
-#include <math.h>
-#include <float.h>
-#include <assert.h>
-#include "cfitsio/fitsio.h"
-#include "cfitsio/longnam.h"
-
-//#include "fftw/fftw3.h"
-
 #include "sdsslib/random.h"
 #include "sdsslib/helpers.h"
 #include "sdsslib/filehelpers.h"
@@ -40,10 +28,24 @@
 #include "sdsslib/CSVExport.h"
 #include "sdsslib/spectraDB.h"
 
+#include "cfitsio/fitsio.h"
+#include "cfitsio/longnam.h"
+
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <conio.h>
+#include <math.h>
+#include <float.h>
+#include <assert.h>
+
+
 // spectra read from SDSS FITS have a wavelength of 3800..9200 Angström
 // full spectrum range should range from ~540 Amgström to 9200 assuming max redshifts of 6.
-const float Spectra::waveBeginDst = 540.f;	
-const float Spectra::waveEndDst = 9200.f;
+const float Spectra::waveBeginDst	= 540.f;	
+const float Spectra::waveEndDst		= 9200.f;
+int Spectra::pixelStart				= 0;		
+int Spectra::pixelEnd				= Spectra::numSamples;		
 
 SpectraDB g_spectraDB;
 
@@ -417,15 +419,14 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	}
 
 
-	const size_t spectrumMaxSize = 3900; 
-	float spectrum[spectrumMaxSize];
+	float spectrum[numSamplesSDSS];
 
 
 	//float x0,x2,x3;
 	float x1;
 	size_t c=0;
 
-	while( fin >> sstrTemp && c < spectrumMaxSize ) 
+	while( fin >> sstrTemp && c < numSamplesSDSS ) 
 	{	
 		// row 0: Wavelength(A)
 //		std::stringstream st0(sstrTemp.c_str() );
@@ -451,9 +452,9 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 		c++;
 	}
 
-	SpectraHelpers::foldSpectrum( spectrum, c, m_Amplitude, numSamples, 3 );
+	SpectraHelpers::foldSpectrum( spectrum, c, m_Amplitude, numSamples, MathHelpers::log2(reductionFactor) );
 
-	m_SamplesRead = c/8;
+	m_SamplesRead = c/reductionFactor;
 
 	calcMinMax();
 
@@ -703,8 +704,8 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 
 	//BRIGHTSKY
 
-	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, m_Amplitude, numSamples, 3 );
-	elementsToRead /= 8; 
+	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, m_Amplitude, numSamples, MathHelpers::log2(reductionFactor) );
+	elementsToRead /= reductionFactor; 
 	m_SamplesRead = static_cast<__int16>(elementsToRead);
 
 	fits_close_file(f, &statusclose);
@@ -856,12 +857,9 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 		m_status = 1;
 	}
 
-
-
-	//BRIGHTSKY
-
-	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, m_Amplitude, numSamples, 3 );
-	elementsToRead /= 8; 
+	const int offset = getSDSSSpectraOffsetStart();
+	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, &m_Amplitude[offset], numSamplesSDSS/reductionFactor, MathHelpers::log2(reductionFactor) );
+	elementsToRead /= reductionFactor; 
 	m_SamplesRead = static_cast<__int16>(elementsToRead);
 
 	fits_close_file(f, &statusclose);
@@ -938,15 +936,14 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 
 	// read spectral data
 	fits_get_img_size(f, 2, size, &status );
-	const size_t spectrumMaxSize = 3900; 
-	float spectrum[spectrumMaxSize];
-	unsigned long maskArray[spectrumMaxSize];
+	float spectrum[numSamplesSDSS];
+	unsigned long maskArray[numSamplesSDSS];
 	bool maskArrayBool[numSamplesSDSS];
 
 	// number of elements should be 2 at least.
 	size_t elementsToRead = size[0];
-	assert( elementsToRead <= spectrumMaxSize );
-	elementsToRead = MIN( elementsToRead, spectrumMaxSize );
+	assert( elementsToRead <= numSamplesSDSS );
+	elementsToRead = MIN( elementsToRead, numSamplesSDSS );
 	if ( elementsToRead < 3 )
 	{
 		fits_close_file(f, &statusclose);
@@ -1042,10 +1039,14 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 	}
 #else // _ZBACKCALC
 
-	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, m_Amplitude, numSamples, 3 );
-	elementsToRead /= 8; 
+	const int offset = getSDSSSpectraOffsetStart();
+	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, &m_Amplitude[offset], numSamplesSDSS, MathHelpers::log2(reductionFactor) );
+	elementsToRead /= reductionFactor; 
 	m_SamplesRead = static_cast<__int16>(elementsToRead);
+
+
 #endif // _ZBACKCALC
+
 #ifdef _USE_SPECTRALINES
 	// read emission and absorption lines
 	int numhdus = 0;
@@ -1178,9 +1179,9 @@ void Spectra::adapt( const Spectra &_spectra, float _adaptionRate )
 	_adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
 	}
 	*/
-	const float *a0 = &m_Amplitude[0];
-	const float *a1 = &_spectra.m_Amplitude[0];
-	size_t numSamples4 = (Spectra::numSamples >> 3) << 3;
+	const float *a0 = &m_Amplitude[Spectra::pixelStart];
+	const float *a1 = &_spectra.m_Amplitude[Spectra::pixelStart];
+	size_t numSamples4 = (Spectra::pixelEnd >> 3) << 3;
 	SSE_ALIGN float adaptionRate4[4] = {_adaptionRate,_adaptionRate,_adaptionRate,_adaptionRate}; 
 
 #ifdef X64
@@ -1189,7 +1190,7 @@ void Spectra::adapt( const Spectra &_spectra, float _adaptionRate )
 	_asm {
 		mov edi, a0
 		mov esi, a1
-		mov ecx, Spectra::numSamples
+		mov ecx, numSamples4
 		shr ecx, 3
 		movaps xmm0, adaptionRate4
 
@@ -1223,7 +1224,7 @@ loop1:
 #endif // X64
 
 	int i=numSamples4;
-	for (i;i<Spectra::numSamples;i++)
+	for (i;i<Spectra::pixelEnd;i++)
 	{
 		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
 	}
@@ -1248,9 +1249,9 @@ float Spectra::compare(const Spectra &_spectra) const
 	
 	// optimized memory friendly version. make sure spectra is 16 bytes aligned
 	// this is 10x faster than compiler generated SSE code!
-	const float *a0 = &m_Amplitude[0];
-	const float *a1 = &_spectra.m_Amplitude[0];
-	size_t numSamples4 = (Spectra::numSamples >> 3) << 3;
+	const float *a0 = &m_Amplitude[Spectra::pixelStart];
+	const float *a1 = &_spectra.m_Amplitude[Spectra::pixelStart];
+	size_t numSamples4 = (Spectra::pixelEnd >> 3) << 3;
 
 #ifdef X64
 	spectraCompareX64(a0,a1,errorv,numSamples4);
@@ -1259,7 +1260,7 @@ float Spectra::compare(const Spectra &_spectra) const
 	_asm {
 		mov edi, a0
 		mov esi, a1
-		mov ecx, Spectra::numSamples
+		mov ecx, numSamples4
 		shr ecx, 3
 		xorps xmm0, xmm0
 
@@ -1295,7 +1296,7 @@ loop1:
 	float error=errorv[0]+errorv[1]+errorv[2]+errorv[3];
 
 	int i=numSamples4;
-	for (i;i<Spectra::numSamples;i++)
+	for (i;i<pixelEnd;i++)
 	{
 		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
 		error += d*d;
@@ -1475,42 +1476,6 @@ float Spectra::compareSuperAdvanced(const Spectra &_spectra, float _width, bool 
 	return static_cast<float>(errTotal);
 }
 
-
-//void Spectra::dft()
-//{
-	// test code
-	//fftwf_complex complex[numSamples/2+1];
-	//fftwf_plan p;
-
-	//size_t numSamplesHalf = numSamples/2;
-
-	//bool bReverse = (pad[0] > 0); 
-
-	//if ( bReverse )
-	//{
-	//	for ( size_t i=0;i<numSamplesHalf;i++) {
-	//		complex[i][0] = m_Amplitude[i];
-	//		complex[i][1] = m_Amplitude[numSamplesHalf+i];
-	//	}
-
-	//	p = fftwf_plan_dft_c2r_1d( numSamples-2, complex, &m_Amplitude[0], FFTW_ESTIMATE ); //FFTW_MEASURE
-	//	fftwf_execute(p); 
-	//	pad[0] = 0;
-	//}
-	//else
-	//{
-	//	p = fftwf_plan_dft_r2c_1d( numSamples-2, &m_Amplitude[0], complex, FFTW_ESTIMATE ); //FFTW_MEASURE
-	//	fftwf_execute(p); 
-
-	//	for ( size_t i=0;i<numSamplesHalf;i++) {
-	//		m_Amplitude[i] = complex[i][0];
-	//		m_Amplitude[i+numSamplesHalf] = complex[i][1];
-	//	}
-	//	pad[0] = 1;
-	//}
-
-	//calcMinMax();
-//}
 
 
 void Spectra::getContinuum( size_t _continuumSamples, std::vector<float> &_outContinuum ) const
@@ -2230,4 +2195,50 @@ std::string Spectra::getSpecObjFileName(int _plate, int _mjd, int _fiberID )
 	sstrFileName += ".fit";
 
 	return sstrFileName;
+}
+
+
+int Spectra::getSDSSSpectraOffsetStart()
+{
+	int offset = 0;
+	// if we use BOSS and SDSS spectra combined add spectrum at right offset.
+	// BOSS spectra start at 3650A, SDSS spectra at 3800A -> thus use offset ~13 so both types operate in equal wavelengths
+	if ( numSamples == (numSamplesBOSS/reductionFactor) )
+	{
+		const float wavelenPerPixel = (float)reductionFactor*(float)(waveLenEndBOSS-waveLenStartBOSS)/(float)numSamplesBOSS;
+		offset = (float)(waveLenStartSDSS-waveLenStartBOSS)/wavelenPerPixel;
+	}
+	return offset;
+}
+
+
+int Spectra::getSDSSSpectraOffsetEnd()
+{
+	int offset = numSamples;
+	// if we use BOSS and SDSS spectra combined add spectrum at right offset.
+	// BOSS spectra start at 3650A, SDSS spectra at 3800A -> thus use offset ~13 so both types operate in equal wavelengths
+	if ( numSamples == (numSamplesBOSS/reductionFactor) )
+	{
+		const float wavelenPerPixel = (float)reductionFactor*(float)(waveLenEndBOSS-waveLenStartBOSS)/(float)numSamplesBOSS;
+		offset = (float)(waveLenEndSDSS-waveLenStartSDSS)/wavelenPerPixel;
+	}
+	return offset;
+}
+
+
+void Spectra::setOperationRange( bool _BOSSWavelengthRange )
+{
+	if ( _BOSSWavelengthRange )
+	{
+		pixelStart	= 0;
+		pixelEnd	= numSamples;	
+	}
+	else
+	{
+		pixelStart	= (getSDSSSpectraOffsetStart()>>2)<<2;  // pixel start must be alligned to 16 byte boundaries for SSE operations.
+		pixelEnd	= getSDSSSpectraOffsetEnd();	
+	}
+	assert( pixelStart<pixelEnd );
+	assert( pixelEnd<=numSamples );
+	assert( (pixelStart%4)==0 );
 }
