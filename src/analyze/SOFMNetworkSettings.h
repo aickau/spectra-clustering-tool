@@ -27,18 +27,19 @@
 //@{
 
 
-#define SOFMNET_SETTINGS std::string("SETTINGS")
-#define SOFMNET_SETTINGS_STEP std::string("STEP")
-#define SOFMNET_SETTINGS_GRIDSIZE std::string("GRIDSIZE")
-#define SOFMNET_SETTINGS_RANDOMSEED std::string("RANDOMSEED")
-#define SOFMNET_SETTINGS_LEARNRATE std::string("LEARNRATE")
-#define SOFMNET_SETTINGS_RADIUS std::string("RADIUS")
-#define SOFMNET_SETTINGS_SPECTRUM std::string("SPECTRUM")
-#define SOFMNET_SETTINGS_EXPORT std::string("EXPORT")
-#define SOFMNET_SETTINGS_EXPORT_SUBPAGES std::string("SUBPAGES")
-#define SOFMNET_SETTINGS_EXPORT_WAITFORUSER std::string("WAITFORUSER")
-#define SOFMNET_SETTINGS_SEARCHMODE std::string("SEARCHMODE")
-#define SOFMNET_SETTINGS_NORMALIZATION std::string("NORMALIZATION")
+#define SOFMNET_SETTINGS						std::string("SETTINGS")
+#define SOFMNET_SETTINGS_STEP					std::string("STEP")
+#define SOFMNET_SETTINGS_GRIDSIZE				std::string("GRIDSIZE")
+#define SOFMNET_SETTINGS_RANDOMSEED				std::string("RANDOMSEED")
+#define SOFMNET_SETTINGS_LEARNRATE				std::string("LEARNRATE")
+#define SOFMNET_SETTINGS_RADIUS					std::string("RADIUS")
+#define SOFMNET_SETTINGS_SPECTRUM				std::string("SPECTRUM")
+#define SOFMNET_SETTINGS_EXPORT					std::string("EXPORT")
+#define SOFMNET_SETTINGS_EXPORT_SUBPAGES		std::string("SUBPAGES")
+#define SOFMNET_SETTINGS_EXPORT_WAITFORUSER		std::string("WAITFORUSER")
+#define SOFMNET_SETTINGS_SEARCHMODE				std::string("SEARCHMODE")
+#define SOFMNET_SETTINGS_NORMALIZATION			std::string("NORMALIZATION")
+#define SOFMNET_SETTINGS_WAVELENGTHRANGE		std::string("WAVELENGTHRANGE")
 
 //@}
 
@@ -46,14 +47,16 @@
 */
 //@{
 
-#define SOFMNET_SETTINGS_SEARCHMODE_localfast std::string("localfast")
-#define SOFMNET_SETTINGS_SEARCHMODE_local std::string("local")
-#define SOFMNET_SETTINGS_SEARCHMODE_global std::string("global")
+#define SOFMNET_SETTINGS_SEARCHMODE_localfast		std::string("localfast")
+#define SOFMNET_SETTINGS_SEARCHMODE_local			std::string("local")
+#define SOFMNET_SETTINGS_SEARCHMODE_global			std::string("global")
 
-#define SOFMNET_SETTINGS_NORMALIZATION_amplitude std::string("amplitude")
-#define SOFMNET_SETTINGS_NORMALIZATION_flux std::string("flux")
-#define SOFMNET_SETTINGS_NORMALIZATION_none std::string("none")
+#define SOFMNET_SETTINGS_NORMALIZATION_amplitude	std::string("amplitude")
+#define SOFMNET_SETTINGS_NORMALIZATION_flux			std::string("flux")
+#define SOFMNET_SETTINGS_NORMALIZATION_none			std::string("none")
 
+#define SOFMNET_SETTINGS_WAVELENGTHRANGE_sdss		std::string("sdss")
+#define SOFMNET_SETTINGS_WAVELENGTHRANGE_boss		std::string("boss")
 
 //@}	
 

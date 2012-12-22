@@ -51,8 +51,9 @@ void setBestMatch( Spectra &_networkSpectrum, size_t _networkIndex, Spectra &_be
 {
 	assert( _networkSpectrum.isEmpty() );
 	// set best matching related info.
-	_networkSpectrum.m_SpecObjID = _bestMatchSpectrum.m_SpecObjID;
-	_networkSpectrum.m_Index = _bestMatchIndex;
+	_networkSpectrum.m_SpecObjID	= _bestMatchSpectrum.m_SpecObjID;
+	_networkSpectrum.m_Index		= _bestMatchIndex;
+	_networkSpectrum.m_version		= _bestMatchSpectrum.m_version;
 
 	// remember best match position to NW for faster search
 	_bestMatchSpectrum.m_Index = _networkIndex;
@@ -80,6 +81,7 @@ SOFMNetwork::Parameters::Parameters( size_t _numSteps, size_t _randomSeed, float
 ,waitForUser(false)
 ,sstrSearchMode(SOFMNET_SETTINGS_SEARCHMODE_global)
 ,normaliziationType(Spectra::SN_FLUX)
+,useBOSSWavelengthRange(false)
 {
 }
 
@@ -138,6 +140,8 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		Helpers::print( std::string("Error reading settings from settings.xml. Abortion.\n"), m_pLogStream );
 		exit(0);
 	}
+
+	Spectra::setOperationRange( m_params.useBOSSWavelengthRange );
 
 #ifdef SDSS_SINETEST
 	const float freqMin = 0.002f;
@@ -251,6 +255,15 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 // 	Helpers::print( std::string("We can eat up ") + Helpers::numberToString( static_cast<float>(2*SpectraVFS::CACHELINES*SpectraVFS::CACHELINESIZE*sizeof(Spectra))/(1024.f*1024.f*1024.f) ) + " GB of main memory for clustering .\n", m_pLogStream );
 	Helpers::print( std::string("We are using ") + m_params.sstrSearchMode  + " search.\n", m_pLogStream );
 	Helpers::print( std::string("Spectra normalization is set to ") +spectraNormalizationToString(m_params.normaliziationType) + ".\n", m_pLogStream );
+	if ( m_params.useBOSSWavelengthRange )
+	{
+		Helpers::print( std::string("Using extended wavelength range of 3650..10400 Angstrom for BOSS spectra.\n"), m_pLogStream );
+	}
+	else
+	{
+		Helpers::print( std::string("Using standard wavelength range of 3800..9200 Angstrom for SDSS spectra.\n"), m_pLogStream );
+	}
+
 	Helpers::print( std::string("Initialization finished.\n"), m_pLogStream );
 }
 
@@ -322,7 +335,12 @@ void SOFMNetwork::writeSettings( const std::string &_sstrFileName )
 	XMLExport::xmlSingleElementEnd( sstrXML );
 	XMLExport::xmlSingleComment("amplitude / flux / none", sstrXML);
 
-	
+	XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_WAVELENGTHRANGE, 1, sstrXML );
+	XMLExport::xmlAddAttribute( "value", (m_params.useBOSSWavelengthRange) ? SOFMNET_SETTINGS_WAVELENGTHRANGE_boss : SOFMNET_SETTINGS_WAVELENGTHRANGE_sdss, sstrXML );
+	XMLExport::xmlSingleElementEnd( sstrXML );
+	XMLExport::xmlSingleComment("sdss (3800..9200) / boss (3650..10400)", sstrXML);
+
+		
 	XMLExport::xmlElementEnd( "SETTINGS", 0, sstrXML );
 
 	std::ofstream fon(_sstrFileName.c_str());
@@ -356,6 +374,7 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 
 	std::string sstrSearchMode;
 	std::string sstrNormalizationType;
+	std::string sstrWavelengthRangeType;
 
 	bSuccess &= p.getChildValue("STEP", "current", m_currentStep );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_STEP, "total", m_params.numSteps );
@@ -369,9 +388,11 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_SPECTRUM, "file", _sstrSOFMFileName );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_SEARCHMODE, "value", sstrSearchMode );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_NORMALIZATION, "value", sstrNormalizationType );
+	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_WAVELENGTHRANGE, "value", sstrWavelengthRangeType );
 
 	m_params.sstrSearchMode = Helpers::lowerCase( sstrSearchMode );
 	m_params.normaliziationType = spectraNormalizationFromString( sstrNormalizationType );
+	m_params.useBOSSWavelengthRange = ( Helpers::lowerCase(sstrWavelengthRangeType) == SOFMNET_SETTINGS_WAVELENGTHRANGE_boss);
 
 	p.gotoChild();
 	
@@ -1356,13 +1377,17 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 					size_t nIndex = getIndex(x,y);
 					Spectra *sp = m_pNet->beginRead( nIndex );
 
+	
 					sstrTable += HTMLExport::beginTableCell();
 					// insert link
 					if ( sp->m_Index>=0 && !sp->isEmpty() )
 					{
 						assert(sp->m_Index<static_cast<int>(m_numSpectra));
-						std::string sstrPlanDirectory = Spectra::plateToString(sp->getPlate()) + std::string("/");
-						std::string sstrImagePlan = sstrPlanDirectory + sp->getFileName();
+
+						Spectra *spSRC = m_pSourceVFS->beginRead(sp->m_Index);
+
+						std::string sstrPlanDirectory = Spectra::plateToString(spSRC->getPlate()) + std::string("/");
+						std::string sstrImagePlan = sstrPlanDirectory + spSRC->getFileName();
 
 						if ( _fullExport )
 						{
@@ -1370,7 +1395,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 						}
 						else
 						{
-							sstrTable += HTMLExport::imageLink( sstrImagePlan + std::string(".png"), sp->getURL() );
+							sstrTable += HTMLExport::imageLink( sstrImagePlan + std::string(".png"), spSRC->getURL() );
 						}
 
 						if (( (x>=(xStart+OutputPlanSizeTemp) && x<(xEnd-OutputPlanSizeTemp)) || 
@@ -1382,6 +1407,8 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 						{
 							sstrLastImageInPlan = sstrImagePlan;
 						}
+
+						m_pSourceVFS->endRead(sp->m_Index);
 					}
 					else
 					{

@@ -34,18 +34,22 @@
 class Spectra
 {
 public:
-	static const int numSamplesSDSS			= 3900;					// number of samples in SDSS spectra
-	static const int waveLenStartSDSS		= 3800;					// wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
-	static const int waveLenEndSDSS			= 9200;						
+	static const int numSamplesSDSS			= 3900;								// number of samples in SDSS spectra
+	static const int waveLenStartSDSS		= 3800;								// wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
+	static const int waveLenEndSDSS			= 9200;									
 
-	static const int numSamplesBOSS			= 4700;					// number of samples in BOSS spectra
-	static const int waveLenStartBOSS		= 3650;					// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
+	static const int numSamplesBOSS			= 4700;								// number of samples in BOSS spectra
+	static const int waveLenStartBOSS		= 3650;								// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
 	static const int waveLenEndBOSS			= 10400;						
 
-	static const int numSamples				= numSamplesBOSS/8;		// number of samples in reduced spectra
-	static const int numSpectraLines		= 44;					// number of stored emission and absorption lines
-	static const float waveBeginDst;								// spectrum start in destination system 
-	static const float waveEndDst;									// spectrum end in destination system 
+	static const int reductionFactor		= 8;								// reduce number of pixel by a factor of 8 (use only values of 2^n)
+	static const int numSamples				= numSamplesBOSS/reductionFactor;	// number of samples in reduced spectra
+	static const int numSpectraLines		= 44;								// number of stored emission and absorption lines
+	static const float waveBeginDst;											// spectrum start in destination system 
+	static const float waveEndDst;												// spectrum end in destination system 
+
+	static int pixelStart;														// spectrum pixel range for compare and adaption processes [0..<pixelEnd], must be multiples of four.
+	static int pixelEnd;														// spectrum pixel range for compare and adaption processes [0..numSamples]
 
 
 	/** @name TYPES
@@ -364,9 +368,6 @@ public:
 	// _adaptionRate [0..1]
 	void adapt( const Spectra &_spectra, float _adaptionRate );
 
-	// transforms spectrum into frequency domain using a DFT.
-	//void dft();
-
 	//@}
 
 
@@ -428,6 +429,14 @@ public:
 	// plate number has always four digits
 	// fiber id has always three digits
 	static std::string getSpecObjFileName(int _plate, int _mjd, int _fiberID );
+
+	// if we use BOSS and SDSS spectra combined calculate offset for SDSS spectra.
+	// BOSS spectra start at 3650A, SDSS spectra at 3800A -> thus use offset ~13 so both types operate in equal wavelengths
+	static int getSDSSSpectraOffsetStart();
+	static int getSDSSSpectraOffsetEnd();
+
+	// set to true if we should use the entire BOSS wavelength range during clusering or false if only default SDSS wavelength range should be used.
+	static void setOperationRange( bool _BOSSWavelengthRange );
 
 	//@}
 
