@@ -228,81 +228,10 @@ void trackCatalogs()
 
 void writeSpectrTypes()
 {
-	const size_t gridSize(859);
-	const size_t gridSizeSqr(gridSize*gridSize);
-
 	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
-	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
+	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
 	
-	size_t j=199;
-	//for (size_t j=0;j<=200;j++)
-	{
-		int *pIndexlist= new int[gridSize*gridSize];
-		std::string sstrIndexList = "indexlist";
-		std::string sstrFileName = "objectTypeMap";
-		sstrIndexList += Helpers::numberToString(j,4);
-		sstrFileName += Helpers::numberToString(j,4);
-		sstrIndexList+= ".bin";
-		FILE *f=fopen(sstrIndexList.c_str(),"rb");
-		if ( f!= NULL)
-		{
-			fread(pIndexlist, 1, gridSizeSqr*sizeof(int), f);
-			fclose(f);
-		}
-
-		float *pRGBMap = new float[gridSizeSqr*3];
-		for ( size_t i=0;i<gridSizeSqr*3;i++)
-		{
-			pRGBMap[i] = 0.0f;
-		}
-
-
-		for (size_t i=0;i<gridSizeSqr;i++)
-		{
-			int index = pIndexlist[i];
-			if ( index >= 0 && index < numSourceSpecra )
-			{
-				Spectra *sp = pSourceVFS->beginRead(index);
-
-				float r=0;		// dark cyan undefined spectra type
-				float g=0.5;
-				float b=0.5;
-
-				switch ( sp->m_Type )
-				{
-					case Spectra::SPT_NOT_SET : r=0;g=0; b= 0.5; // dark blue
-						break;
-					case Spectra::SPT_UNKNOWN : r= 1.0; g=1.0; b= 1.0; // white
-						break;
-					case Spectra::SPT_STAR : r= 0.0; g=0.0; b= 1.0; // blue
-						break;
-					case Spectra::SPT_GALAXY : r= 1.0; g=0.0; b= 0.0; // dark blue
-						break;
-					case Spectra::SPT_QSO : r= 1.0; g=0.5; b= 0.0; // orange
-						break;
-					case Spectra::SPT_HIZ_QSO : r= 1.0; g=1.0; b= 0.0; // yellow
-						break;
-					case Spectra::SPT_SKY : r= 0.0; g=1.0; b= 1.0;// cyan
-						break;
-					case Spectra::SPT_STAR_LATE : r= 0.0; g=1.0; b= 0.0;// green
-						break;
-					case Spectra::SPT_GAL_EM : r= 1.0; g=0.0; b= 1.0;// violet
-						break;
-				}
-
-				pRGBMap[i*3] =r;
-				pRGBMap[i*3+1] = g;
-				pRGBMap[i*3+2] = b;
-				pSourceVFS->endRead(index);
-			}
-		}
-
-		SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, sstrFileName);
-
-
-		delete[] pIndexlist;
-		delete[] pRGBMap;
-	}
+	SpectraHelpers::writeSpectraTypes( *pSourceVFS, *pNetworkVFS, "objectTypeMap" );
 }
 
 void writeZMap()
