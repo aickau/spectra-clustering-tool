@@ -27,7 +27,6 @@
 #include "sdsslib/gltexture.h"
 #include "sdsslib/glshaderprogram.h"
 #include "sdsslib/filehelpers.h"
-#include "sdsslib/glFBO.h"
 
 #include "framework.h"	
 #include "SOFMNetwork.h"
@@ -50,7 +49,6 @@ extern HDC fr_hDC;
 int left,right,up,down;
 int scr_width, scr_height;
 
-QTClustering *g_QTCluster;
 SOFMNetwork *g_pSOFM=NULL;
 
 std::ofstream logFile("sofm_log.txt");
@@ -78,8 +76,6 @@ int InitGL()
 	glEnable(GL_DEPTH_TEST);							
 	glDepthFunc(GL_LEQUAL);			
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	
-
-	
 
 
 	//SpectraVFS::write(30,75.0f, std::string("allspectra3.bin") );
