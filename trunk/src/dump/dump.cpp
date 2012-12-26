@@ -28,6 +28,7 @@
 #include "sdsslib/filehelpers.h"
 #include "sdsslib/SpectraHelpers.h"
 #include "sdsslib/sdssSoftwareVersion.h"
+#include "sdsslib/spectraDB.h"
 
 
 typedef char _TCHAR;
@@ -147,6 +148,12 @@ void main(int argc, char* argv[])
 		Helpers::print( "selectionlist: "+sstrSelectionListFilename+"\n", &logFile );
 		Helpers::print( "each spectrum contains " + Helpers::numberToString<size_t>(sizeof(Spectra)) + " bytes.\n\n", &logFile );
 
+		SpectraDB spectraDB;
+		const bool DR9DBAvailable = spectraDB.loadDR9DB();
+		if (!DR9DBAvailable)
+		{
+			Helpers::print( "Warning, spectraParamDR9.bin missing. DR8, DR9 spectra cannot be loaded.\n" , &logFile );
+		}
 
 		std::map<std::string,float> FITSFilenameSet;
 		if ( !sstrSelectionListFilename.empty() )
