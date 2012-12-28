@@ -50,7 +50,7 @@ __global__ void getBMU( float *_errorList, int _numSpectra, int srcSpectraIndex,
 {
 	__syncthreads();
 
-	float err = 100000000000000000000000000000.0;
+	float err = 3.402823466e+38F;
 	int idx = 0;
 	for ( int i=0;i<_numSpectra;i++ )
 	{
@@ -116,6 +116,8 @@ __global__ void adaptNetwork(
    			}
   		}
 	}
+
+	__syncthreads();
 }
 
 #define NUMTHREADS 512
