@@ -26,6 +26,7 @@
 
 
 class SpectraVFS;
+class ComputeCUDA;
 
 // Builds, processes and exports a Self Organizing Feature Map of a given training spectra data set which you want to cluster.
 // See A. in der Au, H. Meusinger, P. Schalldach, M. Newholm. ASPECT: A spectra clustering tool for exploration of large spectral surveys. 2012, arXiv:1209.3615 
@@ -203,6 +204,9 @@ protected:
 
 	// average distance/error to BMU per learning step
 	float			*m_pAvgDistanceToBMU;
+	
+	// to enable GPU accelerated computations with CUDA.
+	ComputeCUDA		*m_pCUDA;
 };
 
 
