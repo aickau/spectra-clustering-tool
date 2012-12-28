@@ -17,16 +17,6 @@
 
 #include "analyze/SOFMNetwork.h"
 
-#include <conio.h>
-#include <math.h>
-#include <float.h>
-#include <assert.h>
-#include <sstream>
-#include <algorithm>
-#include <iostream>
-#include <map>
-#include <omp.h>
-
 #include "sdsslib/random.h"
 #include "sdsslib/defines.h"
 #include "sdsslib/helpers.h"
@@ -41,10 +31,19 @@
 #include "sdsslib/sdssSoftwareVersion.h"
 
 #include "analyze/SOFMNetworkSettings.h"
+#include "analyze/ComputeCUDA.h"
+
+#include <conio.h>
+#include <math.h>
+#include <float.h>
+#include <assert.h>
+#include <sstream>
+#include <algorithm>
+#include <iostream>
+#include <map>
+#include <omp.h>
 
 //#define SDSS_SINETEST
-
-
 
 static 
 void setBestMatch( Spectra &_networkSpectrum, size_t _networkIndex, Spectra &_bestMatchSpectrum, size_t _bestMatchIndex )
@@ -132,6 +131,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 ,m_Max(-FLT_MAX)
 ,m_pLogStream(_logStream)
 ,m_pAvgDistanceToBMU(NULL)
+,m_pCUDA(NULL)
 {
 	std::string sstrSOFMFileName("");
 	if ( !readSettings("settings.xml", sstrSOFMFileName) )
@@ -263,6 +263,24 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 	{
 		Helpers::print( std::string("Using standard wavelength range of 3800..9200 Angstrom for SDSS spectra.\n"), m_pLogStream );
 	}
+
+
+	m_pCUDA = new ComputeCUDA(*m_pSourceVFS,*m_pNet );
+	if (!m_pCUDA->hasCUDADevice())
+	{
+		delete m_pCUDA;
+		m_pCUDA = NULL;
+	}
+	else
+	{
+		bool success = m_pCUDA->uploadSpectra();
+		if ( !success )
+		{
+			delete m_pCUDA;
+			m_pCUDA = NULL;
+		}
+	}
+
 
 	Helpers::print( std::string("Initialization finished.\n"), m_pLogStream );
 }
@@ -923,50 +941,61 @@ void SOFMNetwork::process()
 		m_pNet->endWrite( i );
 	}
 
-	// for each training spectra..
-	double avgDist = 0.0;
-	for ( size_t j=0;j<m_numSpectra;j++ )
+	// use GPU version
+	if ( m_pCUDA )
 	{
-		// initialize best match batch
-		BestMatch bmu;
-
-		const size_t spectraIndex = spectraIndexList.at(j);
-		Spectra &currentSourceSpectra = *m_pSourceVFS->beginWrite(spectraIndex);
-
-//		Timer t;
-
-		// retrieve best match neuron for a source spectra
-		if (bFullSearch) 
+		m_pCUDA->process( &spectraIndexList[0], adaptionThreshold, lRate, sigmaSqr );
+		m_pCUDA->downloadNetwork();
+	}
+	else
+	{
+		// CPU version
+		// for each training spectra..
+		double avgDist = 0.0;
+		for ( size_t j=0;j<m_numSpectra;j++ )
 		{
-			bmu = searchBestMatchComplete( currentSourceSpectra );
+			// initialize best match batch
+			BestMatch bmu;
+
+			const size_t spectraIndex = spectraIndexList.at(j);
+			Spectra &currentSourceSpectra = *m_pSourceVFS->beginWrite(spectraIndex);
+
+			//		Timer t;
+
+			// retrieve best match neuron for a source spectra
+			if (bFullSearch) 
+			{
+				bmu = searchBestMatchComplete( currentSourceSpectra );
+			}
+			else
+			{
+				bmu = searchBestMatchLocal( currentSourceSpectra, searchRadius );
+			}
+
+			//		double dt = t.getElapsedSecs();
+			//		Helpers::print( Helpers::numberToString<double>(dt) +std::string("search.\n") );
+
+			//		t.start();
+
+			// mark best match neuron
+			Spectra *bmuSpectrum = m_pNet->beginWrite( bmu.index );
+			setBestMatch( *bmuSpectrum, bmu.index, currentSourceSpectra, spectraIndex );
+			avgDist += currentSourceSpectra.compare( *bmuSpectrum );
+			m_pNet->endWrite( bmu.index );
+
+			// adapt neighborhood
+			adaptNetwork( currentSourceSpectra, bmu.index, adaptionThreshold, sigmaSqr, lRate );
+
+			//	dt = t.getElapsedSecs();
+			//		Helpers::print( Helpers::numberToString<double>(dt) +std::string("adapt.\n") );
+
+
+			m_pSourceVFS->endWrite(spectraIndex);
 		}
-		else
-		{
-			bmu = searchBestMatchLocal( currentSourceSpectra, searchRadius );
-		}
 
-//		double dt = t.getElapsedSecs();
-//		Helpers::print( Helpers::numberToString<double>(dt) +std::string("search.\n") );
-
-//		t.start();
-
-		// mark best match neuron
-		Spectra *bmuSpectrum = m_pNet->beginWrite( bmu.index );
-		setBestMatch( *bmuSpectrum, bmu.index, currentSourceSpectra, spectraIndex );
-		avgDist += currentSourceSpectra.compare( *bmuSpectrum );
-		m_pNet->endWrite( bmu.index );
-
-		// adapt neighborhood
-		adaptNetwork( currentSourceSpectra, bmu.index, adaptionThreshold, sigmaSqr, lRate );
-
-//	dt = t.getElapsedSecs();
-//		Helpers::print( Helpers::numberToString<double>(dt) +std::string("adapt.\n") );
-
-
-		m_pSourceVFS->endWrite(spectraIndex);
+		m_pAvgDistanceToBMU[m_currentStep] = avgDist/(double)m_numSpectra;
 	}
 
-	m_pAvgDistanceToBMU[m_currentStep] = avgDist/(double)m_numSpectra;
 
 	Helpers::print( "writing network to disk.\n", m_pLogStream );
 	m_pNet->flush();
