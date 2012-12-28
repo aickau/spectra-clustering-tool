@@ -185,6 +185,7 @@ bool ComputeCUDA::downloadNetwork()
 
 	cudaError_t err = cudaSuccess;
 
+	const size_t numSourceSpectra = m_sourceSpectraRef.getNumSpectra();
 	const size_t numNetworkSpectra = m_networkRef.getNumSpectra();
 	const size_t numElements = Spectra::pixelEnd-Spectra::pixelStart;
 	const size_t numBytesPerSpectrum = numElements*sizeof(float);
@@ -192,7 +193,7 @@ bool ComputeCUDA::downloadNetwork()
 	if ( numNetworkSpectra == 0 || numElements == 0 )
 		return false;
 
-	err = cudaMemcpy(m_BMUHost, m_BMUCUDA, numNetworkSpectra, cudaMemcpyDeviceToHost);
+	err = cudaMemcpy(m_BMUHost, m_BMUCUDA, numNetworkSpectra*sizeof(int), cudaMemcpyDeviceToHost);
 	assert(err==cudaSuccess);
 
 	size_t o=0;
@@ -203,8 +204,21 @@ bool ComputeCUDA::downloadNetwork()
 		assert(err==cudaSuccess);
 		o += numElements;
 
-		// copy bmu into network
-		sp->m_Index = m_BMUHost[i];
+		// copy BMU into network, set best match
+		sp->m_Index	= m_BMUHost[i];
+		
+		if ( sp->m_Index >= 0 && sp->m_Index < numSourceSpectra )
+		{
+			Spectra *spSRC = m_sourceSpectraRef.beginRead( sp->m_Index );
+
+			sp->m_SpecObjID	= spSRC->m_SpecObjID;
+			sp->m_version = spSRC->m_version;
+			m_sourceSpectraRef.endRead( sp->m_Index );
+		}
+		else
+		{
+			sp->m_SpecObjID = 0;
+		}
 		m_networkRef.endWrite(i);
 	}
 
