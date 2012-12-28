@@ -264,20 +264,23 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		Helpers::print( std::string("Using standard wavelength range of 3800..9200 Angstrom for SDSS spectra.\n"), m_pLogStream );
 	}
 
-
-	m_pCUDA = new ComputeCUDA(*m_pSourceVFS,*m_pNet );
-	if (!m_pCUDA->hasCUDADevice())
+	const bool useCUDA = true;
+	if (useCUDA)
 	{
-		delete m_pCUDA;
-		m_pCUDA = NULL;
-	}
-	else
-	{
-		bool success = m_pCUDA->uploadSpectra();
-		if ( !success )
+		m_pCUDA = new ComputeCUDA(*m_pSourceVFS,*m_pNet );
+		if (!m_pCUDA->hasCUDADevice())
 		{
 			delete m_pCUDA;
 			m_pCUDA = NULL;
+		}
+		else
+		{
+			bool success = m_pCUDA->uploadSpectra();
+			if ( !success )
+			{
+				delete m_pCUDA;
+				m_pCUDA = NULL;
+			}
 		}
 	}
 
@@ -944,7 +947,7 @@ void SOFMNetwork::process()
 	// use GPU version
 	if ( m_pCUDA )
 	{
-		m_pCUDA->process( &spectraIndexList[0], adaptionThreshold, lRate, sigmaSqr );
+		m_pCUDA->process( &spectraIndexList[0], adaptionThreshold, sigmaSqr, lRate );
 		m_pCUDA->downloadNetwork();
 	}
 	else
