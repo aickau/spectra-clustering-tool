@@ -48,8 +48,6 @@ __global__ void search( const float *_srcSpectrum, const float *_networkSpectra,
 
 __global__ void getBMU( float *_errorList, int _numSpectra, int srcSpectraIndex, int *_outBMU )
 {
-	__syncthreads();
-
 	float err = 3.402823466e+38F;
 	int idx = 0;
 	for ( int i=0;i<_numSpectra;i++ )
@@ -63,8 +61,6 @@ __global__ void getBMU( float *_errorList, int _numSpectra, int srcSpectraIndex,
 
 	_outBMU[idx] = srcSpectraIndex;
 	_outBMU[_numSpectra] = idx;
-
-	__syncthreads();
 }
 
 __global__ void adaptNetwork( 
@@ -77,7 +73,7 @@ __global__ void adaptNetwork(
 		float _sigmaSqr, 
 		float _lRate )
 {
-    const int bestMatchIndex = _outBMU[_numElements];
+    const int bestMatchIndex = *_outBMU;
  	const int xpBestMatch = bestMatchIndex % _gridSize;
  	const int ypBestMatch = bestMatchIndex / _gridSize;
  	const float sigmaSqr2 = _sigmaSqr*(1.f/EULER);
@@ -92,15 +88,12 @@ __global__ void adaptNetwork(
 	if ( x < _gridSize && y < _gridSize )
 	{	
 		//was: for ( int y=0;y<_gridSize;y++)
-
- 		const float distY1 = y-ypBestMatch;
- 		const float distY1Sqr = distY1*distY1;
- 		const float distYSqr = distY1Sqr;
- 
   		// was: for ( int x=0;x<_gridSize;x++)
+
   		const float distX1 = x-xpBestMatch;
-  		const float distX1Sqr = distX1*distX1;
-  		const float distXSqr = distX1Sqr;
+ 		const float distY1 = y-ypBestMatch;
+  		const float distXSqr = distX1*distX1;
+ 		const float distYSqr = distY1*distY1;
   		const float distSqr = (distXSqr+distYSqr)/fGridSizeSqr;					// normalize squared distance with gridsize
   
   		// calculate neighborhood function
@@ -116,8 +109,6 @@ __global__ void adaptNetwork(
    			}
   		}
 	}
-
-	__syncthreads();
 }
 
 #define NUMTHREADS 512
@@ -143,6 +134,8 @@ process(
 
 	clearBMUs<<<(_numNetworkSpectra+NUMTHREADS-1)/NUMTHREADS,NUMTHREADS>>>( _outBMU, _numNetworkSpectra );
 
+	cudaDeviceSynchronize();
+
 	// for each input spectrum
 	for ( int i=0;i<_numSourceSpectra;i++ ) 
 	{
@@ -154,23 +147,28 @@ process(
 
 			// calculate euclidean distances to codebook vectors
 			search<<<(_numNetworkSpectra+NUMTHREADS-1)/NUMTHREADS,NUMTHREADS>>>( &_sourceSpectra[o], _networkSpectra, _outErr, _numNetworkSpectra, _numElements );
- 
- 			// calculate best matching unit (BMU) from error list (i.e. euclidean distances)
- 			getBMU<<<1,1>>>( _outErr, _numNetworkSpectra, srcSpectraIndex, _outBMU );
- 
- 			// adapt code book vectors in vicinity.
+			cudaDeviceSynchronize();
 
-		    dim3 threadsPerBlock(16, 16);
-			dim3 numBlocks((_gridSize+threadsPerBlock.x-1) / threadsPerBlock.x, (_gridSize+threadsPerBlock.y-1) / threadsPerBlock.y);
- 			adaptNetwork<<<numBlocks,threadsPerBlock>>>( 
- 					&_sourceSpectra[o], 
- 					_networkSpectra, 
- 					_numElements, 
- 					_outBMU, 
- 					_gridSize, 
- 					_adaptionThreshold, 
- 					_sigmaSqr, 
- 					_lRate );
+  			// calculate best matching unit (BMU) from error list (i.e. euclidean distances)
+  			getBMU<<<1,1>>>( _outErr, _numNetworkSpectra, srcSpectraIndex, _outBMU );
+ 			cudaDeviceSynchronize();
+
+			// adapt code book vectors in vincinity.
+ 
+ 		    dim3 threadsPerBlock(16, 16);
+ 			dim3 numBlocks((_gridSize+threadsPerBlock.x-1) / threadsPerBlock.x, (_gridSize+threadsPerBlock.y-1) / threadsPerBlock.y);
+  			adaptNetwork<<<numBlocks,threadsPerBlock>>>( 
+  					&_sourceSpectra[o], 
+  					_networkSpectra, 
+  					_numElements, 
+  					&_outBMU[_numNetworkSpectra], 
+  					_gridSize, 
+  					_adaptionThreshold, 
+  					_sigmaSqr, 
+  					_lRate );
+			cudaDeviceSynchronize();
+
+
 		}
 	}
 }
