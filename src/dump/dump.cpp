@@ -43,8 +43,8 @@ void main(int argc, char* argv[])
 {
  
 	// outputs sine test spectra.
-//	SpectraVFS::write( 150, 0, "allSpectra.bin" );
-//	return;
+// 	SpectraVFS::write( 5000, 0, "allSpectra.bin" );
+// 	return;
 	std::ofstream logFile("dump_log.txt");
 
 /*

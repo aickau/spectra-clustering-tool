@@ -264,7 +264,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		Helpers::print( std::string("Using standard wavelength range of 3800..9200 Angstrom for SDSS spectra.\n"), m_pLogStream );
 	}
 
-	const bool useCUDA = true;
+	const bool useCUDA = false;
 	if (useCUDA)
 	{
 		m_pCUDA = new ComputeCUDA(*m_pSourceVFS,*m_pNet );

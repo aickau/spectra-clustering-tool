@@ -858,7 +858,7 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 	}
 
 	const int offset = getSDSSSpectraOffsetStart();
-	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, &m_Amplitude[offset], numSamplesSDSS/reductionFactor, MathHelpers::log2(reductionFactor) );
+	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, &m_Amplitude[offset], numSamples-offset, MathHelpers::log2(reductionFactor) );
 	elementsToRead /= reductionFactor; 
 	m_SamplesRead = static_cast<__int16>(elementsToRead);
 
@@ -874,9 +874,8 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 			m_Z		= spectraInfo.z;
 			m_Type	= spectraInfo.type;
 		}
-
-
 	}
+
 
 	bool bConsistent = checkConsistency();
 	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
@@ -990,107 +989,10 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 	}
 
 
-
-#ifdef _ZBACKCALC
-	// fold the spectrum to reduce noize
-	const size_t sampleReductionRatio = 4;
-	for ( size_t j=0;j<sampleReductionRatio;j++ )
-	{
-		size_t c=0;
-		for (size_t i=0;i<elementsToRead-1;i+=2)
-		{
-			spectrum[c] = (spectrum[i]+spectrum[i+1]) * 0.5f;
-			c++;
-		}
-		elementsToRead /= 2; 
-	}
-	m_SamplesRead = numSamples;
-
-	// calculate redshift back
-	float wBegin = waveLenStartSDSS / (1.f+m_Z);
-	float wEnd = waveLenEndSDSS / (1.f+m_Z);
-
-	float d = (waveEndDst-waveBeginDst) / static_cast<float>(numSamples);
-	float w = waveBeginDst;
-	for (size_t i=0;i<numSamples;i++)
-	{
-		if ( w < wBegin || w > wEnd )
-		{
-			m_Amplitude[i] = m_Z;
-		}
-		else
-		{
-			size_t i0 = Spectra::waveLengthToIndex( w, wBegin, wEnd, elementsToRead );
-
-			if (i0>=elementsToRead-2)
-			{
-				i0 = elementsToRead-2;
-			}
-
-			float w0 = Spectra::indexToWaveLength( i0, wBegin, wEnd, elementsToRead );
-			float w1 = Spectra::indexToWaveLength( i0+1, wBegin, wEnd, elementsToRead );
-			float frac = (w-w0)/(w1-w0); 
-			float a0 = spectrum[i0];
-			float a1 = spectrum[i0+1];
-			m_Amplitude[i] = a0*(1.f-frac)+a1*frac;
-		}
-
-		w+=d; 
-	}
-#else // _ZBACKCALC
-
 	const int offset = getSDSSSpectraOffsetStart();
-	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, &m_Amplitude[offset], numSamplesSDSS, MathHelpers::log2(reductionFactor) );
+	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, &m_Amplitude[offset], numSamples-offset, MathHelpers::log2(reductionFactor) );
 	elementsToRead /= reductionFactor; 
 	m_SamplesRead = static_cast<__int16>(elementsToRead);
-
-
-#endif // _ZBACKCALC
-
-#ifdef _USE_SPECTRALINES
-	// read emission and absorption lines
-	int numhdus = 0;
-	int hdutype = 0; // should be BINARY_TBL
-	long tblrows = 0; // should be numLines
-	int tblcols = 0; // should be 23
-	fits_get_num_hdus( f, &numhdus, &status );
-	fits_movabs_hdu( f, 3, &hdutype, &status );
-
-	fits_get_num_rows( f, &tblrows, &status );
-	fits_get_num_cols( f, &tblcols, &status );
-
-	float nullVal = 0.f;
-	float wave, waveMin, waveMax, height = 0.f;
-	size_t rowsToRead = MIN( tblrows, numSpectraLines ); 
-
-	if ( hdutype == BINARY_TBL && 
-		 tblcols == 23 )
-	{
-		for ( size_t i=0;i<rowsToRead;i++ )
-		{
-			size_t i1 = i+1;
-			fits_read_col( f, TFLOAT, 1, i1, 1, 1, &nullVal, &wave, NULL, &status );
-			if (wave>0.f)
-			{
-				fits_read_col( f, TFLOAT, 3, i1, 1, 1, &nullVal, &waveMin, NULL, &status );
-				fits_read_col( f, TFLOAT, 4, i1, 1, 1, &nullVal, &waveMax, NULL, &status );
-				fits_read_col( f, TFLOAT, 9, i1, 1, 1, &nullVal, &height, NULL, &status );
-
-				m_Lines[i].height = height;
-				m_Lines[i].wave = wave;
-				m_Lines[i].waveMin = waveMin;
-				m_Lines[i].waveMax = waveMax;
-				
-				// uncomment to use spectra lines as spectrum
-				//size_t indexBegin=Spectra::waveLengthToIndex(waveMin);
-				//size_t indexEnd=Spectra::waveLengthToIndex(waveMax);
-				//for (size_t j=indexBegin;j<indexEnd;j++) {
-				//	m_Amplitude[j]=height;
-				//}
-			}
-		}
-	}
-#endif // _USE_SPECTRALINES
 	fits_close_file(f, &statusclose);
 
 	calcMinMax();
