@@ -110,7 +110,7 @@ void main(int argc, char* argv[])
 		sstrFilterDesc +=  std::string( "  SERENDIPITY_RED      =   0x002000000\n");
 		sstrFilterDesc +=  std::string( "  SERENDIPITY_DISTANT  =   0x004000000\n");
 		sstrFilterDesc +=  std::string( "  SERENDIPITY_MANUAL   =   0x008000000\n");
-		sstrFilterDesc +=  std::string( "  REDDEN_STD           =   0x010000000\n");
+		sstrFilterDesc +=  std::string( "  REDDEN_STD           =   0x010000000\n\n\n");
 
 		TCLAP::ValueArg<std::string> dataDirArg("d", "datadir", "example: F:/SDSS_ANALYZE/fits/spectro/data/*", false, sstrDataDir, "datadir/*");
 		TCLAP::ValueArg<std::string> outputFilenameArg("o", "outputdumpfile", "example: allSpectra.bin", false, sstrDumpFile, "outputfilename.bin");

@@ -126,6 +126,7 @@ size_t FileHelpers::getFileList( const std::string &_sstrSearchDir, std::vector<
 		return 0;
 	}
 
+	size_t c = 0;
 	do {
 		std::string sstrFileName(fileInfo.cFileName);
 
@@ -145,10 +146,11 @@ size_t FileHelpers::getFileList( const std::string &_sstrSearchDir, std::vector<
 			std::string sstrFullFileName( getFilePath(_sstrSearchDir) );
 			sstrFullFileName += sstrFileName;
 			_outFileNameList.push_back( sstrFullFileName );
+			c++;
 		}
 	} while( FindNextFile(h,&fileInfo) );
 
-	return _outFileNameList.size();
+	return c;
 }
 
 bool FileHelpers::fileExists(const std::string &_sstrFilename)
