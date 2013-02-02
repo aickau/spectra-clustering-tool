@@ -63,7 +63,7 @@ void main(int argc, char* argv[])
 
 	std::string sstrDumpFile(DUMPFILE);
 	unsigned int spectraFilter = 0;//SPT_DEFAULTFILTER;
-	unsigned int compareFunc = 2;
+	unsigned int compareFunc = 0;
 	float compareInvariance = 0.1f;
 	bool bNormalize = false;
 	bool bReverseOrder = false;
@@ -86,7 +86,31 @@ void main(int argc, char* argv[])
 		sstrFilterDesc +=  std::string( "  SPEC_HIZ_QSO =  16\n");
 		sstrFilterDesc +=  std::string( "  SPEC_SKY     =  32\n");
 		sstrFilterDesc +=  std::string( "  STAR_LATE    =  64\n");
-		sstrFilterDesc +=  std::string( "  GAL_EM       = 128\n\n\n");
+		sstrFilterDesc +=  std::string( "  GAL_EM       = 128\n");
+
+		sstrFilterDesc +=  std::string( "for BOSS spectra (SDSS DR9 and above) the additional following types can be used:\n");
+		sstrFilterDesc +=  std::string( "  QualityAssuarance    =   0x000000100\n");
+		sstrFilterDesc +=  std::string( "  STAR_PN              =   0x000000200\n");
+		sstrFilterDesc +=  std::string( "  STAR_CARBON          =   0x000000400\n");
+		sstrFilterDesc +=  std::string( "  STAR_BROWN_DWARF     =   0x000000800\n");
+		sstrFilterDesc +=  std::string( "  STAR_SUB_DWARF       =   0x000001000\n");
+		sstrFilterDesc +=  std::string( "  STAR_CATY_VAR        =   0x000002000\n");
+		sstrFilterDesc +=  std::string( "  STAR_RED_DWARF       =   0x000004000\n");
+		sstrFilterDesc +=  std::string( "  STAR_WHITE_DWARF     =   0x000008000\n");
+		sstrFilterDesc +=  std::string( "  STAR_BHB             =   0x000010000\n");
+		sstrFilterDesc +=  std::string( "  ROSAT_A              =   0x000020000\n");
+		sstrFilterDesc +=  std::string( "  ROSAT_B              =   0x000040000\n");
+		sstrFilterDesc +=  std::string( "  ROSAT_C              =   0x000080000\n");
+		sstrFilterDesc +=  std::string( "  ROSAT_D              =   0x000100000\n");
+		sstrFilterDesc +=  std::string( "  SPECTROPHOTO_STD     =   0x000200000\n");
+		sstrFilterDesc +=  std::string( "  HOT_STD              =   0x000400000\n");
+		sstrFilterDesc +=  std::string( "  SERENDIPITY_BLUE     =   0x000800000\n");
+		sstrFilterDesc +=  std::string( "  SERENDIPITY_FIRST    =   0x001000000\n");
+		sstrFilterDesc +=  std::string( "  SERENDIPITY_RED      =   0x002000000\n");
+		sstrFilterDesc +=  std::string( "  SERENDIPITY_DISTANT  =   0x004000000\n");
+		sstrFilterDesc +=  std::string( "  SERENDIPITY_MANUAL   =   0x008000000\n");
+		sstrFilterDesc +=  std::string( "  REDDEN_STD           =   0x010000000\n\n\n");
+
 
 		std::string sstrCompareFuncDesc( "compare function is defined as follows:\n" );
 		sstrCompareFuncDesc +=  std::string( "simple (euclidean squared over all samples) = 0\n" );
@@ -178,7 +202,8 @@ void main(int argc, char* argv[])
 		Helpers::print(Helpers::numberToString<size_t>(numSpectra)+" spectra found.\n", &logFile);
 	}
 
-	const size_t numCompareSpectra = FileHelpers::getFileList( std::string(COMPAREDIR+"*.fit"), g_compareFileList );
+	size_t numCompareSpectra = FileHelpers::getFileList( std::string(COMPAREDIR+"*.fit"), g_compareFileList );
+	numCompareSpectra += FileHelpers::getFileList( std::string(COMPAREDIR+"*.fit"), g_compareFileList );
 
 	if ( numCompareSpectra == 0 )
 	{
@@ -201,7 +226,7 @@ void main(int argc, char* argv[])
 	for ( size_t i=0;i<numCompareSpectra;i++ )
 	{
 
-		bool bSuccess = compareSpectra[i].loadFromFITS_SDSS( g_compareFileList.at(i) );
+		bool bSuccess = compareSpectra[i].loadFromFITS( g_compareFileList.at(i) );
 		if ( !bSuccess )
 		{
 			Helpers::print("error: loading compare fits file "+g_compareFileList.at(i)+".\n", &logFile );

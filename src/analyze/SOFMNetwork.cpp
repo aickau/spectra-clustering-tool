@@ -44,6 +44,7 @@
 #include <omp.h>
 
 //#define SDSS_SINETEST
+//#define WITH_CUDA
 
 static 
 void setBestMatch( Spectra &_networkSpectrum, size_t _networkIndex, Spectra &_bestMatchSpectrum, size_t _bestMatchIndex )
@@ -264,25 +265,23 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		Helpers::print( std::string("Using standard wavelength range of 3800..9200 Angstrom for SDSS spectra.\n"), m_pLogStream );
 	}
 
-	const bool useCUDA = false;
-	if (useCUDA)
+#ifdef WITH_CUDA
+	m_pCUDA = new ComputeCUDA(*m_pSourceVFS,*m_pNet );
+	if (!m_pCUDA->hasCUDADevice())
 	{
-		m_pCUDA = new ComputeCUDA(*m_pSourceVFS,*m_pNet );
-		if (!m_pCUDA->hasCUDADevice())
+		delete m_pCUDA;
+		m_pCUDA = NULL;
+	}
+	else
+	{
+		bool success = m_pCUDA->uploadSpectra();
+		if ( !success )
 		{
 			delete m_pCUDA;
 			m_pCUDA = NULL;
 		}
-		else
-		{
-			bool success = m_pCUDA->uploadSpectra();
-			if ( !success )
-			{
-				delete m_pCUDA;
-				m_pCUDA = NULL;
-			}
-		}
 	}
+#endif //WITH_CUDA
 
 
 	Helpers::print( std::string("Initialization finished.\n"), m_pLogStream );
@@ -947,8 +946,10 @@ void SOFMNetwork::process()
 	// use GPU version
 	if ( m_pCUDA )
 	{
+		#ifdef WITH_CUDA
 		m_pCUDA->process( &spectraIndexList[0], adaptionThreshold, sigmaSqr, lRate );
 		m_pCUDA->downloadNetwork();
+		#endif
 	}
 	else
 	{

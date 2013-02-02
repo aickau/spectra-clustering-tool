@@ -181,7 +181,7 @@ void main(int argc, char* argv[])
 	}
 
 	SSE_ALIGN Spectra a;
-	if ( !a.loadFromFITS_SDSS(sstrFITSFile) )
+	if ( !a.loadFromFITS(sstrFITSFile) )
 	{
 		if ( !a.loadFromCSV(sstrFITSFile) ) 
 		{

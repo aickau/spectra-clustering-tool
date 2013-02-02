@@ -1212,7 +1212,7 @@ loop1:
 float Spectra::compareBhattacharyya(const Spectra &_spectra) const
 {
 	float bc=0.0f;
-	for (size_t i=0;i<Spectra::numSamples;i++)
+	for (size_t i=Spectra::pixelStart;i<Spectra::pixelEnd;i++)
 	{
 		float d = sqrtf(fabsf(m_Amplitude[i]*_spectra.m_Amplitude[i]));
 		bc += d;
@@ -1233,7 +1233,7 @@ float Spectra::compareAdvanced(const Spectra &_spectra, float _width) const
 		return compare(_spectra);
 	}
 
-	for (int i=0;i<Spectra::numSamples;i++)
+	for (int i=Spectra::pixelStart;i<Spectra::pixelEnd;i++)
 	{
 		float d2 = FLT_MAX;
 		int wBegin = MAX(static_cast<int>(i)-width, 0);
@@ -1400,13 +1400,13 @@ void Spectra::getContinuum( size_t _continuumSamples, std::vector<float> &_outCo
 
 void Spectra::getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<float> &_outSpectrumMinusContinuum, std::vector<float> &_outContinuum ) const
 {
-	_outSpectrumMinusContinuum.resize(Spectra::m_SamplesRead);
+	_outSpectrumMinusContinuum.resize(m_SamplesRead);
 	getContinuum( _continuumSamples, _outContinuum );
 
 	const float continuumSizef = static_cast<float>(_outContinuum.size());
 	float c=0.0f;
 	const float cInc=(continuumSizef-1.f)/static_cast<float>(Spectra::numSamples);
-	for ( size_t i=0;i<static_cast<size_t>(Spectra::m_SamplesRead);i++ )
+	for ( size_t i=0;i<static_cast<size_t>(m_SamplesRead);i++ )
 	{
 		const float c0 = floorf(c); 
 		const size_t i0 = static_cast<size_t>(c0);
