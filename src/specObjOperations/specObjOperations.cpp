@@ -1876,9 +1876,11 @@ void test()
 	spDR9.loadFromFITS_BOSS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr9spec-3588-55184-0511.fits");	
 }
 
-void writeParamsFromSelection()
+void writeParamsFromSelection(const std::string &sstrDataDir )
 {
-	printf("Write SDSS params from selection.\n\n Input:\n selection mask: mask.png\n source spectra index positions: indexlist0199.bin\n source spectra file: allSpectra.bin\n [optional] spectra in %s\n", DATADIR);
+	std::ofstream logFile("specObjOperations_log.txt");
+
+	Helpers::print("Write SDSS params from selection.\n\n Input:\n selection mask: mask.png\n source spectra index positions: indexlist0199.bin\n source spectra file: allSpectra.bin\n [optional] spectra in " + sstrDataDir +"\n", &logFile);
 
 
 	// load mask
@@ -1886,7 +1888,7 @@ void writeParamsFromSelection()
 	ILenum err = ilGetError();
 	if( err != NULL )
 	{
-		printf("Error: could not load image.\n"); 
+		Helpers::print("Error: could not load image.\n", &logFile); 
 		return;
 	}
 	ilConvertImage( IL_LUMINANCE, IL_UNSIGNED_BYTE );
@@ -1894,13 +1896,13 @@ void writeParamsFromSelection()
 	int height = ilGetInteger( IL_IMAGE_HEIGHT );
 	if ( width !=  height  ) {
 		// wrong dimensions
-		printf("Error: image not quadratic.\n"); 
+		Helpers::print("Error: image not quadratic.\n", &logFile); 
 		return;
 	}
 	unsigned char *pt = ilGetData();
 	if ( pt == NULL )  {
 		// nah, fail..
-		printf("Error: could not load image data.\n"); 
+		Helpers::print("Error: could not load image data.\n", &logFile); 
 		return;
 	}
 
@@ -1914,7 +1916,7 @@ void writeParamsFromSelection()
 	const size_t numSourceSpecra = pSourceVFS->getNumSpectra();
 	if ( numSourceSpecra <= 0 )
 	{
-		printf("Error: could not load allSpectra.bin.\n"); 
+		Helpers::print("Error: could not load allSpectra.bin.\n", &logFile); 
 		return;
 	}
 
@@ -1930,13 +1932,13 @@ void writeParamsFromSelection()
 
 	FILE *f=fopen(sstrIndexList.c_str(),"rb");
 	if ( f== NULL) {
-		printf("Error: could not load indexlist0199.bin.\n"); 
+		Helpers::print("Error: could not load indexlist0199.bin.\n", &logFile); 
 		// no index list
 		return;
 	}
 	if ( fileSize != gridSizeSqr*4 )
 	{
-		printf("Error: indexlist0199.bin has  wrong filesize.\n"); 
+		Helpers::print("Error: indexlist0199.bin has  wrong filesize.\n", &logFile); 
 		fclose(f);
 		return;
 	}
@@ -1962,7 +1964,7 @@ void writeParamsFromSelection()
 				sp->calculateFlux();
 				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
-				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
+				std::string sstrPath = sstrDataDir+sstrPlate+"/1d/"+sstrFileName;
 				std::string sstrUrl = sp->getURL();
 
 
@@ -1983,20 +1985,35 @@ void writeParamsFromSelection()
 
 
 				fits_open_file( &f, sstrPath.c_str(), READONLY, &status );
+
+				Helpers::print("Opening FITs file: " +sstrPath+".\n", &logFile);
 				if ( status == 0 )
 				{
 					fits_read_key( f, TFLOAT, "Z_ERR", &zErr, NULL, &status );
-					fits_read_key( f, TFLOAT, "Z_CONF", &zConf, NULL, &status );
-					fits_read_key( f, TULONG, "Z_STATUS", &zStatus, NULL, &status );
-					fits_read_key( f, TULONG, "Z_WARNIN", &zWarning, NULL, &status );
 
-					fits_read_key( f, TFLOAT, "RAOBJ", &ra, NULL, &status );//RADEG
-					fits_read_key( f, TFLOAT, "DECOBJ", &dec, NULL, &status );//DECDEG
-					fits_read_key( f, TSTRING, "MAG", mag, NULL, &status );//DECDEG
+					if ( status != 0 )
+					{
+						Helpers::print("Dr9 Spectra. Some spectra data will be missing( z_err, z_conf, z_status, z_warning, ra, dec, mag).\n", &logFile);
+						status = 0;
+					}
+					else
+					{
+						fits_read_key( f, TFLOAT, "Z_CONF", &zConf, NULL, &status );
+						fits_read_key( f, TULONG, "Z_STATUS", &zStatus, NULL, &status );
+						fits_read_key( f, TULONG, "Z_WARNIN", &zWarning, NULL, &status );
 
-					sscanf(mag,"%f %f %f %f %f", &uu, &gg, &rr, &ii, &zz );
-	
-					fits_close_file(f, &status);
+						fits_read_key( f, TFLOAT, "RAOBJ", &ra, NULL, &status );//RADEG
+						fits_read_key( f, TFLOAT, "DECOBJ", &dec, NULL, &status );//DECDEG
+						fits_read_key( f, TSTRING, "MAG", mag, NULL, &status );//DECDEG
+
+						sscanf(mag,"%f %f %f %f %f", &uu, &gg, &rr, &ii, &zz );
+					}
+
+					fits_close_file(f, &status );
+				}
+				else
+				{
+					Helpers::print("Failed. Some spectra data will be missing( z_err, z_conf, z_status, z_warning, ra, dec, mag).\n", &logFile);
 				}
 
 				pSourceVFS->endRead(index);
@@ -2034,10 +2051,13 @@ void writeParamsFromSelection()
 		}
 	}
 
-	sstrOutTable += Helpers::numberToString<unsigned int>(numObjectsFound)+"found from "+Helpers::numberToString<unsigned int>(numObjectsSelected)+"selected.";
+	std::string sstrsummary = Helpers::numberToString<unsigned int>(numObjectsFound)+" found from "+Helpers::numberToString<unsigned int>(numObjectsSelected)+" selected.";
+	sstrOutTable += sstrsummary;
 
 	std::ofstream fon("maskTable.csv");
 	fon<<sstrOutTable;
+
+	Helpers::print("\n\nFinish. "+sstrsummary+"\n", &logFile);
 }
 
 
@@ -3290,12 +3310,18 @@ void writeSpectraParmDR9()
 
 void main(int argc, char* argv[])
 {
-	int clusternum = 1;
-	if ( argc > 1 ) {
-		std::string strCommandLine = argv[1];
-		clusternum = Helpers::stringToNumber<int>(strCommandLine);
-	}
-	SpectraHelpers::init(0);
+// 	int clusternum = 1;
+// 	if ( argc > 1 ) {
+// 		std::string strCommandLine = argv[1];
+// 		clusternum = Helpers::stringToNumber<int>(strCommandLine);
+// 	}
+ 	SpectraHelpers::init(0);
+
+	std::string sstrDir(DATADIR);
+	if ( argc>1 )
+		sstrDir = argv[1];
+
+	writeParamsFromSelection( sstrDir );
 
 	//spectroLisWrite();
 	//trackCatalogs();
@@ -3315,8 +3341,8 @@ void main(int argc, char* argv[])
 	//writeMJD();
 	//writeUMatrix();
 	//writeUMatrixForSource(); 
-	test();
-	//writeParamsFromSelection();
+	//test();
+	
 	//writeIndexListFromSOFMBin();
 	//medianSpectrumFromSelection();
 	//extractGalaxyZooData();
