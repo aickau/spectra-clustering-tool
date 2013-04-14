@@ -132,7 +132,8 @@ void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _numDiagram
 	std::string sstrOut( sstream.str() );
 	GLHelper::Print( s_FontID, pos, sstrOut.c_str() );
 
-
+	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+	glPixelStorei(GL_PACK_ALIGNMENT,1);
 	glReadPixels(0,getFBHeight()-_height-50,_width,_height,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 	glClearColor(0.0f,0.0f,0.f,1.f);
 	glLineWidth(1.f);
@@ -352,6 +353,8 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 		GLHelper::Print( s_largeFontID, pos, "B" );
 	}
 
+	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+	glPixelStorei(GL_PACK_ALIGNMENT,1);
 	const int yo = 0; // was: getFBHeight()-h4 - do not know why..
 	glReadPixels(0,yo,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 
