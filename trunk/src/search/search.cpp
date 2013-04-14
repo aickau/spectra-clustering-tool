@@ -255,7 +255,7 @@ void main(int argc, char* argv[])
 #pragma omp parallel for
 		for ( int k=0;k<jInc;k++)
 		{
-			if ((src[k]->m_Type & spectraFilter) > 0)
+			if ((src[k]->m_Type & spectraFilter) > 0 || src[k]->m_version == Spectra::SP_ARTIFICIAL )
 			{
 				if ( bNormalize )
 				{

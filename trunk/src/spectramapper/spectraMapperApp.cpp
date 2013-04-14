@@ -60,7 +60,7 @@ SpectraVFS *g_pVFSSource = NULL;
 
 
 bool g_writeData = false;
-int g_maskSelection = 0;
+int g_maskSelection = -1;
 
 SpectraMapper *g_spectraMapper=NULL;
 bool g_bNormalizeByFlux = true;
@@ -68,6 +68,7 @@ bool g_bToRestFrame = false; // project spectrum to its restframe based on the z
 float g_yScale = 1.0;
 float g_brightness = 1.f;
 bool g_generateMap = false;
+bool g_writeFileOnly = false;
 
 
 void displaySpectra( 
@@ -131,6 +132,7 @@ int InitGL()
 		TCLAP::SwitchArg toRestframeArg("r","restframe","Project spectrum to its rest frame based on the z estimate from SDSS.", g_bToRestFrame);
 		TCLAP::SwitchArg normalizeArg("n","normalize","Normalize all spectra by flux before plotting.", g_bNormalizeByFlux);
 		TCLAP::SwitchArg modeArg("d","mapdisplay","Map display Mode: Take a list of spectra (that are part of the cluster result) and plot them in a map.", g_generateMap);
+		TCLAP::SwitchArg writeFileOnlyArg("c","continue","Write plot to file and exit immediately.", g_writeFileOnly);
 
 		cmd.add( dumpFilenameArg );
 		cmd.add( indexlistFilenameArg );
@@ -140,18 +142,20 @@ int InitGL()
 		cmd.add( toRestframeArg );
 		cmd.add( normalizeArg );
 		cmd.add( modeArg );
+		cmd.add( writeFileOnlyArg );
 		
 
 		cmd.parse( argc, argv );
 
-		sstrSourceSpectraFilename = dumpFilenameArg.getValue();
-		sstrIndexlistFilename = indexlistFilenameArg.getValue();
-		sstrMaskFilename = maskFilenameArg.getValue();
-		sstrOutPlotFilename = outFilenameArg.getValue();
-		sstrSpectraListFilename = spectraListFilenameArg.getValue();
-		g_bToRestFrame = toRestframeArg.getValue();
-		g_bNormalizeByFlux = normalizeArg.getValue();
-		g_generateMap = modeArg.getValue();
+		sstrSourceSpectraFilename		= dumpFilenameArg.getValue();
+		sstrIndexlistFilename			= indexlistFilenameArg.getValue();
+		sstrMaskFilename				= maskFilenameArg.getValue();
+		sstrOutPlotFilename				= outFilenameArg.getValue();
+		sstrSpectraListFilename			= spectraListFilenameArg.getValue();
+		g_bToRestFrame					= toRestframeArg.getValue();
+		g_bNormalizeByFlux				= normalizeArg.getValue();
+		g_generateMap					= modeArg.getValue();
+		g_writeFileOnly					= writeFileOnlyArg.getValue();
 	}
 	catch (TCLAP::ArgException &e)  
 	{ 
@@ -205,8 +209,10 @@ void DrawGLScene()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-	g_spectraMapper->draw( scr_width, scr_height, g_bToRestFrame, g_bNormalizeByFlux, g_yScale, g_brightness, g_maskSelection, g_writeData );
+	g_spectraMapper->draw( scr_width, scr_height, g_bToRestFrame, g_bNormalizeByFlux, g_yScale, g_brightness, g_maskSelection, g_writeData||g_writeFileOnly );
 	g_writeData = false;
+	if ( g_writeFileOnly )
+		exit(0);
 
 	Sleep(100);
 }

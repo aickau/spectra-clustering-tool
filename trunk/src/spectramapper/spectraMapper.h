@@ -41,7 +41,7 @@ private:
 	size_t m_numSourceSpecra;
 	int m_numSpectraToDraw;
 	int m_currentIndex;
-	std::string m_sstrPlotImageFilename;
+	std::string m_sstrPlotImageFilename;		//< wihtout ext .png
+	std::string m_sstrSelectionInfo;			//< selection ifo to append on file name
 	int m_imageWriteCount;
-	float m_plotCount;// number of plotted spectra
 };
