@@ -37,13 +37,13 @@ extern std::ofstream logFile;
 // generate a combined diagram with all spectra from selection
 SpectraMapper::SpectraMapper( const std::string &sstrSourceSpectraFilename, const std::string &sstrIndexlistFilename, const std::string &sstSelectionMaskFilename, const std::string &sstrPlotImageFilename )
 :m_sstrPlotImageFilename(sstrPlotImageFilename)
+,m_sstrSelectionInfo("")
 ,m_gridSize(859)
 ,m_gridSizeSqr(m_gridSize*m_gridSize)
 ,m_numSourceSpecra(0)
 ,m_pSourceVFS(NULL)
 ,m_currentIndex(-1)
 ,m_imageWriteCount(0)
-,m_plotCount(0.f)
 {
 	// load mask
 	ilLoadImage( (ILstring)sstSelectionMaskFilename.c_str() );
@@ -82,7 +82,6 @@ SpectraMapper::SpectraMapper( const std::string &sstrSourceSpectraFilename, cons
 	if ( m_numSourceSpecra <= 0 )
 	{
 		Helpers::print("Error: No spectral data found.\n", &logFile);
-
 		// nah, fail..
 		return;
 	}
@@ -91,16 +90,36 @@ SpectraMapper::SpectraMapper( const std::string &sstrSourceSpectraFilename, cons
 		Helpers::print(Helpers::numberToString<size_t>(m_numSourceSpecra)+" spectra found.\n", &logFile);
 	}
 
+	if ( m_gridSizeSqr < m_numSourceSpecra )
+	{
+		Helpers::print("Grid size and number of spectra do not match, grid size to small. Grid size=" + Helpers::numberToString(m_gridSize)+", number of spectra="+Helpers::numberToString(m_numSourceSpecra)+".\n", &logFile);
+		return;
+	}
+
 
 	size_t j=199;
-	int *pIndexlist= new int[m_gridSizeSqr];
+
+	Helpers::print("Reading index list file "+sstrIndexlistFilename+"..\n", &logFile);
+	const size_t fileSize = FileHelpers::getFileSize( sstrIndexlistFilename );
+	if ( fileSize == 0 )
+	{
+		Helpers::print("Error: Missing index list file "+sstrIndexlistFilename+".\n", &logFile);
+		return;
+	}
+
+	if ( fileSize/4 != m_gridSizeSqr )
+	{
+		Helpers::print("Error: Index list file has the wrong size and does not match the mask. " +sstrIndexlistFilename+" must have "+Helpers::numberToString(m_gridSizeSqr*4)+" bytes.\n", &logFile);
+		return;
+	}
 	FILE *f=fopen(sstrIndexlistFilename.c_str(),"rb");
 	if ( f== NULL) {
-		Helpers::print("Error: Missing index list.\n", &logFile);
+		Helpers::print("Error: Missing index list file "+sstrIndexlistFilename+".\n", &logFile);
 
 		// no index list
 		return;
 	}
+	int *pIndexlist= new int[m_gridSizeSqr];
 	fread(pIndexlist, 1, m_gridSizeSqr*sizeof(int), f);
 	fclose(f);
 
@@ -170,7 +189,7 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, bool _norm
 
 	const float imgScale = _yscale;		// 1.5, 3.5 6.5
 	const int imgYOffset = 100;
-	const float brightness = (10.f*_brightness/(m_plotCount+1.f));//1.f/255.f; // 0.1f;//1.f/255.f;// 
+	const float brightness = (10.f*_brightness/(m_mappedSpectra.size()+1.f));
 
 	glClearColor(0.f,0.f,0.f,1.f);	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
@@ -205,29 +224,37 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, bool _norm
 				xO = (xB-Spectra::waveBeginDst)/xDAll;
 			}
 
-			if ( count ==  (_selection % m_numSpectraToDraw) && (_selection >= 0))
-			{
-				glColor3f(0.f,1.f,0.f);
+			
+			glColor3f(brightness,brightness,brightness);
 
-				if ( m_currentIndex != _selection )
+			// mark selected spectra green and print url, plate ID, mjd to console.
+			if ((_selection >= 0))
+			{
+				const int selIdx = _selection % m_numSpectraToDraw;
+				if (  count == selIdx )
 				{
-					std::string sstrInfo("MJD:");
-					sstrInfo += Helpers::numberToString<int>(sp->getMJD());
-					sstrInfo += "  plateID:";
-					sstrInfo += Helpers::numberToString<int>(sp->getPlate());
-					sstrInfo += "  fiberID:";
-					sstrInfo += Helpers::numberToString<int>(sp->getFiber());
-					sstrInfo += "\n";
-					Helpers::print(sstrInfo, &logFile );
-					Helpers::print(sp->getURL()+"\n", &logFile );
-					m_currentIndex = _selection;
+					glColor3f(0.f,1.f,0.f);
+
+					if ( m_currentIndex != selIdx )
+					{
+						std::string sstrInfo("MJD");
+						sstrInfo += Helpers::numberToString<int>(sp->getMJD());
+						sstrInfo += "_plate";
+						sstrInfo += Helpers::numberToString<int>(sp->getPlate());
+						sstrInfo += "_fiberID";
+						sstrInfo += Helpers::numberToString<int>(sp->getFiber());
+						m_sstrSelectionInfo = "_"+sstrInfo;
+						sstrInfo += "\n";
+						Helpers::print(sstrInfo, &logFile );
+						Helpers::print(sp->getURL()+"\n", &logFile );
+						m_currentIndex = selIdx;
+					}
 				}
 			}
 			else
 			{
-				glColor3f(brightness,brightness,brightness);
+				m_sstrSelectionInfo = "";
 			}
-
 
 //				sp->m_SamplesRead= Spectra::numSamples;
 			SpectraHelpers::drawSpectra(tsp, false, false, xO*_width, imgYOffset, _width, _height, imgScale/m_spMax.m_Max, xD/xDAll, 0 );
@@ -236,7 +263,6 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, bool _norm
 			count++;
 		}
 	}
-	m_plotCount = count;
 /*
 	if ( !_toRestFrame ) {
 		GLHelper::SetBlendMode(GLHelper::kBlendMode_Off);
@@ -255,6 +281,7 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, bool _norm
 	{
 		std::string sstrFilename(m_sstrPlotImageFilename);
 		sstrFilename += Helpers::numberToString<int>(m_imageWriteCount,2);
+		sstrFilename += m_sstrSelectionInfo;		// add selection info so we know which spectra is selected.
 		sstrFilename += ".png";
 
 		Helpers::print("writing spectra plot to "+sstrFilename+".", &logFile);
@@ -265,6 +292,9 @@ void SpectraMapper::draw( int _width, int _height, bool _toRestFrame, bool _norm
 		ilEnable(IL_FILE_OVERWRITE );
 		iluImageParameter(ILU_FILTER,ILU_SCALE_BSPLINE);
 
+		
+		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+		glPixelStorei(GL_PACK_ALIGNMENT,1);
 		glReadPixels(0,0,_width,_height,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 
 		ilSave( IL_PNG, const_cast<char*>(sstrFilename.c_str()) );
