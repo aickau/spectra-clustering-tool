@@ -47,16 +47,18 @@ SpectraVFSMemOnly::SpectraVFSMemOnly( const std::string &_sstrFilename, std::ofs
 	if (fileSize == 0 )
 	{
 		// file not found
-		Helpers::print( std::string("SpectraVFSMemOnly file not found ")+_sstrFilename+std::string("\n"), &m_logFile );
+		Helpers::print( std::string("Error: SpectraVFSMemOnly file not found ")+_sstrFilename+std::string("\n"), &m_logFile );
 		return;
 	}
 
 	if  (fileSize < SPECTRASIZE || remainder != 0 )
 	{
 		// wrong size
-		Helpers::print( std::string("SpectraVFSMemOnly wrong file size ")+Helpers::numberToString<size_t>(fileSize)+std::string("\n"), &m_logFile );
+		Helpers::print( std::string("Error: SpectraVFSMemOnly wrong file size for ")+_sstrFilename+". Maybe old file version because the file does not match with the size of each spectrum ("+Helpers::numberToString<size_t>(SPECTRASIZE)+std::string(" bytes).\n"), &m_logFile );
 		return;
 	}
+
+	
 
 	m_nNumberOfSpectra = static_cast<size_t>(fileCount);
 	m_pSpectaPool = static_cast<Spectra*>( Memory::memAlignedAlloc( fileSize ) );
