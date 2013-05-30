@@ -120,7 +120,7 @@ int InitGL()
 	}
 	catch (TCLAP::ArgException &e)  
 	{ 
-		Helpers::print( "error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
+		Helpers::print( "Error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
 	}
 
 	delete[] argv;

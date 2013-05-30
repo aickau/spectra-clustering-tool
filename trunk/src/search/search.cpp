@@ -146,7 +146,7 @@ void main(int argc, char* argv[])
 	}
 	catch (TCLAP::ArgException &e)  
 	{ 
-		Helpers::print( "error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
+		Helpers::print( "Error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
 	}
 
 
@@ -220,7 +220,7 @@ void main(int argc, char* argv[])
 
 	if ( compareSpectra == NULL )
 	{
-		Helpers::print("error: out of memory allocating "+Helpers::numberToString<size_t>(numCompareSpectra)+" comparison spectra.\n", &logFile);
+		Helpers::print("Error: out of memory allocating "+Helpers::numberToString<size_t>(numCompareSpectra)+" comparison spectra.\n", &logFile);
 	}
 
 	for ( size_t i=0;i<numCompareSpectra;i++ )
@@ -229,7 +229,7 @@ void main(int argc, char* argv[])
 		bool bSuccess = compareSpectra[i].loadFromFITS( g_compareFileList.at(i) );
 		if ( !bSuccess )
 		{
-			Helpers::print("error: loading compare fits file "+g_compareFileList.at(i)+".\n", &logFile );
+			Helpers::print("Error: loading compare fits file "+g_compareFileList.at(i)+".\n", &logFile );
 		}
 		if ( bNormalize )
 		{

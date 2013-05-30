@@ -63,6 +63,7 @@ SpectraVFSCached::SpectraVFSCached( const std::string &_sstrFilename, std::ofstr
 	if (m_FileHandle == INVALID_HANDLE_VALUE)
 	{
 		// file not found
+		Helpers::print( std::string("Error: SpectraVFSCached file not found ")+_sstrFilename+std::string("\n"), &m_logFile );
 		return;
 	}
 
@@ -74,6 +75,7 @@ SpectraVFSCached::SpectraVFSCached( const std::string &_sstrFilename, std::ofstr
 	if (!GetFileSizeEx( m_FileHandle, &nFileSize ))
 	{
 		// some fucking error 
+		Helpers::print( std::string("Error: SpectraVFSCached internal error (file size could not be evaluated for ")+_sstrFilename+std::string(").\n"), &m_logFile );
 		return;
 	}
 
@@ -85,6 +87,7 @@ SpectraVFSCached::SpectraVFSCached( const std::string &_sstrFilename, std::ofstr
 	if ( remainder != 0 )
 	{
 		// wrong size
+		Helpers::print( std::string("Error: SpectraVFSCached wrong file size for ")+_sstrFilename+". Maybe old file version because the file does not match with the size of each spectrum ("+Helpers::numberToString<size_t>(SPECTRASIZE)+std::string(" bytes).\n"), &m_logFile );
 		return;
 	}
 

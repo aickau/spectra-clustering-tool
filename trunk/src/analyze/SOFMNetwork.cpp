@@ -893,7 +893,7 @@ void SOFMNetwork::process()
 	}
 	else if ( m_params.sstrSearchMode == SOFMNET_SETTINGS_SEARCHMODE_local )
 	{
-		// global search for the first 5 steps, decreasing search radius for increasing number of learings teps
+		// global search for the first 5 steps, decreasing search radius for increasing number of learing steps
 		bFullSearch = (m_currentStep<5);
 		searchRadius = static_cast<size_t>(((1.f-lPercent)*0.5f*static_cast<float>(m_gridSize)))+2;
 	}
