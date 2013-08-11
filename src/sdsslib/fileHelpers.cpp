@@ -138,7 +138,7 @@ size_t FileHelpers::getFileList( const std::string &_sstrSearchDir, std::vector<
 				sstrNewSearchDir += sstrFileName;
 				sstrNewSearchDir += "/*";
 
-				getFileList( sstrNewSearchDir, _outFileNameList );
+				c += getFileList( sstrNewSearchDir, _outFileNameList );
 			}
 		}
 		else

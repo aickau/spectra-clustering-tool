@@ -439,12 +439,14 @@ void ShowTrainData()
 	up = 0;
 	down = 0;
 }
+
+bool finished=false;
 bool bFirst = true;
 void SOFM()
 {
-	if ( !bFirst )
+	if ( !bFirst && !finished )
 	{
-		g_pSOFM->process();
+		finished = g_pSOFM->process();
 	}
 	DrawNetwork( *g_pSOFM );
 

@@ -70,7 +70,7 @@ public:
 private:
 
 	static const size_t INDEX_INVALID = 0x0ffffffff;
-	static const size_t SPECTRASIZE = sizeof(Spectra);
+	static const size_t SPECTRASIZE = sizeof(Spectra);								// size of each spectrum in bytes
 	static const size_t TOTALCACHESIZE = SpectraVFS::CACHELINESIZE*CACHELINES;		// number of spectra should be stored in heap 
 	static const size_t TOTALCACHELINEBYTES = SpectraVFS::CACHELINESIZE*SPECTRASIZE;
 

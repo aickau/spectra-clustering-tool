@@ -33,7 +33,7 @@
 
 typedef char _TCHAR;
 
-#define DATADIR std::string("/../../data/*")
+#define DATADIR std::string("./data/*")
 //#define DATADIR std::string("G:/SDSS_ANALYZE/fits/spectro/data/*")
 #define DUMPFILE std::string("allSpectra.bin")
  
@@ -43,8 +43,8 @@ void main(int argc, char* argv[])
 {
  
 	// outputs sine test spectra.
-// 	SpectraVFS::write( 5000, 0, "allSpectra.bin" );
-// 	return;
+//  	SpectraVFS::write( 10000, 0.0f, "allSpectra.bin" );
+//  	return;
 	std::ofstream logFile("dump_log.txt");
 
 /*
@@ -87,7 +87,7 @@ void main(int argc, char* argv[])
 		sstrFilterDesc +=  std::string( "  SPEC_QSO     =   8\n");
 		sstrFilterDesc +=  std::string( "  SPEC_HIZ_QSO =  16\n");
 		sstrFilterDesc +=  std::string( "  SPEC_SKY     =  32\n");
-		sstrFilterDesc +=  std::string( "  STAR_LATE    =  64\n");
+		sstrFilterDesc +=  std::string( "  STAR_LATE    =  64\n\n");
 	
 		sstrFilterDesc +=  std::string( "for BOSS spectra (SDSS DR9 and above) the additional following types can be used:\n");
 		sstrFilterDesc +=  std::string( "  QualityAssuarance    =   0x000000100\n");
@@ -110,7 +110,12 @@ void main(int argc, char* argv[])
 		sstrFilterDesc +=  std::string( "  SERENDIPITY_RED      =   0x002000000\n");
 		sstrFilterDesc +=  std::string( "  SERENDIPITY_DISTANT  =   0x004000000\n");
 		sstrFilterDesc +=  std::string( "  SERENDIPITY_MANUAL   =   0x008000000\n");
-		sstrFilterDesc +=  std::string( "  REDDEN_STD           =   0x010000000\n\n\n");
+		sstrFilterDesc +=  std::string( "  REDDEN_STD           =   0x010000000\n\n");
+		sstrFilterDesc +=  std::string( "for DR10 spectra the additional following types can be used:\n");
+		sstrFilterDesc +=  std::string( "  BLAZAR				=   0x020000000\n");
+		sstrFilterDesc +=  std::string( "  SPT_QSO_BAL          =   0x040000000\n");
+		sstrFilterDesc +=  std::string( "  SPT_EXOTIC           =   0x080000000\n");
+
 
 		TCLAP::ValueArg<std::string> dataDirArg("d", "datadir", "example: F:/SDSS_ANALYZE/fits/spectro/data/*", false, sstrDataDir, "datadir/*");
 		TCLAP::ValueArg<std::string> outputFilenameArg("o", "outputdumpfile", "example: allSpectra.bin", false, sstrDumpFile, "outputfilename.bin");
@@ -148,11 +153,17 @@ void main(int argc, char* argv[])
 		Helpers::print( "selectionlist: "+sstrSelectionListFilename+"\n", &logFile );
 		Helpers::print( "each spectrum contains " + Helpers::numberToString<size_t>(sizeof(Spectra)) + " bytes.\n\n", &logFile );
 
-		SpectraDB spectraDB;
-		const bool DR9DBAvailable = spectraDB.loadDR9DB();
+		SpectraDB spectraDBDR9;
+		const bool DR9DBAvailable = spectraDBDR9.loadDB(SpectraDB::DR9);
 		if (!DR9DBAvailable)
 		{
 			Helpers::print( "Warning, spectraParamDR9.bin missing. DR8, DR9 spectra cannot be loaded.\n" , &logFile );
+		}
+		SpectraDB spectraDBDR10;
+		const bool DR10DBAvailable = spectraDBDR10.loadDB(SpectraDB::DR10);
+		if (!DR10DBAvailable)
+		{
+			Helpers::print( "Warning, spectraParamDR10.bin missing. DR10 spectra cannot be loaded.\n" , &logFile );
 		}
 
 		std::map<std::string,float> FITSFilenameSet;

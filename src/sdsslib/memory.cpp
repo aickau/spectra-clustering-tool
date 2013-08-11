@@ -18,8 +18,9 @@
 
 #include "memory.h"
 
-#include <windows.h>
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 
 namespace Memory
 {
@@ -32,9 +33,9 @@ void GrowHash()
 {
 	void **hash_table_new;
 	hash_size *= 2;
-	hash_table_new = (void**) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, hash_size*4);
+	hash_table_new = (void**) calloc(hash_size,4);
 	memcpy(hash_table_new, hash_table, hash_size*2);
-	HeapFree(GetProcessHeap(), 0, hash_table);
+	free(hash_table);
 	hash_table = hash_table_new;
 }
 
@@ -45,10 +46,10 @@ void *memAlignedAlloc(size_t size)
 	size_t		pt_offset, hash_index, hash_probe;
 
 	if(hash_table==NULL){
-		hash_table = (void**) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, hash_size*4);
+		hash_table = (void**) (void**) calloc(hash_size,4);
 	}
 
-	pt_unalign	= (void*) HeapAlloc(GetProcessHeap(), 0, size+32);
+	pt_unalign	= calloc(size+32,1);
 	pt_offset	= (size_t) pt_unalign % 32;
 	pt_align	= (char *)pt_unalign + pt_offset;
 	hash_probe	= 0;
@@ -96,7 +97,7 @@ void memAlignedFree(void *pt_align)
 	hash_table[hash_index]	= 0;
 
 	if(pt_unalign != 0)	{
-		HeapFree(GetProcessHeap(), 0, pt_unalign);
+		free(pt_unalign);
 	}
 }
 	

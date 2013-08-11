@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Data model: specObj</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="/datamodel/datamodel.css" type="text/css" />
+<link rel="icon" href="/datamodel/sdss3.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="/datamodel/sdss3.ico" type="image/x-icon" />
+</head>
+<body>
+<div id="intro">
+<h1>Data model: specObj</h1>
+<dl>
+<dt>General Description</dt>
+<dd>
+This file contains the list of all spectra for a given data release, with
+associated parameters from the 2D and 1D pipelines for each.
+</dd>
+
+<dt>Naming Convention</dt>
+<dd id="filename"><code>specObj-dr[0-9]+\.fits</code>, where <code>[0-9]+</code>
+is the release number (8, 9, 10, ...).</dd>
+
+<dt>Approximate Size</dt>
+<dd id="filesize">2 Gbytes</dd>
+
+<dt>File Type</dt>
+<dd id="filetype">FITS</dd>
+
+<dt>Read by Products</dt>
+<dd>sas</dd>
+
+<dt>Written by Products</dt>
+<dd>sas</dd>
+</dl>
+
+</div>
+<div id="hdu0">
+<h2>HDU0: header HDU for table</h2>
+
+<table class="header">
+<caption>Required Header Keywords</caption>
+<tr><th>KEY</th><th>Value</th><th>Type</th><th>Comment</th></tr>
+<tr><td>SIMPLE</td><td>T</td><td>bool</td><td>Conforms to FITS standard</td></tr>
+<tr><td>BITPIX</td><td>16</td><td>int</td><td>16 bit floating point (dummy value)</td></tr>
+<tr><td>NAXIS</td><td>0</td><td>int</td><td>0 (no data in this HDU)</td></tr>
+<tr><td>EXTEND</td><td>T</td><td>bool</td><td>Extensions may be present</td></tr>
+<tr><td>SAS_VERS</td><td></td><td>str</td><td>Version of sas used to create file</td></tr>
+<tr><td>TREE_VER</td><td></td><td>str</td><td>Version of tree used to create file</td></tr>
+</table>
+
+</div>
+<div id="hdu1">
+<h2>HDU1: table with catalog</h2>
+
+<table class="header">
+<caption>Required Header Keywords</caption>
+<tr><th>KEY</th><th>Value</th><th>Type</th><th>Comment</th></tr>
+<tr><td>XTENSION</td><td>BINTABLE</td><td>str</td><td>Table Extension</td></tr>
+<tr><td>TFIELDS</td><td>127</td><td>int</td><td>Number of columns in table</td></tr>
+</table>
+
+<table class="columns">
+<caption>Required Columns</caption>
+<tr><th>Name</th><th>Type</th><th>Comment</th></tr>
+<tr><td>SURVEY</td><td>str</td><td>Survey that this object is part of</td></tr>
+<tr><td>INSTRUMENT</td><td>str</td><td>Instrument that this spectrum was observed with (SDSS or BOSS)</td></tr>
+<tr><td>CHUNK</td><td>str</td><td>Name of tiling chunk that this spectrum was tiled in (boss1, boss2, etc), important for tracking large-scale structure samples</td></tr>
+<tr><td>PROGRAMNAME</td><td>str</td><td>Program within each survey that the plate was part of</td></tr>
+<tr><td>PLATERUN</td><td>str</td><td>Drilling run that this plate was drilled in</td></tr>
+<tr><td>PLATEQUALITY</td><td>str</td><td>Final quality of plate this spectrum came from ("good", "marginal" or "bad")</td></tr>
+<tr><td>PLATESN2</td><td>float32</td><td>Overall signal-to-noise-squared measure for plate (only for SDSS spectrograph plates)</td></tr>
+<tr><td>DEREDSN2</td><td>float32</td><td>Dereddened overall signal-to-noise-squared measure for plate (only for BOSS spectrograph plates)</td></tr>
+<tr><td>LAMBDA_EFF</td><td>float32</td><td>Effective wavelength drilling position was optimized for (Angstroms)</td></tr>
+<tr><td>BLUE_FIBER</td><td>int32</td><td>Set to 1 if this was requested to be a "blue fiber" target, 0 if it was a "red fiber" (in BOSS high redshift LRGs are requested to be on red fibers)</td></tr>
+<tr><td>ZOFFSET</td><td>float32</td><td>Washer thickness used (for backstopping BOSS quasar targets, so they are closer to 4000 Angstrom focal plan (microns)</td></tr>
+<tr><td>SNTURNOFF</td><td>float32</td><td>Signal to noise measure for MS turnoff stars on plate (-9999 if not appropriate)</td></tr>
+<tr><td>NTURNOFF</td><td>int32</td><td>Number of stars used for SNTURNOFF determination</td></tr>
+<tr><td>SPECPRIMARY</td><td>int1</td><td>Set to 1 for primary observation of object, 0 otherwise</td></tr>
+<tr><td>SPECSDSS</td><td>int1</td><td>Set to 1 for primary SDSS spectrograph observation of object, 0 otherwise</td></tr>
+<tr><td>SPECLEGACY</td><td>int1</td><td>Set to 1 for primary SDSS Legacy program observation of object, 0 otherwise</td></tr>
+<tr><td>SPECSEGUE</td><td>int1</td><td>Set to 1 for primary SDSS SEGUE program observation of object (including SEGUE-1 and SEGUE-2), 0 otherwise</td></tr>
+<tr><td>SPECSEGUE1</td><td>int1</td><td>Set to 1 for primary SDSS SEGUE-1 program observation of object, 0 otherwise</td></tr>
+<tr><td>SPECSEGUE2</td><td>int1</td><td>Set to 1 for primary SDSS SEGUE-2 program observation of object, 0 otherwise</td></tr>
+<tr><td>SPECBOSS</td><td>int1</td><td>Set to 1 for primary BOSS spectrograph observation of object, 0 otherwise</td></tr>
+<tr><td>BOSS_SPECOBJ_ID</td><td>int32</td><td>Identification number internal to BOSS for SPECBOSS=1 objects</td></tr>
+<tr><td>SPECOBJID</td><td>str</td><td>Unique database ID based on PLATE, MJD, FIBERID, RUN2D (same as SkyServer version)</td></tr>
+<tr><td>FLUXOBJID</td><td>str</td><td>Unique database ID of flux-based photometric match based on RUN, RERUN, CAMCOl, FIELD, ID (same as SkyServer version)</td></tr>
+<tr><td>BESTOBJID</td><td>str</td><td>Unique database ID of (recommended) position-based photometric match based on RUN, RERUN, CAMCOl, FIELD, ID (same as SkyServer version)</td></tr>
+<tr><td>TARGETOBJID</td><td>str</td><td>Unique database ID of targeting object based on RUN, RERUN, CAMCOl, FIELD, ID (same as SkyServer version)</td></tr>
+<tr><td>PLATEID</td><td>str</td><td>Unique database ID of plate based on PLATE, MJD, RUN2D (same as SkyServer version)</td></tr>
+<tr><td>NSPECOBS</td><td>int16</td><td>Number of spectroscopic observations of this source </td></tr>
+<tr><td>FIRSTRELEASE</td><td>str</td><td>Name of first release this PLATE, MJD, FIBERID, RUN2D was associated with</td></tr>
+<tr><td>RUN2D</td><td>str</td><td>Spectroscopic 2D reduction (extraction of spectra) name</td></tr>
+<tr><td>RUN1D</td><td>str</td><td>Spectroscopic 1D reduction (redshift and classification) name</td></tr>
+<tr><td>DESIGNID</td><td>int32</td><td>Design identification number for plate</td></tr>
+<tr><td>CX</td><td>float64</td><td>Position of object on J2000 unit sphere</td></tr>
+<tr><td>CY</td><td>float64</td><td>Position of object on J2000 unit sphere</td></tr>
+<tr><td>CZ</td><td>float64</td><td>Position of object on J2000 unit sphere</td></tr>
+<tr><td>XFOCAL</td><td>float32</td><td>Hole position on plate (+X = +RA) in mm</td></tr>
+<tr><td>YFOCAL</td><td>float32</td><td>Hole position on plate (+Y = +DEC) in mm</td></tr>
+<tr><td>SOURCETYPE</td><td>str</td><td>String expressing type of source (similar to OBJTYPE in DR8 and earlier)</td></tr>
+<tr><td>TARGETTYPE</td><td>str</td><td>General type of target ("SCIENCE", "STANDARD" or "SKY")</td></tr>
+<tr><td>PRIMTARGET</td><td>int32</td><td>Deprecated version of primary (science) target flags (meanings highly overloaded)</td></tr>
+<tr><td>SECTARGET</td><td>int32</td><td>Deprecated version of secondary (calibration) target flags (meanings highly overloaded)</td></tr>
+<tr><td>LEGACY_TARGET1</td><td>int32</td><td><a href="http://www.sdss3.org/dr9/algorithms/bitmask_legacy_target1.php">Primary (science) target flags for SDSS-I and SDSS-II Legacy survey</a></td></tr>
+<tr><td>LEGACY_TARGET2</td><td>int32</td><td><a href="http://www.sdss3.org/dr9/algorithms/bitmask_legacy_target2.php">Secondary (calibration) target flags for SDSS-I and SDSS-II Legacy survey</a></td></tr>
+<tr><td>SPECIAL_TARGET1</td><td>int32</td><td><a href="http://www.sdss3.org/dr9/algorithms/bitmask_special_target1.php">Primary (science) target flags for SDSS-I and SDSS-II special program targets</a></td></tr>
+<tr><td>SPECIAL_TARGET2</td><td>int32</td><td><a href="http://www.sdss3.org/dr9/algorithms/bitmask_special_target2.php">Secondary (calibration) target flags for SDSS-I and SDSS-II special program targets</a></td></tr>
+<tr><td>SEGUE1_TARGET1</td><td>int32</td><td><a href="http://www.sdss3.org/dr9/algorithms/bitmask_segue1_target.php">Primary (science) target flags for SEGUE-1 targets</a></td></tr>
+<tr><td>SEGUE2_TARGET1</td><td>int32</td><td><a href="http://www.sdss3.org/dr9/algorithms/bitmask_segue2_target1.php">Primary (science) target flags for SEGUE-2 targets</a></td></tr>
+<tr><td>SEGUE2_TARGET2</td><td>int32</td><td><a href="http://www.sdss3.org/dr9/algorithms/bitmask_segue2_target2.php">Secondary (calibration) target flags for SEGUE-2 targets</a></td></tr>
+<tr><td>MARVELS_TARGET1</td><td>int32</td><td>Primary (science) target flags for MARVELS targets</td></tr>
+<tr><td>MARVELS_TARGET2</td><td>int32</td><td>Secondary (calibration) target flags for MARVELS targets</td></tr>
+<tr><td>BOSS_TARGET1</td><td>int64</td><td><a href="http://www.sdss3.org/dr9/algorithms/bitmask_boss_target1.php">Primary (science) target flags for BOSS targets</a></td></tr>
+<tr><td>BOSS_TARGET2</td><td>int64</td><td>	Always set to zero (placeholder for BOSS target flags never used)</td></tr>
+<tr><td>ANCILLARY_TARGET1</td><td>int64</td><td><a href="http://www.sdss3.org/dr9/algorithms/bitmask_ancillary_target1.php">Target flags for BOSS ancillary targets</a></td></tr>
+<tr><td>ANCILLARY_TARGET2</td><td>int64</td><td><a href="http://www.sdss3.org/dr9/algorithms/bitmask_ancillary_target2.php">More target flags for BOSS ancillary targets</a></td></tr>
+<tr><td>SPECTROGRAPHID</td><td>int16</td><td>Which spectrograph (1 or 2) </td></tr>
+<tr><td>PLATE</td><td>int32</td><td>Plate number (each plate corresponds to an actual plug plate)</td></tr>
+<tr><td>TILE</td><td>int32</td><td>Tile number (each tile can have several plates drilled for it)</td></tr>
+<tr><td>MJD</td><td>int32</td><td>Modified Julian Day of observation </td></tr>
+<tr><td>FIBERID</td><td>int32</td><td>Fiber number</td></tr>
+<tr><td>OBJID</td><td>int32[5]</td><td>SDSS photometric object identification numbers (RUN, RERUN, CAMCOL, FIELD, ID)</td></tr>
+<tr><td>PLUG_RA</td><td>float64</td><td>Right ascension of hole (J2000 deg)</td></tr>
+<tr><td>PLUG_DEC</td><td>float64</td><td>Declination of hole  (J2000 deg)</td></tr>
+<tr><td>CLASS</td><td>str</td><td>Best spectroscopic classification ("STAR", "GALAXY" or "QSO")</td></tr>
+<tr><td>SUBCLASS</td><td>str</td><td>Best spectroscopic subclassification</td></tr>
+<tr><td>Z</td><td>float32</td><td>Best redshift</td></tr>
+<tr><td>Z_ERR</td><td>float32</td><td>Error in best redshift</td></tr>
+<tr><td>RCHI2</td><td>float32</td><td>Reduced chi-squared of best fit</td></tr>
+<tr><td>DOF</td><td>int32</td><td>Number of degrees of freedom in best fit</td></tr>
+<tr><td>RCHI2DIFF</td><td>float32</td><td>Difference in reduced chi-squared between best and second best fit</td></tr>
+<tr><td>TFILE</td><td>str</td><td>File that best fit template comes from in idlspec2d product</td></tr>
+<tr><td>TCOLUMN</td><td>float32[10]</td><td>Columns of template files that correspond to each template</td></tr>
+<tr><td>NPOLY</td><td>int32</td><td>Number of polynomial terms in fit</td></tr>
+<tr><td>THETA</td><td>float32[10]</td><td>Template coefficients of best fit</td></tr>
+<tr><td>VDISP</td><td>float32</td><td>Velocity dispersion (km/s)</td></tr>
+<tr><td>VDISP_ERR</td><td>float32</td><td>Error in velocity dispersion (km/s)</td></tr>
+<tr><td>VDISPZ</td><td>float32</td><td>Redshift associated with best-fit velocity dispersion</td></tr>
+<tr><td>VDISPZ_ERR</td><td>float32</td><td>Error in redshift associated with best-fit velocity dispersion</td></tr>
+<tr><td>VDISP_DOF</td><td>int32</td><td>Number of degrees of freedom in velocity dispersion fit</td></tr>
+<tr><td>VDISPCHI2</td><td>float32</td><td>Chi-squared for best-fit velocity dispersion</td></tr>
+<tr><td>VDISPNPIX</td><td>int32</td><td>Number of pixels overlapping the templates used in the velocity dispersion fit</td></tr>
+<tr><td>WAVEMIN</td><td>float32</td><td>Minimum observed (vacuum) wavelength  (Angstroms)</td></tr>
+<tr><td>WAVEMAX</td><td>float32</td><td>Maximum observed (vacuum) wavelength  (Angstroms)</td></tr>
+<tr><td>WCOVERAGE</td><td>float32</td><td>Coverage in wavelength, in units of log10 wavelength</td></tr>
+<tr><td>ZWARNING</td><td>int32</td><td><a href="http://www.sdss3.org/dr9/algorithms/bitmask_zwarning.php">Bitmask of spectroscopic warning values</a>; 0 means everything is OK</td></tr>
+<tr><td>SN_MEDIAN_ALL</td><td>float32</td><td>Median signal-to-noise per pixel across full spectrum</td></tr>
+<tr><td>SN_MEDIAN</td><td>float32[5]</td><td>Median signal-to-noise per pixel within each of the <i>ugriz</i> bandpasses</td></tr>
+<tr><td>CHI68P</td><td>float32</td><td>68-th percentile value of abs(chi) of the best-fit synthetic spectrum to the actual spectrum (around 1.0 for a good fit)</td></tr>
+<tr><td>FRACNSIGMA</td><td>float32[10]</td><td>Fraction of pixels deviant by more than N sigma relative to best-fit (for 1,2,..,10 sigma) </td></tr>
+<tr><td>FRACNSIGHI</td><td>float32</td><td>Fraction of pixels high by more than N sigma relative to best-fit (for 1,2,..,10 sigma)  </td></tr>
+<tr><td>FRACNSIGLO</td><td>float32</td><td>Fraction of pixels low by more than N sigma relative to best-fit (for 1,2,..,10 sigma)  </td></tr>
+<tr><td>SPECTROFLUX</td><td>float32[5]</td><td>Spectrum projected onto <i>ugriz</i> filters (nanomaggies)</td></tr>
+<tr><td>SPECTROFLUX_IVAR</td><td>float32[5]</td><td>Inverse variance of spectrum projected onto <i>ugriz</i> filters (nanomaggies)</td></tr>
+<tr><td>SPECTROSYNFLUX</td><td>float32[5]</td><td>Best-fit template spectrum projected onto <i>ugriz</i> filters (nanomaggies)</td></tr>
+<tr><td>SPECTROSYNFLUX_IVAR</td><td>float32[5]</td><td>Inverse variance of best-fit template spectrum projected onto <i>ugriz</i> filters (nanomaggies)</td></tr>
+<tr><td>SPECTROSKYFLUX</td><td>float32[5]</td><td>Sky flux in each of the <i>ugriz</i> imaging filters (nanomaggies)</td></tr>
+<tr><td>ANYANDMASK</td><td>int32</td><td>For each bit, records whether any pixel in the spectrum has that bit set in its ANDMASK </td></tr>
+<tr><td>ANYORMASK</td><td>int32</td><td>For each bit, records whether any pixel in the spectrum has that bit set in its ORMASK </td></tr>
+<tr><td>SPEC1_G</td><td>float32</td><td>Signal-to-noise squared for spectrograph #1, at g=20.20 for SDSS spectrograph spectra, g=21.20 for BOSS spectrograph spectra</td></tr>
+<tr><td>SPEC1_R</td><td>float32</td><td>Signal-to-noise squared for spectrograph #1, at r=20.25 for SDSS spectrograph spectra, r=20.20 for BOSS spectrograph spectra</td></tr>
+<tr><td>SPEC1_I</td><td>float32</td><td>Signal-to-noise squared for spectrograph #1, at i=19.90 for SDSS spectrograph spectra, i=20.20 for BOSS spectrograph spectra</td></tr>
+<tr><td>SPEC2_G</td><td>float32</td><td>Signal-to-noise squared for spectrograph #2, at g=20.20 for SDSS spectrograph spectra, g=21.20 for BOSS spectrograph spectra</td></tr>
+<tr><td>SPEC2_R</td><td>float32</td><td>Signal-to-noise squared for spectrograph #2, at r=20.25 for SDSS spectrograph spectra, r=20.20 for BOSS spectrograph spectra</td></tr>
+<tr><td>SPEC2_I</td><td>float32</td><td>Signal-to-noise squared for spectrograph #2, at i=19.90 for SDSS spectrograph spectra, i=20.20 for BOSS spectrograph spectra</td></tr>
+<tr><td>ELODIE_FILENAME</td><td>str</td><td>File name for best-fit ELODIE star</td></tr>
+<tr><td>ELODIE_OBJECT</td><td>str</td><td>Star name for ELODIE star</td></tr>
+<tr><td>ELODIE_SPTYPE</td><td>str</td><td>ELODIE star spectral type</td></tr>
+<tr><td>ELODIE_BV</td><td>float32</td><td>(B-V) color index for ELODIE star (mag) </td></tr>
+<tr><td>ELODIE_TEFF</td><td>float32</td><td>Effective temperature of ELODIE star (Kelvin) </td></tr>
+<tr><td>ELODIE_LOGG</td><td>float32</td><td>log10(gravity) of ELODIE star </td></tr>
+<tr><td>ELODIE_FEH</td><td>float32</td><td>Metallicity [Fe/H] of ELODIE star </td></tr>
+<tr><td>ELODIE_Z</td><td>float32</td><td>Redshift fit to ELODIE star </td></tr>
+<tr><td>ELODIE_Z_ERR</td><td>float32</td><td>Error in redshift fit to ELODIE star </td></tr>
+<tr><td>ELODIE_Z_MODELERR</td><td>float32</td><td>Standard deviation in redshift among the 12 best-fit ELODIE stars </td></tr>
+<tr><td>ELODIE_RCHI2</td><td>float32</td><td>Reduced chi-squared of fit to best ELODIE star </td></tr>
+<tr><td>ELODIE_DOF</td><td>int32</td><td>Degrees of freedom in fit to best ELODIE star</td></tr>
+<tr><td>Z_NOQSO</td><td>float32</td><td>Best redshift when ignoring QSO fits, recommended for BOSS CMASS and LOWZ targets; calculated only for survey='boss' spectra, not for any SDSS spectrograph data</td></tr>
+<tr><td>Z_ERR_NOQSO</td><td>float32</td><td>Error in Z_NOQSO redshift</td></tr>
+<tr><td>ZWARNING_NOQSO</td><td>int32</td><td>For Z_NOQSO redshift, the
+<a href="http://www.sdss3.org/dr9/algorithms/bitmask_zwarning.php">bitmask of spectroscopic warning values</a>; 0 means everything is OK</td></tr>
+<tr><td>CLASS_NOQSO</td><td>str</td><td>Spectroscopic classification for Z_NOQSO redshift</td></tr>
+<tr><td>SUBCLASS_NOQSO</td><td>str</td><td>Spectroscopic subclassification for Z_NOQSO redshift</td></tr>
+<tr><td>RCHI2DIFF_NOQSO</td><td>float32</td><td>Difference in reduced chi-squared between best and second best fit for Z_NOQSO redshift</td></tr>
+<tr><td>Z_PERSON</td><td>float32</td><td>Visual-inspection redshift</td></tr>
+<tr><td>CLASS_PERSON</td><td>int32</td><td>Visual-inspection classification (0=not inspected or unknown, 1=star, 2=narrow emission-line galaxy, 3=QSO, 4=galaxy)</td></tr>
+<tr><td>Z_CONF_PERSON</td><td>int32</td><td>Visual-inspection confidence (0=not inspected or no confidence, 1,2=low confidence, 3,4=high confidence)</td></tr>
+<tr><td>COMMENTS_PERSON</td><td>str</td><td>Visual-inspection comments</td></tr>
+<tr><td>CALIBFLUX</td><td>float32[5]</td><td><i>ugriz</i> fluxes used for calibrations (nanomaggies)</td></tr>
+<tr><td>CALIBFLUX_IVAR</td><td>float32[5]</td><td>Inverse variances of <i>ugriz</i> fluxes used for calibrations (nanomaggies)</td></tr>
+</table>
+
+</div>
+</body>
+</html>
+

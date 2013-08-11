@@ -79,7 +79,8 @@ public:
 	void reset( const Parameters &_params );
 
 	// one learning step
-	void process();
+	// returns true if learning is finished and maximum number of learning steps are reached.
+	bool process();
 
 	// get spectrum from the network at a given cell.
 	// if a given cell contains a match (thus it is occupied by some input spectra) can be seen by its objectID

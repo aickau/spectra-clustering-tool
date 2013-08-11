@@ -32,13 +32,19 @@ public:
 		Spectra::SpectraType		type;
 	};
 
+	enum DR
+	{
+		DR9,
+		DR10
+	};
+
 	// read FITs table and export map entries to write binary table 
 	// because we do not want to read a 3 GB FITs file for every clustering process.
 	// true if operation was successful.
-	bool writeDB();
+	bool writeDB( DR dataRelease );
 
 	// load binary DB into memory.
-	bool loadDR9DB();
+	bool loadDB( DR dataRelease );
 
 	bool getInfo( __int64 _specObjID, Info &outInfo );
 

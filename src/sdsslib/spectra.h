@@ -64,7 +64,7 @@ public:
 		SP_CSV,							//< from comma seperated values
 		SP_VERSION_DR7,					//<	Spectra DR1..DR7
 		SP_VERSION_DR8,					//< DR8, DR9
-		SP_VERSION_BOSS,				//< BOSS spectra from DR9, new spectrograph, different wavelenght range
+		SP_VERSION_BOSS,				//< BOSS spectra from DR9/DR10, new spectrograph, different wavelenght range
 		SP_COUNT						//< must be the last entry here.
 	};
 
@@ -102,7 +102,11 @@ public:
 		SPT_SERENDIPITY_RED		= 0x002000000, 
 		SPT_SERENDIPITY_DISTANT	= 0x004000000, 	
 		SPT_SERENDIPITY_MANUAL	= 0x008000000,	 
-		SPT_REDDEN_STD			= 0x010000000
+		SPT_REDDEN_STD			= 0x010000000,
+		// the following types are from DR10:
+		SPT_BLAZAR				= 0x020000000,
+		SPT_QSO_BAL				= 0x040000000,
+		SPT_EXOTIC				= 0x080000000				//< pheletora of different new source types from DR10
 	};
 		
 
@@ -345,7 +349,7 @@ public:
 	// load SDSS DR8 spectra
 	bool loadFromFITS_DR8(const std::string &_filename);
 
-	// BOSS Spectra from DR9. e.g. dr9spec-3588-55184-0511.fits
+	// BOSS Spectra from DR9/DR10. e.g. dr9spec-3588-55184-0511.fits
 	bool loadFromFITS_BOSS(const std::string &_filename);
 
 	// save to ASCII CSV
