@@ -1868,12 +1868,18 @@ void test()
 	SSE_ALIGN Spectra spDR7;
 	SSE_ALIGN Spectra spDR8;
 	SSE_ALIGN Spectra spDR9;
+	SSE_ALIGN Spectra spDR10_SDSS;
+	SSE_ALIGN Spectra spDR10_BOSS;
+	SSE_ALIGN Spectra spDR10_APOGEE;
 
 	
 	spDR6.loadFromFITS_SDSS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr6spec-52199-0659-338.fit");
 	spDR7.loadFromFITS_SDSS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr7spec-51630-0266-633.fit");
 	spDR8.loadFromFITS_DR8("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr8spec-2917-54556-0382.fits");
 	spDR9.loadFromFITS_BOSS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr9spec-3588-55184-0511.fits");	
+	spDR10_SDSS.loadFromFITS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr10spec_sdss-0266-51602-0003.fits");	
+	spDR10_BOSS.loadFromFITS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr10spec_BOSS-3586-55181-0002.fits");	
+	spDR10_APOGEE.loadFromFITS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr10spec_apogee-r3-4937-55760-002.fits");	
 }
 
 void writeParamsFromSelection(const std::string &sstrDataDir )
@@ -3302,10 +3308,10 @@ void writeMapToTIFF()
 
 }
 
-void writeSpectraParmDR9()
+void writeSpectraParmDB()
 {
 	SpectraDB db;
-	db.writeDB();
+	db.writeDB(SpectraDB::DR9);
 }
 
 void main(int argc, char* argv[])
@@ -3317,11 +3323,11 @@ void main(int argc, char* argv[])
 // 	}
  	SpectraHelpers::init(0);
 
-	std::string sstrDir(DATADIR);
-	if ( argc>1 )
-		sstrDir = argv[1];
+// 	std::string sstrDir(DATADIR);
+// 	if ( argc>1 )
+// 		sstrDir = argv[1];
 
-	writeParamsFromSelection( sstrDir );
+	//writeParamsFromSelection( sstrDir );
 
 	//spectroLisWrite();
 	//trackCatalogs();
@@ -3357,7 +3363,7 @@ void main(int argc, char* argv[])
 	//analyzeSpectraJumps();
 	//writeMapToTIFF();
 	//writeSpectraInfoToTable();
-	//writeSpectraParmDR9();
+	//writeSpectraParmDB();
 
 	printf ("fin.\n" );
 

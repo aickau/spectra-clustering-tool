@@ -1429,14 +1429,14 @@ void writeSpectraTypes( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const 
 			case Spectra::SPT_SKY:
 			case Spectra::SPT_QA:
 			case Spectra::SPT_GAL_EM:
-			case Spectra::SPT_NOT_SET : r=0;g=0; b= 0.5; // dark blue
+			case Spectra::SPT_NOT_SET : r=0;g=0; b= 0.5;			// dark blue
 				break;
 			case Spectra::SPT_SERENDIPITY_BLUE : 
 			case Spectra::SPT_SERENDIPITY_FIRST : 
 			case Spectra::SPT_SERENDIPITY_RED : 
 			case Spectra::SPT_SERENDIPITY_MANUAL : 
 			case Spectra::SPT_SERENDIPITY_DISTANT :
-			case Spectra::SPT_UNKNOWN : r= 1.0; g=1.0; b= 1.0; // white
+			case Spectra::SPT_UNKNOWN : r= 1.0; g=1.0; b= 1.0;		// white
 				break;
 			case Spectra::SPT_STAR_PN : 
 			case Spectra::SPT_STAR_BROWN_DWARF : 
@@ -1455,17 +1455,23 @@ void writeSpectraTypes( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const 
 				break;
 			case Spectra::SPT_QSO : r= 1.0; g=0.5; b= 0.0;			// orange
 				break;
+			case Spectra::SPT_QSO_BAL : r=1.0; g=0.6; b=0;			// lighter orange
+				break;
+			case Spectra::SPT_BLAZAR : r=1.0; g=0.4; b=0;			// darker orange
+				break;
 			case Spectra::SPT_HIZ_QSO : r= 1.0; g=1.0; b= 0.0;		// yellow
 				break;
 			case Spectra::SPT_ROSAT_A : 
 			case Spectra::SPT_ROSAT_B : 
 			case Spectra::SPT_ROSAT_C : 
-			case Spectra::SPT_ROSAT_D : r= 0.0; g=1.0; b= 1.0;	// cyan
+			case Spectra::SPT_ROSAT_D : r= 0.0; g=1.0; b= 1.0;		// cyan
 				break;
 
 			case Spectra::SPT_SPECTROPHOTO_STD :
 			case Spectra::SPT_HOT_STD :			
 			case Spectra::SPT_REDDEN_STD :r= 0.0; g=0.6; b= 0.6;	// dark cyan		
+				break;
+			case Spectra::SPT_EXOTIC :r= 0.0; g=0.8; b= 0.8;		// dark cyan		
 				break;
 		}
 			pRGBMap[i*3+0] = r;

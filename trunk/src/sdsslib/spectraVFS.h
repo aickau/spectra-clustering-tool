@@ -37,7 +37,7 @@ class SpectraVFS
 public:
 
 	// number of spectra per cache line
-	static const size_t CACHELINESIZE = 16000;
+	static const size_t CACHELINESIZE = 14000;
 
 	// create VFS from a set of input fits files
 	// sstrDir directory where fits files can be located

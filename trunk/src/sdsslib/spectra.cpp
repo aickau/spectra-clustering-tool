@@ -47,7 +47,8 @@ const float Spectra::waveEndDst		= 9200.f;
 int Spectra::pixelStart				= 0;		
 int Spectra::pixelEnd				= Spectra::numSamples;		
 
-SpectraDB g_spectraDB;
+SpectraDB g_spectraDBDR9;
+SpectraDB g_spectraDBDR10;
 
 Spectra::Spectra()
 {
@@ -486,8 +487,6 @@ Spectra::SpectraVersion checkVersion(fitsfile *f)
 	int specType = 0;
 	int statusDR7 = 0;
 
-
-
 	// if we can read the spectra type, z and bitpix==-32 we have DR7 and below spectra. 
 	fits_read_key( f, TDOUBLE, "Z", &z, NULL, &statusDR7 );
 	fits_read_key( f, TINT, "SPEC_CLN", &specType, NULL, &statusDR7 );
@@ -497,7 +496,8 @@ Spectra::SpectraVersion checkVersion(fitsfile *f)
 	}
 
 	// DR8, DR9 spectra have bitpix set to 8
-	if ( bitpix != 8 )
+	// DR10 spectra have bitpix set to 16
+	if ( !(bitpix == 8 || bitpix == 16) )
 		return Spectra::SP_VERSION_INVALID;
 	char run2d[FLEN_VALUE];
 	fits_read_key( f, TSTRING, "RUN2D", run2d, NULL, &status );
@@ -506,12 +506,13 @@ Spectra::SpectraVersion checkVersion(fitsfile *f)
 	// 	or a string of the form 'vN_M_P', 
 	if  (status == 0 && (run2d[0]=='v' || run2d[0]=='V'))
 	{
-		// RUN2D keyword found, must be DR9 spectra.
+		// RUN2D keyword found, must be DR9/DR10 spectra.
 		return Spectra::SP_VERSION_BOSS;
 	}
 
 	return Spectra::SP_VERSION_DR8;
 }
+
 
 bool Spectra::loadFromFITS(const std::string &_filename)
 {
@@ -573,12 +574,13 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	// 	where N, M and P are integers, 
 	// 		with the restriction 5<=N<=6, 0<=M<=99, and 0<=P<=99. 
 	// 		This is understood to be the run2d value for a spectrum. 
-	int mjd, plateID, fiber;
+	int mjd, plateID, fiber, bitpix;
 	char run2d[FLEN_VALUE];
 	fits_read_key( f, TINT, "MJD", &mjd, NULL, &status );
 	fits_read_key( f, TINT, "PLATEID", &plateID, NULL, &status );
 	fits_read_key( f, TINT, "FIBERID", &fiber, NULL, &status );
 	fits_read_key( f, TSTRING, "RUN2D", run2d, NULL, &status );
+	fits_get_img_type(f, &bitpix, &status );
 
 	if ( status != 0 )
 	{
@@ -712,17 +714,22 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	calcMinMax();
 
 	// retrieve add. info.
-	if( g_spectraDB.loadDR9DB() )
+	SpectraDB::Info spectraInfo;
+	bool spectraInfoLoaded = false;
+	if ( bitpix == 16 )
 	{
-		SpectraDB::Info spectraInfo;
-		if ( g_spectraDB.getInfo( m_SpecObjID, spectraInfo ) )
-		{
-			m_Z		= spectraInfo.z;
-			m_Type	= spectraInfo.type;
-		}
-
-
+		spectraInfoLoaded = g_spectraDBDR10.loadDB( SpectraDB::DR10 ) && g_spectraDBDR10.getInfo( m_SpecObjID, spectraInfo );
 	}
+	else
+	{
+		spectraInfoLoaded = g_spectraDBDR9.loadDB( SpectraDB::DR9 ) && g_spectraDBDR9.getInfo( m_SpecObjID, spectraInfo );
+	}
+	if ( spectraInfoLoaded )
+	{
+		m_Z		= spectraInfo.z;
+		m_Type	= spectraInfo.type;
+	}
+
 
 	bool bConsistent = checkConsistency();
 	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
@@ -759,12 +766,13 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 	// 	where N, M and P are integers, 
 	// 		with the restriction 5<=N<=6, 0<=M<=99, and 0<=P<=99. 
 	// 		This is understood to be the run2d value for a spectrum. 
-	int mjd, plateID, fiber;
+	int mjd, plateID, fiber, bitpix;
 	char specID[FLEN_VALUE]={0};
 	fits_read_key( f, TINT, "MJD", &mjd, NULL, &status );
 	fits_read_key( f, TINT, "PLATEID", &plateID, NULL, &status );
 	fits_read_key( f, TINT, "FIBERID", &fiber, NULL, &status );
 	fits_read_key( f, TSTRING, "SPEC_ID", specID, NULL, &status );
+	fits_get_img_type(f, &bitpix, &status );
 
 	if ( status != 0 )
 	{
@@ -866,14 +874,20 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 	calcMinMax();
 
 	// retrieve add. info.
-	if( g_spectraDB.loadDR9DB() )
+	SpectraDB::Info spectraInfo;
+	bool spectraInfoLoaded = false;
+	if ( bitpix == 16 )
 	{
-		SpectraDB::Info spectraInfo;
-		if ( g_spectraDB.getInfo( m_SpecObjID, spectraInfo ) )
-		{
-			m_Z		= spectraInfo.z;
-			m_Type	= spectraInfo.type;
-		}
+		spectraInfoLoaded = g_spectraDBDR10.loadDB( SpectraDB::DR10 ) && g_spectraDBDR10.getInfo( m_SpecObjID, spectraInfo );
+	}
+	else
+	{
+		spectraInfoLoaded = g_spectraDBDR9.loadDB( SpectraDB::DR9 ) && g_spectraDBDR9.getInfo( m_SpecObjID, spectraInfo );
+	}
+	if ( spectraInfoLoaded )
+	{
+		m_Z		= spectraInfo.z;
+		m_Type	= spectraInfo.type;
 	}
 
 
@@ -1666,25 +1680,38 @@ int Spectra::getPlate() const
 
 std::string Spectra::getURL()const
 {
-	std::string sstrUrlDR9("http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?sid=");
-	std::string sstrUrlDR7("http://cas.sdss.org/dr7/en/tools/explore/obj.asp?sid=");
-	std::string sstrUrl(sstrUrlDR9);
-	
-	if ( m_version == SP_VERSION_DR7 )
-		sstrUrl = sstrUrlDR7;
+	// e.g.: http://dr10.sdss3.org/spectrumDetail?mjd=55280&fiber=1&plateid=3863
 
-	sstrUrl += Helpers::numberToString( m_SpecObjID );
+	std::string sstrUrlDR10("http://dr10.sdss3.org/spectrumDetail?mjd=");
+	std::string sstrUrl(sstrUrlDR10);
+
+	sstrUrl += Helpers::numberToString( getMJD() );
+	sstrUrl += "&fiber=";
+	sstrUrl += Helpers::numberToString( getFiber() );
+	sstrUrl += "&plateid=";
+	sstrUrl += Helpers::numberToString( getPlate() );
+
+	// old URLs
+// 	std::string sstrUrlDR9("http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?sid=");
+// 	std::string sstrUrlDR7("http://cas.sdss.org/dr7/en/tools/explore/obj.asp?sid=");
+// 	std::string sstrUrl(sstrUrlDR9);
+// 	
+// 	if ( m_version == SP_VERSION_DR7 )
+// 		sstrUrl = sstrUrlDR7;
+// 
+// 	sstrUrl += Helpers::numberToString( m_SpecObjID );
 	return sstrUrl;
 }
 
 std::string Spectra::getImgURL() const
 {
+	std::string sstrUrlDR10("http://skyserver.sdss3.org/dr10/en/get/SpecById.ashx?id=");
 	std::string sstrUrlDR9("http://skyserver.sdss3.org/dr9/en/get/specById.asp?id=");
 	std::string sstrUrlDR7("http://cas.sdss.org/dr7/en/get/specById.asp?id=");
-	std::string sstrUrl(sstrUrlDR9);
+	std::string sstrUrl(sstrUrlDR10);
 
-	if ( m_version == SP_VERSION_DR7 )
-		sstrUrl = sstrUrlDR7;
+ 	if ( m_version == SP_VERSION_DR7 )
+ 		sstrUrl = sstrUrlDR7;
 
 	sstrUrl += Helpers::numberToString( m_SpecObjID );
 	return sstrUrl;
@@ -1967,6 +1994,18 @@ std::string Spectra::spectraFilterToString( unsigned int _spectraFilter )
 	{
 		sstrOutString += "REDDEN_STD ";
 	}			
+	if ( _spectraFilter & Spectra::SPT_BLAZAR )
+	{
+		sstrOutString += "BLAZAR ";
+	}			
+	if ( _spectraFilter & Spectra::SPT_QSO_BAL )
+	{
+		sstrOutString += "QSO_BAL ";
+	}			
+	if ( _spectraFilter & Spectra::SPT_EXOTIC )
+	{
+		sstrOutString += "EXOTIC ";
+	}			
 
 	return sstrOutString;
 }
@@ -2056,11 +2095,182 @@ Spectra::SpectraType Spectra::spectraTypeFromString( const std::string &_spectra
 	if ( ssstrSpectraType == "REDDEN_STD" )
 		return SPT_REDDEN_STD;
 
+	// new DR10 source types
+	//////////////////////////////////////////////////////////
+
+	if ( ssstrSpectraType == "BLAZGRFLAT" )
+		return SPT_BLAZAR;
+	if ( ssstrSpectraType == "BLAZGRQSO" )
+		return SPT_BLAZAR;
+	if ( ssstrSpectraType == "BLAZGVAR" )
+		return SPT_BLAZAR;
+	if ( ssstrSpectraType == "BLAZGX" )
+		return SPT_BLAZAR;
+	if ( ssstrSpectraType == "BLAZGXQSO" )
+		return SPT_BLAZAR;
+	if ( ssstrSpectraType == "BLAZGXR" )
+		return SPT_BLAZAR;
+	if ( ssstrSpectraType == "BLAZR" )
+		return SPT_BLAZAR;
+	if ( ssstrSpectraType == "BLAZXR" )
+		return SPT_BLAZAR;
+	if ( ssstrSpectraType == "BLAZXRSAM" )
+		return SPT_BLAZAR;
+	if ( ssstrSpectraType == "BLAZXRVAR" )
+		return SPT_BLAZAR;
+
+	
+	if ( ssstrSpectraType == "LBQSBAL" )
+		return SPT_QSO_BAL;
+	if ( ssstrSpectraType == "FBQSBAL" )
+		return SPT_QSO_BAL;
+	if ( ssstrSpectraType == "ODDBAL" )
+		return SPT_QSO_BAL;
+	if ( ssstrSpectraType == "OTBAL" )
+		return SPT_QSO_BAL;
+	if ( ssstrSpectraType == "VARBAL" )
+		return SPT_QSO_BAL;
+	if ( ssstrSpectraType == "PREVBAL" )
+		return SPT_QSO_BAL;
+	
+	
+
+	if ( ssstrSpectraType == "HIZQSO82" )
+		return SPT_HIZ_QSO;
+	if ( ssstrSpectraType == "QSO_HIZ" )
+		return SPT_HIZ_QSO;
+	if ( ssstrSpectraType == "HIZQSOIR" )
+		return SPT_HIZ_QSO;
+
+	if ( ssstrSpectraType == "QSO_AAL" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_AALs" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_GRI" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_IAL" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_RADIO" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_RADIO_AAL" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_RADIO_IAL" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_RIZ" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_SUPPZ" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_VAR_FPG" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_VAR_SDSS" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_WISE_SUPP" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_noAALs" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "KQSO_BOSS" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "QSO_VAR" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "RADIO_2LOBE_QSO" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "RQSS_SF" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "RQSS_SFC" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "RQSS_STM" )
+		return SPT_QSO;
+	if ( ssstrSpectraType == "RQSS_STMC" )
+		return SPT_QSO;
+	
+	if ( ssstrSpectraType == "GAL_NEAR_QSO" )
+		return SPT_GALAXY;
+	if ( ssstrSpectraType == "SN_GAL1" )
+		return SPT_GALAXY;
+	if ( ssstrSpectraType == "SN_GAL2" )
+		return SPT_GALAXY;
+	if ( ssstrSpectraType == "SN_GAL3" )
+		return SPT_GALAXY;
+	if ( ssstrSpectraType == "BRIGHTGAL" )
+		return SPT_GALAXY;
+	if ( ssstrSpectraType == "LRG" )
+		return SPT_GALAXY;
+	
+
+	if ( ssstrSpectraType == "WHITEDWARF_NEW" )
+		return SPT_STAR_WHITE_DWARF;
+	if ( ssstrSpectraType == "WHITEDWARF_SDSS" )
+		return SPT_STAR_WHITE_DWARF;
+
+	if ( ssstrSpectraType == "AMC" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "BLUE_RADIO" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "CHANDRAv1" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "CXOBRIGHT" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "CXOGRIZ" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "CXORED" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "ELG" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "FLARE1" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "FLARE2" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "HPM" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "LOW_MET" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "ELG" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "NA" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "MTEMP" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "XMMBRIGHT" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "XMMGRIZ" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "XMMHR" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "XMMRED" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "RVTEST" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "RED_KG" )
+		return SPT_EXOTIC;
+
+	if ( ssstrSpectraType == "SN_LOC" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "SPEC_SN" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "SPOKE" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "STANDARD" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "STD" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "STRIPE82BCG" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "VARS" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "BRIGHTERL" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "BRIGHTERM" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "FAINTERL" )
+		return SPT_EXOTIC;
+	if ( ssstrSpectraType == "FAINTERM" )
+		return SPT_EXOTIC;
+
 	// i.e. NONLEGACY.
 	return SPT_UNKNOWN;
 }
-
-
+		
+	
 
 std::string Spectra::spectraVersionToString( SpectraVersion _spectraVersion )
 {
@@ -2071,7 +2281,7 @@ std::string Spectra::spectraVersionToString( SpectraVersion _spectraVersion )
 	case SP_CSV				: return "Comma Separated Values (CSV)";
 	case SP_VERSION_DR7		: return "DR7 and below";
 	case SP_VERSION_DR8		: return "DR8/DR9";
-	case SP_VERSION_BOSS	: return "DR9/BOSS";
+	case SP_VERSION_BOSS	: return "DR9/DR10 BOSS";
 	}
 	return "Spectra version that should not exist";
 }
