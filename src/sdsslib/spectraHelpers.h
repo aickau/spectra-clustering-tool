@@ -22,7 +22,7 @@
 #include <windows.h>
 
 #include <string>
-#include <map>
+#include <set>
 #include <vector>
 
 
@@ -123,7 +123,7 @@ namespace SpectraHelpers
 	// \param _sstrSelectionListFilename path+filename to a text file with FITS file names.
 	// \param _outFITSFilenameSet set where FITS file names are inserted, file names are only inserted, existing items will not get deleted.
 	// \return true on successful load, otherwise false
-	bool readSelectionList( const std::string &_sstrSelectionListFilename, std::map<std::string,float> &_outFITSFilenameSet );
+	bool readSelectionList( const std::string &_sstrSelectionListFilename, std::set<std::string> &_outFITSFilenameSet );
 
 	//  write float values from array to disk (as text)
 	void writeFloatList( float *_pArray, size_t _size, const std::string &_sstrFilename );

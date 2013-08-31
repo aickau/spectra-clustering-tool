@@ -113,7 +113,7 @@ void SpectraVFS::flush()
 
 
 
-size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter, std::ofstream *_logStream, std::map<std::string,float> *pFITSFilenameSet )
+size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrFileName, unsigned int _spectraFilter, std::ofstream *_logStream, std::set<std::string> *pFITSFilenameSet )
 {
 	std::vector<std::string> fileList;
 
@@ -124,7 +124,8 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 	
 	if ( pFITSFilenameSet != NULL )
 	{
-		Helpers::print( "Selection list contains "+ Helpers::numberToString<size_t>(pFITSFilenameSet->size())+" files.\n", _logStream );
+		const size_t numSelectionFiles = pFITSFilenameSet->size()/2;		// divide by two because two file name versions are written..
+		Helpers::print( "Selection list contains "+ Helpers::numberToString<size_t>(numSelectionFiles)+" files.\n", _logStream );
 	}
 
 	if ( pFITSFilenameSet && pFITSFilenameSet->empty() )
@@ -150,18 +151,16 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 	size_t c = 0;
 	for ( size_t i=0;i<numFiles;i++ )
 	{
-		float multiplier = 1.f;
 		if ( pFITSFilenameSet )
 		{
 			std::string sstrFilename(FileHelpers::getFileName(fileList.at(i)));
-			std::map<std::string,float>::iterator it = pFITSFilenameSet->find(sstrFilename);
+			std::set<std::string>::iterator it = pFITSFilenameSet->find(sstrFilename);
 			if ( it == pFITSFilenameSet->end() )
 			{
 //				Helpers::print( "skipping "+fileList.at(i)+"\n", _logStream );
 				continue;
 			}
 			// make sure item is not written twice.
-			multiplier = it->second;
 			pFITSFilenameSet->erase( it );
 		}
 		spec.clear();
@@ -190,12 +189,6 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 				{
 //					Helpers::print( "Over 5%% bad pixels detected in spectrum "+sstrFilename+"\n", _logStream );
 				}
-
-//				if ( multiplier != 1.f )
-//				{
-//					Helpers::print( "multiplying spectrum "+sstrFilename+" with "+ Helpers::numberToString<float>(multiplier)+"\n", _logStream );
-//					spec.multiply(multiplier);
-//				}
 
 				compositeSpec.add(spec);
 				bResult = w.write(spec);

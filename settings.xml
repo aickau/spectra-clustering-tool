@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Analyzer config file, ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I, Copyright (c) 2009 Version 0.18, Revision 259, Build date 2012/12/08 17:24:30 -->
+<!-- Analyzer config file, ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I, Copyright (c) 2009 Version 0.18, Revision 282, Build date 2013/08/11 14:45:41 -->
 <SETTINGS>
-	<STEP current="199" total="200"/>
-	<GRIDSIZE value="35"/>
+	<STEP current="200" total="200"/>
+	<GRIDSIZE value="14"/>
 	<RANDOMSEED value="15"/>
 	<LEARNRATE begin="0.25" end="0.01"/>
 	<RADIUS begin="1" end="0.125"/>
@@ -11,7 +11,7 @@
 		<SUBPAGES value="0"/>
 		<WAITFORUSER value="0"/>
 	</EXPORT>
-	<SEARCHMODE value="global"/><!-- localfast / local / global -->
+	<SEARCHMODE value="local"/><!-- localfast / local / global -->
 	<NORMALIZATION value="none"/><!-- amplitude / flux / none -->
-	<WAVELENGTHRANGE value="sdss"/><!-- sdss (3800..9200) / boss (3650..10400) -->
+	<WAVELENGTHRANGE value="boss"/><!-- sdss (3800..9200) / boss (3650..10400) -->
 </SETTINGS>

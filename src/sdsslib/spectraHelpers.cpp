@@ -455,28 +455,56 @@ struct TspecObj
 
 
 
-std::string getSpecObjFileName(TspecObj &obj)
+std::string getSpecObjFileName(TspecObj &obj, bool dr8 )
 {
-	// e.g. spSpec-52203-0716-002.fit
-	std::string sstrFileName( "spSpec-" );
+	std::string sstrFileName;
+	if ( dr8 )
+	{
+		// dr8 and above
+		// spec-plate-MJD-fiber.fits
+		// e.g. spec-0281-51614-0579.fits
+		sstrFileName = "spec-";
 
-	char buf[64];
-	sprintf_s( buf, "%05i", obj.mjd );
-	sstrFileName += buf;
-	sstrFileName += "-";
+		char buf[64];
 
-	sprintf_s( buf, "%04i", obj.plate );
-	sstrFileName += buf;
-	sstrFileName += "-";
+		sprintf_s( buf, "%04i", obj.plate );
+		sstrFileName += buf;
+		sstrFileName += "-";
 
-	sprintf_s( buf, "%03i", obj.fiberID );
-	sstrFileName += buf;
-	sstrFileName += ".fit";
+		sprintf_s( buf, "%05i", obj.mjd );
+		sstrFileName += buf;
+		sstrFileName += "-";
+
+		sprintf_s( buf, "%04i", obj.fiberID );
+		sstrFileName += buf;
+		sstrFileName += ".fits";
+
+	}
+	else
+	{
+		// dr7 and below
+		// spSpec-MJD-plate-fiber.fit
+		// e.g. spSpec-52203-0716-002.fit
+		sstrFileName = "spSpec-";
+
+		char buf[64];
+		sprintf_s( buf, "%05i", obj.mjd );
+		sstrFileName += buf;
+		sstrFileName += "-";
+
+		sprintf_s( buf, "%04i", obj.plate );
+		sstrFileName += buf;
+		sstrFileName += "-";
+
+		sprintf_s( buf, "%03i", obj.fiberID );
+		sstrFileName += buf;
+		sstrFileName += ".fit";
+	}
 
 	return sstrFileName;
 }
 
-bool readSelectionList( const std::string &_sstrSelectionListFilename, std::map<std::string,float> &_outFITSFilenameSet )
+bool readSelectionList( const std::string &_sstrSelectionListFilename, std::set<std::string> &_outFITSFilenameSet )
 {
 	if ( _sstrSelectionListFilename.empty() )
 	{
@@ -495,7 +523,7 @@ bool readSelectionList( const std::string &_sstrSelectionListFilename, std::map<
 	std::string sstrLine;
 	getline(fin,sstrLine);
 
-	while( fin  ) 
+	while( fin && !fin.fail() && !fin.eof()) 
 	{	
 		std::string sstrPlate, sstrMJD ,sstrFiberID;
 
@@ -508,8 +536,11 @@ bool readSelectionList( const std::string &_sstrSelectionListFilename, std::map<
 		specObj.plate = Helpers::stringToNumber<int>(sstrPlate);
 		specObj.mjd = Helpers::stringToNumber<int>(sstrMJD);
 
-		std::string sstrFileName = getSpecObjFileName(specObj);
-		_outFITSFilenameSet.insert(std::make_pair<std::string,float>(sstrFileName,1.0));
+		// generate both filename variants for dr7 (and below) and dr8 (and above).
+		std::string sstrFileName = getSpecObjFileName(specObj, false);
+		_outFITSFilenameSet.insert(sstrFileName);
+		sstrFileName = getSpecObjFileName(specObj, true);
+		_outFITSFilenameSet.insert(sstrFileName);
 	}
 /*
 	// read selection list
