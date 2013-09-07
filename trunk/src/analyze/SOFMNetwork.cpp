@@ -845,30 +845,32 @@ bool SOFMNetwork::process()
 	{
 		m_pNet->dumpToFile(m_pNet->getFileName()+"old");
 	}
-
-	if ( m_currentStep == m_params.numSteps )
+	if ( m_currentStep > 0 )
 	{
-		exportToHTML("export/full", true);
-	} else
-	if ( m_currentStep == m_params.numSteps/2 )
-	{
-		exportToHTML("export/half", false);
-	} else
-	if ( m_currentStep == m_params.numSteps/4 )
-	{
-		exportToHTML("export/quarter", false);
-	} else
-	if ( m_currentStep == m_params.numSteps*3/4 )
-	{
-		exportToHTML("export/threequarter", false);
-	} else
-	if ( m_currentStep == 1 )
-	{
-		exportToHTML("export/first", false);
-	} else
-	if ( m_currentStep > 1 ) 
-	{
-		exportToHTML("export/current", false);
+		if ( m_currentStep == m_params.numSteps )
+		{
+			exportToHTML("export/full", true);
+		} else
+		if ( m_currentStep == m_params.numSteps/2 )
+		{
+			exportToHTML("export/half", false);
+		} else
+		if ( m_currentStep == m_params.numSteps/4 )
+		{
+			exportToHTML("export/quarter", false);
+		} else
+		if ( m_currentStep == m_params.numSteps*3/4 )
+		{
+			exportToHTML("export/threequarter", false);
+		} else
+		if ( m_currentStep == 1 )
+		{
+			exportToHTML("export/first", false);
+		} else
+		if ( m_currentStep > 1 ) 
+		{
+			exportToHTML("export/current", false);
+		}
 	}
 
 
