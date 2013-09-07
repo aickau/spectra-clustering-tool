@@ -30,7 +30,6 @@
 
 #include "framework.h"	
 #include "SOFMNetwork.h"
-#include "QTClustering.h"
 
 #include "devil/include/il/il.h"
 #include "devil/include/il/ilu.h"
@@ -102,7 +101,7 @@ int InitGL()
 		TCLAP::CmdLine cmd(sstrExamples, ' ', sstrSDSSVersionString);
 
 		TCLAP::ValueArg<std::string> dumpFilenameArg("i", "inputdumpfile", "example: allSpectra.bin", false, sstrSourceSpectraFilename, "input dump file that contains all spectra to compare with.");
-		TCLAP::ValueArg<std::string> selectionListFilenameArg("s", "selection", "Optional selection list of FITS files to cluster a small subset of input spectra.", false, sstrSelectionListFilename, "selectionlist.txt");
+		TCLAP::ValueArg<std::string> selectionListFilenameArg("s", "selection", "Optional selection list of FITS files to dump a small subset of input spectra. File should contain plate-mjd-fiber pairs, e.g. 3586 55181 0001. First line in the file is the header and is ignored.", false, sstrSelectionListFilename, "selectionlist.txt");
 		TCLAP::SwitchArg continueArg("c","continue","Continue computation.", false);
 		TCLAP::SwitchArg visualizeOffArg("v","visualizeoff","Disable visualization of computation.", g_DisableOutput);
 
@@ -146,7 +145,7 @@ int InitGL()
 
 	if ( !sstrSelectionListFilename.empty() )
 	{
-		std::map<std::string,float> FITSFilenameSet;
+		std::set<std::string> FITSFilenameSet;
 
 		Helpers::print("Reading "+sstrSelectionListFilename+".\n", &logFile);
 
@@ -163,14 +162,9 @@ int InitGL()
 				{
 					Spectra *a = g_pVFSSource->beginRead(i);
 
-					std::map<std::string,float>::iterator it( FITSFilenameSet.find( a->getFileName() ) );
+					std::set<std::string>::iterator it( FITSFilenameSet.find( a->getFileName() ) );
 					if (it != FITSFilenameSet.end() )
 					{
-						if ( it->second != 1.f )
-						{
-							Helpers::print( "multiplying spectrum "+a->getFileName()+" with "+ Helpers::numberToString<float>(it->second)+"\n", &logFile );
-							a->multiply(it->second);
-						}
 						w.write(*a);
 						nCount++;
 					}
@@ -218,11 +212,6 @@ int InitGL()
 		Helpers::print( Helpers::numberToString<double>(mioSpectraComparePerSecond) +std::string(" million spectra compares per second.\n"), &logFile );
 		Helpers::print( Helpers::numberToString<double>(mioSpectraAdaptionPerSecond) +std::string(" million spectra adaption per second.\n"), &logFile );
 	}
-
-	//g_QTCluster = new QTClustering( g_pVFSSource, QTClustering::Parameters(8.f, 0.0f, 2 ) );
-	//g_QTCluster->Process();
-	//g_QTCluster->Export(std::string("export/qtclustering"));
-	//exit(0);
 
 	return TRUE;
 }
@@ -447,6 +436,10 @@ void SOFM()
 	if ( !bFirst && !finished )
 	{
 		finished = g_pSOFM->process();
+		if ( finished )
+		{
+			exit(0);
+		}
 	}
 	DrawNetwork( *g_pSOFM );
 
