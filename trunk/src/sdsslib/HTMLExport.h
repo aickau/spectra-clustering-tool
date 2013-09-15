@@ -36,7 +36,7 @@ namespace HTMLExport
 	std::string textLink(const std::string &_sstrText, const std::string &_sstrLink );
 
 	// _bSelf links into the own window, otherwise new window is opened
-	std::string imageLink(const std::string &_sstrImage, const std::string &_sstrLink, bool _bSelf=false );
+	std::string imageLink(const std::string &_sstrImage, const std::string &_sstrLink, bool _bSelf=false, int _borderSize=6 );
 
 	std::string beginTable();
 	std::string endTable();

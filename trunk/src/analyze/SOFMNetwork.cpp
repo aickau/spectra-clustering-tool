@@ -79,6 +79,8 @@ SOFMNetwork::Parameters::Parameters( size_t _numSteps, size_t _randomSeed, float
 ,radiusEnd(_radiusEnd)
 ,exportSubPage(false)
 ,waitForUser(false)
+,fullExport(true)
+,imageBoderSize(6)
 ,sstrSearchMode(SOFMNET_SETTINGS_SEARCHMODE_global)
 ,normaliziationType(Spectra::SN_FLUX)
 ,useBOSSWavelengthRange(false)
@@ -343,6 +345,15 @@ void SOFMNetwork::writeSettings( const std::string &_sstrFileName )
 		XMLExport::xmlAddAttribute( "value", (int)m_params.waitForUser, sstrXML );
 		XMLExport::xmlSingleElementEnd( sstrXML );
 
+		XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_EXPORT_FULLEXPORT, 2, sstrXML );
+		XMLExport::xmlAddAttribute( "value", (int)m_params.fullExport, sstrXML );
+		XMLExport::xmlSingleElementEnd( sstrXML );
+
+		XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_EXPORT_IMGBORDERSIZE, 2, sstrXML );
+		XMLExport::xmlAddAttribute( "value", (int)m_params.imageBoderSize, sstrXML );
+		XMLExport::xmlSingleElementEnd( sstrXML );
+
+
 	XMLExport::xmlElementEnd( SOFMNET_SETTINGS_EXPORT, 1, sstrXML );
 	
 	XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_SEARCHMODE, 1, sstrXML );
@@ -381,6 +392,8 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	//	<EXPORT>
 	//		<SUBPAGES value="0"/>
 	//		<WAITFORUSER value="0"/>
+	//		<FULLEXPORT value="1"/>
+	//		<IMGBORDERSIZE value="6"/>
 	//	</EXPORT>
 	//	<SEARCHMODE value="local"> 		<!-- localfast, local, global -->
 	//	<NORMALIZATION value="flux">	<!-- none, amplitude, flux -->
@@ -425,10 +438,18 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	} while (p.gotoSibling());
 
 	size_t sp=0;
-	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_EXPORT_SUBPAGES, "value", sp );
-	m_params.exportSubPage = (sp>0);
-	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_EXPORT_WAITFORUSER, "value", sp );
-	m_params.waitForUser = (sp>0);
+	bSuccess = p.getChildValue(SOFMNET_SETTINGS_EXPORT_SUBPAGES, "value", sp );
+	if ( bSuccess )
+		m_params.exportSubPage = (sp>0);
+	bSuccess = p.getChildValue(SOFMNET_SETTINGS_EXPORT_WAITFORUSER, "value", sp );
+	if ( bSuccess )
+		m_params.waitForUser = (sp>0);
+	bSuccess = p.getChildValue(SOFMNET_SETTINGS_EXPORT_FULLEXPORT, "value", sp );
+	if ( bSuccess )
+		m_params.fullExport = (sp>0);
+	bSuccess = p.getChildValue(SOFMNET_SETTINGS_EXPORT_IMGBORDERSIZE, "value", sp );
+	if ( bSuccess )
+		m_params.imageBoderSize = sp;
 
 	if ( !bSuccess)
 	{
@@ -849,25 +870,25 @@ bool SOFMNetwork::process()
 	{
 		if ( m_currentStep == m_params.numSteps )
 		{
-			exportToHTML("export/full", true);
-		} else
-		if ( m_currentStep == m_params.numSteps/2 )
+			exportToHTML("export/full", m_params.fullExport );
+		} 
+		else if ( m_currentStep == m_params.numSteps/2 )
 		{
 			exportToHTML("export/half", false);
-		} else
-		if ( m_currentStep == m_params.numSteps/4 )
+		} 
+		else if ( m_currentStep == m_params.numSteps/4 )
 		{
 			exportToHTML("export/quarter", false);
-		} else
-		if ( m_currentStep == m_params.numSteps*3/4 )
+		} 
+		else if ( m_currentStep == m_params.numSteps*3/4 )
 		{
 			exportToHTML("export/threequarter", false);
-		} else
-		if ( m_currentStep == 1 )
+		} 
+		else if ( m_currentStep == 1 )
 		{
 			exportToHTML("export/first", false);
-		} else
-		if ( m_currentStep > 1 ) 
+		}
+		else if ( m_currentStep > 1 ) 
 		{
 			exportToHTML("export/current", false);
 		}
@@ -1434,11 +1455,11 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 						if ( _fullExport )
 						{
-							sstrTable += HTMLExport::imageLink( sstrImagePlan + std::string(".png"), sstrImagePlan+".html" );
+							sstrTable += HTMLExport::imageLink( sstrImagePlan + std::string(".png"), sstrImagePlan+".html", false, m_params.imageBoderSize );
 						}
 						else
 						{
-							sstrTable += HTMLExport::imageLink( sstrImagePlan + std::string(".png"), spSRC->getURL() );
+							sstrTable += HTMLExport::imageLink( sstrImagePlan + std::string(".png"), spSRC->getURL(), false, m_params.imageBoderSize );
 						}
 
 						if (( (x>=(xStart+OutputPlanSizeTemp) && x<(xEnd-OutputPlanSizeTemp)) || 

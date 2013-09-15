@@ -34,7 +34,7 @@ std::string loadHTMLTemplate()
 	sstrDefaultHTMLDocTemplate += "<title>"+HTML_TOKEN_TITLE+"</title>\n";
 	sstrDefaultHTMLDocTemplate += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n";
 	sstrDefaultHTMLDocTemplate += "</head>\n";
-	sstrDefaultHTMLDocTemplate += "<body>\n";
+	sstrDefaultHTMLDocTemplate += "<body link=\"white\" alink=\"red\" vlink=\"#009010\">\n";
 	sstrDefaultHTMLDocTemplate += HTML_TOKEN_INFO+"\n";
 	sstrDefaultHTMLDocTemplate += "<table width=\"2\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" align=\"center\">\n";
 	sstrDefaultHTMLDocTemplate += " <caption>*"+HTML_TOKEN_TITLE+"</caption>\n";
@@ -88,7 +88,7 @@ std::string textLink(const std::string &_sstrText, const std::string &_sstrLink 
 
 
 
-std::string imageLink(const std::string &_sstrImage, const std::string &_sstrLink, bool _bSelf )
+std::string imageLink(const std::string &_sstrImage, const std::string &_sstrLink, bool _bSelf, int _borderSize )
 {
 	std::string sstrImageLink( "<a href=\"" );
 	sstrImageLink += _sstrLink;
@@ -100,7 +100,10 @@ std::string imageLink(const std::string &_sstrImage, const std::string &_sstrLin
 	{
 		sstrImageLink += "\" target=\"_blank\">";
 	}
-	sstrImageLink += "<img src=\"";
+	sstrImageLink += "<img ";
+	if ( _borderSize > 0 )
+		sstrImageLink += "border=\"4\" ";
+	sstrImageLink += "src=\"";
 	sstrImageLink += _sstrImage;
 	sstrImageLink += "\"/>";
 	sstrImageLink += "</a>\n";
