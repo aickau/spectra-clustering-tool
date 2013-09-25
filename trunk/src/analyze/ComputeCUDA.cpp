@@ -29,6 +29,7 @@ extern "C" void process(
 	float *_networkSpectra, 
 	int _numNetworkSpectra, 
 	size_t *_pSpectraList, 
+	float *_tempErr, 
 	float *outErr, 
 	int *_outBMU, 
 	int _numElements, 
@@ -45,6 +46,7 @@ ComputeCUDA::ComputeCUDA( SpectraVFS &_sourceSpectra, SpectraVFS &_network, std:
 	,m_pSourceSpectraCUDA(NULL)
 	,m_pNetworkSpectraCUDA(NULL)
 	,m_pErrorCUDA(NULL)
+	,m_pErrorTempCUDA(NULL)
 	,m_BMUCUDA(NULL)
 	,m_BMUHost(NULL)
 {	 
@@ -58,6 +60,7 @@ ComputeCUDA::~ComputeCUDA()
 		cudaError_t err = cudaSuccess;
 		err = cudaFree(m_pSourceSpectraCUDA);
 		err = cudaFree(m_pNetworkSpectraCUDA);
+		err = cudaFree(m_pErrorTempCUDA);	
 		err = cudaFree(m_pErrorCUDA);	
 		err = cudaFree(m_BMUCUDA);
 		delete[] m_BMUHost;
@@ -120,13 +123,6 @@ bool ComputeCUDA::uploadSpectra()
 	if ( numSourceSpectra == 0 || numNetworkSpectra == 0 || numElements == 0 )
 		return false;
 
-	if ( m_pSourceSpectraCUDA == NULL )
-	{
-		err = cudaMalloc((void **)&m_pSourceSpectraCUDA, numSourceSpectra*numBytesPerSpectrum );
-		if ( err != cudaSuccess)
-			return false;
-	}
-
 	if ( m_pNetworkSpectraCUDA == NULL )
 	{
 		err = cudaMalloc((void **)&m_pNetworkSpectraCUDA, numNetworkSpectra*numBytesPerSpectrum);
@@ -134,9 +130,24 @@ bool ComputeCUDA::uploadSpectra()
 			return false;
 	}
 
+	if ( m_pSourceSpectraCUDA == NULL )
+	{
+		err = cudaMalloc((void **)&m_pSourceSpectraCUDA, numSourceSpectra*numBytesPerSpectrum );
+		if ( err != cudaSuccess)
+			return false;
+	}
+
+
 	if ( m_pErrorCUDA == NULL )
 	{
 		err = cudaMalloc((void **)&m_pErrorCUDA, numNetworkSpectra*sizeof(float));
+		if ( err != cudaSuccess)
+			return false;
+	}
+
+	if ( m_pErrorTempCUDA == NULL )
+	{
+		err = cudaMalloc((void **)&m_pErrorTempCUDA, numElements*numNetworkSpectra*sizeof(float));
 		if ( err != cudaSuccess)
 			return false;
 	}
@@ -244,6 +255,7 @@ void ComputeCUDA::process( size_t *_pSpectraList, float _adaptionThreshold, floa
 		m_pNetworkSpectraCUDA, 
 		numNetworkSpectra, 
 		_pSpectraList,
+		m_pErrorTempCUDA,
 		m_pErrorCUDA, 
 		m_BMUCUDA, 
 		numElements, 
