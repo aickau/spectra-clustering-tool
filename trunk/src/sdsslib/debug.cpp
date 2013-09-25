@@ -18,11 +18,15 @@
 
 #include "debug.h"
 
-#include <windows.h>
+
 #include <stdio.h>
+
+#ifdef _WIN32
 #include <conio.h>
+#endif 
 
 #ifdef _DEBUG
+#ifdef _WIN32
 int DoAssert( const char *szcond, int line, const char *szfile, const char *msg ) {
   char temp[4096];
   if ( msg ) wsprintf ( temp, "%s\n\nCondition: %s\nFile: %s\nLine: %i\n\nAbort: Quit, Retry: Break", msg, szcond, szfile, line );
@@ -40,12 +44,14 @@ int DoAssert( const char *szcond, int line, const char *szfile, const char *msg 
   return ASSERT_IGNORE;
 }
 #endif
+#endif
 
 
 
  
 void Debug::PrintConsole(const char *text , ...) 
 {
+#ifdef _WIN32
 	if ( text == NULL )
 		return;
 
@@ -59,4 +65,5 @@ void Debug::PrintConsole(const char *text , ...)
 	vsprintf(text2, text, ap);						
 	va_end(ap);	
 	_cprintf(text2);
+#endif
 }

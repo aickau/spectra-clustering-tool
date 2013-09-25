@@ -18,16 +18,17 @@
 
 
 
-#include "sdsslib/spectraWrite.h"
-#include "sdsslib/spectra.h"
-#include "sdsslib/Helpers.h"
+#include "spectraWrite.h"
+#include "spectra.h"
+#include "Helpers.h"
 
 #include <fstream>
 
 SpectraWrite::SpectraWrite( const std::string &_sstrFileName )
 :m_fileHandle(0)
 {
-	m_fileHandle = CreateFile( _sstrFileName.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL );
+	m_fileHandle = fopen( _sstrFileName.c_str(), "wb" );
+	// was:m_fileHandle = CreateFile( _sstrFileName.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL );
 }
 
 
@@ -35,7 +36,8 @@ SpectraWrite::~SpectraWrite()
 {
 	if ( m_fileHandle != NULL )
 	{
-		CloseHandle(m_fileHandle);
+		fclose(m_fileHandle);
+		//CloseHandle(m_fileHandle);
 	}
 }
 
@@ -47,12 +49,9 @@ bool SpectraWrite::write( const Spectra &_spectra )
 		return false;
 	}
 
-	DWORD bytesWritten = 0;
-	bool bResult = (WriteFile( m_fileHandle, &_spectra, sizeof(Spectra), &bytesWritten, NULL ) > 0);
-	if (bytesWritten != sizeof(Spectra))
-	{
-		bResult = false;
-	}
+	size_t bytesWritten =  fwrite( &_spectra,  sizeof(Spectra), 1, m_fileHandle );
+	bool bResult = (bytesWritten == sizeof(Spectra));
+	//bool bResult = (WriteFile( m_fileHandle, &_spectra, sizeof(Spectra), &bytesWritten, NULL ) > 0);
 
 	return bResult;
 }

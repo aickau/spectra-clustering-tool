@@ -18,13 +18,30 @@
 
 #include "FileHelpers.h"
 
-#include <conio.h>
-#include <windows.h>
+#include "defines.h"
+#include "debug.h"
+
 #include <algorithm>
 #include <fstream>
 #include <assert.h>
 #include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+#ifdef _WIN32
+#include <windows.h>
 #include <direct.h>
+#else
+#include <unistd.h>
+#include <sys/types.h>
+#endif
+
+#ifndef MAX_PATH
+#define MAX_PATH 4096
+#endif
+
+
 
 
 #ifdef WIN32
@@ -91,11 +108,22 @@ bool FileHelpers::isFilePathValid(const std::string &_sstrFilePath )
 
 std::string FileHelpers::getCurrentDirectory()
 {
+#ifdef WIN32
 	char dir[MAX_PATH+2];
 	GetCurrentDirectory(MAX_PATH, dir);
 	std::string sstrDir(dir);
 	convertSeperators(sstrDir);
+
 	return sstrDir;
+#else
+	char pwd[FILENAME_MAX];
+	if( !getcwd( pwd, FILENAME_MAX ) ) 
+	{
+		ASSERT(0);
+		return "";
+	}
+	return std::string( pwd );
+#endif
 }
 
 
@@ -104,7 +132,11 @@ bool FileHelpers::exitsDirectory(const std::string &_sstrDir)
 	std::string fullPath("");
 	if ( _sstrDir.size() > 0 && (_sstrDir[0] == '\\' || _sstrDir[0] == '/') ) {
 		char cwd[MAX_PATH];
+#ifdef _WIN32
 		_getcwd(cwd, sizeof(cwd));
+#else
+		getcwd(cwd, sizeof(cwd));
+#endif
 		fullPath += cwd;
 	}
 	fullPath += _sstrDir;
@@ -118,6 +150,7 @@ bool FileHelpers::exitsDirectory(const std::string &_sstrDir)
 
 size_t FileHelpers::getFileList( const std::string &_sstrSearchDir, std::vector<std::string> &_outFileNameList )
 {
+#ifdef _WIN32
 	WIN32_FIND_DATA fileInfo;
 	HANDLE h = FindFirstFile( _sstrSearchDir.c_str(), &fileInfo );
 
@@ -151,6 +184,11 @@ size_t FileHelpers::getFileList( const std::string &_sstrSearchDir, std::vector<
 	} while( FindNextFile(h,&fileInfo) );
 
 	return c;
+
+#else
+	assert(0);
+	return 0;
+#endif
 }
 
 bool FileHelpers::fileExists(const std::string &_sstrFilename)
@@ -169,16 +207,20 @@ bool FileHelpers::fileExists(const std::string &_sstrFilename)
 
 size_t FileHelpers::getFileSize(const std::string &_sstrFilename)
 {
-	FILE *f;
-	errno_t retVal = fopen_s( &f, _sstrFilename.c_str(), "rb" );
+	FILE *f = fopen( _sstrFilename.c_str(), "rb" );
 
-	if (f == NULL || retVal != 0 )
+	if (f == NULL )
 	{
 		return 0;
 	}
 
+#ifdef _WIN32
 	_fseeki64( f, 0, SEEK_END );
-	__int64 fileSize = _ftelli64( f );
+	int64_t fileSize = _ftelli64( f );
+#else
+	fseek( f, 0, SEEK_END );			// make sure to add in the compiler flags -D_FILE_OFFSET_BITS=64  for larger files than 2GB.
+	int64_t fileSize = ftell( f );
+#endif
 	fclose( f );
 
 	// check if we reach 32 bit limits.
@@ -186,6 +228,7 @@ size_t FileHelpers::getFileSize(const std::string &_sstrFilename)
 
 	return static_cast<size_t>(fileSize);
 }
+
 
 std::string FileHelpers::getFileExtension(const std::string &_sstrFilename)
 {
@@ -267,6 +310,7 @@ void FileHelpers::writeFile(const std::string &_sstrFilename, void *_buf, int _s
 
 bool FileHelpers::renameFile( const std::string &_sstrFilename, const std::string &_sstrNewFilename, bool _bOverwriteExisting )
 {
+#ifdef _WIN32
 	std::string sstrPath = getFilePath(_sstrFilename);
 	std::string sstrFullNewFileName;
 
@@ -277,8 +321,13 @@ bool FileHelpers::renameFile( const std::string &_sstrFilename, const std::strin
 	sstrFullNewFileName += _sstrNewFilename;
 
 	DWORD dwFlags = (_bOverwriteExisting) ? MOVEFILE_REPLACE_EXISTING : 0;
-	bool bRetVal = MoveFileEx(_sstrFilename.c_str(), sstrFullNewFileName.c_str(), dwFlags );
+	bool bRetVal = (MoveFileEx(_sstrFilename.c_str(), sstrFullNewFileName.c_str(), dwFlags )==TRUE);
 	return bRetVal;
+#else
+	assert(0);
+	return false;
+#endif
+
 }
 
 
