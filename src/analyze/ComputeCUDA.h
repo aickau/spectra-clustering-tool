@@ -53,6 +53,7 @@ private:
 	// CUDA device buffer
 	float *m_pSourceSpectraCUDA;			//< source spectra (only amplitudes) size: numsourcespectra*numpixels
 	float *m_pNetworkSpectraCUDA;			//< code book vectors of the SOM, size: networksize*numpixels
+	float *m_pErrorTempCUDA;				//< euclidean distances. size: networksize*block_size
 	float *m_pErrorCUDA;					//< euclidean distances. size: networksize
 	int *m_BMUCUDA;							//< indices with best matching units (BMU) within the network. Maps SOM cells to source spectra. Last entry reserved for temporary BMU usage. size: networksize+1
 	
