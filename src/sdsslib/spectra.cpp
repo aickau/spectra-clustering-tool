@@ -34,7 +34,6 @@
 #include <iostream>
 #include <fstream>
 #include <map>
-#include <conio.h>
 #include <math.h>
 #include <float.h>
 #include <assert.h>
@@ -1052,7 +1051,8 @@ void Spectra::normalize()
 	if ( delta<=0.0f )
 	{
 		// uh, better not
-		_cprintf("warning spectrum %I64u has min=max=%f\n", m_SpecObjID, m_Min );
+		ASSERT(0);
+		//_cprintf("warning spectrum %I64u has min=max=%f\n", m_SpecObjID, m_Min );
 		return;
 	}
 
@@ -1152,17 +1152,11 @@ extern "C" void spectraCompareX64(const float *a0, const float *a1, float *errou
 
 float Spectra::compare(const Spectra &_spectra) const
 {
-/*
-	float error=0.0f;
-	for (size_t i=0;i<Spectra::numSamples;i++)
-	{
-		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
-		error += d*d;
-	}
-*/
+#ifdef _WIN32
+
 
 	SSE_ALIGN float errorv[4];
-	
+
 	// optimized memory friendly version. make sure spectra is 16 bytes aligned
 	// this is 10x faster than compiler generated SSE code!
 	const float *a0 = &m_Amplitude[Spectra::pixelStart];
@@ -1217,6 +1211,17 @@ loop1:
 		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
 		error += d*d;
 	}
+#else
+
+	float error=0.0f;
+	for (size_t i=0;i<Spectra::numSamples;i++)
+	{
+		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
+		error += d*d;
+	}
+
+#endif
+
 	
 	return error;
 }
