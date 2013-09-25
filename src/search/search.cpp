@@ -395,7 +395,7 @@ void main(int argc, char* argv[])
 		Spectra *a = vfs.beginRead(i);
 		if ( a->m_Type & spectraFilter > 0 )
 		{
-			comparisonMap.insert( std::pair<float, __int64>(a->m_Z, a->m_SpecObjID) );
+			comparisonMap.insert( std::pair<float,int64_t>(a->m_Z, a->m_SpecObjID) );
 		}
 
 		vfs.endRead(i);

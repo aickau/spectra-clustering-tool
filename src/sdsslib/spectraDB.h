@@ -46,7 +46,7 @@ public:
 	// load binary DB into memory.
 	bool loadDB( DR dataRelease );
 
-	bool getInfo( __int64 _specObjID, Info &outInfo );
+	bool getInfo( int64_t _specObjID, Info &outInfo );
 
 private:
 

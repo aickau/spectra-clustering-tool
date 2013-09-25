@@ -19,10 +19,14 @@
 #ifndef _SPECTRA_H
 #define _SPECTRA_H
 
+
+#include "debug.h"
+#include "defines.h"
+
+
 #include <vector>
 #include <string>
 
-#include "sdsslib/debug.h"
 
 #define SPT_DEFAULTFILTER (0x0ffffffff)
 
@@ -405,13 +409,13 @@ public:
 	//@{
 
 	// calc unique photo object identifier from a bunch of parameters
-	static unsigned __int64 calcPhotoObjID( int _run, int _rerun, int _camcol, int _field, int _obj );
+	static uint64_t calcPhotoObjID( int _run, int _rerun, int _camcol, int _field, int _obj );
 
 	// calc unique spec object identifier from a bunch of parameters (DR7 or below)
-	static unsigned __int64 calcSpecObjID_DR7( int _plate, int _mjd, int _fiber, int _type );
+	static uint64_t calcSpecObjID_DR7( int _plate, int _mjd, int _fiber, int _type );
 
 	// calc unique spec object identifier from a bunch of parameters for spectra (DR8 and above)
-	static unsigned __int64 calcSpecObjID_DR8( int _plate, int _mjd, int _fiber, int _run2d_m, int _run2d_n, int _run2d_p );
+	static uint64_t calcSpecObjID_DR8( int _plate, int _mjd, int _fiber, int _run2d_m, int _run2d_n, int _run2d_p );
 
 	// convert plate number to string, e.g 266 -> "0266"
 	static std::string plateToString( int _plate );

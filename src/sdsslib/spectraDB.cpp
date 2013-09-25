@@ -168,7 +168,7 @@ bool SpectraDB::loadDB( DR dataRelease )
 }
 
 
-bool SpectraDB::getInfo( __int64 _specObjID, Info &outInfo )
+bool SpectraDB::getInfo(int64_t _specObjID, Info &outInfo )
 {
 	std::map<__int64,Info>::iterator it = m_spectraDB.find(_specObjID);
 	if ( it == m_spectraDB.end() )

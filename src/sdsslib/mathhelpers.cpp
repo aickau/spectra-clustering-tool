@@ -16,7 +16,7 @@
 //! \file  mathhelpers.cpp
 //! \brief 
 
-#include "sdsslib/mathhelpers.h"
+#include "mathhelpers.h"
 
 #include "defines.h"
 #include <assert.h>

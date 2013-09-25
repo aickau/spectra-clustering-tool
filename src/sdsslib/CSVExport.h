@@ -22,6 +22,8 @@
 #ifndef __CSVEXPORT_H__
 #define __CSVEXPORT_H__
 
+#include "defines.h"
+
 #include <string>
 
 
@@ -37,7 +39,7 @@ public:
 
 	// \param _width fill number with preceding zeros
 	void writeTableEntry( int _number, unsigned int _width = -1 );
-	void writeTableEntry( __int64 _number, unsigned int _width = -1 );
+	void writeTableEntry(int64_t _number, unsigned int _width = -1 );
 
 	void newRow();
 

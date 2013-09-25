@@ -17,15 +17,20 @@
 //! \brief simple stopwatch
 
 #include "Timer.h"
-#include <assert.h>
 
+#include <assert.h>
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 Timer::Timer()
 : m_bPaused( false ),
 m_BoundaryMode( kBoundaryMode_Stop ),
 m_DurationTicks( 0 )
 {
-	QueryPerformanceFrequency(&m_Frequency);
+	LARGE_INTEGER freq;
+	QueryPerformanceFrequency(&freq);
+	m_frequency = static_cast<double>(freq.QuadPart);
 	start();
 }
 
@@ -52,5 +57,35 @@ void Timer::pause()
 void Timer::setDuration( double _dDuration, EBoundaryMode _Mode )
 {
 	m_BoundaryMode = _Mode;
-	m_DurationTicks = ( _dDuration < 0.0f ) ? 0 : static_cast<TTICKS>(_dDuration * static_cast<double>(m_Frequency.QuadPart));
+	m_DurationTicks = ( _dDuration < 0.0f ) ? 0 : static_cast<TTICKS>(_dDuration * m_frequency);
+}
+
+
+Timer::TTICKS Timer::getTicks()
+{
+	LARGE_INTEGER lp;
+	QueryPerformanceCounter(&lp);
+	return lp.QuadPart;
+}
+
+
+double Timer::getElapsedSecs()
+{
+	TTICKS ElapsedTics = ( m_bPaused ) ? m_StartPauseTics-m_StartTics : Timer::getTicks()-m_StartTics;
+
+	if ( m_DurationTicks > 0 )
+	{
+		if( ElapsedTics > m_DurationTicks ) {
+			switch( m_BoundaryMode ) {
+			case kBoundaryMode_Loop :
+				ElapsedTics = 0;
+				m_StartTics = Timer::getTicks();
+				break;
+			default:
+				ElapsedTics = m_DurationTicks;
+			}
+		}
+	}
+
+	return (static_cast<double>(ElapsedTics)/m_frequency);
 }

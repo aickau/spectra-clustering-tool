@@ -20,7 +20,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "windows.h"
+#include "defines.h"
 
 class Timer  
 {
@@ -42,7 +42,7 @@ public:
 	double getElapsedSecs();
 
 private:
-	typedef unsigned __int64 TTICKS;
+	typedef uint64_t TTICKS;
 	static TTICKS getTicks();
 
 	TTICKS m_StartTics;
@@ -50,40 +50,9 @@ private:
 	TTICKS m_DurationTicks;
 	bool m_bPaused;
 	EBoundaryMode m_BoundaryMode;
-	LARGE_INTEGER m_Frequency;
+	double m_frequency;
 };
 
-
-inline 
-Timer::TTICKS Timer::getTicks()
-{
-	LARGE_INTEGER lp;
-	QueryPerformanceCounter(&lp);
-	return lp.QuadPart;
-}
-
-
-inline 
-double Timer::getElapsedSecs()
-{
-	TTICKS ElapsedTics = ( m_bPaused ) ? m_StartPauseTics-m_StartTics : Timer::getTicks()-m_StartTics;
-
-	if ( m_DurationTicks > 0 )
-	{
-		if( ElapsedTics > m_DurationTicks ) {
-			switch( m_BoundaryMode ) {
-case kBoundaryMode_Loop :
-				ElapsedTics = 0;
-				m_StartTics = Timer::getTicks();
-				break;
-			default:
-				ElapsedTics = m_DurationTicks;
-			}
-		}
-	}
-
-	return (static_cast<double>(ElapsedTics)/static_cast<double>(m_Frequency.QuadPart));
-}
 
 
 #endif 

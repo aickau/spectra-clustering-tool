@@ -17,6 +17,9 @@
 //! \brief 
 
 #include <float.h>
+#include <stddef.h> 
+#include <stdint.h>
+
 
 #ifndef NULL
 #define NULL 0
