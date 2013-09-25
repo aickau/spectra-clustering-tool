@@ -184,7 +184,7 @@ DataFile *FileArchive::getFileInArchive( const std::string &_sstrFilename )
 		if ( mem_unzLocateFile( ( zipFile* )Archive, fn, 0) == UNZ_OK ){
 			if( mem_unzGetCurrentFileInfo( ( zipFile* )Archive ,&file_info, fn_inzip, sizeof(fn_inzip), NULL, 0, NULL, 0 ) == UNZ_OK ) {
 				size=file_info.uncompressed_size;
-				unsigned __int8 *buffer = new unsigned __int8[ size ];
+				uint8_t *buffer = newuint8_t[ size ];
 				mem_unzOpenCurrentFile( ( zipFile* )Archive );
 				mem_unzReadCurrentFile( ( zipFile* )Archive, buffer, size );
 				mem_unzCloseCurrentFile( ( zipFile* )Archive );
@@ -240,12 +240,12 @@ DataFile *Packer::GetFileInArchive( const char *fn ){
 	if( CurrentMode == MODE_UNPACK_ ){
 		unz_file_info file_info;
 		int size=0;
-		unsigned __int8 *buffer = 0;
+		uint8_t *buffer = 0;
 		if ( unzLocateFile( ( zipFile* )Archive, fn, 0) == UNZ_OK ){
 			if( unzGetCurrentFileInfo( ( zipFile* )Archive ,&file_info, fn_inzip, sizeof(fn_inzip), NULL, 0, NULL, 0 ) == UNZ_OK ) {
 				size=file_info.uncompressed_size;
 				if( size > 0 ){
-					buffer = new unsigned __int8[ size ];
+					buffer = new uint8_t[ size ];
 					DataFile *f = new DataFile( (char *)fn );
 					unzOpenCurrentFile( ( zipFile* )Archive );
 					unzReadCurrentFile( ( zipFile* )Archive, buffer, size );
@@ -267,7 +267,7 @@ DataFile *Packer::GetFileInArchive( const char *fn ){
 		if ( mem_unzLocateFile( ( zipFile* )Archive, fn, 0) == UNZ_OK ){
 			if( mem_unzGetCurrentFileInfo( ( zipFile* )Archive ,&file_info, fn_inzip, sizeof(fn_inzip), NULL, 0, NULL, 0 ) == UNZ_OK ) {
 				size=file_info.uncompressed_size;
-				unsigned __int8 *buffer = new unsigned __int8[ size ];
+				uint8_t *buffer = new uint8_t[ size ];
 				mem_unzOpenCurrentFile( ( zipFile* )Archive );
 				mem_unzReadCurrentFile( ( zipFile* )Archive, buffer, size );
 				mem_unzCloseCurrentFile( ( zipFile* )Archive );

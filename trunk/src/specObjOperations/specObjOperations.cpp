@@ -2026,7 +2026,7 @@ void writeParamsFromSelection(const std::string &sstrDataDir )
 
 		
 				sstrOutTable += sstrUrl+"; ";
-				sstrOutTable += Helpers::numberToString<unsigned __int64>(sp->m_SpecObjID)+"; ";
+				sstrOutTable += Helpers::numberToString<uint64_t>(sp->m_SpecObjID)+"; ";
 				sstrOutTable += Helpers::numberToString<int>(sp->getMJD())+"; ";
 				sstrOutTable += Helpers::numberToString<int>(sp->getPlate())+"; ";
 				sstrOutTable += Helpers::numberToString<int>(sp->getFiber())+"; ";
@@ -2181,11 +2181,11 @@ void extractGalaxyZooData()
 
 
 	// photo obj id -> spec obj id
-	std::map<unsigned __int64,unsigned __int64> specObjIDLookup;
+	std::map<uint64_t,uint64_t> specObjIDLookup;
 
 	// spec obj id -> index
-	std::map<unsigned __int64,int> indexLookup;
-	std::map<unsigned __int64,int> indexSrcLookup;
+	std::map<uint64_t,int> indexLookup;
+	std::map<uint64_t,int> indexSrcLookup;
 
 	// our map
 	const size_t gridSize = 859;
@@ -2237,8 +2237,8 @@ void extractGalaxyZooData()
 			{
 				Spectra *spSpec = pSourceVFS->beginRead( index );
 				if ( spSpec != NULL && spSpec->m_SpecObjID > 0 ) {
-					indexSrcLookup.insert(std::make_pair<unsigned __int64,int>(spSpec->m_SpecObjID,index));
-					indexLookup.insert(std::make_pair<unsigned __int64,int>(spSpec->m_SpecObjID,i));
+					indexSrcLookup.insert(std::make_pair<uint64_t,int>(spSpec->m_SpecObjID,index));
+					indexLookup.insert(std::make_pair<uint64_t,int>(spSpec->m_SpecObjID,i));
 				}
 				pSourceVFS->endRead( index );
 			}
@@ -2265,8 +2265,8 @@ void extractGalaxyZooData()
 	int hdutype = 0; // should be BINARY_TBL
 	long tblrows = 0; // should be numLines
 	int tblcols = 0; // should be 23
-	unsigned __int64 nullVal = 0;
-	unsigned __int64 photoObj, specObj;
+	uint64_t nullVal = 0;
+	uint64_t photoObj, specObj;
 	fits_get_num_hdus( f, &numhdus, &status );
 	fits_movabs_hdu( f, 2, &hdutype, &status );
 
@@ -2280,7 +2280,7 @@ void extractGalaxyZooData()
 		fits_read_col( f, TLONGLONG, 1, i1, 1, 1, &nullVal, &photoObj, NULL, &status );
 		fits_read_col( f, TLONGLONG, 2, i1, 1, 1, &nullVal, &specObj, NULL, &status );
 
-		specObjIDLookup.insert(std::make_pair<unsigned __int64,unsigned __int64>(photoObj,specObj));
+		specObjIDLookup.insert(std::make_pair<uint64_t,uint64_t>(photoObj,specObj));
 	}
 
 	fits_close_file(f, &status);
@@ -2310,10 +2310,10 @@ void extractGalaxyZooData()
 	{	
 		std::replace(sstrTemp.begin(), sstrTemp.end(), ',', ' ');
 		// row 0:PhotoObjID
-		unsigned __int64 photoObjID; 
+		uint64_t photoObjID; 
 		std::stringstream st0(sstrTemp.c_str() );
 		st0 >> photoObjID;
-		unsigned __int64 specObjID=0; 
+		uint64_t specObjID=0; 
 
 		// row 1,2,3: ra,dec,nvotes
 		std::string ra,dec;
@@ -2345,13 +2345,13 @@ void extractGalaxyZooData()
 
 		double zMax = 0.35;
 
-		std::map<unsigned __int64,unsigned __int64>::iterator it = specObjIDLookup.find(photoObjID);
+		std::map<uint64_t,uint64_t>::iterator it = specObjIDLookup.find(photoObjID);
 		if ( it != specObjIDLookup.end() ) {
 			specObjID = it->second;
-			std::map<unsigned __int64,int>::iterator it2 = indexSrcLookup.find(specObjID);
+			std::map<uint64_t,int>::iterator it2 = indexSrcLookup.find(specObjID);
 			if (it2 != indexSrcLookup.end() ) {
 				int srcindex = it2->second;
-				std::map<unsigned __int64,int>::iterator it3 = indexLookup.find(specObjID);
+				std::map<uint64_t,int>::iterator it3 = indexLookup.find(specObjID);
 				int mapIndex = it3->second;
 				Spectra *spSpec = pSourceVFS->beginRead( srcindex );
 

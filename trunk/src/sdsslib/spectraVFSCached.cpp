@@ -79,10 +79,10 @@ SpectraVFSCached::SpectraVFSCached( const std::string &_sstrFilename, std::ofstr
 		return;
 	}
 
-	unsigned __int64 fileSize = Helpers::HiLowtoUInt64(nFileSize.LowPart, nFileSize.HighPart);
-	unsigned __int64 spectraSize = static_cast<unsigned __int64>(SPECTRASIZE);
-	unsigned __int64 fileCount = fileSize / spectraSize;
-	unsigned __int64 remainder = fileSize % spectraSize;
+	uint64_t fileSize = Helpers::HiLowtoUInt64(nFileSize.LowPart, nFileSize.HighPart);
+	uint64_t spectraSize = static_cast<uint64_t>(SPECTRASIZE);
+	uint64_t fileCount = fileSize / spectraSize;
+	uint64_t remainder = fileSize % spectraSize;
 
 	if ( remainder != 0 )
 	{
@@ -339,7 +339,7 @@ SpectraVFSCached::IOHandle::IOHandle( OVERLAPPED &_overlapped )
 	m_overlapped = _overlapped;
 }
 
-void SpectraVFSCached::IOHandle::set( unsigned __int32 _offsetLow, unsigned __int32 _offsetHigh )
+void SpectraVFSCached::IOHandle::set( uint32_t _offsetLow, uint32_t _offsetHigh )
 {
 #ifdef SPECTRAVFS_ASYNC_IO
 	m_overlapped.hEvent = (HANDLE)1;
@@ -389,8 +389,8 @@ void SpectraVFSCached::Read( size_t _nSpectraIndex, Spectra *_pDestination, bool
 
 	DWORD ndwBytesToRead = static_cast<DWORD>(nBytesToRead);
 
-	unsigned __int64 nOffset = static_cast<__int64>(_nSpectraIndex)*SPECTRASIZE;
-	unsigned __int32 nOffsetLow, nOffsetHigh;
+	uint64_t nOffset = static_cast<uint64_t>(_nSpectraIndex)*SPECTRASIZE;
+	uint32_t nOffsetLow, nOffsetHigh;
 	Helpers::UInt64toHiLow( nOffset, nOffsetLow, nOffsetHigh );
 	m_IOHandle.set( nOffsetLow, nOffsetHigh );
 
@@ -466,8 +466,8 @@ void SpectraVFSCached::Write(  size_t _nSpectraIndex, Spectra *_pSource )
 
 	DWORD ndwBytesToWrite = static_cast<DWORD>(nBytesToWrite);
 
-	unsigned __int64 nOffset = static_cast<__int64>(_nSpectraIndex)*SPECTRASIZE;
-	unsigned __int32 nOffsetLow, nOffsetHigh;
+	uint64_t nOffset = static_cast<uint64_t>(_nSpectraIndex)*SPECTRASIZE;
+	uint32_t nOffsetLow, nOffsetHigh;
 	Helpers::UInt64toHiLow( nOffset, nOffsetLow, nOffsetHigh );
 
 	IOHandle writeHandle;

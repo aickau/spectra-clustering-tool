@@ -17,6 +17,7 @@
 //! \brief 
 
 #include <math.h>
+#include <stddef.h> 
 
 namespace MathHelpers
 {

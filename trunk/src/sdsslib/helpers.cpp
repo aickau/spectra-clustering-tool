@@ -23,11 +23,14 @@
 #include <algorithm>
 
 #include <conio.h>
-#include <windows.h>
 #include <fcntl.h>
 #include <io.h>
+
+#ifdef _WIN32
+#include <windows.h>
 #include <shellapi.h>
 #include <DbgHelp.h>
+#endif
 
 
 
@@ -115,17 +118,18 @@ void Helpers::createConsole()
 }
 
 
-__int64 Helpers::HiLowtoUInt64( unsigned __int32 _nLowerPart, unsigned __int32 _nHigherPart )
+int64_t Helpers::HiLowtoUInt64(uint32_t _nLowerPart, uint32_t _nHigherPart )
 {
-	return (static_cast<unsigned __int64>(_nHigherPart)<<32)+static_cast<unsigned __int64>(_nLowerPart);
+	return (static_cast<uint64_t>(_nHigherPart)<<32)+static_cast<uint64_t>(_nLowerPart);
 }
 
-void Helpers::UInt64toHiLow( unsigned __int64 _nInNumber, unsigned __int32 &_nOutLowerPart, unsigned __int32 &_nOutHigherPart )
+void Helpers::UInt64toHiLow(uint64_t _nInNumber,uint32_t &_nOutLowerPart,uint32_t &_nOutHigherPart )
 {
-	_nOutLowerPart = static_cast<unsigned __int32>(_nInNumber & 0x0ffffffff);
-	_nOutHigherPart = static_cast<unsigned __int32>(_nInNumber >> 32);
+	_nOutLowerPart = static_cast<uint32_t>(_nInNumber & 0x0ffffffff);
+	_nOutHigherPart = static_cast<uint32_t>(_nInNumber >> 32);
 }
 
+#ifdef _WIN32 
 
 char **Helpers::getCommandLineFromString( const std::string &_sstrCommandLineString, int &_outArgC )
 {
@@ -186,3 +190,5 @@ void WINAPI Helpers::writeMiniDump( PEXCEPTION_POINTERS ep )
 		CloseHandle(hDump_File);
 	}
 }
+
+#endif

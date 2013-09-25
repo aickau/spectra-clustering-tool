@@ -1657,25 +1657,25 @@ std::string Spectra::getFileName() const
 int Spectra::getMJD() const
 {
 	if ( m_version == SP_VERSION_DR7 )
-		return static_cast<int>((m_SpecObjID&(unsigned __int64)0x0000FFFF00000000)>>(unsigned __int64)32);
+		return static_cast<int>((m_SpecObjID&(uint64_t)0x0000FFFF00000000)>>(uint64_t)32);
 	
-	return static_cast<int>((m_SpecObjID&(unsigned __int64)0x0000003FFFC00000)>>(unsigned __int64)24)+50000;
+	return static_cast<int>((m_SpecObjID&(uint64_t)0x0000003FFFC00000)>>(uint64_t)24)+50000;
 }
 
 int Spectra::getFiber() const
 {
 	if ( m_version == SP_VERSION_DR7 )
-		return static_cast<int>((m_SpecObjID&(unsigned __int64)0x00000000FFC00000)>>(unsigned __int64)22);
+		return static_cast<int>((m_SpecObjID&(uint64_t)0x00000000FFC00000)>>(uint64_t)22);
 
-	return static_cast<int>((m_SpecObjID&(unsigned __int64)0x0003FFC000000000)>>(unsigned __int64)38);
+	return static_cast<int>((m_SpecObjID&(uint64_t)0x0003FFC000000000)>>(uint64_t)38);
 }
 
 int Spectra::getPlate() const
 {
 	if ( m_version == SP_VERSION_DR7 )
-		return static_cast<int>((m_SpecObjID&(unsigned __int64)0xFFFF000000000000)>>(unsigned __int64)48);
+		return static_cast<int>((m_SpecObjID&(uint64_t)0xFFFF000000000000)>>(uint64_t)48);
 
-	return static_cast<int>((m_SpecObjID&(unsigned __int64)0xFFFC000000000000)>>(unsigned __int64)50);
+	return static_cast<int>((m_SpecObjID&(uint64_t)0xFFFC000000000000)>>(uint64_t)50);
 }
 
 std::string Spectra::getURL()const
@@ -1756,7 +1756,7 @@ bool Spectra::checkConsistency() const
 }
 
 
-unsigned __int64 Spectra::calcPhotoObjID( int _run, int _rerun, int _camcol, int _field, int _obj )
+uint64_t Spectra::calcPhotoObjID( int _run, int _rerun, int _camcol, int _field, int _obj )
 {
 	// taken from: http://cas.sdss.org/dr6/en/help/docs/algorithm.asp#O
 	//Bits #of bits Mask				Assignment 	Description
@@ -1769,18 +1769,18 @@ unsigned __int64 Spectra::calcPhotoObjID( int _run, int _rerun, int _camcol, int
 	//36-47 	12 	0x000000000FFF0000 	field 		field number within run
 	//48-63 	16 	0x000000000000FFFF 	object 		object number within field}
 
-	unsigned __int64 photoObjID;
-	photoObjID  = (unsigned __int64) 0x0800000000000000; // 1=best
-	photoObjID |= (unsigned __int64) 0x07FF000000000000&((unsigned __int64)_rerun<<48);
-	photoObjID |= (unsigned __int64) 0x0000FFFF00000000&((unsigned __int64)_run<<32);
-	photoObjID |= (unsigned __int64) 0x00000000E0000000&((unsigned __int64)_camcol<<29);
-	photoObjID |= (unsigned __int64) 0x000000000FFF0000&((unsigned __int64)_field<<16);
-	photoObjID |= (unsigned __int64) 0x000000000000FFFF&((unsigned __int64)_obj);
+	uint64_t photoObjID;
+	photoObjID  = (uint64_t) 0x0800000000000000; // 1=best
+	photoObjID |= (uint64_t) 0x07FF000000000000&((uint64_t)_rerun<<48);
+	photoObjID |= (uint64_t) 0x0000FFFF00000000&((uint64_t)_run<<32);
+	photoObjID |= (uint64_t) 0x00000000E0000000&((uint64_t)_camcol<<29);
+	photoObjID |= (uint64_t) 0x000000000FFF0000&((uint64_t)_field<<16);
+	photoObjID |= (uint64_t) 0x000000000000FFFF&((uint64_t)_obj);
 
 	return photoObjID;
 }
 
-unsigned __int64 Spectra::calcSpecObjID_DR7( int _plate, int _mjd, int _fiber, int _type )
+uint64_t Spectra::calcSpecObjID_DR7( int _plate, int _mjd, int _fiber, int _type )
 {
 	// taken from: http://cas.sdss.org/dr6/en/help/docs/algorithm.asp#O
 	//Bits #of bits Mask				Assignment 			 Description
@@ -1790,18 +1790,18 @@ unsigned __int64 Spectra::calcSpecObjID_DR7( int _plate, int _mjd, int _fiber, i
 	//42-47		6 	0x00000000003F0000 	type 				 type of targeted object
 	//48-63		16	0x000000000000FFFF 	line/redshift/index  0 for SpecObj, else number of spectroscopic line (SpecLine) or index (SpecLineIndex) or redshift (ELRedhsift or XCRedshift)
 
-	unsigned __int64 specObjID;
-	specObjID  = (unsigned __int64) 0xFFFF000000000000&((unsigned __int64)_plate<<48);
-	specObjID |= (unsigned __int64) 0x0000FFFF00000000&((unsigned __int64)_mjd<<32);
-	specObjID |= (unsigned __int64) 0x00000000FFC00000&((unsigned __int64)_fiber<<22);
-	specObjID |= (unsigned __int64) 0x00000000003F0000&((unsigned __int64)_type<<16);
-	specObjID |= (unsigned __int64) 0x000000000000FFFF&((unsigned __int64)0);
+	uint64_t specObjID;
+	specObjID  = (uint64_t) 0xFFFF000000000000&((uint64_t)_plate<<48);
+	specObjID |= (uint64_t) 0x0000FFFF00000000&((uint64_t)_mjd<<32);
+	specObjID |= (uint64_t) 0x00000000FFC00000&((uint64_t)_fiber<<22);
+	specObjID |= (uint64_t) 0x00000000003F0000&((uint64_t)_type<<16);
+	specObjID |= (uint64_t) 0x000000000000FFFF&((uint64_t)0);
 
 	return specObjID;
 }
 
 
-unsigned __int64 Spectra::calcSpecObjID_DR8( int _plate, int _mjd, int _fiber, int _run2d_m, int _run2d_n, int _run2d_p )
+uint64_t Spectra::calcSpecObjID_DR8( int _plate, int _mjd, int _fiber, int _run2d_m, int _run2d_n, int _run2d_p )
 {
 	if ( _mjd < 50000 || _run2d_n < 5 )
 		return 0;
@@ -1823,15 +1823,15 @@ unsigned __int64 Spectra::calcSpecObjID_DR8( int _plate, int _mjd, int _fiber, i
 	// 		In the latter case, the 14 bits corresponding to run2d are filled with (N-5)*10000+M*100+P.
 	unsigned int run2d = (_run2d_n-5)*10000+_run2d_m*100+_run2d_p;
 
-	unsigned __int64 specObjID;
+	uint64_t specObjID;
 	
 	_mjd -= 50000;
 	                  
-	specObjID  = (unsigned __int64) 0xFFFC000000000000&((unsigned __int64)_plate<<50);
-	specObjID |= (unsigned __int64) 0x0003FFC000000000&((unsigned __int64)_fiber<<38);
-	specObjID |= (unsigned __int64) 0x0000003FFFC00000&((unsigned __int64)_mjd<<24);
-	specObjID |= (unsigned __int64) 0x00000000003FFC00&((unsigned __int64)run2d<<10);
-	specObjID |= (unsigned __int64) 0x00000000000003FF&((unsigned __int64)0);
+	specObjID  = (uint64_t) 0xFFFC000000000000&((uint64_t)_plate<<50);
+	specObjID |= (uint64_t) 0x0003FFC000000000&((uint64_t)_fiber<<38);
+	specObjID |= (uint64_t) 0x0000003FFFC00000&((uint64_t)_mjd<<24);
+	specObjID |= (uint64_t) 0x00000000003FFC00&((uint64_t)run2d<<10);
+	specObjID |= (uint64_t) 0x00000000000003FF&((uint64_t)0);
 
 
 	return specObjID;

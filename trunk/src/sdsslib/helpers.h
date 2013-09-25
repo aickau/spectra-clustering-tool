@@ -20,9 +20,14 @@
 #ifndef H_HELPERS
 #define H_HELPERS
 
+#include "defines.h"
+
 #include <string>
 #include <sstream>
+
+#ifdef _WIN32
 #include <Windows.h>
+#endif
 
 namespace Helpers
 {
@@ -70,13 +75,16 @@ namespace Helpers
 	// allocate console window, set standard output to this console.
 	void createConsole();
 
-	__int64 HiLowtoUInt64( unsigned __int32 _nLowerPart, unsigned __int32 _nHigherPart );
-	void UInt64toHiLow( unsigned __int64 _nInNumber, unsigned __int32 &_nOutLowerPart, unsigned __int32 &_nOutHigherPart );
+	int64_t HiLowtoUInt64(uint32_t _nLowerPart,uint32_t _nHigherPart );
+	void UInt64toHiLow(uint64_t _nInNumber,uint32_t &_nOutLowerPart,uint32_t &_nOutHigherPart );
 
+
+#ifdef _WIN32
 	// convert command line string to command line structure (argc, char* argv[])
 	// returns char** argv, even if command line string was empty.
 	// make sure to proper deallocate the resulting pointer via delete[].
 	char **getCommandLineFromString( const std::string &sstrCommandLineString, int &outArgC );
+
 
 	// usage:
 	//
@@ -86,6 +94,7 @@ namespace Helpers
 	// __except( writeMiniDump( GetExceptionInformation() ) { }
 	//
 	void WINAPI writeMiniDump( PEXCEPTION_POINTERS ep );
+#endif
 
 };
 
