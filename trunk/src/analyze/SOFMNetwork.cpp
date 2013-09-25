@@ -23,6 +23,7 @@
 #include "sdsslib/filehelpers.h"
 #include "sdsslib/Timer.h"
 #include "sdsslib/spectraVFS.h"
+#include "sdsslib/spectraBaseHelpers.h"
 #include "sdsslib/spectraHelpers.h"
 #include "sdsslib/mathhelpers.h"
 #include "sdsslib/XMLExport.h"
@@ -30,8 +31,8 @@
 #include "sdsslib/HTMLExport.h"
 #include "sdsslib/sdssSoftwareVersion.h"
 
+
 #include "analyze/SOFMNetworkSettings.h"
-#include "analyze/ComputeCUDA.h"
 
 #include <conio.h>
 #include <math.h>
@@ -755,7 +756,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchComplete( const Spectra &_src
 		const int jInc = MIN( SpectraVFS::CACHELINESIZE, (MIN(m_gridSizeSqr, j+SpectraVFS::CACHELINESIZE)-j));
 
 		Spectra *a = m_pNet->beginRead( j );
-		SpectraHelpers::compareSpectra( _src, a, jInc, err );
+		SpectraBaseHelpers::compareSpectra( _src, a, jInc, err );
 		m_pNet->endRead( j );
 
 		for ( size_t k=0;k<jInc;k++ )
@@ -823,7 +824,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	}
 
 	// calculate errors/distances
-	SpectraHelpers::compareSpectra( _src, searchSpectraVec, &errorVec[0] );
+	SpectraBaseHelpers::compareSpectra( _src, searchSpectraVec, &errorVec[0] );
 
 	//end read, find bmu from error list
 	for ( size_t i=0;i<numSpectraToSearch;i++ )
