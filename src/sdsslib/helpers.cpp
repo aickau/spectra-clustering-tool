@@ -18,15 +18,18 @@
 
 #include "helpers.h"
 
+#include "debug.h"
+
 #include <fstream>
 #include <iostream>
 #include <algorithm>
 
-#include <conio.h>
 #include <fcntl.h>
-#include <io.h>
+#include <ctime>
 
 #ifdef _WIN32
+#include <io.h>
+#include <conio.h>
 #include <windows.h>
 #include <shellapi.h>
 #include <DbgHelp.h>
@@ -69,9 +72,20 @@ void Helpers::print( const std::string &_sstrText, std::ofstream *_logStream, bo
 	{
 		sstrPrefix = Helpers::getCurentDateTimeStampString();
 		sstrPrefix += "> ";
+
+#ifdef _WIN32
 		_cprintf( sstrPrefix.c_str() );
+#else
+		printf( sstrPrefix.c_str() );
+#endif
 	}
+
+#ifdef _WIN32
 	_cprintf( _sstrText.c_str() );
+#else
+	printf( sstrPrefix.c_str() );
+#endif
+
 	if ( _logStream != NULL )
 	{
 		(*_logStream) << sstrPrefix;
@@ -83,21 +97,24 @@ void Helpers::print( const std::string &_sstrText, std::ofstream *_logStream, bo
 
 std::string Helpers::getCurentDateTimeStampString()
 {
-	SYSTEMTIME systime;
-	GetSystemTime( &systime	);
-
 	std::string sstrOutString("");
-	sstrOutString += numberToString<WORD>(systime.wMonth);
+
+	time_t t = time(0);   // get time now
+	struct tm *now = localtime( &t );
+
+	
+
+	sstrOutString += numberToString<int>( now->tm_mon+1 );
 	sstrOutString += "/";
-	sstrOutString += numberToString<WORD>(systime.wDay);
+	sstrOutString += numberToString<int>( now->tm_mday );
 	sstrOutString += "/";
-	sstrOutString += numberToString<WORD>(systime.wYear);
+	sstrOutString += numberToString<int>( now->tm_year+1900 );
 	sstrOutString += " ";
-	sstrOutString += Helpers::numberToString<WORD>(systime.wHour);
+	sstrOutString += Helpers::numberToString<int>( now->tm_hour );
 	sstrOutString += ":";
-	sstrOutString += numberToString<WORD>(systime.wMinute);
+	sstrOutString += numberToString<int>( now->tm_min );
 	sstrOutString += ":";
-	sstrOutString += numberToString<WORD>(systime.wSecond);
+	sstrOutString += numberToString<int>(now->tm_sec );
 	//sstrOutString += ",";
 	//sstrOutString += numberToString<WORD>(systime.wMilliseconds);
 
@@ -107,6 +124,8 @@ std::string Helpers::getCurentDateTimeStampString()
 
 void Helpers::createConsole()
 {
+#ifdef _WIN32
+
 	AllocConsole();
 	int outHandle;
 	FILE *outFile;
@@ -115,6 +134,9 @@ void Helpers::createConsole()
 	*stdout = *outFile;
 	setvbuf( stdout, NULL, _IONBF, 0 );
 	std::cout.sync_with_stdio();
+#else
+	ASSERT(0);
+#endif
 }
 
 

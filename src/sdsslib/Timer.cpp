@@ -26,11 +26,10 @@
 #endif
 
 
-
 Timer::Timer()
-: m_bPaused( false ),
-m_BoundaryMode( kBoundaryMode_Stop ),
-m_DurationTicks( 0 )
+:m_DurationTicks( 0 )
+,m_bPaused( false )
+,m_BoundaryMode( kBoundaryMode_Stop ),
 {
 
 #ifdef _WIN32

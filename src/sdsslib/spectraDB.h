@@ -20,6 +20,7 @@
 #define _SPECTRADB_H
 
 #include "spectra.h"
+#include "defines.h"
 
 #include <map>
 
@@ -50,7 +51,7 @@ public:
 
 private:
 
-	std::map<__int64,Info> m_spectraDB;
+	std::map<int64_t,Info> m_spectraDB;
 };
 
 

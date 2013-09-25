@@ -14,17 +14,17 @@
 //! \endverbatim
 //!
 //! \file  CSVExport.cpp
-#include "sdsslib/CSVExport.h"
+#include "CSVExport.h"
 
-#include "sdsslib/helpers.h"
+#include "helpers.h"
 
 #include <sstream>
 #include <fstream>
 
 
 CSVExport::CSVExport(const std::string &_sstrFileName, const std::string &_sstrSeperator )
-:m_sstrFilename(_sstrFileName)
-,m_sstrSeperator(_sstrSeperator)
+:m_sstrSeperator(_sstrSeperator)
+,m_sstrFilename(_sstrFileName)
 ,m_sstrTable("")
 {
 }
@@ -41,7 +41,7 @@ void CSVExport::writeTableEntry( const char *_text )
 }
 
 
-void CSVExport::writeTableEntry(std::string &_sstrText )
+void CSVExport::writeTableEntry( const std::string &_sstrText )
 {
 	// todo, add double-quote characters if necessary
 	m_sstrTable += _sstrText;
@@ -62,9 +62,9 @@ void CSVExport::writeTableEntry( int _number, unsigned int _width )
 	m_sstrTable += m_sstrSeperator;
 }
 
-void CSVExport::writeTableEntry(int64_t _number, unsigned int _width )
+void CSVExport::writeTableEntry( int64_t _number, unsigned int _width )
 {
-	m_sstrTable += Helpers::numberToString<__int64>(_number,_width);
+	m_sstrTable += Helpers::numberToString<int64_t>(_number,_width);
 	m_sstrTable += m_sstrSeperator;
 }
 

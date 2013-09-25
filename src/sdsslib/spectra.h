@@ -388,9 +388,9 @@ public:
 	float m_Amplitude[numSamples];		// amplitude in 10^(-17) erg/cm/s^2/Ang
 	float m_Min;
 	float m_Max;
-	__int32 m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
-	__int16 m_SamplesRead;
-	__int64 m_SpecObjID;	
+	int32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
+	int16_t m_SamplesRead;
+	int64_t m_SpecObjID;	
 	SpectraType m_Type;
 	SpectraVersion m_version;
 	double m_Z;
