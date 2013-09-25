@@ -20,7 +20,11 @@
 #define H_ASSERT_124620062006
 
 #include <assert.h>
+
+#ifdef _WIN32
 #include <Windows.h>
+#endif
+
 
 #ifndef _DEBUG
 #ifndef ASSERT
@@ -29,14 +33,16 @@
 	#define ASSERTM(x,msg)
 #else 
 
+#ifdef _WIN32
 	#define ASSERT_IGNORE 0
 	#define ASSERT_BREAK 1
 	#define ASSERT_QUIT 2
 
 	int DoAssert( const char *szcond, int line, const char *szfile, const char *msg );
 	#define ASSERTM(x,msg) {if(!(x)) if(DoAssert (#x,__LINE__,__FILE__,msg)==ASSERT_BREAK) __asm{int 3};}
-
-	//#define ASSERT(x) ASSERTM(x,0)  
+#else // __linux
+	#define ASSERTM(x,msg) assert(x)  
+#endif
 #ifndef ASSERT
 	#define ASSERT(x) assert(x);
 #endif

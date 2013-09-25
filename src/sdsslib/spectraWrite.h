@@ -20,8 +20,9 @@
 #ifndef _SPECTRAWRITE_H
 #define _SPECTRAWRITE_H
 
-#include <Windows.h>
+
 #include <string>
+#include <stdio.h>
 
 class Spectra;
 
@@ -40,7 +41,7 @@ public:
 	// returns true on success, otherwise false.
 	bool write( const Spectra &_spectra );
 private:
-	HANDLE m_fileHandle;
+	FILE *m_fileHandle;
 };
 
 
