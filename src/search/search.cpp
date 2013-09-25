@@ -405,7 +405,7 @@ void main(int argc, char* argv[])
 	std::multimap<float,__int64>::iterator it( comparisonMap.begin() ); 
 	while ( it != comparisonMap.end() )
 	{
-		sstrOut += Helpers::numberToString<__int64>((*it).second) + "  " + Helpers::numberToString<float>((*it).first) + "\n";
+		sstrOut += Helpers::numberToString<int64_t>((*it).second) + "  " + Helpers::numberToString<float>((*it).first) + "\n";
 		it++;
 	}
 

@@ -220,7 +220,7 @@ void main(int argc, char* argv[])
 
 	if ( numSpectraSRC >= numSpectraSOM ) 
 	{
-		Helpers::print("Warning: Source spectra greater than SOM map."+Helpers::numberToString<__int32>(numSpectraSRC)+" / "+Helpers::numberToString<size_t>(numSpectraSOM)+"\n", &logFile);
+		Helpers::print("Warning: Source spectra greater than SOM map."+Helpers::numberToString<int32_t>(numSpectraSRC)+" / "+Helpers::numberToString<size_t>(numSpectraSOM)+"\n", &logFile);
 		return;	
 	}
 	
@@ -246,7 +246,7 @@ void main(int argc, char* argv[])
 		{
 			if (spSOM->m_Index>=numSpectraSRC)
 			{
-				Helpers::print("SOM index to source spectra out of range "+Helpers::numberToString<__int32>(spSOM->m_Index)+" / "+Helpers::numberToString<size_t>(numSpectraSRC)+"\n", &logFile );
+				Helpers::print("SOM index to source spectra out of range "+Helpers::numberToString<int32_t>(spSOM->m_Index)+" / "+Helpers::numberToString<size_t>(numSpectraSRC)+"\n", &logFile );
 			}
 			else
 			{
