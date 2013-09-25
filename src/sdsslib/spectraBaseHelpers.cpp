@@ -26,7 +26,7 @@
 #include <math.h>
 
 
-namespace SpectraHelpers
+namespace SpectraBaseHelpers
 {
 
 
