@@ -21,14 +21,20 @@
 #include "helpers.h"
 #include "fileHelpers.h"
 
+#ifdef _WIN32
 #include "cfitsio/fitsio.h"
 #include "cfitsio/longnam.h"
+#endif 
 
 #include <fstream>
 #include <iostream>
 
 bool SpectraDB::writeDB( DR dataRelease )
 {
+#ifndef _WIN32
+	assert(0); // temporary disabled under linux.
+	return false;
+#else
 	std::string filename("specObj-dr9.fits");
 	std::string outDBFilename("spectraParamDR9.bin");
 	if ( dataRelease == DR10 )
@@ -75,7 +81,7 @@ bool SpectraDB::writeDB( DR dataRelease )
 
 	for ( int i=0;i<tblrows;i++ )
 	{
-		__int64 specObjID;
+		int64_t specObjID;
 		Info info;
 		char *arrVal[2];
 
@@ -84,7 +90,7 @@ bool SpectraDB::writeDB( DR dataRelease )
 		arrVal[1] = NULL;
 
 		fits_read_col( f, TSTRING, 22, i+1, 1, 1, NULL, arrVal, NULL, &status );
-		specObjID = Helpers::stringToNumber<__int64>(val);
+		specObjID = Helpers::stringToNumber<int64_t>(val);
 
 		arrVal[1] = NULL;
 		fits_read_col( f, TSTRING, 37, i+1, 1, 1, NULL, arrVal, NULL, &status );
@@ -97,7 +103,7 @@ bool SpectraDB::writeDB( DR dataRelease )
 
 
 		fits_read_col( f, TDOUBLE, 65, i+1, 1, 1, NULL, &info.z, NULL, &status );
-		m_spectraDB.insert( std::make_pair<__int64,Info>(specObjID, info) );
+		m_spectraDB.insert( std::make_pair<int64_t,Info>(specObjID, info) );
 	}
 
 // 	for ( std::map<std::string,int>::iterator it = hui.begin(); it != hui.end() ; it++ )
@@ -115,18 +121,18 @@ bool SpectraDB::writeDB( DR dataRelease )
 	}
 	
 	// serialize map
-	std::map<__int64,Info>::iterator it = m_spectraDB.begin();
-	std::map<__int64,Info>::iterator itEnd = m_spectraDB.end();
+	std::map<int64_t,Info>::iterator it = m_spectraDB.begin();
+	std::map<int64_t,Info>::iterator itEnd = m_spectraDB.end();
 	while ( it != itEnd )
 	{
-		file.write((const char*)&it->first, sizeof(__int64) );
+		file.write((const char*)&it->first, sizeof(int64_t) );
 		file.write((const char*)&it->second, sizeof(Info));
 		it++;
 	}
 	file.close();
 
-
 	return true;
+#endif // _WIN32
 }
 
 
@@ -150,18 +156,18 @@ bool SpectraDB::loadDB( DR dataRelease )
 	
 	const size_t numElements = fileSize / elementSize; 
 
-	std::ifstream file(dbFilename, std::ios::in|std::ios::binary );
+	std::ifstream file(dbFilename.c_str(), std::ios::in|std::ios::binary );
 	if ( !file.is_open() )
 	{
 		return false;
 	}
 	for ( size_t i=0;i<numElements;i++ )
 	{
-		__int64 specObjID;
+		int64_t specObjID;
 		Info info;
-		file.read((char*)&specObjID, sizeof(__int64) );
+		file.read((char*)&specObjID, sizeof(int64_t) );
 		file.read((char*)&info, sizeof(Info) );
-		m_spectraDB.insert( m_spectraDB.end(), std::make_pair<__int64,Info>(specObjID, info) );
+		m_spectraDB.insert( m_spectraDB.end(), std::make_pair<int64_t,Info>(specObjID, info) );
 	}
 
 	return true;
@@ -170,7 +176,7 @@ bool SpectraDB::loadDB( DR dataRelease )
 
 bool SpectraDB::getInfo(int64_t _specObjID, Info &outInfo )
 {
-	std::map<__int64,Info>::iterator it = m_spectraDB.find(_specObjID);
+	std::map<int64_t,Info>::iterator it = m_spectraDB.find(_specObjID);
 	if ( it == m_spectraDB.end() )
 		return false;
 

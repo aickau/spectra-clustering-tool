@@ -34,12 +34,12 @@ public:
 	virtual ~CSVExport();
 
 	void writeTableEntry( const char *_text );
-	void writeTableEntry(std::string &_sstrText );
+	void writeTableEntry( const std::string &_sstrText );
 	void writeTableEntry( float _number );
 
 	// \param _width fill number with preceding zeros
 	void writeTableEntry( int _number, unsigned int _width = -1 );
-	void writeTableEntry(int64_t _number, unsigned int _width = -1 );
+	void writeTableEntry( int64_t _number, unsigned int _width = -1 );
 
 	void newRow();
 

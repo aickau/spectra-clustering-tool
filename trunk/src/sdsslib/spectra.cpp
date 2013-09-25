@@ -19,17 +19,20 @@
 
 #include "spectra.h"
 
-#include "sdsslib/random.h"
-#include "sdsslib/helpers.h"
-#include "sdsslib/filehelpers.h"
-#include "sdsslib/mathhelpers.h"
-#include "sdsslib/defines.h"
-#include "sdsslib/spectrahelpers.h"
-#include "sdsslib/CSVExport.h"
-#include "sdsslib/spectraDB.h"
+#include "random.h"
+#include "helpers.h"
+#include "filehelpers.h"
+#include "mathhelpers.h"
+#include "defines.h"
+#include "spectraBaseHelpers.h"
+#include "CSVExport.h"
+#include "spectraDB.h"
 
+#ifdef _WIN32
 #include "cfitsio/fitsio.h"
 #include "cfitsio/longnam.h"
+#endif 
+
 
 #include <iostream>
 #include <fstream>
@@ -37,6 +40,7 @@
 #include <math.h>
 #include <float.h>
 #include <assert.h>
+#include <string.h>
 
 
 // spectra read from SDSS FITS have a wavelength of 3800..9200 Angström
@@ -370,7 +374,7 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 
 	std::istringstream sstr;
 	sstr.str(sstrTemp);
-	__int64 specObjID=0;
+	int64_t specObjID=0;
 	int type=-1;
 	int mjd = -1;
 	int plate = -1;
@@ -452,7 +456,7 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 		c++;
 	}
 
-	SpectraHelpers::foldSpectrum( spectrum, c, m_Amplitude, numSamples, MathHelpers::log2(reductionFactor) );
+	SpectraBaseHelpers::foldSpectrum( spectrum, c, m_Amplitude, numSamples, MathHelpers::log2(reductionFactor) );
 
 	m_SamplesRead = c/reductionFactor;
 
@@ -463,7 +467,7 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	return (m_SamplesRead>0 && bConsistent);	
 }
 
-
+#ifdef _WIN32
 Spectra::SpectraVersion checkVersion(fitsfile *f)
 {
 	int status = 0;
@@ -511,10 +515,15 @@ Spectra::SpectraVersion checkVersion(fitsfile *f)
 
 	return Spectra::SP_VERSION_DR8;
 }
+#endif // _WIN32
 
 
 bool Spectra::loadFromFITS(const std::string &_filename)
 {
+#ifndef _WIN32
+	assert(0); // temporary disabled under linux.
+	return false;
+#else
 	fitsfile *f=NULL;
 
 	// According to FITS standard, to perform a specific action, status must be always 0 before.
@@ -541,11 +550,16 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 	}
 	
 	return false;
+#endif // _WIN32
 }
 
 
 bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 {
+#ifndef _WIN32
+	assert(0); // temporary disabled under linux.
+	return false;
+#else
 	fitsfile *f=NULL;
 
 	// According to FITS standard, to perform a specific action, status must be always 0 before.
@@ -694,7 +708,7 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	}
 
 
-	SpectraHelpers::repairSpectra( spectrum, maskArrayBool, elementsToRead );
+	SpectraBaseHelpers::repairSpectra( spectrum, maskArrayBool, elementsToRead );
 	// mark spectrum as bad if more than 5 % are bad pixels
 	if ( badPixelCount > elementsToRead/20 ) 
 	{
@@ -705,9 +719,9 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 
 	//BRIGHTSKY
 
-	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, m_Amplitude, numSamples, MathHelpers::log2(reductionFactor) );
+	SpectraBaseHelpers::foldSpectrum( spectrum, elementsToRead, m_Amplitude, numSamples, MathHelpers::log2(reductionFactor) );
 	elementsToRead /= reductionFactor; 
-	m_SamplesRead = static_cast<__int16>(elementsToRead);
+	m_SamplesRead = static_cast<int16_t>(elementsToRead);
 
 	fits_close_file(f, &statusclose);
 	calcMinMax();
@@ -732,12 +746,17 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 
 	bool bConsistent = checkConsistency();
 	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
+#endif //_WIN32
 }
 
 
 
 bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 {
+#ifndef _WIN32
+	assert(0); // temporary disabled under linux.
+	return false;
+#else
 	fitsfile *f=NULL;
 
 	// According to FITS standard, to perform a specific action, status must be always 0 before.
@@ -781,7 +800,7 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 	}
 
 
-	m_SpecObjID = Helpers::stringToNumber<__int64>(specID);
+	m_SpecObjID = Helpers::stringToNumber<int64_t>(specID);
 
 	if ( getFiber() != fiber || 
 		 getMJD() != mjd ||
@@ -857,7 +876,7 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 	}
 
 
-	SpectraHelpers::repairSpectra( spectrum, maskArrayBool, elementsToRead );
+	SpectraBaseHelpers::repairSpectra( spectrum, maskArrayBool, elementsToRead );
 	// mark spectrum as bad if more than 5 % are bad pixels
 	if ( badPixelCount > elementsToRead/20 ) 
 	{
@@ -865,9 +884,9 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 	}
 
 	const int offset = getSDSSSpectraOffsetStart();
-	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, &m_Amplitude[offset], numSamples-offset, MathHelpers::log2(reductionFactor) );
+	SpectraBaseHelpers::foldSpectrum( spectrum, elementsToRead, &m_Amplitude[offset], numSamples-offset, MathHelpers::log2(reductionFactor) );
 	elementsToRead /= reductionFactor; 
-	m_SamplesRead = static_cast<__int16>(elementsToRead);
+	m_SamplesRead = static_cast<int16_t>(elementsToRead);
 
 	fits_close_file(f, &statusclose);
 	calcMinMax();
@@ -892,12 +911,17 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 
 	bool bConsistent = checkConsistency();
 	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
+#endif //_WIN32
 }
 
 
 
 bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 {
+#ifndef _WIN32
+	assert(0); // temporary disabled under linux.
+	return false;
+#else
 	fitsfile *f=NULL;
 
 	// According to FITS standard, to perform a specific action, status must be always 0 before.
@@ -992,7 +1016,7 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 	}
 
 
-	SpectraHelpers::repairSpectra( spectrum, maskArrayBool, elementsToRead );
+	SpectraBaseHelpers::repairSpectra( spectrum, maskArrayBool, elementsToRead );
 
 
 	// mark spectrum as bad if more than 5 % are bad pixels
@@ -1003,15 +1027,16 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 
 
 	const int offset = getSDSSSpectraOffsetStart();
-	SpectraHelpers::foldSpectrum( spectrum, elementsToRead, &m_Amplitude[offset], numSamples-offset, MathHelpers::log2(reductionFactor) );
+	SpectraBaseHelpers::foldSpectrum( spectrum, elementsToRead, &m_Amplitude[offset], numSamples-offset, MathHelpers::log2(reductionFactor) );
 	elementsToRead /= reductionFactor; 
-	m_SamplesRead = static_cast<__int16>(elementsToRead);
+	m_SamplesRead = static_cast<int16_t>(elementsToRead);
 	fits_close_file(f, &statusclose);
 
 	calcMinMax();
 
 	bool bConsistent = checkConsistency();
 	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
+#endif //_WIN32
 }
 
 
@@ -1078,23 +1103,17 @@ void Spectra::normalizeByFlux()
 	calcMinMax();
 }
 
-
+#ifdef _WIN32
 extern "C" void spectraAdaptX64(const float *a0, const float *a1, float *adaptionRate, size_t numsamples);
+#endif
 
 void Spectra::adapt( const Spectra &_spectra, float _adaptionRate )
 {
 	//	million adaption / sec
 	//	0,37  	c-version 
 	//	0,46	sse version 
+#ifdef _WIN32
 
-
-	/*  c - version
-	for ( size_t i=0;i<Spectra::numSamples;i++ )
-	{
-	m_Amplitude[i] +=
-	_adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
-	}
-	*/
 	const float *a0 = &m_Amplitude[Spectra::pixelStart];
 	const float *a1 = &_spectra.m_Amplitude[Spectra::pixelStart];
 	size_t numSamples4 = (Spectra::pixelEnd >> 3) << 3;
@@ -1144,11 +1163,23 @@ loop1:
 	{
 		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
 	}
+#else
+
+	// c-version (slow)
+	for ( size_t i=0;i<Spectra::numSamples;i++ )
+	{
+		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
+	}
+
+#endif
+
+
 }
 
 
-
+#ifdef _WIN32
 extern "C" void spectraCompareX64(const float *a0, const float *a1, float *errout, size_t numsamples);
+#endif
 
 float Spectra::compare(const Spectra &_spectra) const
 {
@@ -1736,10 +1767,10 @@ bool Spectra::hasBadPixels() const
 
 bool Spectra::checkConsistency() const
 {
-	if (( _isnan( m_Min ) || !_finite(m_Min) ) ||
-		( _isnan( m_Max ) || !_finite(m_Max) ) ||
-		( _isnan( m_Z ) || !_finite(m_Z) ) ||
-		( _isnan( m_flux ) || !_finite(m_flux) ))
+	if (( isnan( m_Min ) || isinf(m_Min) ) ||
+		( isnan( m_Max ) || isinf(m_Max) ) ||
+		( isnan( m_Z ) || isinf(m_Z) ) ||
+		( isnan( m_flux ) || isinf(m_flux) ))
 	{
 		return false;
 	}
@@ -1747,7 +1778,7 @@ bool Spectra::checkConsistency() const
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
 		const double a = static_cast<double>(m_Amplitude[i]);
-		if ( _isnan( a ) || !_finite(a) )
+		if ( isnan( a ) || isinf(a) )
 		{
 			return false;
 		}

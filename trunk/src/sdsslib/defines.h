@@ -85,6 +85,11 @@
 #define SSE_ALIGN __declspec(align(16))
 
 
+#ifdef _WIN32
+#define isnan(x) _isnan(x)
+#define isinf(x) (!_finite(x))
+#endif
+
 
 // this is Visual c++ .NET 2003
 #if _MSC_VER <= 1310

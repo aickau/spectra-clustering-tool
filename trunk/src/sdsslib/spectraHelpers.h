@@ -19,6 +19,7 @@
 #ifndef _SPECTRAHELPERS_H
 #define _SPECTRAHELPERS_H
 
+
 #include <windows.h>
 
 #include <string>
@@ -29,7 +30,8 @@
 class Spectra;
 class SpectraVFS;
 
-// some spectra helper functions which do very specific tasks for drawing, presentation, etc.
+// Some spectra helper functions which do very specific tasks for drawing, presentation, etc.
+// Additional, low-level helper functions can be found in SpectraBaseHelpers.
 namespace SpectraHelpers
 {
 	/** @name DRAWING
@@ -155,28 +157,6 @@ namespace SpectraHelpers
 	// \return true on success, otherwise false
 	bool calcVectorField( SpectraVFS &_map1, SpectraVFS &_map2, std::vector<float>& _outVectorField );
 
-	// Fold a source spectrum by a given factor. For each iteration the spectrum size divides by two.
-	// \param _pSrcSpectrum pointer to source spectrum. the data of the source spectrum is destroyed since we store intermediate information for folding in there.
-	// \param _numSrcSamples number of samples/pixels of the source spectrum
-	// \param _pDstSpectrum destination spectrum
-	// \param _numDstSamples number of samples of the destination spectrum, must be at least the size of _numSrcSamples / (2^numFoldIterations)
-	//        if the number of destination samples is greater than _numSrcSamples / (2^numFoldIterations) the rest is filled with zeros.
-	// \param _numFoldIterations number of foldings. 
-	void foldSpectrum( float *_pSrcSpectrum, size_t _numSrcSamples, float *_pDstSpectrum, size_t _numDstSamples, size_t _numFoldIterations=1 );
-
-	// one to many spectra comparison.
-	// _a source spectrum
-	// _pB array of source spectra
-	// _nCount number of Bs to compare with
-	// _pOutErrors array of errors with _nCount elements
-	void compareSpectra(const Spectra &_a, Spectra *_pB, size_t _nCount, float *_pOutErrors );
-
-	// one to many spectra comparison.
-	// _a source spectrum
-	// _pB array of source spectra
-	// _pOutErrors array of errors with _nCount elements
-	void compareSpectra(const Spectra &_a, std::vector<Spectra*> &_pB, float *_pOutErrors );
-
 	// intensity [0..1]
 	// _pRGB pointer to location where out rgb triple is written to.
 	// if red false -> map intensity to black->blue->cyan->white color gradient
@@ -187,11 +167,6 @@ namespace SpectraHelpers
 	// _pRGB pointer to location where out rgb triple is written to.
 	void intesityToRGBGradient( float _intensity, float *_pRGB, int gradientType = 0 );
 
-	// repair isolated pixel errors of a given spectrum
-	// _pixels pointer to spectrum data
-	// _maskarray boolean array with flags set to true at pixel indicies where errors occur
-	// _numsamples number of pixels 
-	void repairSpectra( float *_pixels, bool *_maskarray, int _numsamples );
 	//@}
 
 
