@@ -21,6 +21,7 @@
 #include "defines.h"
 #include <assert.h>
 #include <float.h>
+#include <cstdlib>
 
 unsigned int MathHelpers::factorial( unsigned int a )
 {

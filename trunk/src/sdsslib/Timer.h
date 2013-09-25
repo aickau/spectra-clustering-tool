@@ -42,12 +42,11 @@ public:
 	double getElapsedSecs();
 
 private:
-	typedef uint64_t TTICKS;
-	static TTICKS getTicks();
+	static uint64_t getTicks();
 
-	TTICKS m_StartTics;
-	TTICKS m_StartPauseTics;
-	TTICKS m_DurationTicks;
+	uint64_t m_StartTics;
+	uint64_t m_StartPauseTics;
+	uint64_t m_DurationTicks;
 	bool m_bPaused;
 	EBoundaryMode m_BoundaryMode;
 	double m_frequency;

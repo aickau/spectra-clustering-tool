@@ -91,7 +91,9 @@
 #define sprintf_s sprintf
 #endif
 
+#ifdef _MSC_VER
 #pragma warning( disable : 4267 )
 #pragma warning( disable : 4244 )
 #pragma warning( disable : 4018 )
 #pragma warning( disable : 4305 )
+#endif
