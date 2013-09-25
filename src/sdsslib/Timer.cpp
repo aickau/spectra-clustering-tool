@@ -21,16 +21,26 @@
 #include <assert.h>
 #ifdef _WIN32
 #include <Windows.h>
+#else // __linux
+#include <sys/time.h>
 #endif
+
+
 
 Timer::Timer()
 : m_bPaused( false ),
 m_BoundaryMode( kBoundaryMode_Stop ),
 m_DurationTicks( 0 )
 {
+
+#ifdef _WIN32
 	LARGE_INTEGER freq;
 	QueryPerformanceFrequency(&freq);
 	m_frequency = static_cast<double>(freq.QuadPart);
+#else
+	m_frequency = 1000000.0;		// under linux we have microseconds
+#endif
+
 	start();
 }
 
@@ -57,21 +67,32 @@ void Timer::pause()
 void Timer::setDuration( double _dDuration, EBoundaryMode _Mode )
 {
 	m_BoundaryMode = _Mode;
-	m_DurationTicks = ( _dDuration < 0.0f ) ? 0 : static_cast<TTICKS>(_dDuration * m_frequency);
+	m_DurationTicks = ( _dDuration < 0.0f ) ? 0 : static_cast<uint64_t>(_dDuration * m_frequency);
 }
 
 
-Timer::TTICKS Timer::getTicks()
+uint64_t Timer::getTicks()
 {
+#ifdef _WIN32
+
 	LARGE_INTEGER lp;
 	QueryPerformanceCounter(&lp);
 	return lp.QuadPart;
+
+#else // __linux
+
+	struct timeval end;
+	gettimeofday(&end, NULL);
+	return ((uint64_t)end.tv_sec)*1000000 + (uint64_t)end.tv_usec;
+
+#endif
+
 }
 
 
 double Timer::getElapsedSecs()
 {
-	TTICKS ElapsedTics = ( m_bPaused ) ? m_StartPauseTics-m_StartTics : Timer::getTicks()-m_StartTics;
+	uint64_t ElapsedTics = ( m_bPaused ) ? m_StartPauseTics-m_StartTics : Timer::getTicks()-m_StartTics;
 
 	if ( m_DurationTicks > 0 )
 	{
