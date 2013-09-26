@@ -82,6 +82,7 @@ SOFMNetwork::Parameters::Parameters( size_t _numSteps, size_t _randomSeed, float
 ,waitForUser(false)
 ,fullExport(true)
 ,imageBoderSize(6)
+,iconSize(64)
 ,sstrSearchMode(SOFMNET_SETTINGS_SEARCHMODE_global)
 ,normaliziationType(Spectra::SN_FLUX)
 ,useBOSSWavelengthRange(false)
@@ -354,6 +355,11 @@ void SOFMNetwork::writeSettings( const std::string &_sstrFileName )
 		XMLExport::xmlAddAttribute( "value", (int)m_params.imageBoderSize, sstrXML );
 		XMLExport::xmlSingleElementEnd( sstrXML );
 
+		XMLExport::xmlSingleElementBegin( SOFMNET_SETTINGS_EXPORT_ICONSIZE, 2, sstrXML );
+		XMLExport::xmlAddAttribute( "value", (int)m_params.iconSize, sstrXML );
+		XMLExport::xmlSingleElementEnd( sstrXML );
+
+		
 
 	XMLExport::xmlElementEnd( SOFMNET_SETTINGS_EXPORT, 1, sstrXML );
 	
@@ -451,6 +457,9 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	bSuccess = p.getChildValue(SOFMNET_SETTINGS_EXPORT_IMGBORDERSIZE, "value", sp );
 	if ( bSuccess )
 		m_params.imageBoderSize = sp;
+	bSuccess = p.getChildValue(SOFMNET_SETTINGS_EXPORT_ICONSIZE, "value", sp );
+	if ( bSuccess )
+		m_params.iconSize = sp;
 
 	if ( !bSuccess)
 	{
@@ -610,7 +619,7 @@ void SOFMNetwork::renderIcons()
 #ifdef SDSS_SINETEST
 		redness = (float)i*2.f/(float)m_numSpectra;
 #endif // SDSS_SINETEST
-		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, s_iconSize, s_iconSize, redness );
+		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, m_params.iconSize, m_params.iconSize, redness );
 
 		m_pSourceVFS->endRead( i );
 	}

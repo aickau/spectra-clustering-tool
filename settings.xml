@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Analyzer config file, ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I, Copyright (c) 2009 Version 0.18, Revision 286, Build date 2013/09/07 16:29:24 -->
+<!-- Analyzer config file, ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I, Copyright (c) 2013 Version 0.19, Revision 297, Build date 2013/09/25 19:16:47 -->
 <SETTINGS>
-	<STEP current="6" total="200"/>
-	<GRIDSIZE value="38"/>
+	<STEP current="200" total="200"/>
+	<GRIDSIZE value="4"/>
 	<RANDOMSEED value="15"/>
 	<LEARNRATE begin="0.25" end="0.01"/>
 	<RADIUS begin="1" end="0.125"/>
 	<SPECTRUM file="sofmnet.bin"/>
 	<EXPORT>
-		<SUBPAGES value="0"/>
+		<SUBPAGES value="1"/>
 		<WAITFORUSER value="0"/>
 		<FULLEXPORT value="0"/>
 		<IMGBORDERSIZE value="6"/>
+		<ICONSIZE value="64"/>
 	</EXPORT>
 	<SEARCHMODE value="local"/><!-- localfast / local / global -->
 	<NORMALIZATION value="none"/><!-- amplitude / flux / none -->
