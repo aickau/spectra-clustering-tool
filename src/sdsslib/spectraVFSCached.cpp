@@ -16,13 +16,13 @@
 //! \file  spectraVFSCached.cpp
 //! \brief virtual filesystem for spectra, uses main memory as cache
 
-#include "sdsslib/spectraVFSCached.h"
+#include "spectraVFSCached.h"
 
-#include "sdsslib/helpers.h"
-#include "sdsslib/filehelpers.h"
-#include "sdsslib/spectra.h"
-#include "sdsslib/Timer.h"
-#include "sdsslib/memory.h"
+#include "helpers.h"
+#include "fileHelpers.h"
+#include "spectra.h"
+#include "Timer.h"
+#include "memory.h"
 
 
 #include <sstream>

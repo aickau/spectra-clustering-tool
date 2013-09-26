@@ -24,7 +24,7 @@
 #include "spectraVFS.h"
 #include "helpers.h"
 #include "mathhelpers.h"
-#include "filehelpers.h"
+#include "fileHelpers.h"
 #include "glhelper.h"
 #include "HTMLexport.h"
 #include "Timer.h"

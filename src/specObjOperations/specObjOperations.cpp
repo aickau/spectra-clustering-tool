@@ -17,7 +17,7 @@
 //! \brief all kinds of operational stuff that has to be quick hacked
 
 #include "sdsslib/helpers.h"
-#include "sdsslib/filehelpers.h"
+#include "sdsslib/fileHelpers.h"
 #include "sdsslib/spectraWrite.h"
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/spectraHelpers.h"

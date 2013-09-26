@@ -19,7 +19,7 @@
 #include "spectraVFSMemOnly.h"
 
 #include "helpers.h"
-#include "filehelpers.h"
+#include "fileHelpers.h"
 #include "helpers.h"
 #include "spectra.h"
 #include "Timer.h"

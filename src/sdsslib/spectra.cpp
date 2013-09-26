@@ -21,7 +21,7 @@
 
 #include "random.h"
 #include "helpers.h"
-#include "filehelpers.h"
+#include "fileHelpers.h"
 #include "mathhelpers.h"
 #include "defines.h"
 #include "spectraBaseHelpers.h"

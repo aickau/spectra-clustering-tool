@@ -26,7 +26,7 @@
 
 #include "spectraWrite.h"
 #include "helpers.h"
-#include "filehelpers.h"
+#include "fileHelpers.h"
 #include "spectra.h"
 #include "Timer.h"
 #include "memory.h"
