@@ -126,7 +126,7 @@ void SpectraVFSMemOnly::flush()
 
 void SpectraVFSMemOnly::Read( size_t _nSpectraIndex, size_t _numSpectra, Spectra *_pDestination )
 {
-	Helpers::print("disk.read.");
+	Helpers::print("disk.read.\n");
 	assert( _pDestination != NULL );
 
 	FILE *f = fopen( m_sstrFilename.c_str(), "rb" );
@@ -161,7 +161,7 @@ void SpectraVFSMemOnly::Read( size_t _nSpectraIndex, size_t _numSpectra, Spectra
 
 void SpectraVFSMemOnly::Write(  size_t _nSpectraIndex, size_t _numSpectra, Spectra *_pSource )
 {
-	Helpers::print("disk.write.");
+	Helpers::print("disk.write.\n");
 	assert( _pSource != NULL );
 
 	FILE *f = fopen( m_sstrFilename.c_str(), "wb" );

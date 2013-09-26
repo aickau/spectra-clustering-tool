@@ -1044,7 +1044,6 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 	std::string sstrMainHTMLDoc;
 	std::string sstrHTMLDocTemplate = HTMLExport::loadHTMLTemplate();
 
-	const float compareInvariance = 0.1f;
 	const size_t numHiScoresEntries = 20;
 
 
@@ -1088,7 +1087,7 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 			#pragma omp parallel for
 			for ( int k=0;k<numBatchElements;k++)
 			{
-				err[k] = a->compareSuperAdvanced( *src[k], compareInvariance, true ); 
+				err[k] = a->compare( *src[k] ); 
 				//float err[k] = a->compare( *src[k] ); 
 			}
 

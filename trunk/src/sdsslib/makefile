@@ -4,7 +4,7 @@ CC=g++
 
 # define compiler flags
 #
-CFLAGS       = -fPIC -g -Wall -D_FILE_OFFSET_BITS=64
+CFLAGS       = -fPIC -g -Wall -m64 -D_FILE_OFFSET_BITS=64  -fopenmp
 
 # define linker flags
 # 
@@ -23,7 +23,7 @@ INCLUDES =
 LIBS = 
 
 
-TARGET  = sdsslib.so
+TARGET  = ../libsdss.so
 SOURCES = $(wildcard *.cpp)
 HEADERS = $(wildcard *.h)
 OBJECTS = $(SOURCES:.cpp=.o)
