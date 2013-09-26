@@ -19,6 +19,8 @@
 #ifndef H_MEMORY
 #define H_MEMORY
 
+#include "defines.h"
+
 namespace Memory
 {
 

@@ -16,23 +16,26 @@
 //! \file  spectraVFS.cpp
 //! \brief virtual filesystem for spectra, uses main memory as cache
 
-#include "sdsslib/spectraVFS.h"
+#include "spectraVFS.h"
 
-#include "sdsslib/spectraVFSCached.h"
-#include "sdsslib/spectraVFSMemOnly.h"
-#include "sdsslib/spectraWrite.h"
-#include "sdsslib/helpers.h"
-#include "sdsslib/filehelpers.h"
-#include "sdsslib/spectra.h"
-#include "sdsslib/Timer.h"
-#include "sdsslib/memory.h"
-#include "sdsslib/defines.h"
+
+#include "spectraVFSMemOnly.h"
+#ifdef _WIN32
+#include "spectraVFSCached.h"
+#endif
+
+#include "spectraWrite.h"
+#include "helpers.h"
+#include "filehelpers.h"
+#include "spectra.h"
+#include "Timer.h"
+#include "memory.h"
+#include "defines.h"
 
 
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include <conio.h>
 #include <assert.h>
 
 
@@ -40,7 +43,7 @@ SpectraVFS::SpectraVFS( const std::string &_sstrFilename, bool _readOnly )
 :m_sstrDumpFilename(_sstrFilename)
 ,m_logFile(std::string(_sstrFilename+std::string(".log")).c_str())
 {
-#ifdef X64 
+#if defined(X64) || defined(__linux)
 	m_pSpectraVFS = new SpectraVFSMemOnly(_sstrFilename, m_logFile, _readOnly );
 #else
 	m_pSpectraVFS = new SpectraVFSCached(_sstrFilename, m_logFile, _readOnly );

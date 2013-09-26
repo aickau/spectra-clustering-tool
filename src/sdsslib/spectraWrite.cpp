@@ -58,8 +58,6 @@ bool SpectraWrite::write( const Spectra &_spectra )
 
 
 
-
-
 SpectroLisWriter::SpectroLisWriter(const std::string &_sstrFilename )
 :m_sstrFilename(_sstrFilename)
 ,m_sstrOutTable("")

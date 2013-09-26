@@ -81,8 +81,14 @@
 
 
 #define CACHE_LINE 64
+
+#ifdef _WIN32
 #define CACHE_ALIGN __declspec(align(CACHE_LINE))
 #define SSE_ALIGN __declspec(align(16))
+#else
+#define CACHE_ALIGN __attribute__ ((aligned (CACHE_LINE)))
+#define SSE_ALIGN __attribute__ ((aligned (16)))
+#endif
 
 
 #ifdef _WIN32
@@ -90,15 +96,26 @@
 #define isinf(x) (!_finite(x))
 #endif
 
+// make sure to add in the compiler flags -D_FILE_OFFSET_BITS=64  for larger files than 2GB.
+#ifdef __linux
+#define _ftelli64(f) ftell(f)
+#define _fseeki64(f, pos, origin) fseek(f, pos, origin)
+#endif
 
 // this is Visual c++ .NET 2003
 #if _MSC_VER <= 1310
 #define sprintf_s sprintf
 #endif
 
+
+// disable specific warnings for ms visual studio
 #ifdef _MSC_VER
-#pragma warning( disable : 4267 )
-#pragma warning( disable : 4244 )
-#pragma warning( disable : 4018 )
-#pragma warning( disable : 4305 )
+#pragma warning( disable : 4267 )		// conversion from 'size_t' to 'type', possible loss of data
+#pragma warning( disable : 4244 )		// conversion from 'type1' to 'type2', possible loss of data
+#pragma warning( disable : 4018 )		// signed/unsigned mismatch
+#pragma warning( disable : 4305 )		// truncation from 'type1' to 'type2'
+#endif
+
+#ifdef __linux
+#pragma GCC diagnostic ignored "-Wsign-compare"
 #endif

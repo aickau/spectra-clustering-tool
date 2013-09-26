@@ -19,12 +19,11 @@
 #ifndef _SPECTRAVFSMEMONLY_H
 #define _SPECTRAVFSMEMONLY_H
 
-#include <Windows.h>
 #include <string>
 #include <fstream>
 #include <map>
 
-#include "sdsslib/debug.h"
+#include "debug.h"
 #include "spectra.h"
 
 

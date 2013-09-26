@@ -16,29 +16,29 @@
 //! \file  spectraVFSMemOnly.cpp
 //! \brief virtual filesystem for spectra, in this version all spectra have to fit into main memory
 
-#include "sdsslib/spectraVFSMemOnly.h"
+#include "spectraVFSMemOnly.h"
 
-#include "sdsslib/helpers.h"
-#include "sdsslib/filehelpers.h"
-#include "sdsslib/helpers.h"
-#include "sdsslib/spectra.h"
-#include "sdsslib/Timer.h"
-#include "sdsslib/memory.h"
+#include "helpers.h"
+#include "filehelpers.h"
+#include "helpers.h"
+#include "spectra.h"
+#include "Timer.h"
+#include "memory.h"
 
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include <conio.h>
 #include <assert.h>
 
 
+
 SpectraVFSMemOnly::SpectraVFSMemOnly( const std::string &_sstrFilename, std::ofstream &_logFile, bool _readOnly )
-:m_bReadOnly(_readOnly)
+:m_sstrFilename(_sstrFilename)
+,m_bReadOnly(_readOnly)
 ,m_nNumberOfSpectra(0)
-,m_sstrFilename(_sstrFilename)
-,m_pSpectaPool(NULL)
 ,m_nTimeStamp(0)
 ,m_logFile(_logFile)
+,m_pSpectaPool(NULL)
 {
 	const size_t fileSize = FileHelpers::getFileSize( _sstrFilename );
 	const size_t fileCount = fileSize / SPECTRASIZE;
@@ -126,13 +126,12 @@ void SpectraVFSMemOnly::flush()
 
 void SpectraVFSMemOnly::Read( size_t _nSpectraIndex, size_t _numSpectra, Spectra *_pDestination )
 {
-	_cprintf("disk.read\n");
+	Helpers::print("disk.read.");
 	assert( _pDestination != NULL );
 
-	FILE *f = NULL;
-	errno_t retVal = fopen_s( &f, m_sstrFilename.c_str(), "rb" );
+	FILE *f = fopen( m_sstrFilename.c_str(), "rb" );
 
-	if ( f == NULL || retVal != 0 ) 
+	if ( f == NULL ) 
 	{
 		assert(0);
 		Helpers::print( std::string("SpectraVFSMemOnly::Read() Error: file not found (invalid file? disk read error? device lost?).\n"), &m_logFile );
@@ -162,13 +161,12 @@ void SpectraVFSMemOnly::Read( size_t _nSpectraIndex, size_t _numSpectra, Spectra
 
 void SpectraVFSMemOnly::Write(  size_t _nSpectraIndex, size_t _numSpectra, Spectra *_pSource )
 {
-	_cprintf("disk.write\n");
+	Helpers::print("disk.write.");
 	assert( _pSource != NULL );
 
-	FILE *f = NULL;
-	errno_t retVal = fopen_s( &f, m_sstrFilename.c_str(), "wb" );
+	FILE *f = fopen( m_sstrFilename.c_str(), "wb" );
 
-	if ( f == NULL || retVal != 0 ) 
+	if ( f == NULL ) 
 	{
 		Helpers::print( std::string("SpectraVFSMemOnly::Write() Error: file not found (invalid file? disk read error? device lost?).\n"), &m_logFile );
 	}
