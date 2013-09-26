@@ -3033,7 +3033,7 @@ void writeDifferenceMap()
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
 
-				const float err = compare.compareSuperAdvanced(*sp,0.1);
+				const float err = compare.compare(*sp);
 				float intensity = (err-226.f)/255.f;
 
 				SpectraHelpers::intensityToRGB( intensity, &pRGBMap[i*3], true );			

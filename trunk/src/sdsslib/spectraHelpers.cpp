@@ -737,7 +737,7 @@ void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAd
 			vfs.endRead( j );
 			j += jInc;
 
-			for (size_t k=0;k<jInc;k++)
+			for (int k=0;k<jInc;k++)
 			{
 				if ( err > pErr[k] )
 				{
@@ -773,7 +773,7 @@ void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAd
 void writeSpectraInfoToTable( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrTableFilename, std::ofstream *pLogFile )
 {
 	const int gridSizeSqr = _network.getNumSpectra();
-	const int gridSize = sqrtf(gridSizeSqr);
+	const int gridSize = (INT)sqrtf(gridSizeSqr);
 	const int gridSizeSqr2 = gridSize*gridSize;
 	const size_t numSourceSpecra = _sourceSpectra.getNumSpectra();
 
@@ -1364,9 +1364,9 @@ void writeSpectraTypes( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const 
 		{
 			Spectra *sp = _sourceSpectra.beginRead(index);
 
-			float r=0;		// dark cyan undefined spectra type
-			float g=0.5;
-			float b=0.5;
+			float r=0.0f;		// dark cyan undefined spectra type
+			float g=0.5f;
+			float b=0.5f;
 
 			switch ( sp->m_Type )
 			{
@@ -1389,33 +1389,33 @@ void writeSpectraTypes( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const 
 			case Spectra::SPT_STAR_RED_DWARF : 
 			case Spectra::SPT_STAR_WHITE_DWARF : 
 			case Spectra::SPT_STAR_BHB : 
-			case Spectra::SPT_STAR : r= 0.0; g=0.0; b= 1.0;			// blue
+			case Spectra::SPT_STAR : r= 0.0f; g=0.0f; b= 1.0f;			// blue
 				break;
-			case Spectra::SPT_STAR_LATE : r= 0.0; g=1.0; b= 0.0;	// green
+			case Spectra::SPT_STAR_LATE : r= 0.0f; g=1.0; b= 0.0f;	// green
 				break;	
-			case Spectra::SPT_STAR_CARBON : r= 0.7; g=0.7; b= 0.7;	// grey
+			case Spectra::SPT_STAR_CARBON : r= 0.7f; g=0.7f; b= 0.7f;	// grey
 				break;	
-			case Spectra::SPT_GALAXY : r= 1.0; g=0.0; b= 0.0;		// red
+			case Spectra::SPT_GALAXY : r= 1.0f; g=0.0f; b= 0.0f;		// red
 				break;
-			case Spectra::SPT_QSO : r= 1.0; g=0.5; b= 0.0;			// orange
+			case Spectra::SPT_QSO : r= 1.0f; g=0.5f; b= 0.0f;			// orange
 				break;
-			case Spectra::SPT_QSO_BAL : r=1.0; g=0.6; b=0;			// lighter orange
+			case Spectra::SPT_QSO_BAL : r=1.0f; g=0.6f; b=0.f;			// lighter orange
 				break;
-			case Spectra::SPT_BLAZAR : r=1.0; g=0.4; b=0;			// darker orange
+			case Spectra::SPT_BLAZAR : r=1.0f; g=0.4f; b=0.f;			// darker orange
 				break;
-			case Spectra::SPT_HIZ_QSO : r= 1.0; g=1.0; b= 0.0;		// yellow
+			case Spectra::SPT_HIZ_QSO : r= 1.0f; g=1.0f; b= 0.0f;		// yellow
 				break;
 			case Spectra::SPT_ROSAT_A : 
 			case Spectra::SPT_ROSAT_B : 
 			case Spectra::SPT_ROSAT_C : 
-			case Spectra::SPT_ROSAT_D : r= 0.0; g=1.0; b= 1.0;		// cyan
+			case Spectra::SPT_ROSAT_D : r= 0.0f; g=1.0f; b= 1.0f;		// cyan
 				break;
 
 			case Spectra::SPT_SPECTROPHOTO_STD :
 			case Spectra::SPT_HOT_STD :			
-			case Spectra::SPT_REDDEN_STD :r= 0.0; g=0.6; b= 0.6;	// dark cyan		
+			case Spectra::SPT_REDDEN_STD :r= 0.0f; g=0.6f; b= 0.6f;	// dark cyan		
 				break;
-			case Spectra::SPT_EXOTIC :r= 0.0; g=0.8; b= 0.8;		// dark cyan		
+			case Spectra::SPT_EXOTIC :r= 0.0f; g=0.8f; b= 0.8f;		// dark cyan		
 				break;
 		}
 			pRGBMap[i*3+0] = r;

@@ -63,7 +63,6 @@ void main(int argc, char* argv[])
 
 	std::string sstrDumpFile(DUMPFILE);
 	unsigned int spectraFilter = 0;//SPT_DEFAULTFILTER;
-	unsigned int compareFunc = 0;
 	float compareInvariance = 0.1f;
 	bool bNormalize = false;
 	bool bReverseOrder = false;
@@ -120,16 +119,12 @@ void main(int argc, char* argv[])
 
 		TCLAP::ValueArg<std::string> dumpFilenameArg("i", "inputdumpfile", "example: allSpectra.bin", false, sstrDumpFile, "input dump file that contains all spectra to compare with.");
 		TCLAP::ValueArg<unsigned int> filterArg("f", "filter", sstrFilterDesc, false, spectraFilter, "use only spectra for comparison with the given filter type");
-		TCLAP::ValueArg<unsigned int> compareFuncArg("c", "comparefunc", sstrCompareFuncDesc, false, compareFunc, "compare function to use (0=simple, 1=advanced, 2=superadvanced)");
-		TCLAP::ValueArg<float> compareInvarianceArg("v", "compareinvariance", "Percentage to take the neighboring samples of spectra for comparison into account. 0=no neighboring samples are taken into account, 1=all samples are taken into account. Only used if compare function is not set to simple", false, compareInvariance, "compare invariance (0..1)");
 		TCLAP::SwitchArg normalizeArg("n","normalize","Normalize spectra", false);
 		TCLAP::SwitchArg reverseArg("r","reverse","Reverse order", false);
 		TCLAP::ValueArg<unsigned int> lengthArg("l", "length", "maximum number of spectra to output (default is 100)", false, outputListLength, "output list length" );
 
 		cmd.add( dumpFilenameArg );
 		cmd.add( filterArg );
-		cmd.add( compareFuncArg );
-		cmd.add( compareInvarianceArg );
 		cmd.add( normalizeArg );
 		cmd.add( reverseArg );
 		cmd.add( lengthArg );
@@ -138,8 +133,6 @@ void main(int argc, char* argv[])
 
 		sstrDumpFile = dumpFilenameArg.getValue();
 		spectraFilter = (filterArg.getValue() > 0) ? filterArg.getValue() : 255;
-		compareFunc = CLAMP( compareFuncArg.getValue(), 0, 2 );
-		compareInvariance = CLAMP(compareInvarianceArg.getValue(),0.f,1.f);
 		bNormalize = normalizeArg.getValue();
 		bReverseOrder = reverseArg.getValue();
 		outputListLength = lengthArg.getValue();
@@ -149,18 +142,8 @@ void main(int argc, char* argv[])
 		Helpers::print( "Error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
 	}
 
-
-	std::string sstrCompareFunc;
-	switch (compareFunc){
-		case 1:sstrCompareFunc="advanced";break;
-		case 2:sstrCompareFunc="super advanced";break;
-		default: sstrCompareFunc="simple";break;
-	}
-
 	Helpers::print( "dump file: "+sstrDumpFile+"\n", &logFile );
 	Helpers::print( "filter: "+Spectra::spectraFilterToString(spectraFilter)+"\n", &logFile );
-	Helpers::print( "compare function: "+sstrCompareFunc+"\n", &logFile );
-	Helpers::print( "comparison invariance: "+Helpers::numberToString<float>(compareInvariance)+"\n", &logFile );
 	Helpers::print( "normalize: "+Helpers::numberToString<bool>(bNormalize)+"\n", &logFile );
 	Helpers::print( "reversed order: "+Helpers::numberToString<bool>(bReverseOrder)+"\n" , &logFile );
 	Helpers::print( "output list length: "+Helpers::numberToString<unsigned int>(outputListLength)+"\n" , &logFile );
@@ -173,10 +156,6 @@ void main(int argc, char* argv[])
 	sstrBaseInfo += sstrDumpFile;
 	sstrBaseInfo += "<br>\nfilter: ";
 	sstrBaseInfo += Spectra::spectraFilterToString(spectraFilter);
-	sstrBaseInfo += "<br>\ncompare function: ";
-	sstrBaseInfo += sstrCompareFunc;
-	sstrBaseInfo += "<br>\ncomaprison invariance: ";
-	sstrBaseInfo += Helpers::numberToString<float>(compareInvariance);
 	sstrBaseInfo += "<br>\nnormalize: ";
 	sstrBaseInfo += Helpers::numberToString<int>(bNormalize);
 	sstrBaseInfo += "<br>\nreversed order: ";
@@ -263,12 +242,7 @@ void main(int argc, char* argv[])
 				}
 				for ( size_t l=0;l<numCompareSpectra;l++ )
 				{
-					switch (compareFunc)
-					{
-					case 1: err[l][k] = compareSpectra[l].compareAdvanced( *src[k], compareInvariance ); break;
-					case 2: err[l][k] = compareSpectra[l].compareSuperAdvanced( *src[k], compareInvariance ); break;
-					default: err[l][k] = compareSpectra[l].compare( *src[k] ); break;
-					}
+					err[l][k] = compareSpectra[l].compare( *src[k] );
 				}
 			}
 			else

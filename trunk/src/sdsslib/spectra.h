@@ -250,44 +250,6 @@ public:
 	// compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 	float compare(const Spectra &_spectra) const;
 
-	// compare two spectra using the Bhattacharyya distance 
-	// it is a statistical distance measure which works with probability distributions
-	// make sure to normalize comparing spectra by flux!
-	// see http://en.wikipedia.org/wiki/Bhattacharyya_distance
-	float compareBhattacharyya(const Spectra &_spectra) const;
-
-	// compare spectra using a more advanced error measure taking neighboring samples into account.
-	// _width 0..1
-	float compareAdvanced(const Spectra &_spectra, float _width) const;
-
-	// super advanced compare using peak detectors and continuum spectrum.
-	// _width 0..1
-	float compareSuperAdvanced(const Spectra &_spectra, float _width, bool _bOptimize=false) const;
-
-	// calculate continuum spectrum by heavy under sampling.
-	// _continuumSamples should be an order of magnitude smaller than Spectra::numSamples. 32 for instance is a good fit.
-	void getContinuum( size_t _continuumSamples, std::vector<float> &_outContinuum ) const;
-
-	// generate continuum subtracted spectrum
-	// _continuumSamples should be an order of magnitude smaller than Spectra::numSamples. 32 for instance is a good fit.
-	// _outSpectrumMinusContinuum returns spectrum subtracted by the continuum
-	// _outContinuum returns the continuum itself, has _continuumSamples in 
-	void getSpectrumMinusContinuum( size_t _continuumSamples, std::vector<float> &_outSpectrumMinusContinuum, std::vector<float> &_outContinuum ) const;
-
-	// get a list of detected peaks.
-	// _spectrumMinusContinuum continuum subtracted spectrum of the used spectrum
-	// _numPeaks maximum number of detected and returned peaks
-	// _cutOffTreshold high value = many peaks, low value less peaks, [0.1..1000], reasonable range [1..10]
-	// _outMinPeaks ordered pairs of minimum peaks below continuum. starts with lowest value first.
-	//              first = amplitude, second = sample index
-	// _outMinPeaks ordered pairs of maximum peaks above continuum. starts with lowest value first.
-	//              first = amplitude, second = sample index
-	void getPeaks( const std::vector<float> &_spectrumMinusContinuum, 
-		size_t _numPeaks, 
-		float _cutOffTreshold, 
-		std::vector<float> &_outMinPeaks, 
-		std::vector<float> &_outMaxPeak ) const;
-
 	//@}
 
 	/** @name MODIFIERS
