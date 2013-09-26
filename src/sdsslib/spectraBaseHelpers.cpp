@@ -58,7 +58,7 @@ void foldSpectrum( float *_pSrcSpectrum, size_t _numSrcSamples, float *_pDstSpec
 	}
 
 	size_t numSamples = _numSrcSamples;
-	for ( int j=0;j<_numFoldIterations;j++ )
+	for ( size_t j=0;j<_numFoldIterations;j++ )
 	{
 		size_t c=0;
 		for (size_t i=0;i<numSamples-1;i+=2)
@@ -123,7 +123,7 @@ void compareSpectra(const Spectra &_a, std::vector<Spectra*> &_pB, float *_pOutE
 void repairSpectra( float *_pixels, bool *_maskarray, int _numsamples )
 {
 	// repair isolated pixel errors
-	for (size_t i=1;i<_numsamples-1;i++)
+	for (int i=1;i<_numsamples-1;i++)
 	{
 		if (_maskarray[i] )
 		{
