@@ -83,7 +83,7 @@ void Helpers::print( const std::string &_sstrText, std::ofstream *_logStream, bo
 #ifdef _WIN32
 	_cprintf( _sstrText.c_str() );
 #else
-	printf( sstrPrefix.c_str() );
+	printf( _sstrText.c_str() );
 #endif
 
 	if ( _logStream != NULL )
