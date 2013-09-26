@@ -214,13 +214,8 @@ size_t FileHelpers::getFileSize(const std::string &_sstrFilename)
 		return 0;
 	}
 
-#ifdef _WIN32
 	_fseeki64( f, 0, SEEK_END );
 	int64_t fileSize = _ftelli64( f );
-#else
-	fseek( f, 0, SEEK_END );			// make sure to add in the compiler flags -D_FILE_OFFSET_BITS=64  for larger files than 2GB.
-	int64_t fileSize = ftell( f );
-#endif
 	fclose( f );
 
 	// check if we reach 32 bit limits.

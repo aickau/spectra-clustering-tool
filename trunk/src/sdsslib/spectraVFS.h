@@ -19,12 +19,12 @@
 #ifndef _SPECTRAVFS_H
 #define _SPECTRAVFS_H
 
-#include <Windows.h>
+
 #include <string>
 #include <fstream>
 #include <set>
 
-#include "sdsslib/debug.h"
+#include "debug.h"
 #include "spectra.h"
 
 class SpectraVFSCached;
@@ -98,7 +98,7 @@ private:
 	std::string m_sstrDumpFilename;										// file where we read from (and write to)
 	std::ofstream m_logFile;											// error logfile 
 
-#ifdef X64
+#if defined(X64) || defined(__linux)
 	SpectraVFSMemOnly *m_pSpectraVFS;				
 #else
 	SpectraVFSCached *m_pSpectraVFS;				

@@ -64,8 +64,8 @@ public:
 	~SpectroLisWriter();
 	void writeEntry( int _MJD, int _plate, int _fiberID );
 private:
-	std::string m_sstrOutTable;
 	std::string m_sstrFilename;
+	std::string m_sstrOutTable;
 	int m_currentPlate;
 };
 
