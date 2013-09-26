@@ -55,6 +55,7 @@ public:
 		bool waitForUser;											// if true wait for user input after each calculation step
 		bool fullExport;											// if true create a detailed export for each spectrum after final calculation step (online ueseful for small maps)
 		int imageBoderSize;											// to draw colored frames around the image icons, to distinguish between visited and not visited images
+		int iconSize;												// icon width/height in pixels for all spectra icons
 		std::string sstrSearchMode;									// search mode to control quality vs. computation time
 																	// SOFMNET_SETTINGS_SEARCHMODE_global     < uses global search for BMUs, best quality, runtime is O(n²)
 																	// SOFMNET_SETTINGS_SEARCHMODE_local      < uses local search for BMUs if possible.
