@@ -25,7 +25,7 @@
 #include "sdsslib/spectraHelpers.h"
 #include "sdsslib/helpers.h"
 #include "sdsslib/sdssSoftwareVersion.h"
-#include "sdsslib/filehelpers.h"
+#include "sdsslib/fileHelpers.h"
 
 #include "framework.h"	
 #include "spectraMapper.h"

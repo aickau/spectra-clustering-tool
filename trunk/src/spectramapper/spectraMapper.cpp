@@ -22,7 +22,7 @@
 #include "sdsslib/glhelper.h"
 #include "sdsslib/spectraHelpers.h"
 #include "sdsslib/helpers.h"
-#include "sdsslib/filehelpers.h"
+#include "sdsslib/fileHelpers.h"
 
 #include "devil/include/il/il.h"
 #include "devil/include/il/ilu.h"

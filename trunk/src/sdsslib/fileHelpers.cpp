@@ -16,7 +16,7 @@
 //! \file  fileHelpers.cpp
 //! \brief 
 
-#include "FileHelpers.h"
+#include "fileHelpers.h"
 
 #include "defines.h"
 #include "debug.h"

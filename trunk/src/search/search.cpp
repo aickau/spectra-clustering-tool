@@ -29,11 +29,11 @@
 
 #include "sdsslib/defines.h"
 #include "sdsslib/helpers.h"
-#include "sdsslib/filehelpers.h"
+#include "sdsslib/fileHelpers.h"
 #include "sdsslib/spectra.h"
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/memory.h"
-#include "sdsslib/spectrahelpers.h"
+#include "sdsslib/spectraHelpers.h"
 #include "sdsslib/HTMLExport.h"
 #include "sdsslib/sdssSoftwareVersion.h"
 

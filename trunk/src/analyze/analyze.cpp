@@ -26,7 +26,7 @@
 #include "sdsslib/sdssSoftwareVersion.h"
 #include "sdsslib/gltexture.h"
 #include "sdsslib/glshaderprogram.h"
-#include "sdsslib/filehelpers.h"
+#include "sdsslib/fileHelpers.h"
 
 #include "framework.h"	
 #include "SOFMNetwork.h"

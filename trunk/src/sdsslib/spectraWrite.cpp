@@ -20,7 +20,7 @@
 
 #include "spectraWrite.h"
 #include "spectra.h"
-#include "Helpers.h"
+#include "helpers.h"
 
 #include <fstream>
 
