@@ -119,3 +119,8 @@
 #ifdef __linux
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #endif
+
+
+#ifdef __x86_64__
+#define X64								// to have X64 define under linux
+#endif

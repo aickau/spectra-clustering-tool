@@ -56,44 +56,44 @@ public spectraCompareX64
 .code
 align 16
 spectraCompareX64 PROC frame ;a0:PTR, a1:PTR, result:PTR, numSamples:QWORD
-; a0 = rcx
-; a1 = rdx
-; r8 = result
-; r9 = numsamples
+; a0         = rcx
+; a1         = rdx
+; result     = r8 
+; numsamples = r9 
 		
 		SaveGPR
 		
 		push rdi
 		push rsi
 
-		mov	rdi, rcx
-		mov rsi, rdx
-		mov rcx, r9
-		mov rdx, r8
-		shr rcx, 3
-		xorps xmm0, xmm0
+		mov	rdi, rcx					; a0 -> rdi
+		mov rsi, rdx					; a1 -> rsi
+		mov rcx, r9						; numsamples -> rcx
+		mov rdx, r8						; result -> rdx
+		shr rcx, 3 						; numsamples / 8
+		xorps xmm0, xmm0				; xmm0 = 0
 
 
 loop1:
-		prefetcht0 [rsi+4*4*64]
-		prefetcht0 [rdi+4*4*64]
+		prefetcht0 [rsi+4*4*64]			; prefetch a1
+		prefetcht0 [rdi+4*4*64]			; prefetch a0
 
-		movaps xmm1, [rdi+4*4*0]
-		movaps xmm2, [rsi+4*4*0]
-		movaps xmm3, [rdi+4*4*1]
-		movaps xmm4, [rsi+4*4*1]
+		movaps xmm1, [rdi+4*4*0]		; a0[0] -> xmm1
+		movaps xmm2, [rsi+4*4*0]		; a1[0] -> xmm2
+		movaps xmm3, [rdi+4*4*1]		; a0[4] -> xmm3
+		movaps xmm4, [rsi+4*4*1]  		; a1[4] -> xmm4
 
-		subps xmm1, xmm2
-		subps xmm3, xmm4
+		subps xmm1, xmm2				; xmm1 = xmm1-xmm2
+		subps xmm3, xmm4				; xmm3 = xmm3-xmm4
 
-		mulps xmm1, xmm1
-		mulps xmm3, xmm3
+		mulps xmm1, xmm1 				; xmm1^2
+		mulps xmm3, xmm3 				; xmm3^2
 
-		addps xmm0, xmm1
-		addps xmm0, xmm3
+		addps xmm0, xmm1 				; xmm0 += xmm1
+		addps xmm0, xmm3 				; xmm0 += xmm3
 
-		add rdi, 4*4*2
-		add rsi, 4*4*2
+		add rdi, 4*4*2 					; next 8 floats
+		add rsi, 4*4*2 					; next 8 floats
 
 		dec rcx
 		jnz loop1
@@ -114,10 +114,10 @@ public spectraAdaptX64
 .code
 align 16
 spectraAdaptX64 PROC frame ;a0:PTR, a1:PTR, adaptionRate:PTR, numSamples:QWORD
-; a0 = rcx
-; a1 = rdx
-; r8 = adaptionRate
-; r9 = numsamples
+; a0           = rcx
+; a1           = rdx
+; adaptionRate = r8 
+; numsamples   = r9 
 
 		SaveGPR
 		
