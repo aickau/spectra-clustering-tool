@@ -1177,9 +1177,8 @@ loop1:
 }
 
 
-#ifdef _WIN32
+
 extern "C" void spectraCompareX64(const float *a0, const float *a1, float *errout, size_t numsamples);
-#endif
 
 float Spectra::compare(const Spectra &_spectra) const
 {
@@ -1242,7 +1241,30 @@ loop1:
 		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
 		error += d*d;
 	}
-#else
+
+#else // ___linux
+
+#ifdef X64
+	SSE_ALIGN float errorv[4];
+
+	// optimized memory friendly version. make sure spectra is 16 bytes aligned
+	// this is 10x faster than compiler generated SSE code!
+	const float *a0 = &m_Amplitude[Spectra::pixelStart];
+	const float *a1 = &_spectra.m_Amplitude[Spectra::pixelStart];
+	size_t numSamples4 = (Spectra::pixelEnd >> 3) << 3;
+
+
+	spectraCompareX64(a0,a1,errorv,numSamples4);
+
+	float error=errorv[0]+errorv[1]+errorv[2]+errorv[3];
+
+	int i=numSamples4;
+	for (i;i<pixelEnd;i++)
+	{
+		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
+		error += d*d;
+	}
+#else // !X64
 
 	float error=0.0f;
 	for (size_t i=0;i<Spectra::numSamples;i++)
@@ -1250,8 +1272,9 @@ loop1:
 		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
 		error += d*d;
 	}
+#endif // X64
 
-#endif
+#endif // !WIN32
 
 	
 	return error;
