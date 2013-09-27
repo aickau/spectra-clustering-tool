@@ -44,3 +44,49 @@ loop1:
 		ret
 
 
+#extern "C" void spectraAdaptX64(const float *a0, const float *a1, float *adaptionRate, size_t numsamples);
+
+.global spectraAdaptX64 
+
+.text
+spectraAdaptX64:
+
+; a0           = rdi
+; a1           = rsi
+; adaptionRate = rdx 
+; numsamples   = rcx
+
+
+		shr $3, %rcx					# numsaples /= 8
+		movaps (%rdx), %xmm0			# adaptionrate -> xmm0
+
+
+loop2:
+		prefetchnta 4*4*64(%rsi)		# prefetch a1
+		prefetchnta 4*4*64(%rdi)		# prefetch a0 
+
+		movaps 4*4*0(%rdi), %xmm1 		# dst: m_Amplitude[c]
+		movaps 4*4*0(%rsi), %xmm2		# src: _spectra.m_Amplitude[c]
+		movaps 4*4*1(%rdi), %xmm3		# dst: m_Amplitude[c+4]
+		movaps 4*4*1(%rsi), %xmm4		# src:_spectra.m_Amplitude[c+4]
+
+		subps %xmm1, %xmm2				# _spectra.m_Amplitude[c]-m_Amplitude[c]
+		subps %xmm3, %xmm4				# _spectra.m_Amplitude[c+4]-m_Amplitude[c+4]
+
+		mulps %xmm0, %xmm2				# *=_adaptionRate
+		mulps %xmm0, %xmm4				# *=_adaptionRate
+
+		addps %xmm2, %xmm1 				# add to dst
+		addps %xmm4, %xmm3				# add to dst
+
+		movaps %xmm1, 4*4*0(%rdi)   	# this is the slowest bit
+		movaps %xmm3, 4*4*1(%rdi) 		# this is the slowest bit
+
+		add $4*4*2, %rdi
+		add $4*4*2, %rsi
+
+		dec %rcx
+		jnz loop2
+		
+		ret
+
