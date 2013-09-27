@@ -1167,7 +1167,6 @@ loop1:
 
 #ifdef X64
 
-	printf("adaptx64\n");
 	const float *a0 = &m_Amplitude[Spectra::pixelStart];
 	const float *a1 = &_spectra.m_Amplitude[Spectra::pixelStart];
 	size_t numSamples4 = (Spectra::pixelEnd >> 3) << 3;
