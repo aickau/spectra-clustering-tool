@@ -1103,9 +1103,9 @@ void Spectra::normalizeByFlux()
 	calcMinMax();
 }
 
-#ifdef _WIN32
+
 extern "C" void spectraAdaptX64(const float *a0, const float *a1, float *adaptionRate, size_t numsamples);
-#endif
+
 
 void Spectra::adapt( const Spectra &_spectra, float _adaptionRate )
 {
@@ -1163,16 +1163,31 @@ loop1:
 	{
 		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
 	}
-#else
+#else // __linux
 
-	// c-version (slow)
-	for ( size_t i=0;i<Spectra::numSamples;i++ )
+#ifdef X64
+
+	printf("adaptx64\n");
+	const float *a0 = &m_Amplitude[Spectra::pixelStart];
+	const float *a1 = &_spectra.m_Amplitude[Spectra::pixelStart];
+	size_t numSamples4 = (Spectra::pixelEnd >> 3) << 3;
+	SSE_ALIGN float adaptionRate4[4] = {_adaptionRate,_adaptionRate,_adaptionRate,_adaptionRate}; 
+
+	spectraAdaptX64(a0,a1,adaptionRate4,numSamples4);
+
+	int i=numSamples4;
+	for (i;i<Spectra::pixelEnd;i++)
 	{
 		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
 	}
-
+#else // !X64
+	// c-version (slow)
+	for ( size_t i=Spectra::pixelStart;i<Spectra::pixelEnd;i++ )
+	{
+		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
+	}
+#endif // X64
 #endif
-
 
 }
 
@@ -1267,7 +1282,7 @@ loop1:
 #else // !X64
 
 	float error=0.0f;
-	for (size_t i=0;i<Spectra::numSamples;i++)
+	for (size_t i=Spectra::pixelStart;i<Spectra::pixelEnd;i++)
 	{
 		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
 		error += d*d;
