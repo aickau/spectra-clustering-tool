@@ -19,6 +19,9 @@
 #include "spectraBaseHelpers.h"
 
 #include "spectra.h"
+#include "fileHelpers.h"
+#include "Timer.h"
+#include "spectraVFS.h"
 
 #include <assert.h>
 #include <omp.h>
@@ -28,6 +31,97 @@
 
 namespace SpectraBaseHelpers
 {
+
+
+
+void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAdaptionPerSecond, bool _skipIfFileExits  )
+{
+	_outMioComparesPerSecond = -1.0;
+	_outMioAdaptionPerSecond = -1.0;
+
+	const int numSpectra( SpectraVFS::CACHELINESIZE );
+	const std::string sstrDumpFile("perftest.bin");
+	const size_t numIterations(1000);
+
+	// skip performance check if bin file exits to speed-up startup
+	if ( _skipIfFileExits && FileHelpers::fileExists(sstrDumpFile) )
+	{
+		return;
+	}
+
+	float pErr[SpectraVFS::CACHELINESIZE];
+	SSE_ALIGN Spectra a;
+	a.setSine();
+
+	if ( !FileHelpers::fileExists(sstrDumpFile) )
+		SpectraVFS::write( numSpectra, 1.0, sstrDumpFile );
+
+	SpectraVFS vfs( sstrDumpFile, false );
+
+	if ( vfs.getNumSpectra() != numSpectra )
+	{
+		assert(0);
+		return;
+	}
+
+	for ( size_t i=0;i<numSpectra;i++)
+	{
+		Spectra *b = vfs.beginWrite( i );
+		b->m_SpecObjID = 0;
+		vfs.endWrite( i );
+	}
+
+	Timer t;
+
+	// measure compare performance
+	////////////////////////////////////////////////////
+
+	float err=FLT_MAX;
+	// repeat test 
+	for ( size_t i=0;i<numIterations;i++ )
+	{
+		size_t j=0;
+		while (j<numSpectra)
+		{
+			const int jInc = MIN( SpectraVFS::CACHELINESIZE, (MIN(numSpectra, j+SpectraVFS::CACHELINESIZE)-j));
+
+			Spectra *b = vfs.beginRead( j );
+			SpectraBaseHelpers::compareSpectra( a, b, jInc, pErr );
+			vfs.endRead( j );
+			j += jInc;
+
+			for (int k=0;k<jInc;k++)
+			{
+				if ( err > pErr[k] )
+				{
+					err = pErr[k];
+				}
+			}
+		}
+	}
+	double dt = t.getElapsedSecs()/static_cast<double>(numIterations);
+	_outMioComparesPerSecond = (static_cast<double>(numSpectra)/dt)/1000000.0;
+
+
+	// measure adaption performance
+	////////////////////////////////////////////////////
+
+	t.start();
+	for ( size_t i=0;i<numIterations;i++ )
+	{
+#pragma omp parallel for
+		for ( int j=0;j<numSpectra;j++ )
+		{
+			Spectra *b = vfs.beginWrite( j );
+			b->adapt( a, 0.01f );
+			vfs.endWrite( j );
+		}
+	}
+	dt = t.getElapsedSecs()/static_cast<double>(numIterations);
+	_outMioAdaptionPerSecond = (static_cast<double>(numSpectra)/dt)/1000000.0;
+
+} 
+
 
 
 void foldSpectrum( float *_pSrcSpectrum, size_t _numSrcSamples, float *_pDstSpectrum, size_t _numDstSamples, size_t _numFoldIterations )

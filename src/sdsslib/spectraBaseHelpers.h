@@ -31,7 +31,12 @@ class Spectra;
 // Additional, high-level helper functions can be found in SpectraHelpers.
 namespace SpectraBaseHelpers
 {
-
+	// test compare and adpation performance in million compares/adaptions per second.
+	// Writes temporary dump file perftest.bin in order to do the check.
+	// \param [out] the millions of spectra compares (one to many) per second.
+	// \param [out] the millions of spectra adaption (one to many) per second.
+	// \param _skipIfFileExits skip if temporary binary already exits.
+	void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAdaptionPerSecond, bool _skipIfFileExits=true );
 
 	/** @name CALCULATIONS
 	*/

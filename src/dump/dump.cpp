@@ -50,7 +50,7 @@ void main(int argc, char* argv[])
 /*
 	double mioSpectraComparePerSecond;
 	double mioSpectraAdaptionPerSecond;
-	SpectraHelpers::testSpectraPerformance( mioSpectraComparePerSecond, mioSpectraAdaptionPerSecond );
+	SpectraBaseHelpers::testSpectraPerformance( mioSpectraComparePerSecond, mioSpectraAdaptionPerSecond );
 
 	Helpers::print( Helpers::numberToString<double>(mioSpectraComparePerSecond) +std::string(" million spectra compares per second.\n"), &logFile );
 	Helpers::print( Helpers::numberToString<double>(mioSpectraAdaptionPerSecond) +std::string(" million spectra adaption per second.\n"), &logFile );

@@ -133,10 +133,6 @@ namespace SpectraHelpers
 	// write dotted red rectangles into a float rgb map (for u matrix and difference map rendering)
 	void writeMapWithSubpageMarkers( const std::string &_sstrFilenName, float *_pRGBMap, size_t _gridSize, size_t _planSize );
 
-	// returns the millions of spectra compares (one to many) per second.
-	// returns the millions of spectra adaption (one to many) per second.
-	void testSpectraPerformance( double &_outMioComparesPerSecond, double &_outMioAdaptionPerSecond );
-
 	// Writes mapindex, xpos, ypos, specObjID, aspect internal spectraIndex, plate ID, MJD, fiber ID, z, objtype into cvs table
 	// \param pLogFile optional pointer to log file.
 	void writeSpectraInfoToTable( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrTableFilename, std::ofstream *pLogFile=NULL );

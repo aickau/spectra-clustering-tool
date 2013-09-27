@@ -22,6 +22,7 @@
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/spectraWrite.h"
 #include "sdsslib/spectraHelpers.h"
+#include "sdsslib/spectraBaseHelpers.h"
 #include "sdsslib/helpers.h"
 #include "sdsslib/sdssSoftwareVersion.h"
 #include "sdsslib/gltexture.h"
@@ -201,7 +202,7 @@ int InitGL()
 
 	double mioSpectraComparePerSecond;
 	double mioSpectraAdaptionPerSecond;
-	SpectraHelpers::testSpectraPerformance( mioSpectraComparePerSecond, mioSpectraAdaptionPerSecond );
+	SpectraBaseHelpers::testSpectraPerformance( mioSpectraComparePerSecond, mioSpectraAdaptionPerSecond );
 
 	if ( mioSpectraComparePerSecond == -1.0 ) 
 	{
