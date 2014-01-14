@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="resources">
+      <UniqueIdentifier>{1367b656-7d1a-486d-8495-b1b22e1ddd0d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="analyze.cpp" />
+    <ClCompile Include="..\framework.cpp" />
+    <ClCompile Include="SOFMNetwork.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\framework.h" />
+    <ClInclude Include="..\keycodes.h" />
+    <ClInclude Include="..\keymap.h" />
+    <ClInclude Include="SOFMNetwork.h" />
+    <ClInclude Include="SOFMNetworkSettings.h" />
+  </ItemGroup>
+</Project>

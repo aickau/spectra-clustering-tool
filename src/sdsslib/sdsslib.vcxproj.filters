@@ -1,0 +1,250 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="XMLParser">
+      <UniqueIdentifier>{2357e0fb-54ed-4f84-a064-353be01939a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GL">
+      <UniqueIdentifier>{128b7d28-8e98-41b3-813c-16e37eea75d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shader">
+      <UniqueIdentifier>{681a9397-3633-415b-90ef-2f4b93e559de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileArchive">
+      <UniqueIdentifier>{7eaff43a-c7bd-40c3-a384-cf7a271820f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty">
+      <UniqueIdentifier>{1260d52f-daae-43a2-ad60-86a45772ab24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\cfitsio">
+      <UniqueIdentifier>{dd237715-5758-45ce-8879-8d876210676a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\DevIL">
+      <UniqueIdentifier>{9d0533f1-8ad9-484b-b45b-e265b4dcc697}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\tclap">
+      <UniqueIdentifier>{1d26a37c-1750-4566-a5b4-829a45fbeb39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\ziplib">
+      <UniqueIdentifier>{f266b49b-aece-45b5-9450-49f5d526eee9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\zlib">
+      <UniqueIdentifier>{11111326-8cc5-4c97-8c46-bafc4f901e31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\libtiff">
+      <UniqueIdentifier>{b2c42ca6-08e0-46a7-9856-a0101a469c79}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="XMLExport.cpp">
+      <Filter>XMLParser</Filter>
+    </ClCompile>
+    <ClCompile Include="XMLParser.cpp">
+      <Filter>XMLParser</Filter>
+    </ClCompile>
+    <ClCompile Include="XMLParserImpl.cpp">
+      <Filter>XMLParser</Filter>
+    </ClCompile>
+    <ClCompile Include="glextensions.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="glFBO.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="glhelper.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="glshaderprogram.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="gltexture.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="FileArchive.cpp">
+      <Filter>FileArchive</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\api\ziplib\unzip.c">
+      <Filter>3rdParty\ziplib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\api\ziplib\unzipmem.c">
+      <Filter>3rdParty\ziplib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\api\ziplib\zip.c">
+      <Filter>3rdParty\ziplib</Filter>
+    </ClCompile>
+    <ClCompile Include="CSVExport.cpp" />
+    <ClCompile Include="debug.cpp" />
+    <ClCompile Include="fileHelpers.cpp" />
+    <ClCompile Include="helpers.cpp" />
+    <ClCompile Include="HTMLExport.cpp" />
+    <ClCompile Include="mathhelpers.cpp" />
+    <ClCompile Include="memory.cpp" />
+    <ClCompile Include="random.cpp" />
+    <ClCompile Include="spectra.cpp" />
+    <ClCompile Include="spectraHelpers.cpp" />
+    <ClCompile Include="spectraVFS.cpp" />
+    <ClCompile Include="spectraVFSCached.cpp" />
+    <ClCompile Include="spectraVFSMemOnly.cpp" />
+    <ClCompile Include="spectraWrite.cpp" />
+    <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Vecf.cpp" />
+    <ClCompile Include="BigTiff.cpp" />
+    <ClCompile Include="spectraDB.cpp" />
+    <ClCompile Include="spectraBaseHelpers.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="XMLExport.h">
+      <Filter>XMLParser</Filter>
+    </ClInclude>
+    <ClInclude Include="XMLParser.h">
+      <Filter>XMLParser</Filter>
+    </ClInclude>
+    <ClInclude Include="XMLParserAPI.h">
+      <Filter>XMLParser</Filter>
+    </ClInclude>
+    <ClInclude Include="XMLParserImpl.h">
+      <Filter>XMLParser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\glext.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="glextensions.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="glFBO.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="glhelper.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="glshaderprogram.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="gltexture.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wglext.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="FileArchive.h">
+      <Filter>FileArchive</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\cfitsio\fitsio.h">
+      <Filter>3rdParty\cfitsio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\cfitsio\longnam.h">
+      <Filter>3rdParty\cfitsio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\devil\include\IL\devil_internal_exports.h">
+      <Filter>3rdParty\DevIL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\devil\include\IL\il.h">
+      <Filter>3rdParty\DevIL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\devil\include\IL\ilu.h">
+      <Filter>3rdParty\DevIL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\devil\include\IL\ilu_region.h">
+      <Filter>3rdParty\DevIL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\devil\include\IL\ilut.h">
+      <Filter>3rdParty\DevIL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\tclap\CmdLine.h">
+      <Filter>3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\tclap\SwitchArg.h">
+      <Filter>3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\tclap\ValueArg.h">
+      <Filter>3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\ziplib\unzip.h">
+      <Filter>3rdParty\ziplib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\ziplib\unzipmem.h">
+      <Filter>3rdParty\ziplib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\ziplib\zip.h">
+      <Filter>3rdParty\ziplib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\zlib\include\crc32.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\zlib\include\deflate.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\zlib\include\inffast.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\zlib\include\inffixed.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\zlib\include\inflate.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\zlib\include\inftrees.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\zlib\include\trees.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\zlib\include\zconf.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\zlib\include\zconf.in.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\zlib\include\zlib.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\zlib\include\zutil.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVExport.h" />
+    <ClInclude Include="debug.h" />
+    <ClInclude Include="defines.h" />
+    <ClInclude Include="fileHelpers.h" />
+    <ClInclude Include="helpers.h" />
+    <ClInclude Include="HTMLExport.h" />
+    <ClInclude Include="mathhelpers.h" />
+    <ClInclude Include="memory.h" />
+    <ClInclude Include="random.h" />
+    <ClInclude Include="randomNumbers.h" />
+    <ClInclude Include="spectra.h" />
+    <ClInclude Include="spectraHelpers.h" />
+    <ClInclude Include="spectraVFS.h" />
+    <ClInclude Include="spectraVFSCached.h" />
+    <ClInclude Include="spectraVFSMemOnly.h" />
+    <ClInclude Include="spectraWrite.h" />
+    <ClInclude Include="Timer.h" />
+    <ClInclude Include="Vecf.h" />
+    <ClInclude Include="BigTiff.h" />
+    <ClInclude Include="..\3rdparty\api\libtiff\include\tif_config.h">
+      <Filter>3rdParty\libtiff</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\libtiff\include\tiff.h">
+      <Filter>3rdParty\libtiff</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\libtiff\include\tiffconf.h">
+      <Filter>3rdParty\libtiff</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\api\libtiff\include\tiffio.hxx">
+      <Filter>3rdParty\libtiff</Filter>
+    </ClInclude>
+    <ClInclude Include="spectraDB.h" />
+    <ClInclude Include="spectraBaseHelpers.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="comparep.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="comparev.glsl">
+      <Filter>shader</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="sdssSoftwareVersionTemplate.h" />
+    <CustomBuild Include="spectracompare.asm" />
+  </ItemGroup>
+</Project>
