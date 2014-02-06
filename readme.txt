@@ -21,3 +21,15 @@ A&A 541 A77 (2012)
 DOI: 10.1051/0004-6361/201118143
 
 
+This source tree is organized in the following form:
+
+/data                  -  includes some example spectrum files we can import
+/export                -  where the exported map is written too
+/src/3rdparty          -  3rd party libraries
+/src/analyze           -  this is where all the magic happens: calculate SOM and export the clustered map from precompiled list of binary spectra
+/src/compare           -  compare one spectrum with clustered map to find similar objects and other sophisticatd foo
+/src/dump              -  precompiled spectra (i.e. spectra FITS files from varios SDSS data releases) into a single binary file
+/src/sdsslib           -  collection of shared library functions that are used by ASPECT
+/src/specObjOperations -  a collection of various special purpose test code 
+/src/specObjMapper     -  to plot many spectra into one graph to visually compare them
+/src/search            -  perform search queries to find similar spectra for a list of given spectra
