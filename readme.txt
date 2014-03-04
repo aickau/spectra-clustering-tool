@@ -24,8 +24,8 @@ DOI: 10.1051/0004-6361/201118143
 This source tree is organized in the following form:
 
 /data                  -  includes some example spectrum files we can import
-/export                -  where the exported map is written too
-/src/3rdparty          -  3rd party libraries
+/export                -  where the exported (HTML) map is written too
+/src/3rdparty          -  3rd party libraries - for a detailed description see /src/3rdparty/layout.txt
 /src/analyze           -  this is where all the magic happens: calculate SOM and export the clustered map from precompiled list of binary spectra
 /src/compare           -  compare one spectrum with clustered map to find similar objects and other sophisticatd foo
 /src/dump              -  precompiled spectra (i.e. spectra FITS files from varios SDSS data releases) into a single binary file
