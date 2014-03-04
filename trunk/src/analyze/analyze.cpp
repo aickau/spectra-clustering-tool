@@ -101,7 +101,7 @@ int InitGL()
 
 		TCLAP::CmdLine cmd(sstrExamples, ' ', sstrSDSSVersionString);
 
-		TCLAP::ValueArg<std::string> dumpFilenameArg("i", "inputdumpfile", "example: allSpectra.bin", false, sstrSourceSpectraFilename, "input dump file that contains all spectra to compare with.");
+		TCLAP::ValueArg<std::string> dumpFilenameArg("i", "inputdumpfile", "example: allSpectra.bin", false, sstrSourceSpectraFilename, "input dump file that contains all SDSS spectra to cluster.");
 		TCLAP::ValueArg<std::string> selectionListFilenameArg("s", "selection", "Optional selection list of FITS files to dump a small subset of input spectra. File should contain plate-mjd-fiber pairs, e.g. 3586 55181 0001. First line in the file is the header and is ignored.", false, sstrSelectionListFilename, "selectionlist.txt");
 		TCLAP::SwitchArg continueArg("c","continue","Continue computation.", false);
 		TCLAP::SwitchArg visualizeOffArg("v","visualizeoff","Disable visualization of computation.", g_DisableOutput);
