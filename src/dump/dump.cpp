@@ -142,10 +142,11 @@ void main(int argc, char* argv[])
 		Helpers::print( "error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
 	}
 
-	bool bReverseRead = !sstrInputDumpFile.empty();
+	bool bExtractFilenames = !sstrInputDumpFile.empty();
 
-	if ( !bReverseRead )
+	if ( !bExtractFilenames )
 	{
+		// load spectra and pack all necessary information into a single binary file.
 		Helpers::print( "Creating binary dump with following parameters:\n", &logFile);
 		Helpers::print( "datadir: "+sstrDataDir+"\n", &logFile );
 		Helpers::print( "dumpfile: "+sstrDumpFile+"\n", &logFile );
@@ -183,6 +184,7 @@ void main(int argc, char* argv[])
 	}
 	else
 	{
+		// extract FITS filenames from a given binary dump.
 		Helpers::print( "Filename extraction from dumpfile with following parameters:\n", &logFile);
 		Helpers::print( "dumpfile: "+sstrInputDumpFile+"\n", &logFile );
 

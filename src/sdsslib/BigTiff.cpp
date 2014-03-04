@@ -54,18 +54,8 @@ void BigTIFF::test()
     uint16 samplesPerPixel;
     uint32 imageWidth, imageLength;
     uint32 tileWidth, tileLength;
-    uint32 sample;
-    uint32 row, col;
 
     int count = 0;
-
-    unsigned char *bufR, *bufG, *bufB;
-    tdata_t buf;
-    float *L, *H, *S;
-
-    ttile_t tile;
-    tstrip_t strip;
-    tsize_t size;
 
 
     TIFFGetField(tif, TIFFTAG_COMPRESSION, &compress);
