@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="sdsslib">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="fpgaPlayground.cpp" />
+    <ClCompile Include="..\sdsslib\spectra.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\spectraBaseHelpers.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\spectraVFS.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\spectraVFSCached.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\spectraVFSMemOnly.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\debug.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\helpers.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\random.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\spectraDB.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\CSVExport.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\fileHelpers.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\spectraWrite.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\Timer.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdsslib\memory.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="FPGASOFMNetwork.cpp" />
+    <ClCompile Include="..\analyze\SOFMNetworkSettings.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\sdsslib\spectra.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\spectraBaseHelpers.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\spectraVFS.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\spectraVFSCached.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\spectraVFSMemOnly.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\debug.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\defines.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\helpers.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\random.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\spectraDB.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\CSVExport.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\fileHelpers.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\spectraWrite.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\Timer.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sdsslib\memory.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="FPGASOFMNetwork.h" />
+    <ClInclude Include="..\analyze\SOFMNetworkSettings.h" />
+  </ItemGroup>
+</Project>
