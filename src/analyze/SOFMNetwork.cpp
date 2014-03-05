@@ -47,8 +47,12 @@
 //#define SDSS_SINETEST
 //#define WITH_CUDA
 
-static 
-void setBestMatch( Spectra &_networkSpectrum, size_t _networkIndex, Spectra &_bestMatchSpectrum, size_t _bestMatchIndex )
+// set BMU in the map and source spectrum
+// _networkSpectrum artificial spectrum in the map
+// _networkIndex network index [0..gridsizesqr-1]
+// _bestMatchSpectrum source/input spectrum
+// _bestMatchIndex index to input spectrum [0..numspectra-1]
+static void setBestMatch( Spectra &_networkSpectrum, size_t _networkIndex, Spectra &_bestMatchSpectrum, size_t _bestMatchIndex )
 {
 	assert( _networkSpectrum.isEmpty() );
 	// set best matching related info.
@@ -179,9 +183,8 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 			            std::string(" spectra. Grid size is ")+Helpers::numberToString(m_gridSize)+std::string(".\n"), m_pLogStream );
 
 		// generate random filled cluster and load it.
-		std::string sstrNet("sofmnet.bin");
-		SpectraVFS::write( m_gridSize, m_Min, m_Max*0.01f, sstrNet );
-		m_pNet = new SpectraVFS( sstrNet, false );
+		SpectraVFS::write( m_gridSize, m_Min, m_Max*0.01f, sstrSOFMFileName );
+		m_pNet = new SpectraVFS( sstrSOFMFileName, false );
 		reset(m_params);
 
 		renderIcons();
@@ -190,14 +193,9 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		// initialize with input data
 		Helpers::print( std::string("Initializing network with input data.\n"), m_pLogStream );
 
-		// for p:
-		SSE_ALIGN Spectra multiplier;
-		bool bMult = multiplier.loadFromCSV("multiplier.csv");
-		if ( bMult ) 
-		{
-			Helpers::print( std::string("Multiplying input data with multiplier.csv.\n"), m_pLogStream );
-		}
 
+		// fill network with random spectra, this improves the convergence times.
+		// it does not matter if some spectra are inserted multiple times or other may missing since this is just for initialization purposes.
 		Rnd r(m_params.randomSeed);
 		for ( size_t i=0;i<m_gridSizeSqr;i++ )
 		{
@@ -209,10 +207,6 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 				Spectra *a = m_pNet->beginWrite( i );
 				size_t spectraIndex = r.randomInt(m_numSpectra-1);
 				Spectra *b = m_pSourceVFS->beginRead( spectraIndex );
-				if ( bMult )
-				{
-					b->multiply(multiplier);
-				}
 				a->set( *b );
 				m_pSourceVFS->endRead( spectraIndex );
 				m_pNet->endWrite( i );
@@ -420,13 +414,11 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 
 	bSuccess &= p.getChildValue("STEP", "current", m_currentStep );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_STEP, "total", m_params.numSteps );
-//	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_GRIDSIZE, "value", m_gridSize );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_RANDOMSEED, "value", m_params.randomSeed );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_LEARNRATE, "begin", m_params.lRateBegin );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_LEARNRATE, "end", m_params.lRateEnd );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_RADIUS, "begin", m_params.radiusBegin );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_RADIUS, "end", m_params.radiusEnd );
-//	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_SPECTRUM, "size", spectraSize );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_SPECTRUM, "file", _sstrSOFMFileName );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_SEARCHMODE, "value", sstrSearchMode );
 	bSuccess &= p.getChildValue(SOFMNET_SETTINGS_NORMALIZATION, "value", sstrNormalizationType );
@@ -706,7 +698,7 @@ void SOFMNetwork::exportNeighbourHoodFunction( const std::string &_sstrFilenName
 
 
 
-void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex, float _adaptionThreshold, float _sigmaSqr, float _lRate )
+void SOFMNetwork::adaptNetwork( const Spectra &_srcSpectrum, size_t _bestMatchIndex, float _adaptionThreshold, float _sigmaSqr, float _lRate )
 {
 	const size_t xpBestMatch = _bestMatchIndex % m_gridSize;
 	const size_t ypBestMatch = _bestMatchIndex / m_gridSize;
@@ -738,7 +730,7 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 			// calculate neighborhood function
 			//const float mexican_hat_term = 1.f-distSqr/_sigmaSqr;
 			//const float hxy = exp(-(distSqr)/sigmaSqr2);							// original
-			//const float hxy = exp(-(distSqr)/sigmaSqr2)*mexican_hat_term;		// Mexican hat
+			//const float hxy = exp(-(distSqr)/sigmaSqr2)*mexican_hat_term;			// Mexican hat
 			const float hxy = exp(-sqrtf(distSqr)/sigmaSqr2);						// spike
 			const float lratehsx = _lRate*hxy;
 
@@ -746,7 +738,7 @@ void SOFMNetwork::adaptNetwork( const Spectra &_spectrum, size_t _bestMatchIndex
 			{
 				const size_t spectraAdress = y*m_gridSize+x;
 				Spectra *a = m_pNet->beginWrite( spectraAdress );
-				a->adapt( _spectrum, lratehsx );
+				a->adapt( _srcSpectrum, lratehsx );
 				m_pNet->endWrite( spectraAdress );
 			}
 		}
