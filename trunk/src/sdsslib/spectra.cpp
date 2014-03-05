@@ -28,7 +28,14 @@
 #include "CSVExport.h"
 #include "spectraDB.h"
 
-#ifdef _WIN32
+// temporary disable FITS support under linux.
+#ifndef _WIN32
+#define _FITSDISABLED
+#endif
+
+
+
+#ifndef _FITSDISABLED
 #include "cfitsio/fitsio.h"
 #include "cfitsio/longnam.h"
 #endif 
@@ -467,7 +474,7 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	return (m_SamplesRead>0 && bConsistent);	
 }
 
-#ifdef _WIN32
+#ifndef _FITSDISABLED
 Spectra::SpectraVersion checkVersion(fitsfile *f)
 {
 	int status = 0;
@@ -515,13 +522,13 @@ Spectra::SpectraVersion checkVersion(fitsfile *f)
 
 	return Spectra::SP_VERSION_DR8;
 }
-#endif // _WIN32
+#endif // _FITSDISABLED
 
 
 bool Spectra::loadFromFITS(const std::string &_filename)
 {
-#ifndef _WIN32
-	assert(0); // temporary disabled under linux.
+#ifdef _FITSDISABLED
+	assert(0); // temporary disabled.
 	return false;
 #else
 	fitsfile *f=NULL;
@@ -550,14 +557,14 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 	}
 	
 	return false;
-#endif // _WIN32
+#endif // _FITSDISABLED
 }
 
 
 bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 {
-#ifndef _WIN32
-	assert(0); // temporary disabled under linux.
+#ifdef _FITSDISABLED
+	assert(0); // temporary disabled.
 	return false;
 #else
 	fitsfile *f=NULL;
@@ -746,15 +753,15 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 
 	bool bConsistent = checkConsistency();
 	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
-#endif //_WIN32
+#endif //_FITSDISABLED
 }
 
 
 
 bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 {
-#ifndef _WIN32
-	assert(0); // temporary disabled under linux.
+#ifdef _FITSDISABLED
+	assert(0); // temporary disabled.
 	return false;
 #else
 	fitsfile *f=NULL;
@@ -918,8 +925,8 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 
 bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 {
-#ifndef _WIN32
-	assert(0); // temporary disabled under linux.
+#ifdef _FITSDISABLED
+	assert(0); // temporary disabled.
 	return false;
 #else
 	fitsfile *f=NULL;
@@ -1036,7 +1043,7 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 
 	bool bConsistent = checkConsistency();
 	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
-#endif //_WIN32
+#endif //_FITSDISABLED
 }
 
 

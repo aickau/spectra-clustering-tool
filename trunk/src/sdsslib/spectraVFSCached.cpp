@@ -31,6 +31,9 @@
 #include <conio.h>
 #include <assert.h>
 
+#ifdef WIN32
+#include <Windows.h>
+#endif
 
 //#define SPECTRAVFS_ASYNC_IO
 

@@ -16,8 +16,8 @@
 //! \file  debug.h
 //! \brief 
 
-#ifndef H_ASSERT_124620062006
-#define H_ASSERT_124620062006
+#ifndef H_DEBUG_12462006
+#define H_DEBUG_12462006
 
 #include <assert.h>
 

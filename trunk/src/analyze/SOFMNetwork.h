@@ -19,6 +19,8 @@
 #ifndef _SOFMNETWORK_H
 #define _SOFMNETWORK_H
 
+#include "SOFMNetworkSettings.h"
+
 #include "sdsslib/spectra.h"
 #include "sdsslib/random.h"
 
@@ -26,7 +28,6 @@
 
 
 class SpectraVFS;
-class ComputeCUDA;
 
 // Builds, processes and exports a Self Organizing Feature Map of a given training spectra data set which you want to cluster.
 // See A. in der Au, H. Meusinger, P. Schalldach, M. Newholm. ASPECT: A spectra clustering tool for exploration of large spectral surveys. 2012, arXiv:1209.3615 
@@ -39,47 +40,13 @@ public:
 	static const size_t s_outputPlanSize = 5;
 	static const int s_iconSize = 128;
 
-	// SOFM parameters
-	class Parameters
-	{
-	public:
-		Parameters( size_t _numSteps, size_t _randomSeed, float _lRateBegin, float _lRateEnd, float _radiusBegin, float _radiusEnd);
-
-		size_t numSteps;											// number of learn steps. reasonable: 10..500
-		size_t randomSeed;											// zero is not allowed
-		float lRateBegin;											// learn rate begin 0.0 .. 1.0
-		float lRateEnd;												// learn rate end (0.0 .. 1.0)
-		float radiusBegin;											// radius begin (0.0 .. grid size)
-		float radiusEnd;											// radius end (0.0 .. grid size)
-		bool exportSubPage;											// if true add sub pages to HTML output
-		bool waitForUser;											// if true wait for user input after each calculation step
-		bool fullExport;											// if true create a detailed export for each spectrum after final calculation step (online ueseful for small maps)
-		int imageBoderSize;											// to draw colored frames around the image icons, to distinguish between visited and not visited images
-		int iconSize;												// icon width/height in pixels for all spectra icons
-		std::string sstrSearchMode;									// search mode to control quality vs. computation time
-																	// SOFMNET_SETTINGS_SEARCHMODE_global     < uses global search for BMUs, best quality, runtime is O(n²)
-																	// SOFMNET_SETTINGS_SEARCHMODE_local      < uses local search for BMUs if possible.
-																	// SOFMNET_SETTINGS_SEARCHMODE_localfast  < uses very fast local search for BMUs if possible, runtime is O(n) 
-		Spectra::SpectraNormalization normaliziationType;			// type of normalization of spectra
-
-		bool useBOSSWavelengthRange;								// process spectra in an extended wavelength window of 3650..10400 Angstrom 
-																	// instead of the 3800..92000 SDSS default window.
-		
-
-		
-
-		static Parameters defaultParameters;
-	};
-
-
-
 	// _pSourceVFS is your input data which you want to cluster
 	SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, std::ofstream *_logStream );
 
 	~SOFMNetwork();
 
 	// resets the network
-	void reset( const Parameters &_params );
+	void reset( const SOFMParameters &_params );
 
 	// one learning step
 	// returns true if learning is finished and maximum number of learning steps are reached.
@@ -112,7 +79,7 @@ public:
 	// current learning step
 	size_t			m_currentStep;
 
-	Parameters		m_params;
+	SOFMParameters	m_params;
 
 	// maximum amplitude (before normalization)
 	float			m_Min;
@@ -124,13 +91,6 @@ public:
 	float			m_flux;
 
 protected:
-
-	struct BestMatch
-	{
-		void reset();
-		size_t index;	//< index in the map
-		float error;	//< euclidean distance
-	};
 
 	// calculate min/max values for a given SpectraVFS
 	void calcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax );

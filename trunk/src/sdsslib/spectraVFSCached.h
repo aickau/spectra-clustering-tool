@@ -24,7 +24,7 @@
 #include <fstream>
 #include <map>
 
-#include "sdsslib/debug.h"
+#include "debug.h"
 #include "spectra.h"
 #include "spectraVFS.h"
 

@@ -21,7 +21,12 @@
 #include "helpers.h"
 #include "fileHelpers.h"
 
-#ifdef _WIN32
+// temporary disable FITS support under linux.
+#ifndef _WIN32
+#define _FITSDISABLED
+#endif
+
+#ifndef _FITSDISABLED
 #include "cfitsio/fitsio.h"
 #include "cfitsio/longnam.h"
 #endif 
@@ -31,8 +36,8 @@
 
 bool SpectraDB::writeDB( DR dataRelease )
 {
-#ifndef _WIN32
-	assert(0); // temporary disabled under linux.
+#ifdef _FITSDISABLED
+	assert(0); // temporary disabled.
 	return false;
 #else
 	std::string filename("specObj-dr9.fits");
