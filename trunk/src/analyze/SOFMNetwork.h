@@ -128,8 +128,8 @@ protected:
 	struct BestMatch
 	{
 		void reset();
-		size_t index;
-		float error;	
+		size_t index;	//< index in the map
+		float error;	//< euclidean distance
 	};
 
 	// calculate min/max values for a given SpectraVFS
