@@ -47,7 +47,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 5.0.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -105,7 +104,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../3rdparty/api/devil/include/;../3rdparty/api/;../;$(CUDA_PATH)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../3rdparty/api/devil/include/;../3rdparty/api/;../</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -130,7 +129,7 @@
       <AdditionalDependencies>opengl32.lib;glu32.lib;IL$(Platform).lib;ILU$(Platform).lib;fits$(Platform).lib;tinyxmld_STL$(Platform).lib;sdsslib$(Platform)$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)../$(ProjectName)$(Platform)$(Configuration).exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;$(CUDA_PATH)lib/$(PlatformName);../sdsslib/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)$(ProjectName).pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
@@ -152,7 +151,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../3rdparty/api/devil/include/;../3rdparty/api/;../;$(CUDA_PATH)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../3rdparty/api/devil/include/;../3rdparty/api/;../</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;X64;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -173,10 +172,10 @@
       <Culture>0x0407</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cuda.lib;cudart.lib;opengl32.lib;glu32.lib;IL$(Platform).lib;ILU$(Platform).lib;fits$(Platform).lib;tinyxmld_STL$(Platform).lib;sdsslib$(Platform)$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;IL$(Platform).lib;ILU$(Platform).lib;fits$(Platform).lib;tinyxmld_STL$(Platform).lib;sdsslib$(Platform)$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)../$(ProjectName)$(Platform)$(Configuration).exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;$(CUDA_PATH)lib/$(PlatformName);../sdsslib/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)$(ProjectName).pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
@@ -200,7 +199,7 @@
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>../3rdparty/api/devil/include/;../3rdparty/api/;../;$(CUDA_PATH)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../3rdparty/api/devil/include/;../3rdparty/api/;../</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -227,7 +226,7 @@
       <AdditionalDependencies>opengl32.lib;glu32.lib;IL$(Platform).lib;ILU$(Platform).lib;fits$(Platform).lib;tinyxml_STL$(Platform).lib;sdsslib$(Platform)$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)../$(ProjectName)$(Platform)$(Configuration).exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;$(CUDA_PATH)lib/$(PlatformName);../sdsslib/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)$(ProjectName).pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
@@ -250,7 +249,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>../3rdparty/api/devil/include/;../3rdparty/api/;../;$(CUDA_PATH)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../3rdparty/api/devil/include/;../3rdparty/api/;../</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;X64;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -274,10 +273,10 @@
       <Culture>0x0407</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cuda.lib;cudart.lib;opengl32.lib;glu32.lib;IL$(Platform).lib;ILU$(Platform).lib;fits$(Platform).lib;tinyxml_STL$(Platform).lib;sdsslib$(Platform)$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;IL$(Platform).lib;ILU$(Platform).lib;fits$(Platform).lib;tinyxml_STL$(Platform).lib;sdsslib$(Platform)$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)../$(ProjectName)$(Platform)$(Configuration).exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;$(CUDA_PATH)lib/$(PlatformName);../sdsslib/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../sdsslib/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)$(ProjectName).pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
@@ -314,6 +313,5 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 5.0.targets" />
   </ImportGroup>
 </Project>
