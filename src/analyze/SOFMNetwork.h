@@ -209,8 +209,6 @@ protected:
 	// average distance/error to BMU per learning step
 	float			*m_pAvgDistanceToBMU;
 	
-	// to enable GPU accelerated computations with CUDA.
-	ComputeCUDA		*m_pCUDA;
 };
 
 
