@@ -1,0 +1,266 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B0103EFD-0585-4823-86AA-B0F9B9D2BB14}</ProjectGuid>
+    <RootNamespace>fits</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FITS_EXPORTS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName)$(Platform).lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FITS_EXPORTS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName)$(Platform).lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FITS_EXPORTS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName)$(Platform).lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FITS_EXPORTS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName)$(Platform).lib</OutputFile>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\adler32.c" />
+    <ClCompile Include="..\..\buffers.c" />
+    <ClCompile Include="..\..\cfileio.c" />
+    <ClCompile Include="..\..\checksum.c" />
+    <ClCompile Include="..\..\compress.c" />
+    <ClCompile Include="..\..\crc32.c" />
+    <ClCompile Include="..\..\deflate.c" />
+    <ClCompile Include="..\..\drvrfile.c" />
+    <ClCompile Include="..\..\drvrgsiftp.c" />
+    <ClCompile Include="..\..\drvrmem.c" />
+    <ClCompile Include="..\..\drvrnet.c" />
+    <ClCompile Include="..\..\editcol.c" />
+    <ClCompile Include="..\..\edithdu.c" />
+    <ClCompile Include="..\..\eval_f.c" />
+    <ClCompile Include="..\..\eval_l.c" />
+    <ClCompile Include="..\..\eval_y.c" />
+    <ClCompile Include="..\..\f77_wrap1.c" />
+    <ClCompile Include="..\..\f77_wrap2.c" />
+    <ClCompile Include="..\..\f77_wrap3.c" />
+    <ClCompile Include="..\..\f77_wrap4.c" />
+    <ClCompile Include="..\..\fits_hcompress.c" />
+    <ClCompile Include="..\..\fits_hdecompress.c" />
+    <ClCompile Include="..\..\fitscore.c" />
+    <ClCompile Include="..\..\fpack.c" />
+    <ClCompile Include="..\..\fpackutil.c" />
+    <ClCompile Include="..\..\funpack.c" />
+    <ClCompile Include="..\..\getcol.c" />
+    <ClCompile Include="..\..\getcolb.c" />
+    <ClCompile Include="..\..\getcold.c" />
+    <ClCompile Include="..\..\getcole.c" />
+    <ClCompile Include="..\..\getcoli.c" />
+    <ClCompile Include="..\..\getcolj.c" />
+    <ClCompile Include="..\..\getcolk.c" />
+    <ClCompile Include="..\..\getcoll.c" />
+    <ClCompile Include="..\..\getcols.c" />
+    <ClCompile Include="..\..\getcolsb.c" />
+    <ClCompile Include="..\..\getcolui.c" />
+    <ClCompile Include="..\..\getcoluj.c" />
+    <ClCompile Include="..\..\getcoluk.c" />
+    <ClCompile Include="..\..\getkey.c" />
+    <ClCompile Include="..\..\group.c" />
+    <ClCompile Include="..\..\grparser.c" />
+    <ClCompile Include="..\..\histo.c" />
+    <ClCompile Include="..\..\imcompress.c" />
+    <ClCompile Include="..\..\infback.c" />
+    <ClCompile Include="..\..\inffast.c" />
+    <ClCompile Include="..\..\inflate.c" />
+    <ClCompile Include="..\..\inftrees.c" />
+    <ClCompile Include="..\..\iraffits.c" />
+    <ClCompile Include="..\..\iter_image.c" />
+    <ClCompile Include="..\..\modkey.c" />
+    <ClCompile Include="..\..\pliocomp.c" />
+    <ClCompile Include="..\..\putcol.c" />
+    <ClCompile Include="..\..\putcolb.c" />
+    <ClCompile Include="..\..\putcold.c" />
+    <ClCompile Include="..\..\putcole.c" />
+    <ClCompile Include="..\..\putcoli.c" />
+    <ClCompile Include="..\..\putcolj.c" />
+    <ClCompile Include="..\..\putcolk.c" />
+    <ClCompile Include="..\..\putcoll.c" />
+    <ClCompile Include="..\..\putcols.c" />
+    <ClCompile Include="..\..\putcolsb.c" />
+    <ClCompile Include="..\..\putcolu.c" />
+    <ClCompile Include="..\..\putcolui.c" />
+    <ClCompile Include="..\..\putcoluj.c" />
+    <ClCompile Include="..\..\putcoluk.c" />
+    <ClCompile Include="..\..\putkey.c" />
+    <ClCompile Include="..\..\quantize.c" />
+    <ClCompile Include="..\..\region.c" />
+    <ClCompile Include="..\..\ricecomp.c" />
+    <ClCompile Include="..\..\scalnull.c" />
+    <ClCompile Include="..\..\swapproc.c" />
+    <ClCompile Include="..\..\trees.c" />
+    <ClCompile Include="..\..\uncompr.c" />
+    <ClCompile Include="..\..\wcssub.c" />
+    <ClCompile Include="..\..\wcsutil.c" />
+    <ClCompile Include="..\..\windumpexts.c" />
+    <ClCompile Include="..\..\zcompress.c" />
+    <ClCompile Include="..\..\zuncompress.c" />
+    <ClCompile Include="..\..\zutil.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\cfortran.h" />
+    <ClInclude Include="..\..\compress.h" />
+    <ClInclude Include="..\..\crc32.h" />
+    <ClInclude Include="..\..\deflate.h" />
+    <ClInclude Include="..\..\drvrgsiftp.h" />
+    <ClInclude Include="..\..\eval_defs.h" />
+    <ClInclude Include="..\..\eval_tab.h" />
+    <ClInclude Include="..\..\f77_wrap.h" />
+    <ClInclude Include="..\..\fitsio.h" />
+    <ClInclude Include="..\..\fitsio2.h" />
+    <ClInclude Include="..\..\fpack.h" />
+    <ClInclude Include="..\..\group.h" />
+    <ClInclude Include="..\..\grparser.h" />
+    <ClInclude Include="..\..\inffast.h" />
+    <ClInclude Include="..\..\inffixed.h" />
+    <ClInclude Include="..\..\inflate.h" />
+    <ClInclude Include="..\..\inftrees.h" />
+    <ClInclude Include="..\..\longnam.h" />
+    <ClInclude Include="..\..\region.h" />
+    <ClInclude Include="..\..\ricecomp.h" />
+    <ClInclude Include="..\..\trees.h" />
+    <ClInclude Include="..\..\zconf.h" />
+    <ClInclude Include="..\..\zlib.h" />
+    <ClInclude Include="..\..\zutil.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\f77.inc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
