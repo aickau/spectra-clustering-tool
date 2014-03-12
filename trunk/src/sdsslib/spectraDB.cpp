@@ -108,7 +108,8 @@ bool SpectraDB::writeDB( DR dataRelease )
 
 
 		fits_read_col( f, TDOUBLE, 65, i+1, 1, 1, NULL, &info.z, NULL, &status );
-		m_spectraDB.insert( std::make_pair<int64_t,Info>(specObjID, info) );
+		m_spectraDB.insert(std::map<int64_t,Info>::value_type(specObjID, info) );
+			//std::make_pair<int64_t,Info>(specObjID, info) );
 	}
 
 // 	for ( std::map<std::string,int>::iterator it = hui.begin(); it != hui.end() ; it++ )
@@ -172,8 +173,8 @@ bool SpectraDB::loadDB( DR dataRelease )
 		Info info;
 		file.read((char*)&specObjID, sizeof(int64_t) );
 		file.read((char*)&info, sizeof(Info) );
-		m_spectraDB.insert( m_spectraDB.end(), std::make_pair<int64_t,Info>(specObjID, info) );
-	}
+		//m_spectraDB.insert( m_spectraDB.end(), std::make_pair<int64_t,Info>(specObjID, info) );
+		m_spectraDB.insert(std::map<int64_t,Info>::value_type(specObjID, info) );	}
 
 	return true;
 }
