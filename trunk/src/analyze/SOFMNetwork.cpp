@@ -61,6 +61,11 @@ static void setBestMatch( Spectra &_networkSpectrum, size_t _networkIndex, Spect
 
 }
 
+void SOFMNetwork::BestMatch::reset()
+{
+	error = FLT_MAX;
+	index = 0;
+}
 
 
 std::string SOFMNetwork::spectraNormalizationToString( Spectra::SpectraNormalization _type )
