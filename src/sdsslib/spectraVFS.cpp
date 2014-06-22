@@ -176,12 +176,17 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 		
 		if ( sstrExtension == ".fit" || sstrExtension == ".fits" )
 		{
-			bResult = spec.loadFromFITS( sstrFilename );
+			bResult = spec.loadFromFITS( sstrFilename, _logStream );
 		}
 		else if ( sstrExtension == ".csv" )
 		{
-			bResult = spec.loadFromCSV( sstrFilename );
+			bResult = spec.loadFromCSV( sstrFilename, _logStream );
 		}
+		else if ( sstrExtension == ".xml" )
+		{
+			bResult = spec.loadFromXML( sstrFilename, _logStream );
+		}
+
 
 		if ( bResult )
 		{

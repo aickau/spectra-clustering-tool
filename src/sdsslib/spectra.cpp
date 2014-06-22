@@ -27,6 +27,7 @@
 #include "spectraBaseHelpers.h"
 #include "CSVExport.h"
 #include "spectraDB.h"
+#include "XMLParser.h"
 
 // temporary disable FITS support under linux.
 #ifndef _WIN32
@@ -368,6 +369,7 @@ bool Spectra::loadFromCSV(const std::string &_filename, std::ofstream *_logStrea
 	const bool bSuccess = FileHelpers::loadFileToString( _filename, sstrCSV );
 	if ( !bSuccess )
 	{
+		Helpers::print("Could not load spectrum from CSV file.\n", _logStream );
 		return false;
 	}
 
@@ -467,38 +469,170 @@ bool Spectra::loadFromCSV(const std::string &_filename, std::ofstream *_logStrea
 
 	m_SamplesRead = c/reductionFactor;
 
+	if ( m_SamplesRead < 3 )
+	{
+		Helpers::print("Could not load spectrum from CSV file. Reason: Not enough samples read from table.\n", _logStream );
+		return false;
+	}
+
+
 	calcMinMax();
 
-	bool bConsistent = checkConsistency();
+	const bool bConsistent = checkConsistency();
+	if ( !bConsistent )
+	{
+		Helpers::print("Could not load spectrum from CSV file. Reason: Spectrum amplitudes contain NANs or INFs or just insane high numbers.\n", _logStream );
+		return false;
+	}
 
 	return (m_SamplesRead>0 && bConsistent);	
 }
 
 
-
-// 	<?xml version="1.0" encoding="UTF-8"?>
-// 	<LIGHTCURVE>
-// 		<type value="SDSS">
-// 		<plate value="4096"/>
-// 		<fiberId value="4"/>
-// 		<mjd value="55896"/>
-// 		<ra value="0.01"/>
-// 		<dec value="0.056"/>
-// 		<z value="5.0"/>
-// 		<DATA xMin="0.5" xMax="4.0" yMin="-2.0" yMax="0.0" >
-// 		0.5,-1.2
-// 		0.55,-1.3
-// 		...
-// 		</DATA>
-// 	</LIGHTCURVE>
 bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStream)
 {
-	if ( FileHelpers::getFileExtension(_filename) != ".xml" )
-	{
-		return false;
-	}
 	clear();
 
+	XMLParser p;
+	if (!p.loadXMLFromFile( _filename ))
+	{
+		Helpers::print("Could not load lightcurve from xml file. Reason: "+p.getParserErrorLog()+"\n", _logStream );
+		return false;
+	}
+
+	bool bSuccess;
+
+	std::string sstrType;
+	size_t plateID=0;
+	size_t fiberID=0;
+	size_t mjd=0;
+	float ra = 0.0f;
+	float dec = 0.0f;
+	float z = 0.0f;
+	bSuccess = p.getChildValue("type", "value", sstrType );
+	bSuccess = p.getChildValue("plate", "value", plateID );
+	bSuccess = p.getChildValue("fiberId", "value", fiberID );
+	bSuccess = p.getChildValue("mjd", "value", mjd );
+	bSuccess = p.getChildValue("ra", "value", ra );
+	bSuccess = p.getChildValue("dec", "value", ra );
+	bSuccess = p.getChildValue("z", "value", z );
+
+	if ( mjd > 50000 && plateID > 0 && fiberID > 0 ) 
+	{
+		m_version = SP_VERSION_DR7;
+		m_SpecObjID = calcSpecObjID_DR7( plateID, mjd, fiberID, 0);
+
+		// recheck mjd, fiber and plate by calculating them from spec obj id.
+		if ( getFiber() != fiberID || 
+			getMJD() != mjd ||
+			getPlate() != plateID )
+		{
+			// unique identifier mismatch
+			Helpers::print("Could not load lightcurve from XML file. Reason: Unique identifier mismatch, something went wrong during spec Obj ID calculation.\n", _logStream );
+			return false;
+		}
+	}
+	else
+	{
+		m_version = SP_ARTIFICIAL;
+	}
+
+	p.gotoChild();
+
+	do
+	{
+		if (p.getCurrentTag()=="DATA")
+		{
+			break;
+		}
+	} while (p.gotoSibling());
+
+	float xMin = 0.5f;
+	float xMax = 4.0f;
+	float yMin = -2.0f;
+	float yMax = 0.0f;
+	p.getValue("xMin", xMin );
+	p.getValue("xMax", xMax );
+	p.getValue("yMin", yMin );
+	p.getValue("yMax", yMax );
+
+	float xDelta = xMax-xMin;
+	if ( xDelta < 0.0f )
+	{
+		float temp = xMin;
+		xMin = xMax;
+		xMax = temp;
+		xDelta *= 1.f;
+	}
+	if (xDelta == 0.0f )
+	{
+		Helpers::print("Could not load lightcurve from xml file. Reason: x-range of 0.0.\n", _logStream );
+		return false;
+	}
+
+	float yDelta = yMax-yMin;
+	if ( yDelta < 0.0f )
+	{
+		float temp = yMin;
+		yMin = xMax;
+		yMax = temp;
+		yDelta *= 1.f;
+	}
+	if (yDelta == 0.0f )
+	{
+		Helpers::print("Could not load lightcurve from xml file. Reason: y-range of 0.0.\n", _logStream );
+		return false;
+	}
+
+	float xRes = xDelta/(float)numSamples;
+
+
+	std::string sstrData;
+	p.getContent(sstrData);
+
+	if ( sstrData.empty() ) 
+	{
+		Helpers::print("Could not load lightcurve from xml file. Reason: no data elements found.\n", _logStream );
+		return false;
+	}
+
+	std::stringstream fin(sstrData.c_str());
+	std::string sstrTemp;
+
+
+	std::vector<float> values;
+	float xp,yp;
+	while( fin >> sstrTemp  ) 
+	{	
+		// x-value
+		std::stringstream st(sstrTemp.c_str() );
+		st >> xp;
+
+		// separator (,;)
+		char c;
+		st >> c;
+
+		// y-value
+		st >> yp;
+
+		values.push_back(xp);
+		values.push_back(yp);
+	}
+
+	// interpolate
+	float xp = 0.0f;
+
+	int i1 = 0;
+	int i0 = i1-1;
+	int i2 = i1+1;
+	int i3 = i1+2;
+
+	for (int i=0;i<numSamples;i++) 
+	{
+
+
+		xp += xRes;
+	}
 
 	return true;
 }

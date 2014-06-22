@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LIGHTCURVE>
-  <type value="SDSS">
+  <type value="SDSS"/>
   <plate value="4096"/>
   <fiberId value="4"/>
   <mjd value="55896"/>

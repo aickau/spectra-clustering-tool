@@ -126,6 +126,8 @@ public:
 										const std::string &sstrAttribute,
 										std::string &sstrOutValue );
 
+
+
 	//! get the value as unsigned integer for a child tag of the current tag.
 	//! Values are retrieved for the first child element with the given tag name.
 	//! /param sstrTag name of the child tag. 
@@ -143,6 +145,8 @@ public:
 	XMLPARSERAPI bool getChildValue( const std::string &sstrTag, 
 										const std::string &sstrAttribute,
 										size_t &nOutValue );
+
+
 
 	//! get the value as float for a child tag of the current tag.
 	//! Values are retrieved for the first child element with the given tag name.
