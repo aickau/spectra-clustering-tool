@@ -30,7 +30,7 @@
 
 #define SPT_DEFAULTFILTER (0x0ffffffff)
 
-// actually can hold only one spectrum so the name is a bit misleading here
+// Can hold only one spectrum so the name is a bit misleading here.
 //
 // warning:
 // changing order and / or size of this structure will invalidate all dumped files !
@@ -69,6 +69,7 @@ public:
 		SP_VERSION_DR7,					//<	Spectra DR1..DR7
 		SP_VERSION_DR8,					//< DR8, DR9
 		SP_VERSION_BOSS,				//< BOSS spectra from DR9/DR10, new spectrograph, different wavelenght range
+		SP_VERSION_APOGEE,				//< Infrared Apogee spectrom from SDSS III
 		SP_COUNT						//< must be the last entry here.
 	};
 
@@ -223,9 +224,12 @@ public:
 	int getMJD() const;
 
 	// fiber ID for SDSS
-	// 1..640
+	// 1..640 for SDSS I & II
+	// 1..1000 for BOSS spectra
+	// 1..300 for APOGEE spectra
 	// note that on re-observations fibers may change
 	// see http://spectro.princeton.edu/#plots
+	//     https://www.sdss3.org/dr9/spectro/spectro_basics.php
 	int getFiber() const;
 
 	// plate id 
@@ -261,11 +265,11 @@ public:
 
 	void set(const Spectra &_spectra);
 
-	// set test spectra
-	// type: 0=sin, 1=cos, 2=lin, 3=lin inv, 4=sqr
+	// set experimental test spectra
+	// type: 0=sin, 1=cos, 2=linear, 3=linear inverse, 4=squared
 	void set( size_t _type, float _noize );
 
-	// set rect 
+	// set rectangular impulse (for testing purposes)
 	// _phase 0..1, _width 0..1
 	void setRect( float _width=0.1, float _phase=0.5, float _amplitude=1.f );
 
@@ -273,7 +277,6 @@ public:
 	void setSine( float _frequency = 1.f, float _phase = 0.f, float _amplitude=1.f, float _noize=0.f );
 
 	// fill spectrum with noise
-	// seed != 0
 	void randomize( float _minrange, float _maxrange);
 
 	// add signals from other spectra
@@ -291,7 +294,7 @@ public:
 	// scale signals
 	void multiply(float _multiplier);
 
-	// load spectrum from comma separated values, we aussume ~3900 samples.
+	// Load spectrum from comma separated values, we assume ~3900 samples.
 	// spectrum should look like this:
 	//
 	//
@@ -301,22 +304,49 @@ public:
 	//  .. omitting next ~3900 lines.
 	//	3833.54000759044, 1.56192994117737, 1.66190469264984, 0
 	//
-	bool loadFromCSV(const std::string &_filename);
+	// _logStream optional log stream for detailed logging output in case loading fails.
+	bool loadFromCSV(const std::string &_filename, std::ofstream *_logStream=NULL );
+
+	// Load spectrum or light curve from XML.
+	// Here we do not read the number of samples directly, instead we read sparse data. 
+	// A variable number of x,y value pairs are read and interpolated to the number of samples.
+	//
+	// Structure of the XML:
+	//
+	// 	<?xml version="1.0" encoding="UTF-8"?>
+	// 	<LIGHTCURVE>
+	// 		<type value="SDSS">										<!-- can be any type string, used to distinguish different datasets-->
+	// 		<plate value="4096"/>									<!-- SDSS plate ID -->
+	// 		<mjd value="55896"/>									<!-- SDSS modified Julian date of observation. -->
+	// 		<fiberId value="4"/>									<!-- SDSS fiber ID 1..640 for SDSS, 1..1000 for BOSS -->
+	// 		<ra value="0.01"/>										<!-- right ascension, J2000 -->
+	// 		<dec value="0.056"/>									<!-- declination, J2000 -->
+	// 		<z value="5.0"/>										<!-- red shift -->
+	// 		<DATA xMin="0.5" xMax="4.0" yMin="-2.0" yMax="0.0" >
+	// 		0.5,-1.2
+	// 		0.55,-1.3
+	// 		...
+	// 		</DATA>
+	// 	</LIGHTCURVE>
+	//
+	// _logStream optional log stream for detailed logging output in case loading fails.
+	bool loadFromXML(const std::string &_filename, std::ofstream *_logStream=NULL);
 
 	// automatically checks the version
-	bool loadFromFITS(const std::string &_filename);
+	// _logStream optional log stream for detailed logging output in case loading fails.
+	bool loadFromFITS(const std::string &_filename, std::ofstream *_logStream=NULL);
 
 	// load from SDSS .fit file up to DR7
 	// e.g. spSpec-51630-0266-633.fit
 	// FITS file description see http://www.sdss.org/DR6/dm/flatFiles/spSpec.html
 	// general info here: http://www.sdss.org/DR6/dm/flatFiles/FILES.html
-	bool loadFromFITS_SDSS(const std::string &_filename);
+	bool loadFromFITS_SDSS(const std::string &_filename, std::ofstream *_logStream=NULL);
 
 	// load SDSS DR8 spectra
-	bool loadFromFITS_DR8(const std::string &_filename);
+	bool loadFromFITS_DR8(const std::string &_filename, std::ofstream *_logStream=NULL);
 
 	// BOSS Spectra from DR9/DR10. e.g. dr9spec-3588-55184-0511.fits
-	bool loadFromFITS_BOSS(const std::string &_filename);
+	bool loadFromFITS_BOSS(const std::string &_filename, std::ofstream *_logStream=NULL);
 
 	// save to ASCII CSV
 	bool saveToCSV(const std::string &_filename);

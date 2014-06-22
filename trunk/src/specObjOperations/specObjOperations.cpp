@@ -1871,6 +1871,7 @@ void test()
 	SSE_ALIGN Spectra spDR10_SDSS;
 	SSE_ALIGN Spectra spDR10_BOSS;
 	SSE_ALIGN Spectra spDR10_APOGEE;
+	SSE_ALIGN Spectra spLightCurve;
 
 	
 	spDR6.loadFromFITS_SDSS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr6spec-52199-0659-338.fit");
@@ -1880,6 +1881,7 @@ void test()
 	spDR10_SDSS.loadFromFITS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr10spec_sdss-0266-51602-0003.fits");	
 	spDR10_BOSS.loadFromFITS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr10spec_BOSS-3586-55181-0002.fits");	
 	spDR10_APOGEE.loadFromFITS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr10spec_apogee-r3-4937-55760-002.fits");	
+	spLightCurve.loadFromXML("data/xml/lightcurve.xml");
 }
 
 void writeParamsFromSelection(const std::string &sstrDataDir )
@@ -3316,12 +3318,15 @@ void writeSpectraParmDB()
 
 void main(int argc, char* argv[])
 {
+
+	printf("%i",Spectra::numSamples);
 // 	int clusternum = 1;
 // 	if ( argc > 1 ) {
 // 		std::string strCommandLine = argv[1];
 // 		clusternum = Helpers::stringToNumber<int>(strCommandLine);
 // 	}
  	SpectraHelpers::init(0);
+	test();
 
 // 	std::string sstrDir(DATADIR);
 // 	if ( argc>1 )
