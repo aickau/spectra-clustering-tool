@@ -88,6 +88,11 @@ namespace MathHelpers
 
 	// smooth float array using direct neighbors, weights are 0.25, 0.5, 0.25
 	void smooth( const float *_valuesSrc, float *_valuesDst, size_t _numValues, size_t _numIterations=1);
+
+	// Catmull Rom interpolation between points p1, p2
+	// x 0..1
+	double interpolateCatmullRom( double p0, double p1, double p2, double p3, double x );
+
 };
 
 inline
@@ -118,4 +123,18 @@ unsigned int MathHelpers::log2 (unsigned int val)
 		ret++;
 	}
 	return ret;
+}
+
+inline
+double MathHelpers::interpolateCatmullRom( double p0, double p1, double p2,double p3, double x )
+{
+	double a0,a1,a2,a3,x2;
+
+	x2 = x*x;
+	a0 = -0.5*p0 + 1.5*p1 - 1.5*p2 + 0.5*p3;
+	a1 = p0 - 2.5*p1 + 2*p2 - 0.5*p3;
+	a2 = -0.5*p0 + 0.5*p2;
+	a3 = p1;
+
+	return(a0*x*x2+a1*x2+a2*x+a3);
 }
