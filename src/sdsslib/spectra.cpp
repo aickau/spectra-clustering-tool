@@ -356,7 +356,7 @@ bool Spectra::saveToCSV(const std::string &_filename)
 	return true;
 }
 
-bool Spectra::loadFromCSV(const std::string &_filename)
+bool Spectra::loadFromCSV(const std::string &_filename, std::ofstream *_logStream)
 {
 	static size_t nCounter = 1;
 	if ( FileHelpers::getFileExtension(_filename) != ".csv" )
@@ -474,6 +474,36 @@ bool Spectra::loadFromCSV(const std::string &_filename)
 	return (m_SamplesRead>0 && bConsistent);	
 }
 
+
+
+// 	<?xml version="1.0" encoding="UTF-8"?>
+// 	<LIGHTCURVE>
+// 		<type value="SDSS">
+// 		<plate value="4096"/>
+// 		<fiberId value="4"/>
+// 		<mjd value="55896"/>
+// 		<ra value="0.01"/>
+// 		<dec value="0.056"/>
+// 		<z value="5.0"/>
+// 		<DATA xMin="0.5" xMax="4.0" yMin="-2.0" yMax="0.0" >
+// 		0.5,-1.2
+// 		0.55,-1.3
+// 		...
+// 		</DATA>
+// 	</LIGHTCURVE>
+bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStream)
+{
+	if ( FileHelpers::getFileExtension(_filename) != ".xml" )
+	{
+		return false;
+	}
+	clear();
+
+
+	return true;
+}
+
+
 #ifndef _FITSDISABLED
 Spectra::SpectraVersion checkVersion(fitsfile *f)
 {
@@ -481,11 +511,29 @@ Spectra::SpectraVersion checkVersion(fitsfile *f)
 
 	// MJD, plate ID, fiber ID must be in every SDSS FITS file
 	int mjd, plateID, fiber;
-	fits_read_key( f, TINT, "MJD", &mjd, NULL, &status );
-	fits_read_key( f, TINT, "PLATEID", &plateID, NULL, &status );
 	fits_read_key( f, TINT, "FIBERID", &fiber, NULL, &status );
 	if ( status != 0 )
+	{
 		return Spectra::SP_VERSION_INVALID;
+	}
+
+	fits_read_key( f, TINT, "MJD", &mjd, NULL, &status );
+	fits_read_key( f, TINT, "PLATEID", &plateID, NULL, &status );
+	if ( status != 0 )
+	{
+		// check for APOGEE infrared spectrum.
+		status=0;
+		fits_read_key( f, TINT, "MJD5", &mjd, NULL, &status );
+		fits_read_key( f, TINT, "PLATE", &plateID, NULL, &status );
+		if ( status != 0 )
+		{
+			return Spectra::SP_VERSION_INVALID;
+		}
+
+		// TODO: further APOGEE checking..
+
+		return Spectra::SP_VERSION_APOGEE;
+	}
 
 
 	int bitpix = 0;
@@ -522,10 +570,19 @@ Spectra::SpectraVersion checkVersion(fitsfile *f)
 
 	return Spectra::SP_VERSION_DR8;
 }
+
+
+std::string fitsGetErrorMessage( int status )
+{
+	char err[128]={0};
+	fits_get_errstatus( status, err );
+	return std::string(err);
+}
+
 #endif // _FITSDISABLED
 
 
-bool Spectra::loadFromFITS(const std::string &_filename)
+bool Spectra::loadFromFITS(const std::string &_filename, std::ofstream *_logStream)
 {
 #ifdef _FITSDISABLED
 	assert(0); // temporary disabled.
@@ -537,31 +594,42 @@ bool Spectra::loadFromFITS(const std::string &_filename)
 	int status = 0;
 
 	fits_open_file( &f, _filename.c_str(), READONLY, &status );
-	if ( status != 0 )
+	if ( status != 0 ) 
+	{
+		Helpers::print("Could not load spectrum from FITS file. Reason: fits_open_file() failed with "+fitsGetErrorMessage(status)+"\n", _logStream );
 		return false;
+	}
 
 	SpectraVersion version = checkVersion( f );
 	fits_close_file(f, &status);
 	
 	if ( version == SP_VERSION_BOSS )
 	{
-		return loadFromFITS_BOSS(_filename);
+		return loadFromFITS_BOSS(_filename, _logStream);
 	}
 	else if ( version == SP_VERSION_DR8 )
 	{
-		return loadFromFITS_DR8(_filename);
+		return loadFromFITS_DR8(_filename, _logStream);
 	}
 	else if ( version == SP_VERSION_DR7 )
 	{
-		return loadFromFITS_SDSS(_filename);
+		return loadFromFITS_SDSS(_filename, _logStream);
 	}
+	else if ( version == SP_VERSION_APOGEE )
+	{
+		Helpers::print("Could not load DR10 and above APOGEE spectrum form FITS file. Reason: APOGEE infrared spectra not yet supported. \n", _logStream );
+		return false;
+	}
+
+	Helpers::print("Could not load spectrum form FITS file. Reason: Invalid version. \n", _logStream );
+
 	
 	return false;
 #endif // _FITSDISABLED
 }
 
 
-bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
+bool Spectra::loadFromFITS_BOSS(const std::string &_filename, std::ofstream *_logStream)
 {
 #ifdef _FITSDISABLED
 	assert(0); // temporary disabled.
@@ -575,14 +643,18 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 
 
 	fits_open_file( &f, _filename.c_str(), READONLY, &status );
-	if ( status != 0 )
+	if ( status != 0 ) 
+	{
+		Helpers::print("Could not load BOSS spectrum from FITS file. Reason: fits_open_file() failed with: "+fitsGetErrorMessage(status)+"\n", _logStream );
 		return false;
+	}
 
 	m_version = checkVersion( f );
 
 	if ( m_version != SP_VERSION_BOSS )
 	{
 		// wrong version
+		Helpers::print("Could not load BOSS spectrum from FITS file. Reason: Wrong version, could not identify a BOSS FITS file. \n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -605,6 +677,7 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	if ( status != 0 )
 	{
 		// could not read important spectra info.
+		Helpers::print("Could not load BOSS spectrum from FITS file. Reason: Could not read important identifiers (MJD, plate ID, fiber id, run2D), fits_read_key() failed with: "+fitsGetErrorMessage(status)+"\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -632,6 +705,7 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	if ( run2d_n < 5 || mjd < 50000 )
 	{
 		// wrong mjd or run 2D version number.
+		Helpers::print("Could not load BOSS spectrum from FITS file. Reason: Wrong MJD or run2D version number.\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -645,6 +719,7 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 		getPlate() != plateID )
 	{
 		// unique identifier mismatch
+		Helpers::print("Could not load BOSS spectrum from FITS file. Reason: Unique identifier mismatch, something went wrong during spec Obj ID calculation.\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -661,6 +736,7 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	if ( status != 0 || tblcols <= 0 || tblrows <= 0 || hdutype != BINARY_TBL )
 	{
 		// wrong table
+		Helpers::print("Could not load BOSS spectrum from FITS file. Reason: Could not access binary spectrum data from HUD 2: "+fitsGetErrorMessage(status)+"\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -679,6 +755,7 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	if ( elementsToRead < 3 )
 	{
 		// to few spectrum samples/pixels to read.
+		Helpers::print("Could not load BOSS spectrum from FITS file. Reason: To few spectrum samples/pixels to read.\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -696,6 +773,15 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	fits_read_col( f, TFLOAT, 1, 1, 1, elementsToRead, NULL, spectrum, NULL, &status );
 	fits_read_col( f, TFLOAT, 3, 1, 1, elementsToRead, NULL, invar, NULL, &status );
 	fits_read_col( f, TINT, 4, 1, 1, elementsToRead, NULL, maskArray, NULL, &status );
+
+	if ( status != 0 )
+	{
+		// could not read table
+		Helpers::print("Could not load BOSS spectrum from FITS file. Reason: Could not read binary spectrum data from HUD 2, fits_read_col() failed with: "+fitsGetErrorMessage(status)+"\n", _logStream );
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
 
 	// count bad pixels 
 	size_t badPixelCount = 0;
@@ -751,14 +837,27 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename)
 	}
 
 
-	bool bConsistent = checkConsistency();
-	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
+	const bool bConsistent = checkConsistency();
+
+	if ( !bConsistent )
+	{
+		Helpers::print("Could not load BOSS spectrum from FITS file. Reason: Spectrum amplitudes contain NANs or INFs or just insane high numbers.\n", _logStream );
+		return false;
+	}
+
+	if ((m_SamplesRead <= numSamples/2))
+	{
+		Helpers::print("Could not load BOSS spectrum from FITS file. Reason: Not enough samples read.\n", _logStream );
+		return false;
+	}
+
+	return true;	
 #endif //_FITSDISABLED
 }
 
 
 
-bool Spectra::loadFromFITS_DR8(const std::string &_filename)
+bool Spectra::loadFromFITS_DR8(const std::string &_filename, std::ofstream *_logStream)
 {
 #ifdef _FITSDISABLED
 	assert(0); // temporary disabled.
@@ -772,25 +871,25 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 
 
 	fits_open_file( &f, _filename.c_str(), READONLY, &status );
-	if ( status != 0 )
+	if ( status != 0 ) 
+	{
+		// file not opened / file not found
+		Helpers::print("Could not load DR8 spectrum from FITS file. Reason: fits_open_file() failed with: "+fitsGetErrorMessage(status)+"\n", _logStream );
 		return false;
+	}
 
 	m_version = checkVersion( f );
 
 	if ( m_version != SP_VERSION_DR8 )
 	{
 		// wrong version
+		Helpers::print("Could not load DR8 spectrum from FITS file. Reason: Wrong version, could not identify a DR8 FITS file.\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
 
 
 	// read important info of spectrum 
-	// 	run2d can be an integer, like 26, 
-	// 	or a string of the form 'vN_M_P', 
-	// 	where N, M and P are integers, 
-	// 		with the restriction 5<=N<=6, 0<=M<=99, and 0<=P<=99. 
-	// 		This is understood to be the run2d value for a spectrum. 
 	int mjd, plateID, fiber, bitpix;
 	char specID[FLEN_VALUE]={0};
 	fits_read_key( f, TINT, "MJD", &mjd, NULL, &status );
@@ -802,6 +901,7 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 	if ( status != 0 )
 	{
 		// could not read important spectra info.
+		Helpers::print("Could not load DR8 spectrum from FITS file. Reason: Could not read important identifiers (MJD, plate ID, fiber id, SPEC_ID) fits_read_key() failed with: "+fitsGetErrorMessage(status)+"\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -814,6 +914,7 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 		 getPlate() != plateID )
 	{
 		// unique identifier mismatch
+		Helpers::print("Could not load DR8 spectrum from FITS file. Reason: SpecObjId mismatch.\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -829,6 +930,7 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 	if ( status != 0 || tblcols <= 0 || tblrows <= 0 )
 	{
 		// wrong table
+		Helpers::print("Could not load DR8 spectrum from FITS file. Reason: Could not access binary spectrum data from HUD 2: "+fitsGetErrorMessage(status)+"\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -847,6 +949,7 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 	if ( elementsToRead < 3 )
 	{
 		// to few spectrum samples/pixels to read.
+		Helpers::print("Could not load DR8 spectrum from FITS file. Reason: To few spectrum samples/pixels to read.\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -864,6 +967,14 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 	fits_read_col( f, TFLOAT, 1, 1, 1, elementsToRead, NULL, spectrum, NULL, &status );
 	fits_read_col( f, TFLOAT, 3, 1, 1, elementsToRead, NULL, invar, NULL, &status );
 	fits_read_col( f, TINT, 4, 1, 1, elementsToRead, NULL, maskArray, NULL, &status );
+
+	if ( status != 0 )
+	{
+		// could not read table
+		Helpers::print("Could not load DR8 spectrum from FITS file. Reason: Could not read binary spectrum data from HUD 2, fits_read_col() failed with: "+fitsGetErrorMessage(status)+"\n", _logStream );
+		fits_close_file(f, &statusclose);
+		return false;
+	}
 
 	// count bad pixels 
 	size_t badPixelCount = 0;
@@ -916,14 +1027,28 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename)
 	}
 
 
-	bool bConsistent = checkConsistency();
-	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
+	const bool bConsistent = checkConsistency();
+
+	if ( !bConsistent )
+	{
+		Helpers::print("Could not load DR8 spectrum from FITS file. Reason: Spectrum amplitudes contain NANs or INFs or just insane high numbers.\n", _logStream );
+		return false;
+	}
+
+	if ((m_SamplesRead <= numSamples/2))
+	{
+		Helpers::print("Could not load DR8 spectrum from FITS file. Reason: Not enough samples read.\n", _logStream );
+		return false;
+	}
+
+
+	return true;	
 #endif //_WIN32
 }
 
 
 
-bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
+bool Spectra::loadFromFITS_SDSS(const std::string &_filename, std::ofstream *_logStream)
 {
 #ifdef _FITSDISABLED
 	assert(0); // temporary disabled.
@@ -936,14 +1061,19 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 	int statusclose = 0; // we always want to close a given FITs file, even if a previous operation failed
 
 	fits_open_file( &f, _filename.c_str(), READONLY, &status );
-	if ( status != 0 )
+	if ( status != 0 ) 
+	{
+		// file not opened / file not found
+		Helpers::print("Could not load SDSS I/II spectrum from FITS file. Reason: fits_open_file() failed with: "+fitsGetErrorMessage(status)+"\n", _logStream );
 		return false;
+	}
 
 	m_version = checkVersion( f );
 
 	if ( m_version != SP_VERSION_DR7 )
 	{
 		// wrong version
+		Helpers::print("Could not load SDSS I/II spectrum from FITS file. Reason: Wrong version, could not identify a SDSS DR7 (or below) FITS file.\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -952,9 +1082,17 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 	int naxis=0;
 	long size[2];
 	fits_get_img_dim(f, &naxis, &status );
-	if (naxis!=2)
+	if (naxis!=2 || status != 0)
 	{
 		// no 2-dimensional image
+		if ( status != 0 ) 
+		{
+			Helpers::print("Could not load SDSS I/II spectrum from FITS file. Reason: Wrong table dimension, fits_get_img_dim() failed with: "+fitsGetErrorMessage(status)+"\n", _logStream );
+		}
+		else
+		{
+			Helpers::print("Could not load SDSS I/II spectrum from FITS file. Reason: Wrong table dimension.\n", _logStream );
+		}
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -969,6 +1107,8 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 
 	if ( status != 0 )
 	{
+		// could not read important spectra info.
+		Helpers::print("Could not load SDSS I/II spectrum from FITS file. Reason: Could not read important identifiers (MJD, plate ID, fiber id, SPEC_CLN, z) fits_read_key() failed with: "+fitsGetErrorMessage(status)+"\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -989,6 +1129,8 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 	elementsToRead = MIN( elementsToRead, numSamplesSDSS );
 	if ( elementsToRead < 3 )
 	{
+		// to few spectrum samples/pixels to read.
+		Helpers::print("Could not load SDSS I/II spectrum from FITS file. Reason: To few spectrum samples/pixels to read.\n", _logStream );
 		fits_close_file(f, &statusclose);
 		return false;
 	}
@@ -1000,11 +1142,27 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 	// the forth row is the mask array. The spectra are binned log-linear. Units are 10^(-17) erg/cm/s^2/Ang.
 	long adress[2]={1,1};
 	fits_read_pix( f, TFLOAT, adress, elementsToRead, NULL, (void*)spectrum, NULL, &status );
+	if ( status != 0  )
+	{
+		// table read error
+		Helpers::print("Could not load SDSS I/II spectrum from FITS file. Reason: Could not read binary spectrum data. fits_read_pix() failed with: "+fitsGetErrorMessage(status)+"\n", _logStream );
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
 
 	// mask array
 	const unsigned int maskErr = (~static_cast<unsigned int>(SP_MASK_OK)) & (~static_cast<unsigned int>(SP_MASK_EMLINE));
 	adress[1] = 4;
 	fits_read_pix( f, TLONG, adress, elementsToRead, NULL, (void*)maskArray, NULL, &status );
+	if ( status != 0  )
+	{
+		// table read error
+		Helpers::print("Could not load SDSS I/II spectrum from FITS file. Reason: Could not read mask array. fits_read_pix() failed with: "+fitsGetErrorMessage(status)+"\n", _logStream );
+		fits_close_file(f, &statusclose);
+		return false;
+	}
+
 
 	// count bad pixels 
 	size_t badPixelCount = 0;
@@ -1041,8 +1199,22 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename)
 
 	calcMinMax();
 
-	bool bConsistent = checkConsistency();
-	return ((m_SamplesRead > numSamples/2) && (status == 0) && bConsistent);	
+	const bool bConsistent = checkConsistency();
+
+	if ( !bConsistent )
+	{
+		Helpers::print("Could not load SDSS I/II spectrum from FITS file. Reason: Spectrum amplitudes contain NANs or INFs or just insane high numbers.\n", _logStream );
+		return false;
+	}
+
+	if ((m_SamplesRead <= numSamples/2))
+	{
+		Helpers::print("Could not load SDSS I/II spectrum from FITS file. Reason: Not enough samples read.\n", _logStream );
+		return false;
+	}
+
+
+	return true;	
 #endif //_FITSDISABLED
 }
 
@@ -1351,7 +1523,7 @@ int Spectra::getPlate() const
 }
 
 std::string Spectra::getURL()const
-{
+	{
 	// e.g.: http://dr10.sdss3.org/spectrumDetail?mjd=55280&fiber=1&plateid=3863
 
 	std::string sstrUrlDR10("http://dr10.sdss3.org/spectrumDetail?mjd=");
@@ -1954,6 +2126,7 @@ std::string Spectra::spectraVersionToString( SpectraVersion _spectraVersion )
 	case SP_VERSION_DR7		: return "DR7 and below";
 	case SP_VERSION_DR8		: return "DR8/DR9";
 	case SP_VERSION_BOSS	: return "DR9/DR10 BOSS";
+	case SP_VERSION_APOGEE	: return "DR10 APOGEE";
 	}
 	return "Spectra version that should not exist";
 }
