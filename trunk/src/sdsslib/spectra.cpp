@@ -514,7 +514,7 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 	bSuccess = p.getChildValue("fiberId", "value", fiberID );
 	bSuccess = p.getChildValue("mjd", "value", mjd );
 	bSuccess = p.getChildValue("ra", "value", ra );
-	bSuccess = p.getChildValue("dec", "value", ra );
+	bSuccess = p.getChildValue("dec", "value", dec );
 	bSuccess = p.getChildValue("z", "value", z );
 
 	if ( mjd > 50000 && plateID > 0 && fiberID > 0 ) 
@@ -531,6 +531,11 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 			Helpers::print("Could not load lightcurve from XML file. Reason: Unique identifier mismatch, something went wrong during spec Obj ID calculation.\n", _logStream );
 			return false;
 		}
+
+		m_Z = z;
+		m_Amplitude[numSamples-2] = ra;
+		m_Amplitude[numSamples-1] = dec;
+		pixelEnd = numSamples-2;	
 	}
 	else
 	{
@@ -566,7 +571,7 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 	}
 	if (xDelta == 0.0f )
 	{
-		Helpers::print("Could not load lightcurve from xml file. Reason: x-range of 0.0.\n", _logStream );
+		Helpers::print("Could not load lightcurve from xml file. Reason: x-range = 0.0.\n", _logStream );
 		return false;
 	}
 
@@ -580,12 +585,14 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 	}
 	if (yDelta == 0.0f )
 	{
-		Helpers::print("Could not load lightcurve from xml file. Reason: y-range of 0.0.\n", _logStream );
+		Helpers::print("Could not load lightcurve from xml file. Reason: y-range = 0.0.\n", _logStream );
 		return false;
 	}
 
-	float xRes = xDelta/(float)numSamples;
+	float xRes = xDelta/(float)pixelEnd;
 
+	m_Min = yMin;
+	m_Max = yMax;
 
 	std::string sstrData;
 	p.getContent(sstrData);
@@ -601,9 +608,9 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 
 
 	std::vector<float> values;
-	float xp,yp;
 	while( fin >> sstrTemp  ) 
 	{	
+		float xp,yp;
 		// x-value
 		std::stringstream st(sstrTemp.c_str() );
 		st >> xp;
@@ -618,21 +625,46 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 		values.push_back(xp);
 		values.push_back(yp);
 	}
+	const int numPoints = values.size()/2;
+
+	if ( numPoints < 1 ) {
+		Helpers::print("Could not load lightcurve from xml file. Reason: no data elements found.\n", _logStream );
+		return false;
+	}
 
 	// interpolate
-	float xp = 0.0f;
+	float xp = xMin;
 
-	int i1 = 0;
-	int i0 = i1-1;
-	int i2 = i1+1;
-	int i3 = i1+2;
 
-	for (int i=0;i<numSamples;i++) 
+	for (int i=0;i<pixelEnd;i++) 
 	{
 
+		int i1 = 0;
+		for ( int k=0;k<numPoints;k++) {
+			i1 = k-1;
+			if ( values[k*2] >= xp  ) {
+				break;
+			}
+		}
+
+		int i0 = i1-1;
+		int i2 = i1+1;
+		int i3 = i1+2;
+
+		i0 = CLAMP(i0,0,numPoints-1);
+		i1 = CLAMP(i1,0,numPoints-1);
+		i2 = CLAMP(i2,0,numPoints-1);
+		i3 = CLAMP(i3,0,numPoints-1);
+
+		float dx = values[i2*2]-values[i1*2]; 
+		float x = ( dx>0.0f ) ? (xp-values[i1*2])/dx : 0.0f;
+		x = CLAMP( x, 0.0f, 1.0f );
+
+		m_Amplitude[i] = MathHelpers::lerp(values[i1*2+1], values[i2*2+1], x); //MathHelpers::interpolateCatmullRom( values[i0*2+1], values[i1*2+1], values[i2*2+1], values[i3*2+1], x );
 
 		xp += xRes;
 	}
+	
 
 	return true;
 }

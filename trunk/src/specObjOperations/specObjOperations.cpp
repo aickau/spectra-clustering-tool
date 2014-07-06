@@ -1881,7 +1881,7 @@ void test()
 	spDR10_SDSS.loadFromFITS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr10spec_sdss-0266-51602-0003.fits");	
 	spDR10_BOSS.loadFromFITS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr10spec_BOSS-3586-55181-0002.fits");	
 	spDR10_APOGEE.loadFromFITS("c:/sdss/r/src/3rdparty/api/cfitsio/doc/dr10spec_apogee-r3-4937-55760-002.fits");	
-	spLightCurve.loadFromXML("data/xml/lightcurve.xml");
+	spLightCurve.loadFromXML("c:/sdss/r2/data/xml/lightcurve.xml");
 }
 
 void writeParamsFromSelection(const std::string &sstrDataDir )
