@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LIGHTCURVE>
-  <type value="SDSS"/>
-  <plate value="4096"/>
-  <fiberId value="4"/>
-  <mjd value="55896"/>
-  <ra value="0.01"/>
-  <dec value="0.056"/>
-  <z value="5.0"/>
+  <plate value="391"/>
+  <fiberId value="290"/>
+  <mjd value="51782"/>
+  <ra value="6.04858449"/>
+  <dec value="0.73003035"/>
+  <z value="1.791"/>
   <DATA xMin="0.5" xMax="4.0" yMin="-2.0" yMax="0.0" >
   0.5,-1.2
   0.55,-1.3
