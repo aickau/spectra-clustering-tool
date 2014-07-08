@@ -493,6 +493,10 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 {
 	clear();
 
+	// reserve the last two samples to store ra & dec angles
+	pixelEnd = numSamples-2;	
+
+
 	XMLParser p;
 	if (!p.loadXMLFromFile( _filename ))
 	{
@@ -506,8 +510,8 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 	size_t plateID=0;
 	size_t fiberID=0;
 	size_t mjd=0;
-	float ra = 0.0f;
-	float dec = 0.0f;
+	float ra = -1.0f;
+	float dec = -1.0f;
 	float z = 0.0f;
 	bSuccess = p.getChildValue("type", "value", sstrType );
 	bSuccess = p.getChildValue("plate", "value", plateID );
@@ -519,7 +523,7 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 
 	if ( mjd > 50000 && plateID > 0 && fiberID > 0 ) 
 	{
-		m_version = SP_VERSION_DR7;
+		m_version = SP_LIGHTCURVE;
 		m_SpecObjID = calcSpecObjID_DR7( plateID, mjd, fiberID, 0);
 
 		// recheck mjd, fiber and plate by calculating them from spec obj id.
@@ -535,12 +539,13 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 		m_Z = z;
 		m_Amplitude[numSamples-2] = ra;
 		m_Amplitude[numSamples-1] = dec;
-		pixelEnd = numSamples-2;	
 	}
 	else
 	{
 		m_version = SP_ARTIFICIAL;
 	}
+
+	m_Type = SPT_UNKNOWN;
 
 	p.gotoChild();
 
@@ -556,10 +561,12 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 	float xMax = 4.0f;
 	float yMin = -2.0f;
 	float yMax = 0.0f;
+	bool specifyYRange;
 	p.getValue("xMin", xMin );
 	p.getValue("xMax", xMax );
-	p.getValue("yMin", yMin );
-	p.getValue("yMax", yMax );
+	specifyYRange = p.getValue("yMin", yMin );
+	if (specifyYRange) 
+		specifyYRange = p.getValue("yMax", yMax );
 
 	float xDelta = xMax-xMin;
 	if ( xDelta < 0.0f )
@@ -591,8 +598,16 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 
 	float xRes = xDelta/(float)pixelEnd;
 
-	m_Min = yMin;
-	m_Max = yMax;
+	if ( specifyYRange )
+	{
+		m_Min = yMin;
+		m_Max = yMax;
+	}
+	else
+	{
+		calcMinMax();
+	}
+
 
 	std::string sstrData;
 	p.getContent(sstrData);
@@ -665,6 +680,7 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 		xp += xRes;
 	}
 	
+	m_SamplesRead = pixelEnd;
 
 	return true;
 }
@@ -1402,9 +1418,10 @@ void Spectra::calcMinMax()
 void Spectra::calculateFlux()
 {
 	double flux = 0.0;
+	float offset = (m_Min < 0.0f) ? -m_Min : 0.0f;
 	for (size_t i=0;i<Spectra::numSamples;i++)
 	{
-		flux += static_cast<double>(m_Amplitude[i]);
+		flux += static_cast<double>(m_Amplitude[i]+offset);
 	}
 	m_flux = static_cast<float>(flux);
 }
@@ -1666,7 +1683,8 @@ std::string Spectra::getFileName() const
 
 int Spectra::getMJD() const
 {
-	if ( m_version == SP_VERSION_DR7 )
+	// light curve spectra use DR7 specObj ID encoding
+	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE)
 		return static_cast<int>((m_SpecObjID&(uint64_t)0x0000FFFF00000000)>>(uint64_t)32);
 	
 	return static_cast<int>((m_SpecObjID&(uint64_t)0x0000003FFFC00000)>>(uint64_t)24)+50000;
@@ -1674,7 +1692,8 @@ int Spectra::getMJD() const
 
 int Spectra::getFiber() const
 {
-	if ( m_version == SP_VERSION_DR7 )
+	// light curve spectra use DR7 specObj ID encoding
+	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE )
 		return static_cast<int>((m_SpecObjID&(uint64_t)0x00000000FFC00000)>>(uint64_t)22);
 
 	return static_cast<int>((m_SpecObjID&(uint64_t)0x0003FFC000000000)>>(uint64_t)38);
@@ -1682,16 +1701,45 @@ int Spectra::getFiber() const
 
 int Spectra::getPlate() const
 {
-	if ( m_version == SP_VERSION_DR7 )
+	// light curve spectra use DR7 specObj ID encoding
+	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE )
 		return static_cast<int>((m_SpecObjID&(uint64_t)0xFFFF000000000000)>>(uint64_t)48);
 
 	return static_cast<int>((m_SpecObjID&(uint64_t)0xFFFC000000000000)>>(uint64_t)50);
 }
 
-std::string Spectra::getURL()const
-	{
-	// e.g.: http://dr10.sdss3.org/spectrumDetail?mjd=55280&fiber=1&plateid=3863
+double Spectra::getRa() const
+{
+	if ( m_version == SP_LIGHTCURVE)
+		return (double) m_Amplitude[numSamples-2];
+	
+	return 0.0;
+}
 
+double Spectra::getDec() const
+{
+	if ( m_version == SP_LIGHTCURVE)
+		return (double) m_Amplitude[numSamples-1];
+	return 0.0;
+}
+
+std::string Spectra::getURL()const
+{
+	if ( m_version == SP_LIGHTCURVE ) 
+	{
+		// object explorer link for light curves
+		
+		// e.g.: http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?ra=6.04858449&dec=-0.73003035
+		std::string sstrUrlObjectExplorer("http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?ra=");
+		sstrUrlObjectExplorer += Helpers::numberToString( getRa() );
+		sstrUrlObjectExplorer += "&dec=";
+		sstrUrlObjectExplorer += Helpers::numberToString( getDec() );
+	
+		return sstrUrlObjectExplorer;
+	}
+
+
+	// e.g.: http://dr10.sdss3.org/spectrumDetail?mjd=55280&fiber=1&plateid=3863
 	std::string sstrUrlDR10("http://dr10.sdss3.org/spectrumDetail?mjd=");
 	std::string sstrUrl(sstrUrlDR10);
 
@@ -1700,6 +1748,8 @@ std::string Spectra::getURL()const
 	sstrUrl += Helpers::numberToString( getFiber() );
 	sstrUrl += "&plateid=";
 	sstrUrl += Helpers::numberToString( getPlate() );
+
+
 
 	// old URLs
 // 	std::string sstrUrlDR9("http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?sid=");
@@ -2293,6 +2343,7 @@ std::string Spectra::spectraVersionToString( SpectraVersion _spectraVersion )
 	case SP_VERSION_DR8		: return "DR8/DR9";
 	case SP_VERSION_BOSS	: return "DR9/DR10 BOSS";
 	case SP_VERSION_APOGEE	: return "DR10 APOGEE";
+	case SP_LIGHTCURVE		: return "Light Curve / XML";
 	}
 	return "Spectra version that should not exist";
 }

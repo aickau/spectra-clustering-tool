@@ -199,6 +199,13 @@ void drawSpectra(Spectra &_spectra,
 	{
 		float values[Spectra::numSamples];
 		MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, MIN(_smooth,10) );
+		if ( _spectra.m_Min < 0.0f )
+		{
+			for (int i=0;i<_spectra.m_SamplesRead;i++ ) 
+			{
+				values[i] += -_spectra.m_Min;
+			}
+		}
 		GLHelper::DrawDiagram( values, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
 	}
 	else
@@ -285,7 +292,8 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	
  	if ( FileHelpers::fileExists(_sstrFilename) )
  		return;
-
+	if ( _spectra.m_SamplesRead <= 0 )
+		return;
  
 	size_t saa = 4;
 
@@ -354,6 +362,14 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 		float pos[]={X2Win(w4-60.f),Y2Win(20.f),-10};
 		glColor3f(0,0,1.f);
 		GLHelper::Print( s_largeFontID, pos, "B" );
+	}
+
+	// Light curve spectra get a little L on the lower right corner
+	if ( _spectra.m_version == Spectra::SP_LIGHTCURVE )
+	{
+		float pos[]={X2Win(w4-60.f),Y2Win(20.f),-10};
+		glColor3f(0,0,1.f);
+		GLHelper::Print( s_largeFontID, pos, "L" );
 	}
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);

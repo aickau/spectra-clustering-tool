@@ -70,6 +70,7 @@ public:
 		SP_VERSION_DR8,					//< DR8, DR9
 		SP_VERSION_BOSS,				//< BOSS spectra from DR9/DR10, new spectrograph, different wavelenght range
 		SP_VERSION_APOGEE,				//< Infrared Apogee spectrom from SDSS III
+		SP_LIGHTCURVE,					//< Lightcurve import
 		SP_COUNT						//< must be the last entry here.
 	};
 
@@ -234,6 +235,14 @@ public:
 
 	// plate id 
 	int getPlate() const;
+
+	// center point right ascension in J2000 decimal degrees
+	// only for light curve import ATM.
+	double getRa() const;
+
+	// center point declination in J2000 decimal degrees
+	// only for light curve import ATM.
+	double getDec() const;
 
 	// get SDSS URL to spectrum overview page
 	std::string getURL() const;
