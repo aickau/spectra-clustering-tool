@@ -199,7 +199,9 @@ void drawSpectra(Spectra &_spectra,
 	{
 		float values[Spectra::numSamples];
 		MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, MIN(_smooth,10) );
-		if ( _spectra.m_Min < 0.0f )
+
+		// light curves use a negative range from -2.0..0.0 -> move to 0...2.0
+		if ( _spectra.m_Min < 0.0f && _spectra.m_version == Spectra::SP_LIGHTCURVE)
 		{
 			for (int i=0;i<_spectra.m_SamplesRead;i++ ) 
 			{
