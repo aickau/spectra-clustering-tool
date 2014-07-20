@@ -506,13 +506,14 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 
 	bool bSuccess;
 
+
 	std::string sstrType;
 	size_t plateID=0;
 	size_t fiberID=0;
 	size_t mjd=0;
-	float ra = -1.0f;
-	float dec = -1.0f;
-	float z = 0.0f;
+	float ra = -1000.0f;
+	float dec = -1000.0f;
+	float z = -1.0f;
 	bSuccess = p.getChildValue("type", "value", sstrType );
 	bSuccess = p.getChildValue("plate", "value", plateID );
 	bSuccess = p.getChildValue("fiberId", "value", fiberID );
@@ -520,6 +521,10 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 	bSuccess = p.getChildValue("ra", "value", ra );
 	bSuccess = p.getChildValue("dec", "value", dec );
 	bSuccess = p.getChildValue("z", "value", z );
+
+	m_Z = z;
+	m_Amplitude[numSamples-2] = ra;
+	m_Amplitude[numSamples-1] = dec;
 
 	if ( mjd > 50000 && plateID > 0 && fiberID > 0 ) 
 	{
@@ -535,15 +540,16 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 			Helpers::print("Could not load lightcurve from XML file. Reason: Unique identifier mismatch, something went wrong during spec Obj ID calculation.\n", _logStream );
 			return false;
 		}
-
-		m_Z = z;
-		m_Amplitude[numSamples-2] = ra;
-		m_Amplitude[numSamples-1] = dec;
 	}
 	else
 	{
 		m_version = SP_ARTIFICIAL;
 	}
+
+	if ( ra != -1000.f && dec != -1000.f ) {
+		m_version = SP_LIGHTCURVE;
+	}
+
 
 	m_Type = SPT_UNKNOWN;
 
@@ -1683,29 +1689,41 @@ std::string Spectra::getFileName() const
 
 int Spectra::getMJD() const
 {
+	int mjd;
+
 	// light curve spectra use DR7 specObj ID encoding
-	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE)
-		return static_cast<int>((m_SpecObjID&(uint64_t)0x0000FFFF00000000)>>(uint64_t)32);
-	
-	return static_cast<int>((m_SpecObjID&(uint64_t)0x0000003FFFC00000)>>(uint64_t)24)+50000;
+	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE || m_version == SP_CSV ) {
+		mjd = static_cast<int>((m_SpecObjID&(uint64_t)0x0000FFFF00000000)>>(uint64_t)32);
+	} else {
+		mjd = static_cast<int>((m_SpecObjID&(uint64_t)0x0000003FFFC00000)>>(uint64_t)24)+50000;
+	}
+
+	return mjd;
 }
 
 int Spectra::getFiber() const
 {
+	int fiber;
 	// light curve spectra use DR7 specObj ID encoding
-	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE )
-		return static_cast<int>((m_SpecObjID&(uint64_t)0x00000000FFC00000)>>(uint64_t)22);
-
-	return static_cast<int>((m_SpecObjID&(uint64_t)0x0003FFC000000000)>>(uint64_t)38);
+	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE || m_version == SP_CSV ) {
+		fiber = static_cast<int>((m_SpecObjID&(uint64_t)0x00000000FFC00000)>>(uint64_t)22);
+	} else {
+ 		fiber = static_cast<int>((m_SpecObjID&(uint64_t)0x0003FFC000000000)>>(uint64_t)38);
+	}
+	return fiber;
 }
 
 int Spectra::getPlate() const
 {
+	int plate;
 	// light curve spectra use DR7 specObj ID encoding
-	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE )
-		return static_cast<int>((m_SpecObjID&(uint64_t)0xFFFF000000000000)>>(uint64_t)48);
+	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE || m_version == SP_CSV ) {
+		plate = static_cast<int>((m_SpecObjID&(uint64_t)0xFFFF000000000000)>>(uint64_t)48);
+	} else {
+		plate = static_cast<int>((m_SpecObjID&(uint64_t)0xFFFC000000000000)>>(uint64_t)50);
+	}
 
-	return static_cast<int>((m_SpecObjID&(uint64_t)0xFFFC000000000000)>>(uint64_t)50);
+	return plate;
 }
 
 double Spectra::getRa() const
@@ -1725,9 +1743,13 @@ double Spectra::getDec() const
 
 std::string Spectra::getURL()const
 {
-	if ( m_version == SP_LIGHTCURVE ) 
+	if ( m_version == SP_ARTIFICIAL || m_version == SP_VERSION_INVALID ) {
+		return "";
+	}
+
+	if ( m_version == SP_LIGHTCURVE && m_SpecObjID == 0 ) 
 	{
-		// object explorer link for light curves
+		// object explorer link for light curves where plate, mjd and fiber ID are missing.
 		
 		// e.g.: http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?ra=6.04858449&dec=-0.73003035
 		std::string sstrUrlObjectExplorer("http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?ra=");
@@ -1737,6 +1759,24 @@ std::string Spectra::getURL()const
 	
 		return sstrUrlObjectExplorer;
 	}
+
+	if ( m_SpecObjID == 0 ) {
+		return "";
+	}
+
+	// check for DR1..DR7 spectra, they get the old overview page.
+	if ( m_version == SP_VERSION_DR7 ) {
+		std::string sstrUrlDR7("http://cas.sdss.org/dr7/en/tools/explore/obj.asp?sid=");
+		sstrUrlDR7 += Helpers::numberToString( m_SpecObjID );
+		return sstrUrlDR7;
+	}
+
+	if ( m_version == SP_VERSION_DR8 ) {
+		std::string strUrlDR9("http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?sid=");
+		strUrlDR9 += Helpers::numberToString( m_SpecObjID );
+		return strUrlDR9;
+	}
+
 
 
 	// e.g.: http://dr10.sdss3.org/spectrumDetail?mjd=55280&fiber=1&plateid=3863
@@ -1749,22 +1789,15 @@ std::string Spectra::getURL()const
 	sstrUrl += "&plateid=";
 	sstrUrl += Helpers::numberToString( getPlate() );
 
-
-
-	// old URLs
-// 	std::string sstrUrlDR9("http://skyserver.sdss3.org/dr9/en/tools/explore/obj.asp?sid=");
-// 	std::string sstrUrlDR7("http://cas.sdss.org/dr7/en/tools/explore/obj.asp?sid=");
-// 	std::string sstrUrl(sstrUrlDR9);
-// 	
-// 	if ( m_version == SP_VERSION_DR7 )
-// 		sstrUrl = sstrUrlDR7;
-// 
-// 	sstrUrl += Helpers::numberToString( m_SpecObjID );
 	return sstrUrl;
 }
 
 std::string Spectra::getImgURL() const
 {
+	if ( m_SpecObjID == 0 ) {
+		return "http://upload.wikimedia.org/wikipedia/en/d/d4/Mickey_Mouse.png";
+	}
+
 	std::string sstrUrlDR10("http://skyserver.sdss3.org/dr10/en/get/SpecById.ashx?id=");
 	std::string sstrUrlDR9("http://skyserver.sdss3.org/dr9/en/get/specById.asp?id=");
 	std::string sstrUrlDR7("http://cas.sdss.org/dr7/en/get/specById.asp?id=");

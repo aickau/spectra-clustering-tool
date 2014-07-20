@@ -125,7 +125,7 @@ void renderDiagramToDisk( float *_values, size_t _valueCount, size_t _numDiagram
 
 	for ( size_t i=0;i<_numDiagrams;i++)
 	{
-		GLHelper::DrawDiagram( &_values[_valueCount*i], _valueCount, _strideInBytes, _offsetInBytes, 0.0f, yo, xs, ys );
+		GLHelper::DrawDiagram( &_values[_valueCount*i], _valueCount, _strideInBytes, _offsetInBytes, 0.0f, yo, xs, ys, true );
 	}
 	GLHelper::DrawLine( 0.f, yo, static_cast<float>(_width), yo );
 
@@ -200,19 +200,11 @@ void drawSpectra(Spectra &_spectra,
 		float values[Spectra::numSamples];
 		MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, MIN(_smooth,10) );
 
-		// light curves use a negative range from -2.0..0.0 -> move to 0...2.0
-		if ( _spectra.m_Min < 0.0f && _spectra.m_version == Spectra::SP_LIGHTCURVE)
-		{
-			for (int i=0;i<_spectra.m_SamplesRead;i++ ) 
-			{
-				values[i] += -_spectra.m_Min;
-			}
-		}
-		GLHelper::DrawDiagram( values, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
+		GLHelper::DrawDiagram( values, _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale, true  );
 	}
 	else
 	{
-		GLHelper::DrawDiagram( &_spectra.m_Amplitude[0], _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale );
+		GLHelper::DrawDiagram( &_spectra.m_Amplitude[0], _spectra.m_SamplesRead-1, 4, 0, xoffset, yoffset, xscale, yscale, true  );
 	}	
 /*	
 	GLHelper::SetLineStipple(0,0);
@@ -288,12 +280,12 @@ void drawSpectra(Spectra &_spectra,
 
 void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilename, size_t _width, size_t _height, float _redness )
 {
-	// take the n-biggest sample for resize
-	const size_t spectraCutOFF = 10;
+	const float yMargin = 1.03; // add 3% margin at the borders
 	const float lineWidth = 2.f;
+	float smoothing = 2;
 	
- 	if ( FileHelpers::fileExists(_sstrFilename) )
- 		return;
+// 	if ( FileHelpers::fileExists(_sstrFilename) )
+// 		return;
 	if ( _spectra.m_SamplesRead <= 0 )
 		return;
  
@@ -302,7 +294,14 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	size_t w4=_width*saa;
 	size_t h4=_height*saa;
 
-	if ( w4 > getFBWidth() ||  h4 > getFBHeight() )
+	const size_t fbWidth = getFBWidth();
+	const size_t fbHeight = getFBHeight();
+
+	if ( fbHeight < _width || fbHeight < _height ) {
+		return;
+	}
+
+	if ( w4 > fbWidth ||  h4 > getFBHeight() )
 	{
 		w4 = _width;
 		h4 = _height;
@@ -310,6 +309,7 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	} 
 
 	ILuint image;
+	glViewport(0,0,w4,h4);
 	ilGenImages( 1, &image );
 	ilBindImage(image);
 	ilTexImage(w4,h4,1,3,IL_RGB, IL_UNSIGNED_BYTE, NULL );
@@ -336,56 +336,89 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-	// calc histogram
-	std::set<float> histogram;
-	for ( size_t i=0;i<_spectra.m_SamplesRead; i++ ) {
-		histogram.insert( _spectra.m_Amplitude[i] );
-	}
-
-	// determine maximum, smooth spectrum to remove outliers a bit
+	// determine maximum, smooth spectrum to remove outliers a bit during min-max calculation
 	float ymin, ymax;
 	float values[Spectra::numSamples];
-	MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 10 );
-	MathHelpers::getMinMax(values, _spectra.m_SamplesRead-1, 4, 0, ymin, ymax );
-
-	float globalMax = MAX(fabsf(ymin), fabsf(ymax));
-
-	if (globalMax==0.0f)
-	{ 
-		globalMax = 1.f;
+	if ( _spectra.m_version != Spectra::SP_LIGHTCURVE ) {
+		MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 10 );
+		MathHelpers::getMinMax(values, _spectra.m_SamplesRead-1, 4, 0, ymin, ymax );
 	}
- 
-	drawSpectra( _spectra, false, false, 0, 0, w4, h4, 1.f/globalMax, 1.f, 2 );
+	else {
+		// disable smoothing for light curves
+		ymin = _spectra.m_Min;
+		ymax = _spectra.m_Max;
+		smoothing = 0;
+	}
+	
 
+
+	// if all amplitudes are equal, make sure we draw a straight line at the bottom of the icon.
+	float ydelta = ymax-ymin;
+	if ( ydelta == 0.0f ) {
+		ymax = ymin + 1.f;
+		ymin -= 0.1f; 
+	} else {
+		ymin *= yMargin;
+		ymax *= yMargin;
+	}
+
+
+	float *pAmplitude = &_spectra.m_Amplitude[0];
+	// smooth spectra a bit to reduce noise
+	if ( smoothing>0 ) 
+	{
+		MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, MIN(smoothing,10) );
+		pAmplitude = &values[0];
+	}
+
+
+	GLHelper::SetOrtho(0,_spectra.m_SamplesRead-1, ymin, ymax );
+	// test:
+	//GLHelper::DrawLine(0,0,_spectra.m_SamplesRead, -2.f);
+	GLHelper::DrawDiagram( pAmplitude, _spectra.m_SamplesRead-1 );
+	GLHelper::ResetProjection();
+
+
+	GLHelper::SetOrtho(0,w4, h4, 0 );
+
+	// draw markers
+	float pos[]={ w4-40, h4-10,-2};
+	glColor3f(0,0,1.f);
 	
 	// BOSS spectra -because of their extended wavelength range - get a little B on the lower right corner
 	if ( _spectra.m_version == Spectra::SP_VERSION_BOSS )
 	{
-		float pos[]={X2Win(w4-60.f),Y2Win(20.f),-10};
-		glColor3f(0,0,1.f);
 		GLHelper::Print( s_largeFontID, pos, "B" );
 	}
 
 	// Light curve spectra get a little L on the lower right corner
 	if ( _spectra.m_version == Spectra::SP_LIGHTCURVE )
 	{
-		float pos[]={X2Win(w4-60.f),Y2Win(20.f),-10};
-		glColor3f(0,0,1.f);
 		GLHelper::Print( s_largeFontID, pos, "L" );
+	}
+
+	if ( _spectra.m_version == Spectra::SP_ARTIFICIAL )
+	{
+		GLHelper::Print( s_largeFontID, pos, "A" );
+	}
+
+	if ( _spectra.m_version == Spectra::SP_CSV )
+	{
+		GLHelper::Print( s_largeFontID, pos, "C" );
 	}
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
-	const int yo = 0; // was: getFBHeight()-h4 - do not know why..
-	glReadPixels(0,yo,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
+	glReadPixels(0,0,w4,h4,GL_RGB, GL_UNSIGNED_BYTE, ilGetData());
 
 	iluScale(_width,_height,1);
 	ilSave( IL_PNG, const_cast<char*>(_sstrFilename.c_str()) );
 	ilDeleteImage(image);
 
+	GLHelper::ResetProjection();
+	glViewport(0,0,fbWidth,fbHeight);
 	glLineWidth(1.f);
 	glClearColor(0.0,0,0,0);
-
 }
 
 
