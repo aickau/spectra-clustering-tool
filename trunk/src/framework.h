@@ -22,8 +22,8 @@
 
 #define		FR_NAME				"ASPECT"
 								
-#define		FR_WIDTH			1800
-#define		FR_HEIGHT			1100
+#define		FR_WIDTH			800
+#define		FR_HEIGHT			800
 #define		FR_BPP				32
 #define		FR_FRQ				75	
 								

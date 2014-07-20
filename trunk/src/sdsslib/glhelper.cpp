@@ -25,7 +25,7 @@
 
 #include <string>
 
-#define DEFAULT_Z -10.f
+#define DEFAULT_Z -5.f
 
 #define GLHELPER_NUMCHARACTERS 96
 
@@ -736,7 +736,7 @@ void GLHelper::DrawPoint( float _lx, float _ly, float _size )
 
 
 void GLHelper::DrawDiagram( float *_values, size_t _numValues, size_t _strideInBytes, size_t _offsetInBytes, 
-				 float _xoffset, float _yoffset, float _xscale, float _yscale )
+				 float _xoffset, float _yoffset, float _xscale, float _yscale, bool yNegate  )
 {
 	assert( _values != NULL );
 	if ( _strideInBytes == 0 )
@@ -748,7 +748,8 @@ void GLHelper::DrawDiagram( float *_values, size_t _numValues, size_t _strideInB
 	for ( size_t i=0;i<_numValues;i++)
 	{
 		float *v = reinterpret_cast<float*>( p );
-		glVertex3f(static_cast<float>(i)*_xscale+_xoffset, -*v*_yscale+_yoffset, DEFAULT_Z );
+		float yVal = (yNegate) ? -*v : *v;
+		glVertex3f(static_cast<float>(i)*_xscale+_xoffset, yVal*_yscale+_yoffset, DEFAULT_Z );
 		p += _strideInBytes;
 	}
 	glEnd();
@@ -864,7 +865,7 @@ void GLHelper::SetProjectionMatrix(float *m)
 
 
 
-void GLHelper::SetOrtho(bool correct_aspect)
+void GLHelper::SetOrtho(bool correct_aspect, float zNear, float zFar)
 {
 	int width, height;
 	float aspectw = 1.0f;
@@ -881,7 +882,16 @@ void GLHelper::SetOrtho(bool correct_aspect)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	glOrtho(-aspectw, aspectw, -aspecth, aspecth, -1.f, 10.f);
+	glOrtho(-aspectw, aspectw, -aspecth, aspecth, zNear, zFar);
+	glMatrixMode(GL_MODELVIEW);
+}
+
+void GLHelper::SetOrtho(float left, float right, float bottom, float top, float zNear, float zFar )
+{
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho( left, right, bottom, top, zNear, zFar );
 	glMatrixMode(GL_MODELVIEW);
 }
 

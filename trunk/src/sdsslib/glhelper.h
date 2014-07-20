@@ -199,9 +199,9 @@ public:
 	static void			DrawLine(float _l1x, float _l1y, float _l2x, float _l2y);
 	static void			DrawPoint(float _lx, float _ly, float _size = 1.f );
 
-
+	// yNegate : negate y to match with bottom-left vs top-left viewports. For top-left, use negate.
 	static void			DrawDiagram( float *_values, size_t _numValues, size_t _strideInBytes=4, size_t _offsetInBytes=0, 
-                                     float _xoffset=0.0f, float _yoffset=0.0f, float _xscale=1.f, float _yscale=1.f );
+                                     float _xoffset=0.0f, float _yoffset=0.0f, float _xscale=1.f, float _yscale=1.f, bool yNegate=false );
 
 
 	static void			DrawDiagramColored( float *_values, float *_colorRGB, size_t _numValues, size_t _strideInBytes=4, size_t _offsetInBytes=0, 
@@ -214,7 +214,13 @@ public:
 	static void			GetModelViewProjectionMatrix(float *mout);
 	static void			SetModelViewMatrix(float *m);
 	static void			SetProjectionMatrix(float *m);
-	static void			SetOrtho(bool correct_aspect);
+
+	// set orthographic projection in range -1..1 
+	// correct_aspect if true aspect is corrected, e.g. 
+	// for full HD (1920x1024) we would get an orthographic window for drawing in range
+	// -1.875..1875 for x and -1..1 in y
+	static void			SetOrtho(bool correct_aspect, float zNear=0.1f, float zFar=10.0f);
+	static void			SetOrtho(float left, float right, float top, float bottom, float zNear=0.1f, float zFar=10.0f );
 	static void			ResetProjection();
 	static void			CalcViewportParams(float &left, float &right, float &bottom, float &top,float &znear, float &zfar);
 	static void			GetViewportSize(int &width, int &height);
