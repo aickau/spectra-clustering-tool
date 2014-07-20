@@ -98,11 +98,13 @@ private:
 	std::string m_sstrDumpFilename;										// file where we read from (and write to)
 	std::ofstream m_logFile;											// error logfile 
 
-#if defined(X64) || defined(__linux)
-	SpectraVFSMemOnly *m_pSpectraVFS;				
-#else
-	SpectraVFSCached *m_pSpectraVFS;				
-#endif // SPECTRAVFS_MEMONLY
+	SpectraVFSMemOnly *m_pSpectraVFS;
+
+// #if defined(X64) || defined(__linux)
+// 	SpectraVFSMemOnly *m_pSpectraVFS;				
+// #else
+// 	SpectraVFSCached *m_pSpectraVFS;				
+// #endif // SPECTRAVFS_MEMONLY
 };
 
 #endif

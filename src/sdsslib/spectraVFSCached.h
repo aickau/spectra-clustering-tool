@@ -29,6 +29,8 @@
 #include "spectraVFS.h"
 
 
+// Deprecated because it does not work anymore or is to slow.
+//
 // virtual file system for a large set of homogeneous spectra.
 // Only a small partition is hold in RAM (what in this context is called 'cached') using a LRU flavored caching scheme. 
 // Use CACHESIZE to configure RAM usage.

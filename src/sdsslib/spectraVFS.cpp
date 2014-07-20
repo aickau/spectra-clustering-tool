@@ -20,9 +20,6 @@
 
 
 #include "spectraVFSMemOnly.h"
-#ifdef _WIN32
-#include "spectraVFSCached.h"
-#endif
 
 #include "spectraWrite.h"
 #include "helpers.h"
@@ -43,11 +40,15 @@ SpectraVFS::SpectraVFS( const std::string &_sstrFilename, bool _readOnly )
 :m_sstrDumpFilename(_sstrFilename)
 ,m_logFile(std::string(_sstrFilename+std::string(".log")).c_str())
 {
-#if defined(X64) || defined(__linux)
+
 	m_pSpectraVFS = new SpectraVFSMemOnly(_sstrFilename, m_logFile, _readOnly );
-#else
-	m_pSpectraVFS = new SpectraVFSCached(_sstrFilename, m_logFile, _readOnly );
-#endif // SPECTRAVFS_MEMONLY
+
+	// we do not support the SpectraVFSCached version anymore. If it works it is to slow when reading from disk.
+// #if defined(X64) || defined(__linux)
+// 	m_pSpectraVFS = new SpectraVFSMemOnly(_sstrFilename, m_logFile, _readOnly );
+// #else
+// 	m_pSpectraVFS = new SpectraVFSCached(_sstrFilename, m_logFile, _readOnly );
+// #endif // SPECTRAVFS_MEMONLY
 }
 
 SpectraVFS::~SpectraVFS()
