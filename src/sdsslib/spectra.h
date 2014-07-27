@@ -70,7 +70,9 @@ public:
 		SP_VERSION_DR8,					//< DR8, DR9
 		SP_VERSION_BOSS,				//< BOSS spectra from DR9/DR10, new spectrograph, different wavelenght range
 		SP_VERSION_APOGEE,				//< Infrared Apogee spectrom from SDSS III
-		SP_LIGHTCURVE,					//< Lightcurve import
+		SP_LIGHTCURVE_SDSS,				//< Lightcurve with associated SDSS info (plate id, MJD fiber id)
+		SP_LIGHTCURVE_RADEC,			//< Lightcurve with associated ra/dec
+		SP_LIGHTCURVE_PLAIN,			//< Lightcurve without any associated information
 		SP_COUNT						//< must be the last entry here.
 	};
 
@@ -391,7 +393,7 @@ public:
 	float m_Max;
 	int32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
 	int16_t m_SamplesRead;
-	int64_t m_SpecObjID;	
+	int64_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
 	SpectraType m_Type;
 	SpectraVersion m_version;
 	double m_Z;
@@ -437,7 +439,8 @@ public:
 	// MJD has always five digits
 	// plate number has always four digits
 	// fiber id has always three digits
-	static std::string getSpecObjFileName(int _plate, int _mjd, int _fiberID );
+	// dr8 set to true for data release 8 or above spectra, for DR 1..7 set to false.
+	static std::string getSpecObjFileName( int _plate, int _mjd, int _fiberID, bool dr8 );
 
 	// if we use BOSS and SDSS spectra combined calculate offset for SDSS spectra.
 	// BOSS spectra start at 3650A, SDSS spectra at 3800A -> thus use offset ~13 so both types operate in equal wavelengths
