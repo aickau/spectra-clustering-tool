@@ -78,6 +78,9 @@ namespace Helpers
 	int64_t HiLowtoUInt64(uint32_t _nLowerPart,uint32_t _nHigherPart );
 	void UInt64toHiLow(uint64_t _nInNumber,uint32_t &_nOutLowerPart,uint32_t &_nOutHigherPart );
 
+	// very simple 64 bit hashing. Of course not intended for security related things like digital signing etc.
+	uint64_t hash( const char *p, size_t size );
+
 
 #ifdef _WIN32
 	// convert command line string to command line structure (argc, char* argv[])

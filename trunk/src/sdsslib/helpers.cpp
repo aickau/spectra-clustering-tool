@@ -151,6 +151,20 @@ void Helpers::UInt64toHiLow(uint64_t _nInNumber,uint32_t &_nOutLowerPart,uint32_
 	_nOutHigherPart = static_cast<uint32_t>(_nInNumber >> 32);
 }
 
+
+uint64_t Helpers::hash( const char *p, size_t size )
+{
+	const uint64_t P1 = 7;
+	const uint64_t P2 = 31;
+
+	uint64_t hash = P1;
+	for ( size_t i=0;i<size;i++ ) {
+		hash = hash * P2 + p[i];
+	}
+
+	return hash;
+}
+
 #ifdef _WIN32 
 
 char **Helpers::getCommandLineFromString( const std::string &_sstrCommandLineString, int &_outArgC )

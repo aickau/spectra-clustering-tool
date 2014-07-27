@@ -528,7 +528,7 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 
 	if ( mjd > 50000 && plateID > 0 && fiberID > 0 ) 
 	{
-		m_version = SP_LIGHTCURVE;
+		m_version = SP_LIGHTCURVE_SDSS;
 		m_SpecObjID = calcSpecObjID_DR7( plateID, mjd, fiberID, 0);
 
 		// recheck mjd, fiber and plate by calculating them from spec obj id.
@@ -543,12 +543,14 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 	}
 	else
 	{
-		m_version = SP_ARTIFICIAL;
+		if ( ra != -1000.f && dec != -1000.f ) {
+			m_version = SP_LIGHTCURVE_RADEC;
+		} else {
+			m_version = SP_LIGHTCURVE_PLAIN;
+		}
 	}
 
-	if ( ra != -1000.f && dec != -1000.f ) {
-		m_version = SP_LIGHTCURVE;
-	}
+
 
 
 	m_Type = SPT_UNKNOWN;
@@ -687,6 +689,13 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 	}
 	
 	m_SamplesRead = pixelEnd;
+
+	// if the imported light curve does not contain plate id, mjd and fiber id, where the specObj ID is calculated from
+	// we hash the amplitudes and use this as identifier. 
+	if ( m_version != SP_LIGHTCURVE_SDSS ) {
+		m_SpecObjID = Helpers::hash( (const char*)&m_Amplitude[0], m_SamplesRead );
+	}
+
 
 	return true;
 }
@@ -1670,18 +1679,13 @@ std::string Spectra::getFileName() const
 	// e.g. spSpec-52203-0716-002.fit
 	std::string sstrFileName( "spSpec-" );
 
-	char buf[64];
-	sprintf_s( buf, "%05i", getMJD() );
-	sstrFileName += buf;
-	sstrFileName += "-";
-
-	sprintf_s( buf, "%04i", getPlate() );
-	sstrFileName += buf;
-	sstrFileName += "-";
-
-	sprintf_s( buf, "%03i", getFiber() );
-	sstrFileName += buf;
-	sstrFileName += ".fit";
+	// for spectra with unassigned plate/MJD/fiber ids we use the hash value.
+	// This could be the case for artificial or light curve spectra.
+	if ( m_version == SpectraVersion::SP_LIGHTCURVE_RADEC || m_version == SpectraVersion::SP_LIGHTCURVE_PLAIN ) {
+		sstrFileName += Helpers::numberToString<uint64_t>(m_SpecObjID);
+	} else {
+		sstrFileName = getSpecObjFileName( getPlate(), getMJD(), getFiber(), (m_version != SP_VERSION_DR7) );
+	} 
 
 	return sstrFileName;
 }
@@ -1691,10 +1695,15 @@ int Spectra::getMJD() const
 {
 	int mjd;
 
-	// light curve spectra use DR7 specObj ID encoding
-	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE || m_version == SP_CSV ) {
+	if ( m_version == SP_LIGHTCURVE_RADEC || 
+		 m_version == SP_LIGHTCURVE_PLAIN || 
+		 m_version == SP_ARTIFICIAL ) {
+		 mjd = 0;
+	} else if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE_SDSS || m_version == SP_CSV ) {
+		// light curve spectra use DR7 specObj ID encoding
 		mjd = static_cast<int>((m_SpecObjID&(uint64_t)0x0000FFFF00000000)>>(uint64_t)32);
 	} else {
+		// light curve spectra use DR8 and above specObj ID encoding
 		mjd = static_cast<int>((m_SpecObjID&(uint64_t)0x0000003FFFC00000)>>(uint64_t)24)+50000;
 	}
 
@@ -1704,10 +1713,16 @@ int Spectra::getMJD() const
 int Spectra::getFiber() const
 {
 	int fiber;
-	// light curve spectra use DR7 specObj ID encoding
-	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE || m_version == SP_CSV ) {
+
+	if ( m_version == SP_LIGHTCURVE_RADEC || 
+		m_version == SP_LIGHTCURVE_PLAIN || 
+		m_version == SP_ARTIFICIAL ) {
+			fiber = 0;
+	} else if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE_SDSS || m_version == SP_CSV ) {
+		// light curve spectra use DR7 specObj ID encoding
 		fiber = static_cast<int>((m_SpecObjID&(uint64_t)0x00000000FFC00000)>>(uint64_t)22);
 	} else {
+		// light curve spectra use DR8 and above specObj ID encoding
  		fiber = static_cast<int>((m_SpecObjID&(uint64_t)0x0003FFC000000000)>>(uint64_t)38);
 	}
 	return fiber;
@@ -1716,10 +1731,15 @@ int Spectra::getFiber() const
 int Spectra::getPlate() const
 {
 	int plate;
-	// light curve spectra use DR7 specObj ID encoding
-	if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE || m_version == SP_CSV ) {
+	if ( m_version == SP_LIGHTCURVE_RADEC || 
+		m_version == SP_LIGHTCURVE_PLAIN || 
+		m_version == SP_ARTIFICIAL ) {
+			plate = 0;
+	} else if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE_SDSS || m_version == SP_CSV ) {
+		// light curve spectra use DR7 specObj ID encoding
 		plate = static_cast<int>((m_SpecObjID&(uint64_t)0xFFFF000000000000)>>(uint64_t)48);
 	} else {
+		// light curve spectra use DR8 and above specObj ID encoding
 		plate = static_cast<int>((m_SpecObjID&(uint64_t)0xFFFC000000000000)>>(uint64_t)50);
 	}
 
@@ -1728,7 +1748,7 @@ int Spectra::getPlate() const
 
 double Spectra::getRa() const
 {
-	if ( m_version == SP_LIGHTCURVE)
+	if ( m_version == SP_LIGHTCURVE_RADEC )
 		return (double) m_Amplitude[numSamples-2];
 	
 	return 0.0;
@@ -1736,18 +1756,19 @@ double Spectra::getRa() const
 
 double Spectra::getDec() const
 {
-	if ( m_version == SP_LIGHTCURVE)
+	if ( m_version == SP_LIGHTCURVE_RADEC )
 		return (double) m_Amplitude[numSamples-1];
 	return 0.0;
 }
 
 std::string Spectra::getURL()const
 {
-	if ( m_version == SP_ARTIFICIAL || m_version == SP_VERSION_INVALID ) {
+	if ( m_SpecObjID == 0 || m_version == SP_ARTIFICIAL || m_version == SP_LIGHTCURVE_PLAIN || m_version == SP_VERSION_INVALID ) {
 		return "";
 	}
 
-	if ( m_version == SP_LIGHTCURVE && m_SpecObjID == 0 ) 
+
+	if ( m_version == SP_LIGHTCURVE_RADEC ) 
 	{
 		// object explorer link for light curves where plate, mjd and fiber ID are missing.
 		
@@ -1760,9 +1781,6 @@ std::string Spectra::getURL()const
 		return sstrUrlObjectExplorer;
 	}
 
-	if ( m_SpecObjID == 0 ) {
-		return "";
-	}
 
 	// check for DR1..DR7 spectra, they get the old overview page.
 	if ( m_version == SP_VERSION_DR7 ) {
@@ -2369,40 +2387,73 @@ std::string Spectra::spectraVersionToString( SpectraVersion _spectraVersion )
 {
 	switch ( _spectraVersion )
 	{
-	case SP_VERSION_INVALID : return "Invalid";
-	case SP_ARTIFICIAL		: return "Artificial";
-	case SP_CSV				: return "Comma Separated Values (CSV)";
-	case SP_VERSION_DR7		: return "DR7 and below";
-	case SP_VERSION_DR8		: return "DR8/DR9";
-	case SP_VERSION_BOSS	: return "DR9/DR10 BOSS";
-	case SP_VERSION_APOGEE	: return "DR10 APOGEE";
-	case SP_LIGHTCURVE		: return "Light Curve / XML";
+	case SP_VERSION_INVALID		: return "Invalid";
+	case SP_ARTIFICIAL			: return "Artificial";
+	case SP_CSV					: return "Comma Separated Values (CSV)";
+	case SP_VERSION_DR7			: return "DR7 and below";
+	case SP_VERSION_DR8			: return "DR8/DR9";
+	case SP_VERSION_BOSS		: return "DR9/DR10 BOSS";
+	case SP_VERSION_APOGEE		: return "DR10 APOGEE";
+	case SP_LIGHTCURVE_SDSS		: return "Light Curve / XML with SDSS plate, MJD and fiber ID";
+	case SP_LIGHTCURVE_RADEC	: return "Light Curve / XML with ra/dec";
+	case SP_LIGHTCURVE_PLAIN	: return "Light Curve / XML without any associated info";
 	}
 	return "Spectra version that should not exist";
 }
 
 
 
-std::string Spectra::getSpecObjFileName(int _plate, int _mjd, int _fiberID )
+std::string Spectra::getSpecObjFileName( int _plate, int _mjd, int _fiberID, bool dr8 )
 {
-	// e.g. spSpec-52203-0716-002.fit
-	std::string sstrFileName( "spSpec-" );
+	std::string sstrFileName;
+	if ( dr8 )
+	{
+		// dr8 and above
+		// spec-plate-MJD-fiber.fits
+		// e.g. spec-0281-51614-0579.fits
+		sstrFileName = "spec-";
 
-	char buf[64];
-	sprintf_s( buf, "%05i", _mjd );
-	sstrFileName += buf;
-	sstrFileName += "-";
+		char buf[64];
 
-	sprintf_s( buf, "%04i", _plate );
-	sstrFileName += buf;
-	sstrFileName += "-";
+		sprintf_s( buf, "%04i", _plate );
+		sstrFileName += buf;
+		sstrFileName += "-";
 
-	sprintf_s( buf, "%03i", _fiberID );
-	sstrFileName += buf;
-	sstrFileName += ".fit";
+		sprintf_s( buf, "%05i", _mjd );
+		sstrFileName += buf;
+		sstrFileName += "-";
 
+		sprintf_s( buf, "%04i", _fiberID );
+		sstrFileName += buf;
+		sstrFileName += ".fits";
+
+	}
+	else
+	{
+		// dr7 and below
+		// spSpec-MJD-plate-fiber.fit
+		// e.g. spSpec-52203-0716-002.fit
+		sstrFileName = "spSpec-";
+
+		char buf[64];
+		sprintf_s( buf, "%05i", _mjd );
+		sstrFileName += buf;
+		sstrFileName += "-";
+
+		sprintf_s( buf, "%04i", _plate );
+		sstrFileName += buf;
+		sstrFileName += "-";
+
+		sprintf_s( buf, "%03i", _fiberID );
+		sstrFileName += buf;
+		sstrFileName += ".fit";
+	}
+	
 	return sstrFileName;
 }
+
+
+
 
 
 int Spectra::getSDSSSpectraOffsetStart()

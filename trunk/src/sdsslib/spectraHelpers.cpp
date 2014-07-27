@@ -284,8 +284,8 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	const float lineWidth = 2.f;
 	float smoothing = 2;
 	
-// 	if ( FileHelpers::fileExists(_sstrFilename) )
-// 		return;
+ 	if ( FileHelpers::fileExists(_sstrFilename) )
+ 		return;
 	if ( _spectra.m_SamplesRead <= 0 )
 		return;
  
@@ -339,7 +339,9 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	// determine maximum, smooth spectrum to remove outliers a bit during min-max calculation
 	float ymin, ymax;
 	float values[Spectra::numSamples];
-	if ( _spectra.m_version != Spectra::SP_LIGHTCURVE ) {
+	if ( _spectra.m_version != Spectra::SP_LIGHTCURVE_SDSS &&
+		 _spectra.m_version != Spectra::SP_LIGHTCURVE_RADEC &&
+		 _spectra.m_version != Spectra::SP_LIGHTCURVE_PLAIN ) {
 		MathHelpers::smooth(&_spectra.m_Amplitude[0], values, _spectra.m_SamplesRead-1, 10 );
 		MathHelpers::getMinMax(values, _spectra.m_SamplesRead-1, 4, 0, ymin, ymax );
 	}
@@ -392,7 +394,9 @@ void renderSpectraIconToDisk( Spectra &_spectra, const std::string &_sstrFilenam
 	}
 
 	// Light curve spectra get a little L on the lower right corner
-	if ( _spectra.m_version == Spectra::SP_LIGHTCURVE )
+	if (_spectra.m_version == Spectra::SP_LIGHTCURVE_SDSS || 
+		_spectra.m_version == Spectra::SP_LIGHTCURVE_RADEC || 
+		_spectra.m_version == Spectra::SP_LIGHTCURVE_PLAIN )
 	{
 		GLHelper::Print( s_largeFontID, pos, "L" );
 	}
@@ -509,55 +513,6 @@ struct TspecObj
 
 
 
-std::string getSpecObjFileName(TspecObj &obj, bool dr8 )
-{
-	std::string sstrFileName;
-	if ( dr8 )
-	{
-		// dr8 and above
-		// spec-plate-MJD-fiber.fits
-		// e.g. spec-0281-51614-0579.fits
-		sstrFileName = "spec-";
-
-		char buf[64];
-
-		sprintf_s( buf, "%04i", obj.plate );
-		sstrFileName += buf;
-		sstrFileName += "-";
-
-		sprintf_s( buf, "%05i", obj.mjd );
-		sstrFileName += buf;
-		sstrFileName += "-";
-
-		sprintf_s( buf, "%04i", obj.fiberID );
-		sstrFileName += buf;
-		sstrFileName += ".fits";
-
-	}
-	else
-	{
-		// dr7 and below
-		// spSpec-MJD-plate-fiber.fit
-		// e.g. spSpec-52203-0716-002.fit
-		sstrFileName = "spSpec-";
-
-		char buf[64];
-		sprintf_s( buf, "%05i", obj.mjd );
-		sstrFileName += buf;
-		sstrFileName += "-";
-
-		sprintf_s( buf, "%04i", obj.plate );
-		sstrFileName += buf;
-		sstrFileName += "-";
-
-		sprintf_s( buf, "%03i", obj.fiberID );
-		sstrFileName += buf;
-		sstrFileName += ".fit";
-	}
-
-	return sstrFileName;
-}
-
 bool readSelectionList( const std::string &_sstrSelectionListFilename, std::set<std::string> &_outFITSFilenameSet )
 {
 	if ( _sstrSelectionListFilename.empty() )
@@ -591,9 +546,9 @@ bool readSelectionList( const std::string &_sstrSelectionListFilename, std::set<
 		specObj.mjd = Helpers::stringToNumber<int>(sstrMJD);
 
 		// generate both filename variants for dr7 (and below) and dr8 (and above).
-		std::string sstrFileName = getSpecObjFileName(specObj, false);
+		std::string sstrFileName = Spectra::getSpecObjFileName( specObj.plate, specObj.mjd, specObj.fiberID, false);
 		_outFITSFilenameSet.insert(sstrFileName);
-		sstrFileName = getSpecObjFileName(specObj, true);
+		sstrFileName = Spectra::getSpecObjFileName( specObj.plate, specObj.mjd, specObj.fiberID, true);
 		_outFITSFilenameSet.insert(sstrFileName);
 	}
 /*

@@ -495,7 +495,7 @@ void writeMagUGRIZ()
 			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
-				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
+				std::string sstrFileName = sp->getFileName(); 
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
 				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
 
@@ -763,7 +763,7 @@ void writePrimaryTarget()
 			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
-				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
+				std::string sstrFileName = sp->getFileName(); 
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
 				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
 
@@ -1122,7 +1122,7 @@ void writeRADEC()
 			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
-				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
+				std::string sstrFileName = sp->getFileName(); 
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
 				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
 
@@ -1215,7 +1215,7 @@ void writeOtherZValues()
 			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
-				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
+				std::string sstrFileName = sp->getFileName(); 
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
 				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
 
@@ -1528,7 +1528,7 @@ void writeSpectraVersion()
 			if ( index >= 0 && index < numSourceSpecra )
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
-				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
+				std::string sstrFileName = sp->getFileName(); 
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
 				std::string sstrPath = DATADIR+sstrPlate+"/1d/"+sstrFileName;
 
@@ -1970,7 +1970,7 @@ void writeParamsFromSelection(const std::string &sstrDataDir )
 				numObjectsFound++;
 				Spectra *sp = pSourceVFS->beginRead(index);
 				sp->calculateFlux();
-				std::string sstrFileName = Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber());
+				std::string sstrFileName = sp->getFileName(); 
 				std::string sstrPlate = Helpers::numberToString(sp->getPlate(),4);
 				std::string sstrPath = sstrDataDir+sstrPlate+"/1d/"+sstrFileName;
 				std::string sstrUrl = sp->getURL();
@@ -2977,7 +2977,7 @@ void printNeighboursFromMask()
 			{
 				Spectra *sp = pSourceVFS->beginRead(index);
 
-				Helpers::print( "<a href=\""+sp->getURL()+"\">"+Spectra::getSpecObjFileName(sp->getPlate(),sp->getMJD(),sp->getFiber()) +"</a><br>\n", &logFile, false );
+				Helpers::print( "<a href=\""+sp->getURL()+"\">"+sp->getFileName()+"</a><br>\n", &logFile, false );
 				pSourceVFS->endRead(index);
 				c2++;
 			}
