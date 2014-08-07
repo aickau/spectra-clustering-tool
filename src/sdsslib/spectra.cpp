@@ -19,6 +19,8 @@
 
 #include "spectra.h"
 
+
+
 #include "random.h"
 #include "helpers.h"
 #include "fileHelpers.h"
@@ -27,13 +29,18 @@
 #include "spectraBaseHelpers.h"
 #include "CSVExport.h"
 #include "spectraDB.h"
+
+#define _XMLIMPORT_DISABLED
+
+#ifndef _XMLIMPORT_DISABLED
 #include "XMLParser.h"
+#endif
+
 
 // temporary disable FITS support under linux.
 #ifndef _WIN32
 #define _FITSDISABLED
 #endif
-
 
 
 #ifndef _FITSDISABLED
@@ -491,6 +498,7 @@ bool Spectra::loadFromCSV(const std::string &_filename, std::ofstream *_logStrea
 
 bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStream)
 {
+#ifndef _XMLIMPORT_DISABLED
 	clear();
 
 	// reserve the last two samples to store ra & dec angles
@@ -698,6 +706,11 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 
 
 	return true;
+#else //_XMLIMPORT_DISABLED
+	Helpers::print("Could not load lightcurve from xml file. Reason: Code disabled, undefine _XMLIMPORT_DISABLED.\n", _logStream );
+
+	return false;
+#endif // _XMLIMPORT_DISABLED
 }
 
 
