@@ -104,6 +104,7 @@ int fiberID;
 
 void trackCatalogs()
 {
+	const bool dr8Catalog = false;
 	const size_t gridSize(859);
 	const size_t gridSizeSqr(gridSize*gridSize);
 
@@ -155,7 +156,7 @@ void trackCatalogs()
 			const int mjd = Helpers::stringToNumber<int>(sstrMJD);
 			const int fiberID = Helpers::stringToNumber<int>(sstrFiberID);
 			const unsigned int sid = Spectra::calcSpecObjID_DR7(plate,mjd,fiberID,0);
-			std::string sstrFilename( Spectra::getSpecObjFileName(plate,mjd,fiberID));
+			std::string sstrFilename( Spectra::getSpecObjFileName(plate,mjd,fiberID, dr8Catalog));
 
 			for (size_t i=0;i<gridSizeSqr;i++)
 			{
@@ -1775,6 +1776,7 @@ void writeUMatrixForSource()
 
 void spectroLisWrite()
 {
+	const bool dr8Catalog = false;
 	std::ofstream logFile("specObjOperations_log.txt");
 	typedef std::map<std::string,TspecObj> TSpecObjMap;
 	TSpecObjMap filenameList;
@@ -1804,7 +1806,7 @@ void spectroLisWrite()
 		specObj.plate = Helpers::stringToNumber<int>(plate);
 		specObj.mjd = Helpers::stringToNumber<int>(mjd);
 
-		std::string sstrFileName = Spectra::getSpecObjFileName(specObj.plate, specObj.mjd, specObj.fiberID );
+		std::string sstrFileName = Spectra::getSpecObjFileName(specObj.plate, specObj.mjd, specObj.fiberID, dr8Catalog );
 		std::pair<TSpecObjMap::iterator, bool> retVal =  filenameList.insert( std::make_pair<std::string,TspecObj>(sstrFileName, specObj));
 
 		if ( !retVal.second )
