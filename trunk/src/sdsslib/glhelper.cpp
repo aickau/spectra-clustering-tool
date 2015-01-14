@@ -32,9 +32,10 @@
 
 int GLHelper::BuildFont(HDC hdc, char *fontname, int fontsize, bool bold, bool italic)								
 {
+	int	fontid = -1;
 
+#ifdef _WIN32
 	HFONT	font;
-	int		fontid;
 
 	fontid = glGenLists(GLHELPER_NUMCHARACTERS);				// Storage For 96 Characters
 
@@ -70,7 +71,7 @@ int GLHelper::BuildFont(HDC hdc, char *fontname, int fontsize, bool bold, bool i
 	}
 
 	DeleteObject(font);
-
+#endif
 	return fontid;
 }
 
@@ -88,24 +89,30 @@ void GLHelper::Print(int fontid, float *position, const char *fmt, ...)
 	if ( fontid<1 )
 		return;
 
-	// security issue (TM)
-	char		text[4096];						
-	va_list		ap;										
 
-	if (fmt == NULL)									
-		return;											
+	char text[4096];
 
-	va_start(ap, fmt);								
-	  vsprintf(text, fmt, ap);						
+	va_list	ap;										
+	va_start(ap, fmt);		
+	const int len = min(_vscprintf( fmt, ap ) + 1, 4096); // +1 for terminating '\0'
+	vsprintf_s( text, len, fmt, ap );		
 	va_end(ap);	
+
 	
-	if (position)
+	if (position) {
+		glPushMatrix();
 		glRasterPos3fv(position);
+	}
 
 	glPushAttrib(GL_LIST_BIT);							
 	glListBase(fontid-32);								
-	glCallLists(strlen(text), GL_UNSIGNED_BYTE, text);	
+	glCallLists(len, GL_UNSIGNED_BYTE, text);	
 	glPopAttrib();	
+
+	if (position) {
+		glPopMatrix();
+	}
+
 }
 
 
