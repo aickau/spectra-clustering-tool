@@ -117,8 +117,23 @@ public:
 	static void			Init();
 	
 	// text
+
+	// TODO: replace HDC with void* to remove windows specific interface.
+	// create GL font with a given font name
+	// \param windowId window handle (under windows HDC) 
+	// \param fontName name of installed font (true type similar)
+	// \param fontSize in pt
+	// \return font id or -1 if font could not be created. 
 	static int			BuildFont(HDC hdc, char *fontname, int fontsize, bool bold, bool italic);
+
+	//! delete GL font that was created with buildFont()
 	static void			KillFont(int fontid);
+
+
+	//! print some text to GL.
+	//! \param fontId must be greater zero, created with buildFont()
+	//! \param position 2D position in world space. Use NULL to specify no position.
+	//! \param fmt text with format specifiers to print, see ansi c printf() for details
 	static void			Print(int fontid, float *position, const char *fmt, ...);
 
 	// GL error handling
