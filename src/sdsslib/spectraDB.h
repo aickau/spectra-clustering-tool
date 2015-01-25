@@ -24,9 +24,17 @@
 
 #include <map>
 
+// load/write additional spectra parameters that are not located in the individual spectra FITS files.
+// Extra parameters are imported from specObj data model that contains the list of all spectra for a given data release, with associated parameters from the 2D and 1D pipelines for each.
+// For details refer to the specObj FITS file Documentation:
+//   http://data.sdss3.org/datamodel/files/SPECTRO_REDUX/specObj.html
+//
+// A selection of some parameters are then written back to a binary file and can be retrieved over spec obj ID.
 class SpectraDB
 {
 public:
+
+	// extend with other params if neccessary 
 	struct Info
 	{
 		double						z;
@@ -36,18 +44,23 @@ public:
 	enum DR
 	{
 		DR9,
-		DR10
+		DR10,
+		DR12
 	};
 
 	// read FITs table and export map entries to write binary table 
 	// because we do not want to read a 3 GB FITs file for every clustering process.
 	// true if operation was successful.
-	bool writeDB( DR dataRelease );
+	bool writeDB( DR _dataRelease );
 
 	// load binary DB into memory.
-	bool loadDB( DR dataRelease );
+	bool loadDB( DR _dataRelease );
 
-	bool getInfo( int64_t _specObjID, Info &outInfo );
+	// load newest DB that can be found.
+	// _logStream output loading result to log file, or only to console if NULL
+	bool loadNewestDB( std::ofstream *_logStream );
+
+	bool getInfo( int64_t _specObjID, Info &_outInfo );
 
 private:
 

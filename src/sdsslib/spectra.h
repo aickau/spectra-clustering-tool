@@ -348,15 +348,18 @@ public:
 	bool loadFromFITS(const std::string &_filename, std::ofstream *_logStream=NULL);
 
 	// load from SDSS .fit file up to DR7
+	// Better use loadFromFITS() which checks the version and selects the aprpriate loader method.
 	// e.g. spSpec-51630-0266-633.fit
 	// FITS file description see http://www.sdss.org/DR6/dm/flatFiles/spSpec.html
 	// general info here: http://www.sdss.org/DR6/dm/flatFiles/FILES.html
 	bool loadFromFITS_SDSS(const std::string &_filename, std::ofstream *_logStream=NULL);
 
 	// load SDSS DR8 spectra
+	// Better use loadFromFITS() which checks the version and selects the aprpriate loader method.
 	bool loadFromFITS_DR8(const std::string &_filename, std::ofstream *_logStream=NULL);
 
 	// BOSS Spectra from DR9/DR10. e.g. dr9spec-3588-55184-0511.fits
+	// Better use loadFromFITS() which checks the version and selects the aprpriate loader method.
 	bool loadFromFITS_BOSS(const std::string &_filename, std::ofstream *_logStream=NULL);
 
 	// save to ASCII CSV

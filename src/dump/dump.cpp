@@ -33,21 +33,23 @@
 
 typedef char _TCHAR;
 
-#define DATADIR std::string("./data/*")
+#define DATADIR std::string("./data/dr12/*")
 //#define DATADIR std::string("G:/SDSS_ANALYZE/fits/spectro/data/*")
 #define DUMPFILE std::string("allSpectra.bin")
  
-
 
 void main(int argc, char* argv[])
 {
  
 	// outputs sine test spectra.
-//  	SpectraVFS::write( 10000, 0.0f, "allSpectra.bin" );
-//  	return;
+//  SpectraVFS::write( 10000, 0.0f, "allSpectra.bin" );
+//  return;
+
+
 	std::ofstream logFile("dump_log.txt");
 
 /*
+	// output test spectra.
 	double mioSpectraComparePerSecond;
 	double mioSpectraAdaptionPerSecond;
 	SpectraBaseHelpers::testSpectraPerformance( mioSpectraComparePerSecond, mioSpectraAdaptionPerSecond );
@@ -60,7 +62,8 @@ void main(int argc, char* argv[])
 
 
 	Helpers::print("Welcome to SDSS Dump "+sstrSDSSVersionString+" !\n\n\n", &logFile);
-	Helpers::print("Reads SDSS fits files from a given directory (and subdirectories) and dumps the data to a binary file.\n", &logFile);
+	Helpers::print("Reads SDSS spectra as fits files from a given directory (and subdirectories) and dumps the data to a binary file.\n", &logFile);
+	Helpers::print("RDR12 spectra can be downloaded here: http://data.sdss3.org/sas/dr12/sdss/spectro/redux/26/spectra\n", &logFile);
 	Helpers::print("Reads binary dump files and extracts text tables out of it.\n\n", &logFile);
 
 	std::string sstrDataDir = FileHelpers::getCurrentDirectory()+DATADIR;
@@ -154,18 +157,6 @@ void main(int argc, char* argv[])
 		Helpers::print( "selectionlist: "+sstrSelectionListFilename+"\n", &logFile );
 		Helpers::print( "each spectrum contains " + Helpers::numberToString<size_t>(sizeof(Spectra)) + " bytes.\n\n", &logFile );
 
-		SpectraDB spectraDBDR9;
-		const bool DR9DBAvailable = spectraDBDR9.loadDB(SpectraDB::DR9);
-		if (!DR9DBAvailable)
-		{
-			Helpers::print( "Warning, spectraParamDR9.bin missing. DR8, DR9 spectra cannot be loaded.\n" , &logFile );
-		}
-		SpectraDB spectraDBDR10;
-		const bool DR10DBAvailable = spectraDBDR10.loadDB(SpectraDB::DR10);
-		if (!DR10DBAvailable)
-		{
-			Helpers::print( "Warning, spectraParamDR10.bin missing. DR10 spectra cannot be loaded.\n" , &logFile );
-		}
 
 		std::set<std::string> FITSFilenameSet;
 		if ( !sstrSelectionListFilename.empty() )
