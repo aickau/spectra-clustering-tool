@@ -65,8 +65,7 @@ const float Spectra::waveEndDst		= 9200.f;
 int Spectra::pixelStart				= 0;		
 int Spectra::pixelEnd				= Spectra::numSamples;		
 
-SpectraDB g_spectraDBDR9;
-SpectraDB g_spectraDBDR10;
+SpectraDB g_spectraDB;
 
 Spectra::Spectra()
 {
@@ -414,7 +413,7 @@ bool Spectra::loadFromCSV(const std::string &_filename, std::ofstream *_logStrea
 
 	if ( specObjID > 0 )
 	{
-		// use specobj diretly
+		// use specobj directly
 		m_SpecObjID = specObjID;
 	}
 	else
@@ -1031,15 +1030,11 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename, std::ofstream *_lo
 
 	// retrieve add. info.
 	SpectraDB::Info spectraInfo;
-	bool spectraInfoLoaded = false;
-	if ( bitpix == 16 )
-	{
-		spectraInfoLoaded = g_spectraDBDR10.loadDB( SpectraDB::DR10 ) && g_spectraDBDR10.getInfo( m_SpecObjID, spectraInfo );
-	}
-	else
-	{
-		spectraInfoLoaded = g_spectraDBDR9.loadDB( SpectraDB::DR9 ) && g_spectraDBDR9.getInfo( m_SpecObjID, spectraInfo );
-	}
+	 false;
+
+	// load spectra DB the first time and retrieve add. spectra params
+	const bool spectraInfoLoaded = g_spectraDB.loadNewestDB( _logStream ) && g_spectraDB.getInfo( m_SpecObjID, spectraInfo );
+
 	if ( spectraInfoLoaded )
 	{
 		m_Z		= spectraInfo.z;
@@ -1221,15 +1216,8 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename, std::ofstream *_log
 
 	// retrieve add. info.
 	SpectraDB::Info spectraInfo;
-	bool spectraInfoLoaded = false;
-	if ( bitpix == 16 )
-	{
-		spectraInfoLoaded = g_spectraDBDR10.loadDB( SpectraDB::DR10 ) && g_spectraDBDR10.getInfo( m_SpecObjID, spectraInfo );
-	}
-	else
-	{
-		spectraInfoLoaded = g_spectraDBDR9.loadDB( SpectraDB::DR9 ) && g_spectraDBDR9.getInfo( m_SpecObjID, spectraInfo );
-	}
+	const bool spectraInfoLoaded = g_spectraDB.loadNewestDB( _logStream ) && g_spectraDB.getInfo( m_SpecObjID, spectraInfo );
+
 	if ( spectraInfoLoaded )
 	{
 		m_Z		= spectraInfo.z;
@@ -1694,7 +1682,7 @@ std::string Spectra::getFileName() const
 
 	// for spectra with unassigned plate/MJD/fiber ids we use the hash value.
 	// This could be the case for artificial or light curve spectra.
-	if ( m_version == SpectraVersion::SP_LIGHTCURVE_RADEC || m_version == SpectraVersion::SP_LIGHTCURVE_PLAIN ) {
+	if ( m_version == SP_LIGHTCURVE_RADEC || m_version == SP_LIGHTCURVE_PLAIN ) {
 		sstrFileName += Helpers::numberToString<uint64_t>(m_SpecObjID);
 	} else {
 		sstrFileName = getSpecObjFileName( getPlate(), getMJD(), getFiber(), (m_version != SP_VERSION_DR7) );

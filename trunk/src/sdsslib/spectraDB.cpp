@@ -34,19 +34,31 @@
 #include <fstream>
 #include <iostream>
 
-bool SpectraDB::writeDB( DR dataRelease )
+bool SpectraDB::writeDB( DR _dataRelease )
 {
 #ifdef _FITSDISABLED
 	assert(0); // temporary disabled.
 	return false;
 #else
+
+	int zColumnNumber = 65;
+	int classColumnNumber = 63;
 	std::string filename("specObj-dr9.fits");
 	std::string outDBFilename("spectraParamDR9.bin");
-	if ( dataRelease == DR10 )
+	if ( _dataRelease == DR10 )
 	{
 		filename = "specObj-dr10.fits";
 		outDBFilename = "spectraParamDR10.bin";
+	} else if ( _dataRelease == DR12 ) 
+	{
+		filename = "specObj-dr12.fits";
+		outDBFilename = "spectraParamDR12.bin";
+		zColumnNumber = 66;
+		classColumnNumber = 64;
 	}
+
+	// specObj FITS file Documentation:
+	// http://data.sdss3.org/datamodel/files/SPECTRO_REDUX/specObj.html
 
 	fitsfile *f=NULL;
 
@@ -55,13 +67,15 @@ bool SpectraDB::writeDB( DR dataRelease )
 	int statusclose = 0; // we always want to close a given FITs file, even if a previous operation failed
 
 	fits_open_file( &f, filename.c_str(), READONLY, &status );
-	if ( status != 0 )
+	if ( status != 0 ) {
+		printf( "SpectraDB::writeDB() Error: Cannot open file %s\n", filename );
 		return false;
+	}
 
 	int numhdus = 0;
 	int hdutype = 0; // should be BINARY_TBL
 	fits_get_num_hdus( f, &numhdus, &status );
-	fits_movabs_hdu( f, 2, &hdutype, &status );
+	fits_movabs_hdu( f, 2, &hdutype, &status ); // move to HDU1
 
 	if ( numhdus<2 || hdutype != BINARY_TBL || status > 0 )
 	{
@@ -70,8 +84,8 @@ bool SpectraDB::writeDB( DR dataRelease )
 	}
 
 
-	long tblrows = 0;	// should be large, i.e. 2674200 for DR9, 3358200 for DR10
-	int tblcols = 0;	// should be 127
+	long tblrows = 0;	// should be large, i.e. 2.674.200 for DR9, 3.358.200 for DR10, 4.355.200 for DR12
+	int tblcols = 0;	// should be 127, 128 for DR12
 	fits_get_num_rows( f, &tblrows, &status );
 	fits_get_num_cols( f, &tblcols, &status );
 
@@ -83,8 +97,9 @@ bool SpectraDB::writeDB( DR dataRelease )
 
 //	std::map<std::string,int>  hui;
 
+	
 
-	for ( int i=0;i<tblrows;i++ )
+	for ( int rowNum=1;rowNum<=tblrows;rowNum++ )
 	{
 		int64_t specObjID;
 		Info info;
@@ -94,28 +109,60 @@ bool SpectraDB::writeDB( DR dataRelease )
 		arrVal[0] = &val[0];
 		arrVal[1] = NULL;
 
-		fits_read_col( f, TSTRING, 22, i+1, 1, 1, NULL, arrVal, NULL, &status );
+		// spec obj id
+		fits_read_col( f, TSTRING, 22, rowNum, 1, 1, NULL, arrVal, NULL, &status );
 		specObjID = Helpers::stringToNumber<int64_t>(val);
 
+		// source type
 		arrVal[1] = NULL;
-		fits_read_col( f, TSTRING, 37, i+1, 1, 1, NULL, arrVal, NULL, &status );
+		fits_read_col( f, TSTRING, 37, rowNum, 1, 1, NULL, arrVal, NULL, &status );
 		info.type = Spectra::spectraTypeFromString(val);
 
-// 		std::string ssstrSpectraType(val);
-// 		std::map<std::string,int>::iterator it = hui.find(ssstrSpectraType);
-// 		if (it == hui.end() )
-// 			hui.insert(std::make_pair<std::string,int>(ssstrSpectraType,1) );
+		// to check spectra type distribution.
+/*
+		arrVal[1] = NULL;
+		fits_read_col( f, TSTRING, classColumnNumber, rowNum, 1, 1, NULL, arrVal, NULL, &status );
 
+		std::string ssstrSpectraType(val);
 
-		fits_read_col( f, TDOUBLE, 65, i+1, 1, 1, NULL, &info.z, NULL, &status );
+		arrVal[1] = NULL;
+		fits_read_col( f, TSTRING, classColumnNumber+1, rowNum, 1, 1, NULL, arrVal, NULL, &status );
+		ssstrSpectraType += " "+std::string(val);
+
+		std::map<std::string,int>::iterator it = hui.find(ssstrSpectraType);
+		if (it == hui.end() )
+			hui.insert(std::make_pair<std::string,int>(ssstrSpectraType,1) );
+		else
+			it->second++;
+
+*/
+		// apparently additional columns were inserted in DR12, therefore read z value from a different column number than in previous releases.
+
+		// class 
+		if ( info.type == Spectra::SPT_EXOTIC || info.type == Spectra::SPT_UNKNOWN ) {
+			arrVal[1] = NULL;
+			fits_read_col( f, TSTRING, classColumnNumber, rowNum, 1, 1, NULL, arrVal, NULL, &status );
+			info.type = Spectra::spectraTypeFromString(val);
+		}
+		
+		// apparently additional columns were inserted in DR12, therefore read z value from a different column number than in previous releases.
+		fits_read_col( f, TDOUBLE, zColumnNumber, rowNum, 1, 1, NULL, &info.z, NULL, &status );
 		m_spectraDB.insert(std::map<int64_t,Info>::value_type(specObjID, info) );
-			//std::make_pair<int64_t,Info>(specObjID, info) );
+
+		if ( status != 0 ) {
+			printf( "SpectraDB::writeDB() Error: Column read error at row number %i\n", rowNum );
+			return false;
+		}
+
+
+
+		
 	}
 
-// 	for ( std::map<std::string,int>::iterator it = hui.begin(); it != hui.end() ; it++ )
-// 	{
-// 		printf( "%s\n", it->first );
-// 	}
+ 	for ( std::map<std::string,int>::iterator it = hui.begin(); it != hui.end() ; it++ )
+ 	{
+ 		printf( "%s\n", it->first );
+ 	}
 
 	fits_close_file(f, &statusclose);
 
@@ -123,6 +170,7 @@ bool SpectraDB::writeDB( DR dataRelease )
 	std::ofstream file(outDBFilename, std::ios::out|std::ios::binary );
 	if ( !file.is_open() )
 	{
+		printf( "SpectraDB::writeDB() Error: Cannot write db to file %s\n", outDBFilename );
 		return false;
 	}
 	
@@ -142,17 +190,55 @@ bool SpectraDB::writeDB( DR dataRelease )
 }
 
 
-bool SpectraDB::loadDB( DR dataRelease )
+bool SpectraDB::loadNewestDB( std::ofstream *_logStream )
+{
+	// DB already loaded?
+	if ( m_spectraDB.size() > 0 )
+		return true;
+
+	SpectraDB::DR dataReleases[] = {DR12,DR10,DR9};
+	const int numDBs = sizeof(dataReleases)/sizeof(SpectraDB::DR);
+
+	bool success = false;
+	for ( int i=0;i<numDBs;i++ ) {
+		SpectraDB::DR dataRelease = dataReleases[i];
+		const bool DBAvailable = loadDB(dataReleases[i]);
+		if (DBAvailable)
+		{
+			return true;
+		} 
+		else
+		{
+			if ( dataRelease == DR9 ) {
+				Helpers::print( "Warning, spectraParamDR9.bin missing. DR8, DR9 spectra cannot be loaded.\n" , _logStream );
+			} else if ( dataRelease == DR10 ) {
+				Helpers::print( "Warning, spectraParamDR10.bin missing. DR10 spectra cannot be loaded.\n" , _logStream );
+			} else {
+				Helpers::print( "Warning, spectraParamDR12.bin missing. DR12 spectra cannot be loaded.\n" , _logStream );
+			}
+		}
+	}
+
+	// no spectra DB found in current directory.
+	return false;
+}
+
+
+bool SpectraDB::loadDB( DR _dataRelease )
 {
 	// DB already loaded?
 	if ( m_spectraDB.size() > 0 )
 		return true;
 
 	std::string dbFilename = "spectraParamDR9.bin";
-	if ( dataRelease == DR10 )
+	if ( _dataRelease == DR10 )
 	{
 		dbFilename = "spectraParamDR10.bin";
+	} else 	if ( _dataRelease == DR12 )
+	{
+		dbFilename = "spectraParamDR12.bin";
 	}
+
 
 	const size_t fileSize = FileHelpers::getFileSize(dbFilename);
 	const size_t elementSize = sizeof(Info)+4;
@@ -180,13 +266,13 @@ bool SpectraDB::loadDB( DR dataRelease )
 }
 
 
-bool SpectraDB::getInfo(int64_t _specObjID, Info &outInfo )
+bool SpectraDB::getInfo(int64_t _specObjID, Info &_outInfo )
 {
 	std::map<int64_t,Info>::iterator it = m_spectraDB.find(_specObjID);
 	if ( it == m_spectraDB.end() )
 		return false;
 
-	outInfo = it->second;
+	_outInfo = it->second;
 
 	return true; 
 }
