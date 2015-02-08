@@ -76,9 +76,71 @@ public:
 		SP_COUNT						//< must be the last entry here.
 	};
 
-	// was called objecttype in SDSS II
+
+
+	enum SpectraClass 
+	{
+		SPC_NOT_SET				= 0,
+		SPC_UNKNOWN				= 1,
+		SPC_STAR				= 2,
+		SPC_GALAXY				= 3,
+		SPC_QSO					= 4
+	};
+
+	// details: https://www.sdss3.org/dr8/spectro/catalogs.php#objects
+	enum SpectraSubClass 
+	{
+		SPSC_NOT_SET			= 0,
+		SPSC_STARFORMING		= 1,
+		SPSC_STARBURST			= 2,
+		SPSC_AGN				= 3,
+		SPSC_O					= 4,
+		SPSC_OB					= 5,
+		SPSC_B6					= 6,
+		SPSC_B9					= 7,
+		SPSC_A0					= 8,
+		SPSC_A0p				= 9,
+		SPSC_F2					= 10,
+		SPSC_F5					= 11,
+		SPSC_F9					= 12,
+		SPSC_G0					= 13,
+		SPSC_G2					= 14,
+		SPSC_G5					= 15,
+		SPSC_K1					= 16,
+		SPSC_K3					= 17,
+		SPSC_K5					= 18,
+		SPSC_K7					= 19,
+		SPSC_M0V				= 20,
+		SPSC_M2V				= 21,
+		SPSC_M1					= 22,
+		SPSC_M2					= 23,
+		SPSC_M3					= 24,
+		SPSC_M4					= 25,
+		SPSC_M5					= 26,
+		SPSC_M6					= 27,
+		SPSC_M7					= 28,
+		SPSC_M8					= 29,
+		SPSC_L0					= 30,
+		SPSC_L1					= 31,
+		SPSC_L2					= 32,
+		SPSC_L3					= 33,
+		SPSC_L4					= 34,
+		SPSC_L5					= 35,
+		SPSC_L55				= 36,	// 5.5
+		SPSC_L9					= 37,
+		SPSC_T2					= 38,
+		SPSC_CARBON				= 39,
+		SPSC_CARBONWD			= 40,
+		SPSC_CARBON_LINES		= 41,
+		SPSC_CV					= 42,
+		SPSC_BROADLINE			= 128	// this can be combined with all subclasses
+	};
+
+	// Older spectra type only for historic reasons here. 
+	// Now use SpectraClass and SpectraSubClass
+	// was called object type in SDSS II
 	// is now called source type in SDSS III
-	enum SpectraType
+	enum OldSpectraType
 	{
 		SPT_NOT_SET				= 0,
 		SPT_UNKNOWN				= 0x000000001,
@@ -116,7 +178,7 @@ public:
 		SPT_QSO_BAL				= 0x040000000,
 		SPT_EXOTIC				= 0x080000000				//< pheletora of different new source types from DR10
 	};
-		
+
 
 	enum SpectraMask
 	{
@@ -265,6 +327,9 @@ public:
 	// compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 	float compare(const Spectra &_spectra) const;
 
+	// returns true spectrum class and subclass matches corresponding filter, otherwise false
+	bool matchesFilter( unsigned int spClassFilter, unsigned int spSubClassFilter=0x0ffffffff );
+
 	//@}
 
 	/** @name MODIFIERS
@@ -362,6 +427,9 @@ public:
 	// Better use loadFromFITS() which checks the version and selects the aprpriate loader method.
 	bool loadFromFITS_BOSS(const std::string &_filename, std::ofstream *_logStream=NULL);
 
+	// helper loader func to retrieve additional data from spectra DB.
+	void loadDataFromSpectraDB( std::ofstream *_logStream=NULL );
+
 	// save to ASCII CSV
 	bool saveToCSV(const std::string &_filename);
 
@@ -382,6 +450,10 @@ public:
 	// _adaptionRate [0..1]
 	void adapt( const Spectra &_spectra, float _adaptionRate );
 
+	// set spectra type from class and subclass
+	void setType( SpectraClass spClass, SpectraSubClass spSubClass, bool hasBroadline );
+	void setType( OldSpectraType spType );
+
 	//@}
 
 
@@ -397,7 +469,9 @@ public:
 	int32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
 	int16_t m_SamplesRead;
 	int64_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
-	SpectraType m_Type;
+	int32_t m_Type;						// bits 0..2 SpectraClass 
+										// bits 3..9 SpectraSubClass
+										// bit 10 BROADLINE flag
 	SpectraVersion m_version;
 	double m_Z;
 #ifdef _USE_SPECTRALINES
@@ -433,7 +507,20 @@ public:
 
 	// returns any combination of SpectraTypes as filter
 	static std::string spectraFilterToString( unsigned int _spectraFilter );
-	static SpectraType spectraTypeFromString( const std::string &_spectraType );
+	static OldSpectraType spectraTypeFromString( const std::string &_spectraType );
+
+	static SpectraClass spectraClassFromString( const std::string &_spectraClass );
+	static SpectraSubClass spectraSubClassFromString( const std::string &_spectraSubClass );
+
+	// returns SPSC_BROADLINE or SPSC_NOT_SET
+	static bool spectraSubClassHasBroadlineFromString( const std::string &_spectraSubClass );
+
+	// pack spectra class and subclass into 32bit integer:
+    //  bits 0..2: SpectraClass 
+	//  bits 3..9 SpectraSubClass
+	//  bit 10 BROADLINE flag
+	static unsigned int packSpectraClassAndSubclass( SpectraClass spClass, SpectraSubClass spSubClass, bool hasBroadline );
+
 
 	static std::string spectraVersionToString( SpectraVersion _spectraVersion );
 

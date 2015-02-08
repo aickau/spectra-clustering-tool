@@ -95,7 +95,8 @@ bool SpectraDB::writeDB( DR _dataRelease )
 		return false;
 	}
 
-//	std::map<std::string,int>  hui;
+	// map spectra class, subclass to count
+//	std::map<std::string,int>  spectraTypeDistribution;
 
 	
 
@@ -118,24 +119,30 @@ bool SpectraDB::writeDB( DR _dataRelease )
 		fits_read_col( f, TSTRING, 37, rowNum, 1, 1, NULL, arrVal, NULL, &status );
 		info.type = Spectra::spectraTypeFromString(val);
 
-		// to check spectra type distribution.
-/*
+		// read class
 		arrVal[1] = NULL;
 		fits_read_col( f, TSTRING, classColumnNumber, rowNum, 1, 1, NULL, arrVal, NULL, &status );
+		std::string sstrSpectraClass(val);
+		const Spectra::SpectraClass spClass = Spectra::spectraClassFromString( sstrSpectraClass );
 
-		std::string ssstrSpectraType(val);
-
+		// read subclass
 		arrVal[1] = NULL;
 		fits_read_col( f, TSTRING, classColumnNumber+1, rowNum, 1, 1, NULL, arrVal, NULL, &status );
-		ssstrSpectraType += " "+std::string(val);
+		std::string sstrSpectraSubClass(val);
+		const Spectra::SpectraSubClass spSubClass  = Spectra::spectraSubClassFromString( sstrSpectraSubClass );
+		const bool spscHasBroadline = Spectra::spectraSubClassHasBroadlineFromString( sstrSpectraSubClass );
+		info.spClass = Spectra::packSpectraClassAndSubclass( spClass, spSubClass, spscHasBroadline );
 
-		std::map<std::string,int>::iterator it = hui.find(ssstrSpectraType);
-		if (it == hui.end() )
-			hui.insert(std::make_pair<std::string,int>(ssstrSpectraType,1) );
+/*
+		// to check spectra type distribution.
+		std::string ssstrType = ssstrSpectraClass+" "+ssstrSpectraSubClass;
+		std::map<std::string,int>::iterator it = spectraTypeDistribution.find(ssstrType);
+		if (it == spectraTypeDistribution.end() )
+			hui.insert(std::make_pair<std::string,int>(ssstrType,1) );
 		else
 			it->second++;
-
 */
+
 		// apparently additional columns were inserted in DR12, therefore read z value from a different column number than in previous releases.
 
 		// class 
@@ -159,11 +166,13 @@ bool SpectraDB::writeDB( DR _dataRelease )
 		
 	}
 
- 	for ( std::map<std::string,int>::iterator it = hui.begin(); it != hui.end() ; it++ )
+	/*
+	// print spectra type distribution
+ 	for ( std::map<std::string,int>::iterator it = spectraTypeDistribution.begin(); it != spectraTypeDistribution.end() ; it++ )
  	{
  		printf( "%s\n", it->first );
  	}
-
+	*/
 	fits_close_file(f, &statusclose);
 
 
