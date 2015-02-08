@@ -192,7 +192,7 @@ size_t SpectraVFS::write( const std::string &_sstrDir, const std::string &_sstrF
 		if ( bResult )
 		{
 			versionStats[spec.m_version%Spectra::SP_COUNT]++;
-			if ( (spec.m_Type & _spectraFilter) > 0 )
+			if ( spec.matchesFilter(_spectraFilter) )
 			{
 				if ( spec.hasBadPixels() )
 				{

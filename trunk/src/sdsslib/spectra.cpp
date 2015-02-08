@@ -65,7 +65,9 @@ const float Spectra::waveEndDst		= 9200.f;
 int Spectra::pixelStart				= 0;		
 int Spectra::pixelEnd				= Spectra::numSamples;		
 
-SpectraDB g_spectraDB;
+SpectraDB g_spectraDBDR12;
+SpectraDB g_spectraDBDR10;
+SpectraDB g_spectraDBDR9;
 
 Spectra::Spectra()
 {
@@ -92,7 +94,7 @@ void Spectra::clear()
 	m_SamplesRead = 0;
 	m_Index = -1;
 	m_SpecObjID = 0;
-	m_Type = SPT_NOT_SET;
+	m_Type = 0;
 	m_version = SP_ARTIFICIAL;
 	m_Z = 0.0;
 	m_flux = 0.0f;
@@ -403,11 +405,11 @@ bool Spectra::loadFromCSV(const std::string &_filename, std::ofstream *_logStrea
 	sstr >> type;
 	sstr >> z;
 
-	m_Type = SPT_UNKNOWN;
+	m_Type = 0;
 	m_version = SP_CSV;
 	if ( type > 0 )
 	{
-		m_Type = (SpectraType)type;
+		m_Type = type;
 	}
 
 
@@ -560,7 +562,7 @@ bool Spectra::loadFromXML(const std::string &_filename, std::ofstream *_logStrea
 
 
 
-	m_Type = SPT_UNKNOWN;
+	m_Type = 0;
 
 	p.gotoChild();
 
@@ -838,6 +840,39 @@ bool Spectra::loadFromFITS(const std::string &_filename, std::ofstream *_logStre
 }
 
 
+void Spectra::loadDataFromSpectraDB( std::ofstream *_logStream )
+{
+	SpectraDB::Info spectraInfo;
+	// load spectra DB the first time and retrieve add. spectra params
+	bool spectraInfoLoaded = g_spectraDBDR12.loadDB( SpectraDB::DR12 ) && g_spectraDBDR12.getInfo( m_SpecObjID, spectraInfo );
+
+	if ( spectraInfoLoaded )
+	{
+		m_Z		= spectraInfo.z;
+		m_Type	= spectraInfo.spClass;
+	} 
+	else {
+		spectraInfoLoaded = g_spectraDBDR10.loadDB( SpectraDB::DR10 ) && g_spectraDBDR10.getInfo( m_SpecObjID, spectraInfo );
+		if ( spectraInfoLoaded )
+		{
+			m_Z		= spectraInfo.z;
+			m_Type	= spectraInfo.spClass;
+		} 
+		else {
+			spectraInfoLoaded = g_spectraDBDR9.loadDB( SpectraDB::DR9 ) && g_spectraDBDR9.getInfo( m_SpecObjID, spectraInfo );
+			if ( spectraInfoLoaded )
+			{
+				m_Z		= spectraInfo.z;
+				m_Type	= spectraInfo.spClass;
+			}
+			else {
+				Helpers::print("Could not load additional spectra info for specObjID="+Helpers::numberToString(m_SpecObjID)+" from spectra DB.\n", _logStream );
+			}
+		}
+	}
+}
+
+
 bool Spectra::loadFromFITS_BOSS(const std::string &_filename, std::ofstream *_logStream)
 {
 #ifdef _FITSDISABLED
@@ -1029,17 +1064,7 @@ bool Spectra::loadFromFITS_BOSS(const std::string &_filename, std::ofstream *_lo
 	calcMinMax();
 
 	// retrieve add. info.
-	SpectraDB::Info spectraInfo;
-	 false;
-
-	// load spectra DB the first time and retrieve add. spectra params
-	const bool spectraInfoLoaded = g_spectraDB.loadNewestDB( _logStream ) && g_spectraDB.getInfo( m_SpecObjID, spectraInfo );
-
-	if ( spectraInfoLoaded )
-	{
-		m_Z		= spectraInfo.z;
-		m_Type	= spectraInfo.type;
-	}
+	loadDataFromSpectraDB( _logStream );
 
 
 	const bool bConsistent = checkConsistency();
@@ -1215,15 +1240,7 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename, std::ofstream *_log
 	calcMinMax();
 
 	// retrieve add. info.
-	SpectraDB::Info spectraInfo;
-	const bool spectraInfoLoaded = g_spectraDB.loadNewestDB( _logStream ) && g_spectraDB.getInfo( m_SpecObjID, spectraInfo );
-
-	if ( spectraInfoLoaded )
-	{
-		m_Z		= spectraInfo.z;
-		m_Type	= spectraInfo.type;
-	}
-
+	loadDataFromSpectraDB( _logStream );
 
 	const bool bConsistent = checkConsistency();
 
@@ -1296,12 +1313,12 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename, std::ofstream *_lo
 	}
 
 	// read important info of spectrum
-	int mjd, plateID, fiber;
+	int mjd, plateID, fiber, type;
 	fits_read_key( f, TINT, "MJD", &mjd, NULL, &status );
 	fits_read_key( f, TINT, "PLATEID", &plateID, NULL, &status );
 	fits_read_key( f, TINT, "FIBERID", &fiber, NULL, &status );
 	fits_read_key( f, TDOUBLE, "Z", &m_Z, NULL, &status );
-	fits_read_key( f, TINT, "SPEC_CLN", &m_Type, NULL, &status );
+	fits_read_key( f, TINT, "SPEC_CLN", &type, NULL, &status );
 
 	if ( status != 0 )
 	{
@@ -1312,7 +1329,9 @@ bool Spectra::loadFromFITS_SDSS(const std::string &_filename, std::ofstream *_lo
 	}
 
 
-	m_Type = static_cast<SpectraType>(1<<m_Type);
+
+
+	setType( static_cast<OldSpectraType>(1<<type) );
 	m_SpecObjID = Spectra::calcSpecObjID_DR7( plateID, mjd, fiber, 0 );
 
 	// read spectral data
@@ -1673,6 +1692,35 @@ loop1:
 }
 
 
+void Spectra::setType( SpectraClass spClass, SpectraSubClass spSubClass, bool hasBroadline )
+{
+	m_Type = packSpectraClassAndSubclass( spClass, spSubClass, hasBroadline );
+}
+
+void Spectra::setType( OldSpectraType spType )
+{
+	switch (spType) {
+	case SPT_STAR				: setType( SPC_STAR,	SPSC_NOT_SET, false );break;
+	case SPT_GALAXY				: setType( SPC_GALAXY,	SPSC_NOT_SET, false );break;
+	case SPT_QSO				: setType( SPC_QSO,		SPSC_NOT_SET, false );break;
+	case SPT_HIZ_QSO			: setType( SPC_QSO,		SPSC_NOT_SET, false );break;
+	case SPT_STAR_LATE			: setType( SPC_STAR,	SPSC_NOT_SET, false );break;
+	case SPT_GAL_EM				: setType( SPC_GALAXY,	SPSC_NOT_SET, false );break;
+	case SPT_QA					: setType( SPC_UNKNOWN, SPSC_NOT_SET, false );break;
+	case SPT_STAR_PN			: setType( SPC_STAR,	SPSC_NOT_SET, false );break;
+	case SPT_STAR_CARBON		: setType( SPC_STAR,	SPSC_NOT_SET, false );break;
+	case SPT_STAR_BROWN_DWARF	: setType( SPC_STAR,	SPSC_NOT_SET, false );break;
+	case SPT_STAR_SUB_DWARF		: setType( SPC_STAR,	SPSC_NOT_SET, false );break;
+	case SPT_STAR_CATY_VAR		: setType( SPC_STAR,	SPSC_NOT_SET, false );break;
+	case SPT_STAR_RED_DWARF		: setType( SPC_STAR,	SPSC_NOT_SET, false );break;
+	case SPT_STAR_WHITE_DWARF	: setType( SPC_STAR,	SPSC_NOT_SET, false );break;
+	case SPT_STAR_BHB			: setType( SPC_STAR,	SPSC_NOT_SET, false );break;
+	case SPT_BLAZAR				: setType( SPC_STAR,	SPSC_NOT_SET, false );break;
+	case SPT_QSO_BAL			: setType( SPC_QSO,		SPSC_NOT_SET, false );break;
+	default : m_Type = 0;
+	}
+}
+
 
 
 std::string Spectra::getFileName() const
@@ -1867,6 +1915,16 @@ bool Spectra::checkConsistency() const
 	return true;
 }
 
+
+bool Spectra::matchesFilter( unsigned int spClassFilter, unsigned int spSubClassFilter )
+{
+	unsigned int spClass = 1<<(m_Type & 0x07);
+	bool retVal = ( (spClass & spClassFilter) > 0);
+
+	// TODO: add sub class filter.
+
+	return retVal;
+}
 
 uint64_t Spectra::calcPhotoObjID( int _run, int _rerun, int _camcol, int _field, int _obj )
 {
@@ -2124,7 +2182,7 @@ std::string Spectra::spectraFilterToString( unsigned int _spectraFilter )
 
 
 
-Spectra::SpectraType Spectra::spectraTypeFromString( const std::string &_spectraType )
+Spectra::OldSpectraType Spectra::spectraTypeFromString( const std::string &_spectraType )
 {
 	std::string ssstrSpectraType( Helpers::upperCase(_spectraType) );
 
@@ -2383,6 +2441,149 @@ Spectra::SpectraType Spectra::spectraTypeFromString( const std::string &_spectra
 }
 		
 	
+Spectra::SpectraClass Spectra::spectraClassFromString( const std::string &_spectraClass )
+{
+	std::string ssstrSpectraClass( Helpers::upperCase(_spectraClass) );
+
+	if  (ssstrSpectraClass == "STAR")
+		return SPC_STAR;
+	
+	if  (ssstrSpectraClass == "GALAXY")
+		return SPC_GALAXY;
+	
+	if  (ssstrSpectraClass == "QSO")
+		return SPC_QSO;
+
+	return SPC_UNKNOWN;
+}
+
+bool Spectra::spectraSubClassHasBroadlineFromString( const std::string &_spectraSubClass )
+{
+	std::string ssstrSpectraSubClass( Helpers::upperCase(_spectraSubClass) );
+
+	if  (ssstrSpectraSubClass.find("BROADLINE")!=std::string::npos)
+		return true;
+
+	return false;
+
+}
+
+unsigned int Spectra::packSpectraClassAndSubclass( SpectraClass spClass, SpectraSubClass spSubClass, bool hasBroadline )
+{
+	int retVal = (spSubClass & 0x7f) << 3 | (spClass & 0x07);
+	if ( hasBroadline ) {
+		retVal |= 1024;
+	}
+
+	return retVal;
+}
+
+
+Spectra::SpectraSubClass Spectra::spectraSubClassFromString( const std::string &_spectraSubClass )
+{
+	std::string ssstrSpectraSubClass( Helpers::upperCase(_spectraSubClass) );
+
+	if  (ssstrSpectraSubClass.find("AGN")==0)
+		return SPSC_AGN;
+	if  (ssstrSpectraSubClass.find("STARBURST")==0)
+		return SPSC_STARBURST;
+	if  (ssstrSpectraSubClass.find("STARFORMING")==0)
+		return SPSC_STARFORMING;
+
+	if  (ssstrSpectraSubClass.find("A0p")==0)
+		return SPSC_A0p;
+	if  (ssstrSpectraSubClass.find("A0")==0)
+		return SPSC_A0;
+
+	if  (ssstrSpectraSubClass.find("B6")==0)
+		return SPSC_B6;
+	if  (ssstrSpectraSubClass.find("B9")==0)
+		return SPSC_B9;
+
+	if  (ssstrSpectraSubClass.find("OB")==0)
+		return SPSC_OB;
+	if  (ssstrSpectraSubClass.find("O")==0)
+		return SPSC_O;
+
+	if  (ssstrSpectraSubClass.find("F2")==0)
+		return SPSC_F2;
+	if  (ssstrSpectraSubClass.find("F5")==0)
+		return SPSC_F5;
+	if  (ssstrSpectraSubClass.find("F9")==0)
+		return SPSC_F9;
+
+	if  (ssstrSpectraSubClass.find("G0")==0)
+		return SPSC_G0;
+	if  (ssstrSpectraSubClass.find("G2")==0)
+		return SPSC_G2;
+	if  (ssstrSpectraSubClass.find("G5")==0)
+		return SPSC_G5;
+
+	if  (ssstrSpectraSubClass.find("K1")==0)
+		return SPSC_K1;
+	if  (ssstrSpectraSubClass.find("K3")==0)
+		return SPSC_K3;
+	if  (ssstrSpectraSubClass.find("K5")==0)
+		return SPSC_K5;
+	if  (ssstrSpectraSubClass.find("K7")==0)
+		return SPSC_K7;
+
+
+	if  (ssstrSpectraSubClass.find("M0V")==0)
+		return SPSC_M0V;
+	if  (ssstrSpectraSubClass.find("M2V")==0)
+		return SPSC_M2V;
+	if  (ssstrSpectraSubClass.find("M1")==0)
+		return SPSC_M1;
+	if  (ssstrSpectraSubClass.find("M2")==0)
+		return SPSC_M2;
+	if  (ssstrSpectraSubClass.find("M3")==0)
+		return SPSC_M3;
+	if  (ssstrSpectraSubClass.find("M4")==0)
+		return SPSC_M4;
+	if  (ssstrSpectraSubClass.find("M5")==0)
+		return SPSC_M5;
+	if  (ssstrSpectraSubClass.find("M6")==0)
+		return SPSC_M6;
+	if  (ssstrSpectraSubClass.find("M7")==0)
+		return SPSC_M7;
+	if  (ssstrSpectraSubClass.find("M8")==0)
+		return SPSC_M8;
+
+	if  (ssstrSpectraSubClass.find("L5.5")==0)
+		return SPSC_L55;
+	if  (ssstrSpectraSubClass.find("L0")==0)
+		return SPSC_L0;
+	if  (ssstrSpectraSubClass.find("L1")==0)
+		return SPSC_L1;
+	if  (ssstrSpectraSubClass.find("L2")==0)
+		return SPSC_L2;
+	if  (ssstrSpectraSubClass.find("L3")==0)
+		return SPSC_L3;
+	if  (ssstrSpectraSubClass.find("L4")==0)
+		return SPSC_L4;
+	if  (ssstrSpectraSubClass.find("L5")==0)
+		return SPSC_L5;
+	if  (ssstrSpectraSubClass.find("L9")==0)
+		return SPSC_L9;
+
+	if  (ssstrSpectraSubClass.find("T2")==0)
+		return SPSC_T2;
+
+	if  (ssstrSpectraSubClass.find("CARBON")==0)
+		return SPSC_CARBON;
+	if  (ssstrSpectraSubClass.find("CARBONWD")==0)
+		return SPSC_CARBONWD;
+	if  (ssstrSpectraSubClass.find("CARBON_LINES")==0)
+		return SPSC_CARBON_LINES;
+
+	if  (ssstrSpectraSubClass.find("CV")==0)
+		return SPSC_CV;
+
+
+	return SPSC_NOT_SET;
+}
+
 
 std::string Spectra::spectraVersionToString( SpectraVersion _spectraVersion )
 {

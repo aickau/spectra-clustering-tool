@@ -34,11 +34,15 @@ class SpectraDB
 {
 public:
 
-	// extend with other params if neccessary 
+	// extend with other params if necessary 
 	struct Info
 	{
 		double						z;
-		Spectra::SpectraType		type;
+		Spectra::OldSpectraType		type;
+		unsigned int				spClass;	//< encodes spectra class and subclass flags
+												//< bits 0..2: SpectraClass 
+												//< bits 3..9 SpectraSubClass
+												//< bit 10 BROADLINE flag
 	};
 
 	enum DR
