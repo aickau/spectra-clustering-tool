@@ -327,6 +327,15 @@ public:
 	// compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 	float compare(const Spectra &_spectra) const;
 
+	SpectraClass getClass() const;
+
+	SpectraSubClass getSubClass() const;
+
+	// if spectrum is of class GALAXY or QSO and 
+	// have lines detected at the 10-sigma level with sigmas > 200 km/sec at the 5-sigma level
+	// see: https://www.sdss3.org/dr8/spectro/catalogs.php#objects
+	bool isBroadline() const;
+
 	// returns true spectrum class and subclass matches corresponding filter, otherwise false
 	bool matchesFilter( unsigned int spClassFilter, unsigned int spSubClassFilter=0x0ffffffff );
 

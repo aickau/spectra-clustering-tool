@@ -1276,11 +1276,15 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	const std::string sstrUMatrix =  "UMatrix_" + sstrStep;
 	const std::string sstrDifferenceMap = "DifferenceMap_" + sstrStep;
 	const std::string sstrZMap = "ZMap_" + sstrStep;
-	const std::string sstrObjectTypeMap = "objectTypeMap" + sstrStep;
+	const std::string sstrObjectClassMap = "objectClassMap" + sstrStep;
+	const std::string sstrObjectGalaxyAndQSOSubClassMap = "objectGalaxyAndQSOSubClassMap" + sstrStep;
+	const std::string sstrObjectStarSubClassMap = "objectStarSubClassMap" + sstrStep;
 	SpectraHelpers::calcUMatrix( *m_pNet, sstrDirectory+sstrUMatrix, true, true, false, _fullExport, s_outputPlanSize );
 	SpectraHelpers::calcDifferenceMap( *m_pSourceVFS, *m_pNet, sstrDirectory+sstrDifferenceMap, true, false, true, _fullExport, s_outputPlanSize);
 	SpectraHelpers::calcZMap( *m_pSourceVFS, *m_pNet, sstrDirectory+sstrZMap, true, _fullExport, s_outputPlanSize );
-	SpectraHelpers::writeSpectraTypes( *m_pSourceVFS, *m_pNet, sstrDirectory+sstrObjectTypeMap );
+	SpectraHelpers::writeSpectraClass( *m_pSourceVFS, *m_pNet, sstrDirectory+sstrObjectClassMap );
+	SpectraHelpers::writeSpectraGalaxyAndQSOSubclass( *m_pSourceVFS, *m_pNet, sstrDirectory+sstrObjectGalaxyAndQSOSubClassMap );
+	SpectraHelpers::writeSpectraStarSubclass( *m_pSourceVFS, *m_pNet, sstrDirectory+sstrObjectStarSubClassMap );
 
 
 	SpectraHelpers::renderDiagramToDisk( m_pAvgDistanceToBMU, m_params.numSteps, 1, 4, 0, 800, 533, sstrDirectory+std::string("avgDistanceBMU.png") );
@@ -1303,7 +1307,9 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	sstrInfo += std::string("UMatrix:")+HTMLExport::lineBreak()+HTMLExport::image( sstrUMatrix+std::string(".png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Difference map:")+HTMLExport::lineBreak()+HTMLExport::image( sstrDifferenceMap+std::string(".png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Z-map:")+HTMLExport::lineBreak()+HTMLExport::image( sstrZMap+std::string(".png") )+HTMLExport::lineBreak();
-	sstrInfo += std::string("ObjectType map:")+HTMLExport::lineBreak()+HTMLExport::image( sstrObjectTypeMap+std::string(".png") )+HTMLExport::lineBreak();
+	sstrInfo += std::string("Object class map:")+HTMLExport::lineBreak()+HTMLExport::image( sstrObjectClassMap+std::string(".png") )+HTMLExport::lineBreak();
+	sstrInfo += std::string("Galaxy and QSO sub class map:")+HTMLExport::lineBreak()+HTMLExport::image( sstrObjectGalaxyAndQSOSubClassMap+std::string(".png") )+HTMLExport::lineBreak();
+	sstrInfo += std::string("Star sub class map:")+HTMLExport::lineBreak()+HTMLExport::image( sstrObjectStarSubClassMap+std::string(".png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Energy histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("energymap.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Peak histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("peakmap.png") )+HTMLExport::lineBreak();
 	sstrInfo += std::string("Z histogram:")+HTMLExport::lineBreak()+HTMLExport::image( std::string("zmap.png") )+HTMLExport::lineBreak();

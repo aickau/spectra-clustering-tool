@@ -1248,7 +1248,7 @@ void calcZMap( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::stri
 }
 
 
-void writeSpectraTypes( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilename )
+void writeSpectraClass( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilename )
 {
 	if ( _network.getNumSpectra() == 0 )
 	{
@@ -1286,56 +1286,23 @@ void writeSpectraTypes( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const 
 			float g=0.5f;
 			float b=0.5f;
 
-			switch ( sp->m_Type )
-			{
-			case Spectra::SPT_SKY:
-			case Spectra::SPT_QA:
-			case Spectra::SPT_GAL_EM:
-			case Spectra::SPT_NOT_SET : r=0;g=0; b= 0.5;			// dark blue
-				break;
-			case Spectra::SPT_SERENDIPITY_BLUE : 
-			case Spectra::SPT_SERENDIPITY_FIRST : 
-			case Spectra::SPT_SERENDIPITY_RED : 
-			case Spectra::SPT_SERENDIPITY_MANUAL : 
-			case Spectra::SPT_SERENDIPITY_DISTANT :
-			case Spectra::SPT_UNKNOWN : r= 1.0; g=1.0; b= 1.0;		// white
-				break;
-			case Spectra::SPT_STAR_PN : 
-			case Spectra::SPT_STAR_BROWN_DWARF : 
-			case Spectra::SPT_STAR_SUB_DWARF : 
-			case Spectra::SPT_STAR_CATY_VAR : 
-			case Spectra::SPT_STAR_RED_DWARF : 
-			case Spectra::SPT_STAR_WHITE_DWARF : 
-			case Spectra::SPT_STAR_BHB : 
-			case Spectra::SPT_STAR : r= 0.0f; g=0.0f; b= 1.0f;			// blue
-				break;
-			case Spectra::SPT_STAR_LATE : r= 0.0f; g=1.0; b= 0.0f;	// green
-				break;	
-			case Spectra::SPT_STAR_CARBON : r= 0.7f; g=0.7f; b= 0.7f;	// grey
-				break;	
-			case Spectra::SPT_GALAXY : r= 1.0f; g=0.0f; b= 0.0f;		// red
-				break;
-			case Spectra::SPT_QSO : r= 1.0f; g=0.5f; b= 0.0f;			// orange
-				break;
-			case Spectra::SPT_QSO_BAL : r=1.0f; g=0.6f; b=0.f;			// lighter orange
-				break;
-			case Spectra::SPT_BLAZAR : r=1.0f; g=0.4f; b=0.f;			// darker orange
-				break;
-			case Spectra::SPT_HIZ_QSO : r= 1.0f; g=1.0f; b= 0.0f;		// yellow
-				break;
-			case Spectra::SPT_ROSAT_A : 
-			case Spectra::SPT_ROSAT_B : 
-			case Spectra::SPT_ROSAT_C : 
-			case Spectra::SPT_ROSAT_D : r= 0.0f; g=1.0f; b= 1.0f;		// cyan
-				break;
+			const Spectra::SpectraClass spClass = sp->getClass();
+			const Spectra::SpectraSubClass spSubClass = sp->getSubClass();
 
-			case Spectra::SPT_SPECTROPHOTO_STD :
-			case Spectra::SPT_HOT_STD :			
-			case Spectra::SPT_REDDEN_STD :r= 0.0f; g=0.6f; b= 0.6f;	// dark cyan		
+
+			switch ( spClass )
+			{
+			case Spectra::SPC_NOT_SET : r=0;g=0; b= 0.5;			// dark blue
 				break;
-			case Spectra::SPT_EXOTIC :r= 0.0f; g=0.8f; b= 0.8f;		// dark cyan		
+			case Spectra::SPC_UNKNOWN : r= 1.0; g=1.0; b= 1.0;		// white
 				break;
-		}
+			case Spectra::SPC_STAR : r= 0.0f; g=0.0f; b= 1.0f;			// blue
+				break;
+			case Spectra::SPC_GALAXY : r= 1.0f; g=0.0f; b= 0.0f;		// red
+				break;
+			case Spectra::SPC_QSO : r= 1.0f; g=0.5f; b= 0.0f;			// orange
+				break;
+			}
 			pRGBMap[i*3+0] = r;
 			pRGBMap[i*3+1] = g;
 			pRGBMap[i*3+2] = b;
@@ -1348,6 +1315,204 @@ void writeSpectraTypes( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const 
 	delete[] pRGBMap;
 }
 
+
+void writeSpectraGalaxyAndQSOSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilename )
+{
+	if ( _network.getNumSpectra() == 0 )
+	{
+		return;
+	}
+	if ( _sourceSpectra.getNumSpectra() == 0 )
+	{
+		return;
+	}
+
+	assert( !_sstrFilename.empty() );
+
+
+	const size_t numSpectra = _sourceSpectra.getNumSpectra();
+	const size_t gridSizeSqr = _network.getNumSpectra();
+	const size_t gridSize = sqrtf(gridSizeSqr);
+
+	float *pRGBMap = new float[gridSizeSqr*3];
+	for ( size_t i=0;i<gridSizeSqr*3;i++)
+	{
+		pRGBMap[i] = 0.0f;
+	}
+
+
+	for (size_t i=0;i<gridSizeSqr;i++)
+	{
+		Spectra *spNet =  _network.beginRead(i);
+		const int index = spNet->m_Index;
+		_network.endRead(i);
+		if ( index >= 0 && index < numSpectra )
+		{
+			Spectra *sp = _sourceSpectra.beginRead(index);
+
+			float r=0.0f;		// dark cyan undefined spectra type
+			float g=0.5f;
+			float b=0.5f;
+
+			const Spectra::SpectraClass spClass = sp->getClass();
+			const Spectra::SpectraSubClass spSubClass = sp->getSubClass();
+			const bool isBroadline = sp->isBroadline();
+
+			if ( spClass == Spectra::SPC_GALAXY || spClass == Spectra::SPC_QSO ) 
+			{
+				if ( isBroadline )
+				{
+					switch ( spSubClass )
+					{
+					case Spectra::SPSC_AGN : r=0;g=0; b= 0.5;					// dark blue
+						break;
+					case Spectra::SPSC_STARBURST : r= 1.0; g=1.0; b= 1.0;		// white
+						break;
+					case Spectra::SPSC_STARFORMING : r= 0.0f; g=0.0f; b= 1.0f;	// blue
+						break;
+					}
+
+				}
+				else
+				{
+					switch ( spSubClass )
+					{
+					case Spectra::SPSC_AGN : r=0;g=0; b= 0.5;					// dark blue
+						break;
+					case Spectra::SPSC_STARBURST : r= 1.0; g=1.0; b= 1.0;		// white
+						break;
+					case Spectra::SPSC_STARFORMING : r= 0.0f; g=0.0f; b= 1.0f;	// blue
+						break;
+					}
+
+				}
+			}
+			pRGBMap[i*3+0] = r;
+			pRGBMap[i*3+1] = g;
+			pRGBMap[i*3+2] = b;
+			_sourceSpectra.endRead(index);
+		}
+	}
+
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, _sstrFilename);
+
+	delete[] pRGBMap;
+}
+void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilename )
+{
+	if ( _network.getNumSpectra() == 0 )
+	{
+		return;
+	}
+	if ( _sourceSpectra.getNumSpectra() == 0 )
+	{
+		return;
+	}
+
+	assert( !_sstrFilename.empty() );
+
+
+	const size_t numSpectra = _sourceSpectra.getNumSpectra();
+	const size_t gridSizeSqr = _network.getNumSpectra();
+	const size_t gridSize = sqrtf(gridSizeSqr);
+
+	float *pRGBMap = new float[gridSizeSqr*3];
+	for ( size_t i=0;i<gridSizeSqr*3;i++)
+	{
+		pRGBMap[i] = 0.0f;
+	}
+
+
+	for (size_t i=0;i<gridSizeSqr;i++)
+	{
+		Spectra *spNet =  _network.beginRead(i);
+		const int index = spNet->m_Index;
+		_network.endRead(i);
+		if ( index >= 0 && index < numSpectra )
+		{
+			Spectra *sp = _sourceSpectra.beginRead(index);
+
+			float r=0.0f;		// dark cyan undefined spectra type
+			float g=0.5f;
+			float b=0.5f;
+
+			const Spectra::SpectraClass spClass = sp->getClass();
+			const Spectra::SpectraSubClass spSubClass = sp->getSubClass();
+
+			if ( spClass == Spectra::SPC_STAR ) 
+			{
+				switch ( spSubClass )
+				{
+				case Spectra::SPSC_NOT_SET : r=0;g=0; b= 0.5;			// dark blue
+					break;
+				case Spectra::SPSC_O : r= 1.0; g=1.0; b= 1.0;			// white
+					break;
+				case Spectra::SPSC_OB : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+					break;
+				case Spectra::SPSC_B6 : 
+				case Spectra::SPSC_B9 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+					break;
+				case Spectra::SPSC_A0 : 
+				case Spectra::SPSC_A0p : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+					break;
+				case Spectra::SPSC_F2 : 
+				case Spectra::SPSC_F5 : 
+				case Spectra::SPSC_F9 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+					break;
+				case Spectra::SPSC_G0 : 
+				case Spectra::SPSC_G2 : 
+				case Spectra::SPSC_G5 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+					break;
+				case Spectra::SPSC_K1 : 
+				case Spectra::SPSC_K3 : 
+				case Spectra::SPSC_K5 : 
+				case Spectra::SPSC_K7 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+					break;
+				case Spectra::SPSC_M0V : 
+				case Spectra::SPSC_M2V : 
+				case Spectra::SPSC_M1 : 
+				case Spectra::SPSC_M2 : 
+				case Spectra::SPSC_M3 : 
+				case Spectra::SPSC_M4 : 
+				case Spectra::SPSC_M5 : 
+				case Spectra::SPSC_M6 : 
+				case Spectra::SPSC_M7 : 
+				case Spectra::SPSC_M8 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+					break;
+
+				case Spectra::SPSC_L0 : 
+				case Spectra::SPSC_L1 : 
+				case Spectra::SPSC_L2 : 
+				case Spectra::SPSC_L3 : 
+				case Spectra::SPSC_L4 : 
+				case Spectra::SPSC_L5 : 
+				case Spectra::SPSC_L55 : 
+				case Spectra::SPSC_L9 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+					break;
+
+				case Spectra::SPSC_T2 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+					break;
+
+				case Spectra::SPSC_CARBON_LINES : 
+				case Spectra::SPSC_CARBONWD : 
+				case Spectra::SPSC_CARBON : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+					break;
+
+				}
+			}
+
+	
+			pRGBMap[i*3+0] = r;
+			pRGBMap[i*3+1] = g;
+			pRGBMap[i*3+2] = b;
+			_sourceSpectra.endRead(index);
+		}
+	}
+
+	SpectraHelpers::saveIntensityMap( pRGBMap, gridSize, gridSize, _sstrFilename);
+
+	delete[] pRGBMap;
+}
 
 
 
