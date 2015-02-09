@@ -1915,6 +1915,25 @@ bool Spectra::checkConsistency() const
 	return true;
 }
 
+Spectra::SpectraClass Spectra::getClass() const
+{
+	SpectraClass retVal = (SpectraClass) (m_Type & 0x07);
+	return retVal;
+}
+
+Spectra::SpectraSubClass Spectra::getSubClass() const
+{
+	SpectraSubClass retVal = (SpectraSubClass) ((m_Type >> 3) & 0x7f);
+	return retVal;
+}
+
+
+bool Spectra::isBroadline() const 
+{
+	bool retVal = (m_Type & 1024) > 0;
+	return retVal;
+}
+
 
 bool Spectra::matchesFilter( unsigned int spClassFilter, unsigned int spSubClassFilter )
 {

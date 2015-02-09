@@ -101,9 +101,16 @@ namespace SpectraHelpers
 	// _planSize plan size for rectangles (only used if _showRanges true)
 	void calcZMap( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilenName, bool _bUseLogScale, bool _showRanges, size_t _planSize );
 
-	// Write spectra/object types (i.e. star, galaxy, qso, ..) to map.
+	// Write spectrum class (i.e. star, galaxy, QSO, ..) with the following color codes to map:
+	//  star = blue
+	//  galaxy = red
+	//  QSO = orange
+	//  unknown = white
 	// sstrFilenName path + filename (no extension)
-	void writeSpectraTypes( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilename );
+	void writeSpectraClass( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilename );
+
+	void writeSpectraGalaxyAndQSOSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilename );
+	void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilename );
 
 
 	//@}

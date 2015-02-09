@@ -232,7 +232,7 @@ void writeSpectrTypes()
 	SpectraVFS *pSourceVFS = new SpectraVFS( "allSpectra.bin", false );
 	SpectraVFS *pNetworkVFS = new SpectraVFS( "sofmnet.bin", false );
 	
-	SpectraHelpers::writeSpectraTypes( *pSourceVFS, *pNetworkVFS, "objectTypeMap" );
+	SpectraHelpers::writeSpectraClass( *pSourceVFS, *pNetworkVFS, "objectTypeMap" );
 }
 
 void writeZMap()
@@ -3327,8 +3327,8 @@ void main(int argc, char* argv[])
 // 		std::string strCommandLine = argv[1];
 // 		clusternum = Helpers::stringToNumber<int>(strCommandLine);
 // 	}
- 	SpectraHelpers::init(0);
-	test();
+//  	SpectraHelpers::init(0);
+ 	//test();
 
 // 	std::string sstrDir(DATADIR);
 // 	if ( argc>1 )
