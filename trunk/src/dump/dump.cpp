@@ -84,10 +84,10 @@ void main(int argc, char* argv[])
 		TCLAP::CmdLine cmd(sstrExamples, ' ', sstrSDSSVersionString);
 
 		std::string sstrFilterDesc = std::string("where <filter> is any added combination of:\n");
-		sstrFilterDesc +=  std::string( "  SPEC_UNKNOWN =   1\n");
-		sstrFilterDesc +=  std::string( "  SPEC_STAR    =   2\n");
-		sstrFilterDesc +=  std::string( "  SPEC_GALAXY  =   4\n");
-		sstrFilterDesc +=  std::string( "  SPEC_QSO     =   8\n");
+		sstrFilterDesc +=  std::string( "  SPEC_UNKNOWN =   2\n");
+		sstrFilterDesc +=  std::string( "  SPEC_STAR    =   4\n");
+		sstrFilterDesc +=  std::string( "  SPEC_GALAXY  =   8\n");
+		sstrFilterDesc +=  std::string( "  SPEC_QSO     =   16\n");
 	
 
 		TCLAP::ValueArg<std::string> dataDirArg("d", "datadir", "example: F:/SDSS_ANALYZE/fits/spectro/data/*", false, sstrDataDir, "datadir/*");
