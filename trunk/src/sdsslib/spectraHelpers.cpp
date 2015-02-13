@@ -1267,9 +1267,11 @@ void writeSpectraClass( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const 
 	const size_t gridSize = sqrtf(gridSizeSqr);
 
 	float *pRGBMap = new float[gridSizeSqr*3];
+
+	// gray for empty neurons
 	for ( size_t i=0;i<gridSizeSqr*3;i++)
 	{
-		pRGBMap[i] = 0.0f;
+		pRGBMap[i] = 0.5f;
 	}
 
 
@@ -1283,8 +1285,8 @@ void writeSpectraClass( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const 
 			Spectra *sp = _sourceSpectra.beginRead(index);
 
 			float r=0.0f;		// dark cyan undefined spectra type
-			float g=0.5f;
-			float b=0.5f;
+			float g=0.0f;
+			float b=0.0f;
 
 			const Spectra::SpectraClass spClass = sp->getClass();
 			const Spectra::SpectraSubClass spSubClass = sp->getSubClass();
@@ -1292,9 +1294,9 @@ void writeSpectraClass( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const 
 
 			switch ( spClass )
 			{
-			case Spectra::SPC_NOT_SET : r=0;g=0; b= 0.5;			// dark blue
+			case Spectra::SPC_NOT_SET : r=1.f;g=1.0f; b= 1.0f;			// white
 				break;
-			case Spectra::SPC_UNKNOWN : r= 1.0; g=1.0; b= 1.0;		// white
+			case Spectra::SPC_UNKNOWN : r= 1.0; g=1.0; b= 1.0;			// white
 				break;
 			case Spectra::SPC_STAR : r= 0.0f; g=0.0f; b= 1.0f;			// blue
 				break;
@@ -1335,9 +1337,11 @@ void writeSpectraGalaxyAndQSOSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_
 	const size_t gridSize = sqrtf(gridSizeSqr);
 
 	float *pRGBMap = new float[gridSizeSqr*3];
+
+	// gray for empty neurons
 	for ( size_t i=0;i<gridSizeSqr*3;i++)
 	{
-		pRGBMap[i] = 0.0f;
+		pRGBMap[i] = 0.5f;
 	}
 
 
@@ -1350,25 +1354,25 @@ void writeSpectraGalaxyAndQSOSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_
 		{
 			Spectra *sp = _sourceSpectra.beginRead(index);
 
-			float r=0.0f;		// dark cyan undefined spectra type
-			float g=0.5f;
-			float b=0.5f;
+			float r=0.0f;		//black for all non QSO/Galaxy spectra 
+			float g=0.0f;
+			float b=0.0f;
 
 			const Spectra::SpectraClass spClass = sp->getClass();
 			const Spectra::SpectraSubClass spSubClass = sp->getSubClass();
 			const bool isBroadline = sp->isBroadline();
 
-			if ( spClass == Spectra::SPC_GALAXY || spClass == Spectra::SPC_QSO ) 
+			if ( spClass == Spectra::SPC_GALAXY ) 
 			{
 				if ( isBroadline )
 				{
 					switch ( spSubClass )
 					{
-					case Spectra::SPSC_AGN : r=0;g=0; b= 0.5;					// dark blue
+					case Spectra::SPSC_AGN : r=0.7f;g=0.7f; b= 0.0f;			// dark yellow
 						break;
-					case Spectra::SPSC_STARBURST : r= 1.0; g=1.0; b= 1.0;		// white
+					case Spectra::SPSC_STARBURST : r= 0.7; g=0.35; b= 0.0f;		// dark orange / brown
 						break;
-					case Spectra::SPSC_STARFORMING : r= 0.0f; g=0.0f; b= 1.0f;	// blue
+					case Spectra::SPSC_STARFORMING : r=0.5f;g=0.0f; b= 0.0f;	// dark red
 						break;
 					}
 
@@ -1377,11 +1381,40 @@ void writeSpectraGalaxyAndQSOSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_
 				{
 					switch ( spSubClass )
 					{
-					case Spectra::SPSC_AGN : r=0;g=0; b= 0.5;					// dark blue
+					case Spectra::SPSC_AGN : r=1.0f;g=1.0f; b= 0.2f;			// light yellow
 						break;
-					case Spectra::SPSC_STARBURST : r= 1.0; g=1.0; b= 1.0;		// white
+					case Spectra::SPSC_STARBURST : r= 1.0; g=0.5; b= 0.2;		// light orange
 						break;
-					case Spectra::SPSC_STARFORMING : r= 0.0f; g=0.0f; b= 1.0f;	// blue
+					case Spectra::SPSC_STARFORMING : r=1.0f;g=0.2f; b= 0.2f;	// light red
+						break;
+					}
+
+				}
+			}
+			else if ( spClass == Spectra::SPC_QSO ) 
+			{
+				if ( isBroadline )
+				{
+					switch ( spSubClass )
+					{
+					case Spectra::SPSC_AGN : r=0;g=0; b= 0.5f;					// dark blue
+						break;
+					case Spectra::SPSC_STARBURST : r= 0.0; g=0.5f; b= 0.5f;		// dark cyan
+						break;
+					case Spectra::SPSC_STARFORMING : r= 0.0f; g=0.5f; b= 0.0f;	// dark green
+						break;
+					}
+
+				}
+				else
+				{
+					switch ( spSubClass )
+					{
+					case Spectra::SPSC_AGN : r=0.5f; g=0.5f; b= 1.0f;			// light blue
+						break;
+					case Spectra::SPSC_STARBURST : r= 0.5; g=1.0f; b= 1.0f;		// light cyan
+						break;
+					case Spectra::SPSC_STARFORMING : r= 0.5f; g=1.0f; b= 0.5f;	// light green
 						break;
 					}
 
@@ -1398,6 +1431,8 @@ void writeSpectraGalaxyAndQSOSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_
 
 	delete[] pRGBMap;
 }
+
+
 void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network, const std::string &_sstrFilename )
 {
 	if ( _network.getNumSpectra() == 0 )
@@ -1417,9 +1452,11 @@ void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network,
 	const size_t gridSize = sqrtf(gridSizeSqr);
 
 	float *pRGBMap = new float[gridSizeSqr*3];
+
+	// gray for empty neurons
 	for ( size_t i=0;i<gridSizeSqr*3;i++)
 	{
-		pRGBMap[i] = 0.0f;
+		pRGBMap[i] = 0.5f;
 	}
 
 
@@ -1432,9 +1469,9 @@ void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network,
 		{
 			Spectra *sp = _sourceSpectra.beginRead(index);
 
-			float r=0.0f;		// dark cyan undefined spectra type
-			float g=0.5f;
-			float b=0.5f;
+			float r=0.0f;		// black for all non star spectra type
+			float g=0.0f;
+			float b=0.0f;
 
 			const Spectra::SpectraClass spClass = sp->getClass();
 			const Spectra::SpectraSubClass spSubClass = sp->getSubClass();
@@ -1443,30 +1480,30 @@ void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network,
 			{
 				switch ( spSubClass )
 				{
-				case Spectra::SPSC_NOT_SET : r=0;g=0; b= 0.5;			// dark blue
+				case Spectra::SPSC_NOT_SET : r=0.2f;g=0.2f; b= 0.2;		// type not set
 					break;
-				case Spectra::SPSC_O : r= 1.0; g=1.0; b= 1.0;			// white
+				case Spectra::SPSC_O : r=0;g=0; b= 1.0f;				// blue
 					break;
-				case Spectra::SPSC_OB : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+				case Spectra::SPSC_OB : r=0.1f;g=0.1f; b= 1.0f;			// blue, tiny bit lighter
 					break;
 				case Spectra::SPSC_B6 : 
-				case Spectra::SPSC_B9 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+				case Spectra::SPSC_B9 : r= 0.5f; g=0.5f; b= 1.0f;		// light blue
 					break;
 				case Spectra::SPSC_A0 : 
-				case Spectra::SPSC_A0p : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+				case Spectra::SPSC_A0p : r= 1.0f; g=1.0f; b= 1.0f;		// white
 					break;
 				case Spectra::SPSC_F2 : 
 				case Spectra::SPSC_F5 : 
-				case Spectra::SPSC_F9 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+				case Spectra::SPSC_F9 : r= 1.0f; g=1.0f; b= 0.7f;		// white yellow
 					break;
 				case Spectra::SPSC_G0 : 
 				case Spectra::SPSC_G2 : 
-				case Spectra::SPSC_G5 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+				case Spectra::SPSC_G5 : r= 1.0f; g=1.0f; b= 0.0f;		// yellow
 					break;
 				case Spectra::SPSC_K1 : 
 				case Spectra::SPSC_K3 : 
 				case Spectra::SPSC_K5 : 
-				case Spectra::SPSC_K7 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+				case Spectra::SPSC_K7 : r= 1.0f; g=0.5f; b= 0.0f;		// orange
 					break;
 				case Spectra::SPSC_M0V : 
 				case Spectra::SPSC_M2V : 
@@ -1477,7 +1514,7 @@ void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network,
 				case Spectra::SPSC_M5 : 
 				case Spectra::SPSC_M6 : 
 				case Spectra::SPSC_M7 : 
-				case Spectra::SPSC_M8 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+				case Spectra::SPSC_M8 : r= 1.0f; g=0.0f; b= 0.0f;		// red
 					break;
 
 				case Spectra::SPSC_L0 : 
@@ -1487,15 +1524,15 @@ void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network,
 				case Spectra::SPSC_L4 : 
 				case Spectra::SPSC_L5 : 
 				case Spectra::SPSC_L55 : 
-				case Spectra::SPSC_L9 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+				case Spectra::SPSC_L9 : r= 0.5f; g=0.0f; b= 0.0f;		// dark red
 					break;
 
-				case Spectra::SPSC_T2 : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+				case Spectra::SPSC_T2 : r= 0.5f; g=0.3f; b= 1.0f;		// brown
 					break;
 
 				case Spectra::SPSC_CARBON_LINES : 
 				case Spectra::SPSC_CARBONWD : 
-				case Spectra::SPSC_CARBON : r= 0.0f; g=0.0f; b= 1.0f;		// blue
+				case Spectra::SPSC_CARBON : r= 0.0f; g=0.6f; b= 0.0f;		// dark green
 					break;
 
 				}
