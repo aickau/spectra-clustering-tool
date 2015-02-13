@@ -17,6 +17,7 @@ for %%d in (IL ILU) do (
 copy "settings.xml" "%ReleaseDir%" /Y /B
 copy "spectraParamDR9.bin" "%ReleaseDir%" /Y /B
 copy "spectraParamDR10.bin" "%ReleaseDir%" /Y /B
+copy "spectraParamDR12.bin" "%ReleaseDir%" /Y /B
 
 cd export
 for %%d in (up down left right empty) do (
