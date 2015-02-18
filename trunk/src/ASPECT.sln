@@ -1,5 +1,5 @@
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "search", "search\search.vcxproj", "{BDFCEB6C-99B3-490F-ACB4-9A32AA44B4D5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "analyzer", "analyze\analyze.vcxproj", "{C615842B-338A-4046-8D35-07C030BC2762}"
@@ -61,7 +61,8 @@ Global
 		{C70E88BF-3020-4C30-BDD0-9131B9E859E3}.Release|x64.Build.0 = Release|x64
 		{E8DB291F-7F86-4C22-9369-1BF4BAF08205}.Debug|Win32.ActiveCfg = Debug|Win32
 		{E8DB291F-7F86-4C22-9369-1BF4BAF08205}.Debug|Win32.Build.0 = Debug|Win32
-		{E8DB291F-7F86-4C22-9369-1BF4BAF08205}.Debug|x64.ActiveCfg = Debug|Win32
+		{E8DB291F-7F86-4C22-9369-1BF4BAF08205}.Debug|x64.ActiveCfg = Debug|x64
+		{E8DB291F-7F86-4C22-9369-1BF4BAF08205}.Debug|x64.Build.0 = Debug|x64
 		{E8DB291F-7F86-4C22-9369-1BF4BAF08205}.Release|Win32.ActiveCfg = Release|Win32
 		{E8DB291F-7F86-4C22-9369-1BF4BAF08205}.Release|Win32.Build.0 = Release|Win32
 		{E8DB291F-7F86-4C22-9369-1BF4BAF08205}.Release|x64.ActiveCfg = Release|x64
@@ -82,7 +83,8 @@ Global
 		{50E8AA2B-E4B8-4BD7-9141-ACB28F85E0A8}.Release|x64.Build.0 = Release|x64
 		{7D3C1C8A-F32A-497E-8427-F1C24E137A2D}.Debug|Win32.ActiveCfg = Debug|Win32
 		{7D3C1C8A-F32A-497E-8427-F1C24E137A2D}.Debug|Win32.Build.0 = Debug|Win32
-		{7D3C1C8A-F32A-497E-8427-F1C24E137A2D}.Debug|x64.ActiveCfg = Debug|Win32
+		{7D3C1C8A-F32A-497E-8427-F1C24E137A2D}.Debug|x64.ActiveCfg = Debug|x64
+		{7D3C1C8A-F32A-497E-8427-F1C24E137A2D}.Debug|x64.Build.0 = Debug|x64
 		{7D3C1C8A-F32A-497E-8427-F1C24E137A2D}.Release|Win32.ActiveCfg = Release|Win32
 		{7D3C1C8A-F32A-497E-8427-F1C24E137A2D}.Release|Win32.Build.0 = Release|Win32
 		{7D3C1C8A-F32A-497E-8427-F1C24E137A2D}.Release|x64.ActiveCfg = Release|Win32

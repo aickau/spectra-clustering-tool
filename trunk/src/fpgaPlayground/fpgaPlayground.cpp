@@ -1,25 +1,118 @@
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <Memory.h>
+#include <math.h>
 
-#include "sdsslib/spectraVFS.h"
-#include "FPGASOFMNetwork.h"
+#include "AFATypes.h"
+#include "AFASpectra.h"
+#include "AFAProcessing.h"
 
-
-void main(int argc, char* argv[])
+uint32_t
+ReadSpectraFileRAW(
+    const char *filename,
+    uint32_t *spectraCount,
+    AFASpectra **spectraData )
 {
+    FILE *f;
+    uint32_t rv = 0xffffffff;
+    long size = 0;
 
-	// write 10.000 sine test spectra. 
-	SpectraVFS::write( 10000, 0.0f, "allSpectra.bin" );
+    if ( spectraData )
+    {
+        f = fopen( filename, "r+b" );
+        if ( f )
+        {
+            fseek( f, 0, SEEK_END );
 
-	SpectraVFS src( "allSpectra.bin", false );
-	const int numSpectra = src.getNumSpectra();
+            const size_t fileSize = ( size_t ) ftell( f );
+            const size_t fileCount = fileSize / sizeof( AFASpectra );
+            const size_t remainder = fileSize % sizeof( AFASpectra );
 
-	if ( numSpectra > 0 )
-	{
-		FPGASOFMNetwork net( &src, false );
+            if ( 0 == fileSize )
+            {
+                // file illegal
+                rv = 3;
+            }
+            else
+            {
+                if  ( fileSize < sizeof( AFASpectra ) || remainder != 0 )
+                {
+                    // wrong size
+                    rv = 4;
+                }
+                else
+                {
+                    *spectraData = ( AFASpectra * ) malloc( fileSize );
+                    if ( *spectraData )
+                    {
+                        // clear memory
+                        memset(( void * )*spectraData, 0x00, fileSize );
+                        //
+                        *spectraCount = ( unsigned long ) fileCount;
+                        fseek( f, 0, SEEK_SET );
+                        size_t n = fread(( void * )( *spectraData ), fileSize, 1, f );
+                        if ( 1 == n )
+                        {
+                            // everything is fine
+                            rv = 0;
+                        }
+                        else
+                        {
+                            // read failed
+                            rv = 6;
+                        }
+                    }
+                    else
+                    {
+                        // no mem avail
+                        rv = 5;
+                    }
+                }
+            }
+            fclose( f );
+        }
+        else
+        {
+            // cannot open
+            rv = 2;
+        }
+    }
+    else
+    {
+        // illegal pointer
+        rv = 1;
+    }
+    return rv;
+}
 
-		do 
-		{
-			printf("calculating step %i\n", net.m_currentStep );
-		} while ( net.process() == false );
-	}
+
+
+int
+main(int argc, char* argv[])
+{
+    uint32_t numSpectra;
+    AFASpectra *spectraData;
+    uint32_t rv = ReadSpectraFileRAW(
+        "allSpectra.bin",
+        &numSpectra,
+        &spectraData );
+
+    printf( "AFASpectraSize=%d\n", sizeof( AFASpectra ));
+
+    size_t gridSize = static_cast<size_t>(ceilf(sqrtf((float)numSpectra+1))*1.1f); // gives a factor of 1.1^2=1.21 in total
+    size_t gridSizeSqr = gridSize*gridSize;
+
+    AFASpectra *net = new AFASpectra[ gridSizeSqr ];
+
+    AFAProcessing AFAProc(
+        spectraData,
+        net,
+        numSpectra,
+        false );
+
+    free( spectraData );
+    delete [] net;
+    return ( int ) rv;
 }
 

@@ -72,7 +72,7 @@ SpectraDB g_spectraDBDR9;
 Spectra::Spectra()
 {
 	// make sure data structure is aligned to 16 byte boundaries for SSE
-	assert( sizeof(Spectra) % 16 == 0 ); 
+	assert( sizeof(Spectra) % 16 == 0 ); //< this doesn't require alignment to 16 byte boundaries
 	clear();
 }
 

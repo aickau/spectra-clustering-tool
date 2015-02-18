@@ -1,0 +1,307 @@
+
+
+================================================================
+== Vivado HLS Report for 'AFAProcessFunction'
+================================================================
+* Date:           Sat Feb 14 17:21:41 2015
+
+* Version:        2014.4 (Build 1071461 on Tue Nov 18 16:42:57 PM 2014)
+* Project:        proj_axi_master
+* Solution:       solution2
+* Product family: virtex7
+* Target device:  xc7vx690tffg1761-2
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing (ns): 
+    * Summary: 
+    +---------+-------+----------+------------+
+    |  Clock  | Target| Estimated| Uncertainty|
+    +---------+-------+----------+------------+
+    |default  |   2.50|      2.39|        0.31|
+    +---------+-------+----------+------------+
+
++ Latency (clock cycles): 
+    * Summary: 
+    +-----+-----+-----+-----+---------+
+    |  Latency  |  Interval | Pipeline|
+    | min | max | min | max |   Type  |
+    +-----+-----+-----+-----+---------+
+    |  142|  142|  143|  143|   none  |
+    +-----+-----+-----+-----+---------+
+
+    + Detail: 
+        * Instance: 
+        N/A
+
+        * Loop: 
+        +---------------------------------------------+-----+-----+----------+-----------+-----------+------+----------+
+        |                                             |  Latency  | Iteration|  Initiation Interval  | Trip |          |
+        |                  Loop Name                  | min | max |  Latency |  achieved |   target  | Count| Pipelined|
+        +---------------------------------------------+-----+-----+----------+-----------+-----------+------+----------+
+        |- memcpy.AFAProcessFunctionParamBlock.p      |   65|   65|         3|          1|          1|    64|    yes   |
+        |- memcpy.p.AFAProcessFunctionParamBlock.gep  |   65|   65|         3|          1|          1|    64|    yes   |
+        +---------------------------------------------+-----+-----+----------+-----------+-----------+------+----------+
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-------+--------+--------+
+|       Name      | BRAM_18K| DSP48E|   FF   |   LUT  |
++-----------------+---------+-------+--------+--------+
+|Expression       |        -|      -|       0|      31|
+|FIFO             |        -|      -|       -|       -|
+|Instance         |        -|      -|    1536|    1740|
+|Memory           |        1|      -|       0|       0|
+|Multiplexer      |        -|      -|       -|      38|
+|Register         |        -|      -|     118|       -|
++-----------------+---------+-------+--------+--------+
+|Total            |        1|      0|    1654|    1809|
++-----------------+---------+-------+--------+--------+
+|Available        |     2940|   3600|  866400|  433200|
++-----------------+---------+-------+--------+--------+
+|Utilization (%)  |    ~0   |      0|   ~0   |   ~0   |
++-----------------+---------+-------+--------+--------+
+
++ Detail: 
+    * Instance: 
+    +-----------------------------------+---------------------------------+---------+-------+-----+-----+
+    |              Instance             |              Module             | BRAM_18K| DSP48E|  FF | LUT |
+    +-----------------------------------+---------------------------------+---------+-------+-----+-----+
+    |AFAProcessFunction_dstNet_m_axi_U  |AFAProcessFunction_dstNet_m_axi  |        0|      0|  512|  580|
+    |AFAProcessFunction_p_m_axi_U       |AFAProcessFunction_p_m_axi       |        0|      0|  512|  580|
+    |AFAProcessFunction_srcNet_m_axi_U  |AFAProcessFunction_srcNet_m_axi  |        0|      0|  512|  580|
+    +-----------------------------------+---------------------------------+---------+-------+-----+-----+
+    |Total                              |                                 |        0|      0| 1536| 1740|
+    +-----------------------------------+---------------------------------+---------+-------+-----+-----+
+
+    * Memory: 
+    +--------------------------------+-------------------------------------------------+---------+---+----+------+-----+------+-------------+
+    |             Memory             |                      Module                     | BRAM_18K| FF| LUT| Words| Bits| Banks| W*Bits*Banks|
+    +--------------------------------+-------------------------------------------------+---------+---+----+------+-----+------+-------------+
+    |AFAProcessFunctionParamBlock_U  |AFAProcessFunction_AFAProcessFunctionParamBlock  |        1|  0|   0|    64|   32|     1|         2048|
+    +--------------------------------+-------------------------------------------------+---------+---+----+------+-----+------+-------------+
+    |Total                           |                                                 |        1|  0|   0|    64|   32|     1|         2048|
+    +--------------------------------+-------------------------------------------------+---------+---+----+------+-----+------+-------------+
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    +------------------------+----------+-------+---+----+------------+------------+
+    |      Variable Name     | Operation| DSP48E| FF| LUT| Bitwidth P0| Bitwidth P1|
+    +------------------------+----------+-------+---+----+------------+------------+
+    |indvar_next5_fu_160_p2  |     +    |      0|  0|   7|           7|           1|
+    |indvar_next_fu_143_p2   |     +    |      0|  0|   7|           7|           1|
+    |ap_sig_bdd_423          |    and   |      0|  0|   1|           1|           1|
+    |ap_sig_bdd_555          |    and   |      0|  0|   1|           1|           1|
+    |ap_sig_bdd_655          |    and   |      0|  0|   1|           1|           1|
+    |exitcond6_fu_154_p2     |   icmp   |      0|  0|   7|           7|           8|
+    |exitcond_fu_137_p2      |   icmp   |      0|  0|   7|           7|           8|
+    +------------------------+----------+-------+---+----+------------+------------+
+    |Total                   |          |      0|  0|  31|          31|          21|
+    +------------------------+----------+-------+---+----+------------+------------+
+
+    * Multiplexer: 
+    +---------------------------------------+----+-----------+-----+-----------+
+    |                  Name                 | LUT| Input Size| Bits| Total Bits|
+    +---------------------------------------+----+-----------+-----+-----------+
+    |AFAProcessFunctionParamBlock_address0  |   6|          3|    6|         18|
+    |ap_NS_fsm                              |   6|         14|    1|         14|
+    |ap_reg_ppiten_pp0_it2                  |   1|          2|    1|          2|
+    |ap_reg_ppiten_pp1_it2                  |   1|          2|    1|          2|
+    |ap_sig_ioackin_p_ARREADY               |   1|          2|    1|          2|
+    |ap_sig_ioackin_p_AWREADY               |   1|          2|    1|          2|
+    |ap_sig_ioackin_p_WREADY                |   1|          2|    1|          2|
+    |indvar4_reg_125                        |   7|          2|    7|         14|
+    |indvar_phi_fu_117_p4                   |   7|          2|    7|         14|
+    |indvar_reg_113                         |   7|          2|    7|         14|
+    +---------------------------------------+----+-----------+-----+-----------+
+    |Total                                  |  38|         33|   33|         84|
+    +---------------------------------------+----+-----------+-----+-----------+
+
+    * Register: 
+    +----------------------------------------+----+----+-----+-----------+
+    |                  Name                  | FF | LUT| Bits| Const Bits|
+    +----------------------------------------+----+----+-----+-----------+
+    |AFAProcessFunctionParamBlock_l_reg_199  |  32|   0|   32|          0|
+    |ap_CS_fsm                               |  13|   0|   13|          0|
+    |ap_reg_ioackin_p_ARREADY                |   1|   0|    1|          0|
+    |ap_reg_ioackin_p_AWREADY                |   1|   0|    1|          0|
+    |ap_reg_ioackin_p_WREADY                 |   1|   0|    1|          0|
+    |ap_reg_ppiten_pp0_it0                   |   1|   0|    1|          0|
+    |ap_reg_ppiten_pp0_it1                   |   1|   0|    1|          0|
+    |ap_reg_ppiten_pp0_it2                   |   1|   0|    1|          0|
+    |ap_reg_ppiten_pp1_it0                   |   1|   0|    1|          0|
+    |ap_reg_ppiten_pp1_it1                   |   1|   0|    1|          0|
+    |ap_reg_ppiten_pp1_it2                   |   1|   0|    1|          0|
+    |ap_reg_ppstg_exitcond6_reg_185_pp1_it1  |   1|   0|    1|          0|
+    |ap_reg_ppstg_exitcond_reg_171_pp0_it1   |   1|   0|    1|          0|
+    |ap_reg_ppstg_indvar_reg_113_pp0_it1     |   7|   0|    7|          0|
+    |exitcond6_reg_185                       |   1|   0|    1|          0|
+    |exitcond_reg_171                        |   1|   0|    1|          0|
+    |indvar4_reg_125                         |   7|   0|    7|          0|
+    |indvar_next_reg_175                     |   7|   0|    7|          0|
+    |indvar_reg_113                          |   7|   0|    7|          0|
+    |p_read_reg_180                          |  32|   0|   32|          0|
+    +----------------------------------------+----+----+-----+-----------+
+    |Total                                   | 118|   0|  118|          0|
+    +----------------------------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++-----------------------+-----+-----+------------+--------------------+--------------+
+|       RTL Ports       | Dir | Bits|  Protocol  |    Source Object   |    C Type    |
++-----------------------+-----+-----+------------+--------------------+--------------+
+|ap_clk                 |  in |    1| ap_ctrl_hs | AFAProcessFunction | return value |
+|ap_rst_n               |  in |    1| ap_ctrl_hs | AFAProcessFunction | return value |
+|ap_start               |  in |    1| ap_ctrl_hs | AFAProcessFunction | return value |
+|ap_done                | out |    1| ap_ctrl_hs | AFAProcessFunction | return value |
+|ap_idle                | out |    1| ap_ctrl_hs | AFAProcessFunction | return value |
+|ap_ready               | out |    1| ap_ctrl_hs | AFAProcessFunction | return value |
+|m_axi_p_AWVALID        | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWREADY        |  in |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWADDR         | out |   32|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWID           | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWLEN          | out |    8|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWSIZE         | out |    3|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWBURST        | out |    2|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWLOCK         | out |    2|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWCACHE        | out |    4|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWPROT         | out |    3|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWQOS          | out |    4|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWREGION       | out |    4|    m_axi   |          p         |    pointer   |
+|m_axi_p_AWUSER         | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_WVALID         | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_WREADY         |  in |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_WDATA          | out |   32|    m_axi   |          p         |    pointer   |
+|m_axi_p_WSTRB          | out |    4|    m_axi   |          p         |    pointer   |
+|m_axi_p_WLAST          | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_WID            | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_WUSER          | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARVALID        | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARREADY        |  in |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARADDR         | out |   32|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARID           | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARLEN          | out |    8|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARSIZE         | out |    3|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARBURST        | out |    2|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARLOCK         | out |    2|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARCACHE        | out |    4|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARPROT         | out |    3|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARQOS          | out |    4|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARREGION       | out |    4|    m_axi   |          p         |    pointer   |
+|m_axi_p_ARUSER         | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_RVALID         |  in |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_RREADY         | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_RDATA          |  in |   32|    m_axi   |          p         |    pointer   |
+|m_axi_p_RLAST          |  in |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_RID            |  in |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_RUSER          |  in |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_RRESP          |  in |    2|    m_axi   |          p         |    pointer   |
+|m_axi_p_BVALID         |  in |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_BREADY         | out |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_BRESP          |  in |    2|    m_axi   |          p         |    pointer   |
+|m_axi_p_BID            |  in |    1|    m_axi   |          p         |    pointer   |
+|m_axi_p_BUSER          |  in |    1|    m_axi   |          p         |    pointer   |
+|m_axi_srcNet_AWVALID   | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWREADY   |  in |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWADDR    | out |   32|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWID      | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWLEN     | out |    8|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWSIZE    | out |    3|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWBURST   | out |    2|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWLOCK    | out |    2|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWCACHE   | out |    4|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWPROT    | out |    3|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWQOS     | out |    4|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWREGION  | out |    4|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_AWUSER    | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_WVALID    | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_WREADY    |  in |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_WDATA     | out |   32|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_WSTRB     | out |    4|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_WLAST     | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_WID       | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_WUSER     | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARVALID   | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARREADY   |  in |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARADDR    | out |   32|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARID      | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARLEN     | out |    8|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARSIZE    | out |    3|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARBURST   | out |    2|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARLOCK    | out |    2|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARCACHE   | out |    4|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARPROT    | out |    3|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARQOS     | out |    4|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARREGION  | out |    4|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_ARUSER    | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_RVALID    |  in |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_RREADY    | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_RDATA     |  in |   32|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_RLAST     |  in |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_RID       |  in |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_RUSER     |  in |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_RRESP     |  in |    2|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_BVALID    |  in |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_BREADY    | out |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_BRESP     |  in |    2|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_BID       |  in |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_srcNet_BUSER     |  in |    1|    m_axi   |       srcNet       |    pointer   |
+|m_axi_dstNet_AWVALID   | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWREADY   |  in |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWADDR    | out |   32|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWID      | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWLEN     | out |    8|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWSIZE    | out |    3|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWBURST   | out |    2|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWLOCK    | out |    2|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWCACHE   | out |    4|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWPROT    | out |    3|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWQOS     | out |    4|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWREGION  | out |    4|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_AWUSER    | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_WVALID    | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_WREADY    |  in |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_WDATA     | out |   32|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_WSTRB     | out |    4|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_WLAST     | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_WID       | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_WUSER     | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARVALID   | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARREADY   |  in |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARADDR    | out |   32|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARID      | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARLEN     | out |    8|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARSIZE    | out |    3|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARBURST   | out |    2|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARLOCK    | out |    2|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARCACHE   | out |    4|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARPROT    | out |    3|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARQOS     | out |    4|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARREGION  | out |    4|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_ARUSER    | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_RVALID    |  in |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_RREADY    | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_RDATA     |  in |   32|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_RLAST     |  in |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_RID       |  in |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_RUSER     |  in |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_RRESP     |  in |    2|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_BVALID    |  in |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_BREADY    | out |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_BRESP     |  in |    2|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_BID       |  in |    1|    m_axi   |       dstNet       |    pointer   |
+|m_axi_dstNet_BUSER     |  in |    1|    m_axi   |       dstNet       |    pointer   |
++-----------------------+-----+-----+------------+--------------------+--------------+
+

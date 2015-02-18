@@ -1,0 +1,6 @@
+verilog xil_defaultlib "AESL_axi_master_a.v"
+verilog xil_defaultlib "example.autotb.v"
+verilog xil_defaultlib "example.v"
+verilog xil_defaultlib "example_a_m_axi.v"
+verilog xil_defaultlib "example_buff.v"
+

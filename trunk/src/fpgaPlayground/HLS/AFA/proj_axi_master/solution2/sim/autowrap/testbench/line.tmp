@@ -1,0 +1,51 @@
+#pragma line 1 "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/AFA2/AFA/example.cpp" ::: -10
+#pragma line 1 "<built-in>" ::: -9
+#pragma line 1 "<command-line>" ::: -8
+#pragma line 1 "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/AFA2/AFA/example.cpp" ::: -7
+#pragma line 96 "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/AFA2/AFA/example.cpp" ::: -6
+#pragma line 1 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 1 3 ::: -5
+#pragma line 19 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: -4
+#pragma line 1 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/_mingw.h" 1 3 ::: -3
+#pragma line 32 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/_mingw.h" 3 ::: -2
+#pragma line 33 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/_mingw.h" 3 ::: 0
+#pragma line 20 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 2 3 ::: 1
+#pragma line 1 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/include/stddef.h" 1 3 4 ::: 8
+#pragma line 212 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/include/stddef.h" 3 4 ::: 9
+#pragma line 353 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/include/stddef.h" 3 4 ::: 11
+#pragma line 27 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 2 3 ::: 13
+#pragma line 1 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/include/stdarg.h" 1 3 4 ::: 15
+#pragma line 40 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/include/stdarg.h" 3 4 ::: 16
+#pragma line 29 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 2 3 ::: 18
+#pragma line 129 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 19
+#pragma line 154 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 31
+#pragma line 163 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 33
+#pragma line 204 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 65
+#pragma line 293 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 74
+#pragma line 308 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 81
+#pragma line 331 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 96
+#pragma line 412 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 164
+#pragma line 455 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 175
+#pragma line 522 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 230
+#pragma line 534 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 235
+#pragma line 1 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/sys/types.h" 1 3 ::: 236
+#pragma line 21 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/sys/types.h" 3 ::: 237
+#pragma line 1 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/include/stddef.h" 1 3 4 ::: 238
+#pragma line 150 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/include/stddef.h" 3 4 ::: 239
+#pragma line 22 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/sys/types.h" 2 3 ::: 241
+#pragma line 45 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/sys/types.h" 3 ::: 253
+#pragma line 535 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 2 3 ::: 343
+#pragma line 563 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 364
+#pragma line 625 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/stdio.h" 3 ::: 419
+#pragma line 97 "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/AFA2/AFA/example.cpp" 2 ::: 443
+#pragma line 1 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/string.h" 1 3 ::: 444
+#pragma line 24 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/string.h" 3 ::: 445
+#pragma line 1 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/include/stddef.h" 1 3 4 ::: 446
+#pragma line 25 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/string.h" 2 3 ::: 447
+#pragma line 90 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/string.h" 3 ::: 505
+#pragma line 126 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/string.h" 3 ::: 532
+#pragma line 152 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/string.h" 3 ::: 550
+#pragma line 173 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/string.h" 3 ::: 564
+#pragma line 196 "c:\\xilinx\\vivado_hls\\2014.4\\msys\\bin\\../lib/gcc/mingw32/4.6.2/../../../../include/string.h" 3 ::: 580
+#pragma line 98 "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/AFA2/AFA/example.cpp" 2 ::: 582
+#pragma line 109 "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/AFA2/AFA/example.cpp" ::: 599
+#pragma line 139 "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/AFA2/AFA/example.cpp" ::: 633

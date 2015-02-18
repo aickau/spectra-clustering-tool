@@ -64,6 +64,8 @@ public:
 	// flush all open write commits
 	void flush();
 
+    //export data pointer
+    void *exportData() const;
 private:
 
 

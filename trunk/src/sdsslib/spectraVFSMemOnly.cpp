@@ -71,6 +71,10 @@ SpectraVFSMemOnly::~SpectraVFSMemOnly()
 	Memory::memAlignedFree( m_pSpectaPool );
 }
 
+void *SpectraVFSMemOnly::exportData() const
+{
+    return m_pSpectaPool;
+}
 
 size_t SpectraVFSMemOnly::getNumSpectra() const
 {
