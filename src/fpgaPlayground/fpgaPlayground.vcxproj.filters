@@ -52,6 +52,12 @@
     </ClCompile>
     <ClCompile Include="FPGASOFMNetwork.cpp" />
     <ClCompile Include="..\analyze\SOFMNetworkSettings.cpp" />
+    <ClCompile Include="AFAProcessing.cpp" />
+    <ClCompile Include="AFASpectra.cpp" />
+    <ClCompile Include="AFARandom.cpp" />
+    <ClCompile Include="AFANetworkSettings.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sdsslib\spectra.h">
@@ -101,5 +107,11 @@
     </ClInclude>
     <ClInclude Include="FPGASOFMNetwork.h" />
     <ClInclude Include="..\analyze\SOFMNetworkSettings.h" />
+    <ClInclude Include="AFATypes.h" />
+    <ClInclude Include="AFAProcessing.h" />
+    <ClInclude Include="AFASpectra.h" />
+    <ClInclude Include="AFADefines.h" />
+    <ClInclude Include="AFARandom.h" />
+    <ClInclude Include="AFANetworkSettings.h" />
   </ItemGroup>
 </Project>

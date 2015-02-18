@@ -1,0 +1,15 @@
+   Compiling ../../../../AFANetworkSettings.cpp in debug mode
+   Compiling ../../../../AFAProcessing.cpp in debug mode
+../../../../AFAProcessing.cpp: In constructor 'AFAProcessing::AFAProcessing(volatile void*, volatile void*, uint32_t, bool)':
+../../../../AFAProcessing.cpp:43:77: error: passing 'volatile AFASpectra' as 'this' argument of 'void AFASpectra::write(volatile AFASpectra*, size_t, float, float)' discards qualifiers [-fpermissive]
+../../../../AFAProcessing.cpp:57:44: error: invalid conversion from 'volatile AFASpectra*' to 'AFASpectra*' [-fpermissive]
+../../../../AFAProcessing.cpp:61:61: error: invalid conversion from 'volatile AFASpectra*' to 'AFASpectra*' [-fpermissive]
+../../../../AFAProcessing.cpp: In member function 'void AFAProcessing::calcFluxAndNormalizeInputDS()':
+../../../../AFAProcessing.cpp:102:42: error: invalid conversion from 'volatile AFASpectra*' to 'AFASpectra*' [-fpermissive]
+../../../../AFAProcessing.cpp: In member function 'void AFAProcessing::calcMinMax(AFASpectra*, float&, float&)':
+../../../../AFAProcessing.cpp:130:42: error: invalid conversion from 'volatile AFASpectra*' to 'AFASpectra*' [-fpermissive]
+../../../../AFAProcessing.cpp: In member function 'void AFAProcessing::calcMinMaxInputDS()':
+../../../../AFAProcessing.cpp:148:44: error: invalid conversion from 'volatile AFASpectra*' to 'AFASpectra*' [-fpermissive]
+../../../../AFAProcessing.cpp:119:1: error:   initializing argument 1 of 'void AFAProcessing::calcMinMax(AFASpectra*, float&, float&)' [-fpermissive]
+make: *** [obj/AFAProcessing.o] Error 1
+@E [SIM-1] 'csim_design' failed: compilation error(s).

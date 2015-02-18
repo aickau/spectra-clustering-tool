@@ -57,6 +57,12 @@ SpectraVFS::~SpectraVFS()
 	delete m_pSpectraVFS;
 }
 
+void *
+SpectraVFS::exportData() const
+{
+    return m_pSpectraVFS->exportData();
+}
+
 const std::string &SpectraVFS::getFileName() const
 {
 	return m_sstrDumpFilename;

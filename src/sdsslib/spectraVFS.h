@@ -92,7 +92,7 @@ public:
 	// dump existing VFS to another file
 	void dumpToFile( const std::string _sstrFilename );
 
-
+    void *exportData() const;
 private:
 
 	std::string m_sstrDumpFilename;										// file where we read from (and write to)

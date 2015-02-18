@@ -1,0 +1,40 @@
+Vivado Simulator 2014.4
+Copyright 1986-1999, 2001-2014 Xilinx, Inc. All Rights Reserved.
+Running: c:/Xilinx/Vivado/2014.4/bin/unwrapped/win64.o/xelab.exe xil_defaultlib.apatb_example_top -prj example.prj --lib ieee_proposed=./ieee_proposed -s example 
+Multi-threading is on. Using 6 slave threads.
+Determining compilation order of HDL files.
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/Tests/axi_master/proj_axi_master/solution2/sim/verilog/AESL_axi_master_a.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module AESL_axi_master_a
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/Tests/axi_master/proj_axi_master/solution2/sim/verilog/example.autotb.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module apatb_example_top
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/Tests/axi_master/proj_axi_master/solution2/sim/verilog/example.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module example
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/Tests/axi_master/proj_axi_master/solution2/sim/verilog/example_a_m_axi.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module example_a_m_axi
+INFO: [VRFC 10-311] analyzing module example_a_m_axi_fifo
+INFO: [VRFC 10-311] analyzing module example_a_m_axi_decoder
+INFO: [VRFC 10-311] analyzing module example_a_m_axi_read
+INFO: [VRFC 10-311] analyzing module example_a_m_axi_write
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/Tests/axi_master/proj_axi_master/solution2/sim/verilog/example_buff.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module example_buff_ram
+INFO: [VRFC 10-311] analyzing module example_buff
+Starting static elaboration
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling module xil_defaultlib.example_a_m_axi_fifo(DATA_BITS=6...
+Compiling module xil_defaultlib.example_a_m_axi_fifo(DATA_BITS=3...
+Compiling module xil_defaultlib.example_a_m_axi_fifo(DEPTH=5,DEP...
+Compiling module xil_defaultlib.example_a_m_axi_fifo(DATA_BITS=2...
+Compiling module xil_defaultlib.example_a_m_axi_fifo(DATA_BITS=2...
+Compiling module xil_defaultlib.example_a_m_axi_write(C_ID_WIDTH...
+Compiling module xil_defaultlib.example_a_m_axi_fifo(DATA_BITS=3...
+Compiling module xil_defaultlib.example_a_m_axi_read(C_ID_WIDTH=...
+Compiling module xil_defaultlib.example_a_m_axi(C_ID_WIDTH=1,C_A...
+Compiling module xil_defaultlib.example_buff_ram
+Compiling module xil_defaultlib.example_buff(DataWidth=32,Addres...
+Compiling module xil_defaultlib.example_default
+Compiling module xil_defaultlib.AESL_axi_master_a
+Compiling module xil_defaultlib.apatb_example_top
+Built simulation snapshot example

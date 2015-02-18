@@ -1,0 +1,29 @@
+@I [LIC-101] Checked out feature [HLS]
+@I [HLS-10] Running 'C:/Xilinx/Vivado_HLS/2014.4/bin/unwrapped/win64.o/vivado_hls.exe'
+            for user 'jesko' on host 'cetus' (Windows NT_amd64 version 6.2) on Sun Feb 15 00:11:15 +0100 2015
+            in directory 'C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/AFA2/AFA'
+@I [HLS-10] Opening project 'C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/AFA2/AFA/proj_axi_master'.
+@I [HLS-10] Opening solution 'C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/AFA2/AFA/proj_axi_master/solution2'.
+@I [SYN-201] Setting up clock 'default' with a period of 2.5ns.
+@I [LIC-101] Checked out feature [HLS]
+@I [HLS-10] Setting target device to 'xc7vx690tffg1761-2'
+   Compiling ../../../../AFANetworkSettings.cpp in debug mode
+   Compiling ../../../../AFAProcessing.cpp in debug mode
+../../../../AFAProcessing.cpp: In constructor 'AFAProcessing::AFAProcessing(volatile void*, volatile void*, uint32_t, bool)':
+../../../../AFAProcessing.cpp:43:77: error: passing 'volatile AFASpectra' as 'this' argument of 'void AFASpectra::write(volatile AFASpectra*, size_t, float, float)' discards qualifiers [-fpermissive]
+../../../../AFAProcessing.cpp:57:44: error: invalid conversion from 'volatile AFASpectra*' to 'AFASpectra*' [-fpermissive]
+../../../../AFAProcessing.cpp:61:61: error: invalid conversion from 'volatile AFASpectra*' to 'AFASpectra*' [-fpermissive]
+../../../../AFAProcessing.cpp: In member function 'void AFAProcessing::calcFluxAndNormalizeInputDS()':
+../../../../AFAProcessing.cpp:102:42: error: invalid conversion from 'volatile AFASpectra*' to 'AFASpectra*' [-fpermissive]
+../../../../AFAProcessing.cpp: In member function 'void AFAProcessing::calcMinMax(AFASpectra*, float&, float&)':
+../../../../AFAProcessing.cpp:130:42: error: invalid conversion from 'volatile AFASpectra*' to 'AFASpectra*' [-fpermissive]
+../../../../AFAProcessing.cpp: In member function 'void AFAProcessing::calcMinMaxInputDS()':
+../../../../AFAProcessing.cpp:148:44: error: invalid conversion from 'volatile AFASpectra*' to 'AFASpectra*' [-fpermissive]
+../../../../AFAProcessing.cpp:119:1: error:   initializing argument 1 of 'void AFAProcessing::calcMinMax(AFASpectra*, float&, float&)' [-fpermissive]
+make: *** [obj/AFAProcessing.o] Error 1
+@E [SIM-1] 'csim_design' failed: compilation error(s).
+4
+    while executing
+"csim_design -argv {test abc123} -clean -quiet"
+    (file "C:/Projects/2014-03-04_TLS-Aspect/FPGA/HLS/AFA2/AFA/proj_axi_master/solution2/csim.tcl" line 8)
+@I [LIC-101] Checked in feature [HLS]
