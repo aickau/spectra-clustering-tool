@@ -1847,8 +1847,9 @@ std::string Spectra::getURL()const
 
 
 	// e.g.: http://dr10.sdss3.org/spectrumDetail?mjd=55280&fiber=1&plateid=3863
+	std::string sstrUrlDR12("http://dr12.sdss3.org/spectrumDetail?mjd=");
 	std::string sstrUrlDR10("http://dr10.sdss3.org/spectrumDetail?mjd=");
-	std::string sstrUrl(sstrUrlDR10);
+	std::string sstrUrl(sstrUrlDR12);
 
 	sstrUrl += Helpers::numberToString( getMJD() );
 	sstrUrl += "&fiber=";
@@ -1865,10 +1866,11 @@ std::string Spectra::getImgURL() const
 		return "http://upload.wikimedia.org/wikipedia/en/d/d4/Mickey_Mouse.png";
 	}
 
+	std::string sstrUrlDR12("http://skyserver.sdss3.org/dr12/en/get/SpecById.ashx?id=");
 	std::string sstrUrlDR10("http://skyserver.sdss3.org/dr10/en/get/SpecById.ashx?id=");
 	std::string sstrUrlDR9("http://skyserver.sdss3.org/dr9/en/get/specById.asp?id=");
 	std::string sstrUrlDR7("http://cas.sdss.org/dr7/en/get/specById.asp?id=");
-	std::string sstrUrl(sstrUrlDR10);
+	std::string sstrUrl(sstrUrlDR12);
 
  	if ( m_version == SP_VERSION_DR7 )
  		sstrUrl = sstrUrlDR7;
@@ -2065,136 +2067,23 @@ float Spectra::waveLenghtToRestFrame( float _waveLength, float _z )
 std::string Spectra::spectraFilterToString( unsigned int _spectraFilter )
 {
 	std::string sstrOutString;
-	if ( _spectraFilter & Spectra::SPT_UNKNOWN )
+	if ( _spectraFilter & (1 << Spectra::SPC_UNKNOWN) )
 	{
 		sstrOutString += "SPEC_UNKNOWN ";
 	}
-	if ( _spectraFilter & Spectra::SPT_STAR )
+	if ( _spectraFilter & (1 << Spectra::SPC_STAR) )
 	{
 		sstrOutString += "SPEC_STAR ";
 	}
-	if ( _spectraFilter & Spectra::SPT_GALAXY )
+	if ( _spectraFilter & (1 << Spectra::SPC_GALAXY) )
 	{
 		sstrOutString += "SPEC_GALAXY ";
 	}
-	if ( _spectraFilter & Spectra::SPT_QSO )
+	if ( _spectraFilter & (1 << Spectra::SPC_QSO) )
 	{
 		sstrOutString += "SPEC_QSO ";
 	}
-	if ( _spectraFilter & Spectra::SPT_HIZ_QSO )
-	{
-		sstrOutString += "SPEC_HIZ_QSO ";
-	}
-	if ( _spectraFilter & Spectra::SPT_SKY )
-	{
-		sstrOutString += "SPEC_SKY ";
-	}
-	if ( _spectraFilter & Spectra::SPT_STAR_LATE )
-	{
-		sstrOutString += "STAR_LATE ";
-	}
-	if ( _spectraFilter & Spectra::SPT_GAL_EM )
-	{
-		sstrOutString += "GAL_EM ";
-	}
 
-
-	if ( _spectraFilter & Spectra::SPT_QA )
-	{
-		sstrOutString += "QA ";
-	}
-	if ( _spectraFilter & Spectra::SPT_STAR_PN )
-	{
-		sstrOutString += "STAR_PN ";
-	}
-	if ( _spectraFilter & Spectra::SPT_STAR_CARBON )
-	{
-		sstrOutString += "STAR_CARBON ";
-	}
-	if ( _spectraFilter & Spectra::SPT_STAR_BROWN_DWARF )
-	{
-		sstrOutString += "BROWN_DWARF ";
-	}
-	if ( _spectraFilter & Spectra::SPT_STAR_SUB_DWARF )
-	{
-		sstrOutString += "STAR_SUB_DWARF ";
-	}
-	if ( _spectraFilter & Spectra::SPT_STAR_CATY_VAR )
-	{
-		sstrOutString += "STAR_CATY_VAR ";
-	}
-	if ( _spectraFilter & Spectra::SPT_STAR_RED_DWARF )
-	{
-		sstrOutString += "STAR_RED_DWARF ";
-	}
-	if ( _spectraFilter & Spectra::SPT_STAR_WHITE_DWARF )
-	{
-		sstrOutString += "STAR_WHITE_DWARF ";
-	}
-	if ( _spectraFilter & Spectra::SPT_STAR_BHB )
-	{
-		sstrOutString += "STAR_BHB ";
-	}
-	if ( _spectraFilter & Spectra::SPT_ROSAT_A )
-	{
-		sstrOutString += "ROSAT_A ";
-	}
-	if ( _spectraFilter & Spectra::SPT_ROSAT_B )
-	{
-		sstrOutString += "ROSAT_B ";
-	}
-	if ( _spectraFilter & Spectra::SPT_ROSAT_C )
-	{
-		sstrOutString += "ROSAT_C ";
-	}
-	if ( _spectraFilter & Spectra::SPT_ROSAT_D )
-	{
-		sstrOutString += "ROSAT_D ";
-	}	
-	if ( _spectraFilter & Spectra::SPT_SPECTROPHOTO_STD )
-	{
-		sstrOutString += "SPECTROPHOTO_STD ";
-	}	
-	if ( _spectraFilter & Spectra::SPT_HOT_STD )
-	{
-		sstrOutString += "HOT_STD ";
-	}			
-	if ( _spectraFilter & Spectra::SPT_SERENDIPITY_BLUE )
-	{
-		sstrOutString += "SERENDIPITY_BLUE ";
-	}			
-	if ( _spectraFilter & Spectra::SPT_SERENDIPITY_FIRST )
-	{
-		sstrOutString += "SERENDIPITY_FIRST ";
-	}			
-	if ( _spectraFilter & Spectra::SPT_SERENDIPITY_RED )
-	{
-		sstrOutString += "SERENDIPITY_RED ";
-	}			
-	if ( _spectraFilter & Spectra::SPT_SERENDIPITY_DISTANT )
-	{
-		sstrOutString += "SERENDIPITY_DISTANT ";
-	}			
-	if ( _spectraFilter & Spectra::SPT_SERENDIPITY_MANUAL )
-	{
-		sstrOutString += "SERENDIPITY_MANUAL ";
-	}			
-	if ( _spectraFilter & Spectra::SPT_REDDEN_STD )
-	{
-		sstrOutString += "REDDEN_STD ";
-	}			
-	if ( _spectraFilter & Spectra::SPT_BLAZAR )
-	{
-		sstrOutString += "BLAZAR ";
-	}			
-	if ( _spectraFilter & Spectra::SPT_QSO_BAL )
-	{
-		sstrOutString += "QSO_BAL ";
-	}			
-	if ( _spectraFilter & Spectra::SPT_EXOTIC )
-	{
-		sstrOutString += "EXOTIC ";
-	}			
 
 	return sstrOutString;
 }
@@ -2513,39 +2402,118 @@ Spectra::SpectraSubClass Spectra::spectraSubClassFromString( const std::string &
 		return SPSC_A0p;
 	if  (ssstrSpectraSubClass.find("A0")==0)
 		return SPSC_A0;
+	if  (ssstrSpectraSubClass.find("A1")==0)
+		return SPSC_A1;
+	if  (ssstrSpectraSubClass.find("A2")==0)
+		return SPSC_A2;
+	if  (ssstrSpectraSubClass.find("A3")==0)
+		return SPSC_A3;
+	if  (ssstrSpectraSubClass.find("A4")==0)
+		return SPSC_A4;
+	if  (ssstrSpectraSubClass.find("A5")==0)
+		return SPSC_A5;
+	if  (ssstrSpectraSubClass.find("A6")==0)
+		return SPSC_A6;
+	if  (ssstrSpectraSubClass.find("A7")==0)
+		return SPSC_A7;
+	if  (ssstrSpectraSubClass.find("A8")==0)
+		return SPSC_A8;
+	if  (ssstrSpectraSubClass.find("A9")==0)
+		return SPSC_A9;
 
+	if  (ssstrSpectraSubClass.find("B0")==0)
+		return SPSC_B0;
+	if  (ssstrSpectraSubClass.find("B1")==0)
+		return SPSC_B1;
+	if  (ssstrSpectraSubClass.find("B2")==0)
+		return SPSC_B2;
+	if  (ssstrSpectraSubClass.find("B3")==0)
+		return SPSC_B3;
+	if  (ssstrSpectraSubClass.find("B4")==0)
+		return SPSC_B4;
+	if  (ssstrSpectraSubClass.find("B5")==0)
+		return SPSC_B5;
 	if  (ssstrSpectraSubClass.find("B6")==0)
 		return SPSC_B6;
+	if  (ssstrSpectraSubClass.find("B7")==0)
+		return SPSC_B7;
+	if  (ssstrSpectraSubClass.find("B8")==0)
+		return SPSC_B8;
 	if  (ssstrSpectraSubClass.find("B9")==0)
 		return SPSC_B9;
 
+
 	if  (ssstrSpectraSubClass.find("OB")==0)
 		return SPSC_OB;
+	if  (ssstrSpectraSubClass.find("O8")==0)
+		return SPSC_O8;
+	if  (ssstrSpectraSubClass.find("O9")==0)
+		return SPSC_O9;
 	if  (ssstrSpectraSubClass.find("O")==0)
 		return SPSC_O;
 
+	if  (ssstrSpectraSubClass.find("F0")==0)
+		return SPSC_F0;
+	if  (ssstrSpectraSubClass.find("F1")==0)
+		return SPSC_F1;
 	if  (ssstrSpectraSubClass.find("F2")==0)
 		return SPSC_F2;
+	if  (ssstrSpectraSubClass.find("F3")==0)
+		return SPSC_F3;
+	if  (ssstrSpectraSubClass.find("F4")==0)
+		return SPSC_F4;
 	if  (ssstrSpectraSubClass.find("F5")==0)
 		return SPSC_F5;
+	if  (ssstrSpectraSubClass.find("F6")==0)
+		return SPSC_F6;
+	if  (ssstrSpectraSubClass.find("F7")==0)
+		return SPSC_F7;
+	if  (ssstrSpectraSubClass.find("F8")==0)
+		return SPSC_F8;
 	if  (ssstrSpectraSubClass.find("F9")==0)
 		return SPSC_F9;
 
 	if  (ssstrSpectraSubClass.find("G0")==0)
 		return SPSC_G0;
+	if  (ssstrSpectraSubClass.find("G1")==0)
+		return SPSC_G2;
 	if  (ssstrSpectraSubClass.find("G2")==0)
 		return SPSC_G2;
+	if  (ssstrSpectraSubClass.find("G3")==0)
+		return SPSC_G3;
+	if  (ssstrSpectraSubClass.find("G4")==0)
+		return SPSC_G4;
 	if  (ssstrSpectraSubClass.find("G5")==0)
 		return SPSC_G5;
+	if  (ssstrSpectraSubClass.find("G6")==0)
+		return SPSC_G6;
+	if  (ssstrSpectraSubClass.find("G7")==0)
+		return SPSC_G7;
+	if  (ssstrSpectraSubClass.find("G8")==0)
+		return SPSC_G8;
+	if  (ssstrSpectraSubClass.find("G9")==0)
+		return SPSC_G9;
 
+	if  (ssstrSpectraSubClass.find("K0")==0)
+		return SPSC_K0;
 	if  (ssstrSpectraSubClass.find("K1")==0)
 		return SPSC_K1;
+	if  (ssstrSpectraSubClass.find("K2")==0)
+		return SPSC_K2;
 	if  (ssstrSpectraSubClass.find("K3")==0)
 		return SPSC_K3;
+	if  (ssstrSpectraSubClass.find("K4")==0)
+		return SPSC_K4;
 	if  (ssstrSpectraSubClass.find("K5")==0)
 		return SPSC_K5;
+	if  (ssstrSpectraSubClass.find("K6")==0)
+		return SPSC_K6;
 	if  (ssstrSpectraSubClass.find("K7")==0)
 		return SPSC_K7;
+	if  (ssstrSpectraSubClass.find("K8")==0)
+		return SPSC_K8;
+	if  (ssstrSpectraSubClass.find("K9")==0)
+		return SPSC_K9;
 
 
 	if  (ssstrSpectraSubClass.find("M0V")==0)
@@ -2568,7 +2536,12 @@ Spectra::SpectraSubClass Spectra::spectraSubClassFromString( const std::string &
 		return SPSC_M7;
 	if  (ssstrSpectraSubClass.find("M8")==0)
 		return SPSC_M8;
+	if  (ssstrSpectraSubClass.find("M9")==0)
+		return SPSC_M9;
 
+	
+	if  (ssstrSpectraSubClass.find("LDWARF")==0)
+		return SPSC_LDWARF;
 	if  (ssstrSpectraSubClass.find("L5.5")==0)
 		return SPSC_L55;
 	if  (ssstrSpectraSubClass.find("L0")==0)
@@ -2583,22 +2556,36 @@ Spectra::SpectraSubClass Spectra::spectraSubClassFromString( const std::string &
 		return SPSC_L4;
 	if  (ssstrSpectraSubClass.find("L5")==0)
 		return SPSC_L5;
+	if  (ssstrSpectraSubClass.find("L6")==0)
+		return SPSC_L6;
+	if  (ssstrSpectraSubClass.find("L7")==0)
+		return SPSC_L7;
+	if  (ssstrSpectraSubClass.find("L8")==0)
+		return SPSC_L8;
 	if  (ssstrSpectraSubClass.find("L9")==0)
 		return SPSC_L9;
 
 	if  (ssstrSpectraSubClass.find("T2")==0)
 		return SPSC_T2;
 
-	if  (ssstrSpectraSubClass.find("CARBON")==0)
-		return SPSC_CARBON;
-	if  (ssstrSpectraSubClass.find("CARBONWD")==0)
-		return SPSC_CARBONWD;
 	if  (ssstrSpectraSubClass.find("CARBON_LINES")==0)
 		return SPSC_CARBON_LINES;
+	if  (ssstrSpectraSubClass.find("CARBONWD")==0)
+		return SPSC_CARBONWD;
+	if  (ssstrSpectraSubClass.find("CARBON")==0)
+		return SPSC_CARBON;
 
 	if  (ssstrSpectraSubClass.find("CV")==0)
 		return SPSC_CV;
 
+	if  (ssstrSpectraSubClass.find("WDCOOLER")==0)
+		return SPSC_WDCOOLER;
+	if  (ssstrSpectraSubClass.find("WDHOTTER")==0)
+		return SPSC_WDHOTTER;
+	if  (ssstrSpectraSubClass.find("WDMAGNETIC")==0)
+		return SPSC_WDMAGNETIC;
+	if  (ssstrSpectraSubClass.find("WD")==0)
+		return SPSC_WD;
 
 	return SPSC_NOT_SET;
 }

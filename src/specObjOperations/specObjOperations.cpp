@@ -3314,8 +3314,15 @@ void writeMapToTIFF()
 
 void writeSpectraParmDB()
 {
-	SpectraDB db;
-	db.writeDB(SpectraDB::DR9);
+	SpectraDB db9;
+	db9.writeDB(SpectraDB::DR9);
+
+	SpectraDB db10;
+	db10.writeDB(SpectraDB::DR10);
+
+	SpectraDB db12;
+	db12.writeDB(SpectraDB::DR12);
+
 }
 
 void main(int argc, char* argv[])
