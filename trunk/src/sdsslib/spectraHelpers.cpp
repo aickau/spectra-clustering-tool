@@ -1482,29 +1482,75 @@ void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network,
 				{
 				case Spectra::SPSC_NOT_SET : r=0.2f;g=0.2f; b= 0.2;		// type not set
 					break;
+
+				case Spectra::SPSC_O8 :
+				case Spectra::SPSC_O9 :
 				case Spectra::SPSC_O : r=0;g=0; b= 1.0f;				// blue
 					break;
+
 				case Spectra::SPSC_OB : r=0.1f;g=0.1f; b= 1.0f;			// blue, tiny bit lighter
 					break;
+
+				case Spectra::SPSC_B0 : 
+				case Spectra::SPSC_B1 : 
+				case Spectra::SPSC_B2 : 
+				case Spectra::SPSC_B3 : 
+				case Spectra::SPSC_B4 : 
+				case Spectra::SPSC_B5 : 
 				case Spectra::SPSC_B6 : 
+				case Spectra::SPSC_B7 : 
+				case Spectra::SPSC_B8 : 
 				case Spectra::SPSC_B9 : r= 0.5f; g=0.5f; b= 1.0f;		// light blue
 					break;
+
 				case Spectra::SPSC_A0 : 
-				case Spectra::SPSC_A0p : r= 1.0f; g=1.0f; b= 1.0f;		// white
+				case Spectra::SPSC_A0p : 
+				case Spectra::SPSC_A1 : 
+				case Spectra::SPSC_A2 : 
+				case Spectra::SPSC_A3 : 
+				case Spectra::SPSC_A4 : 
+				case Spectra::SPSC_A5 : 
+				case Spectra::SPSC_A6 : 
+				case Spectra::SPSC_A7 : 
+				case Spectra::SPSC_A8 : 
+				case Spectra::SPSC_A9 : r= 1.0f; g=1.0f; b= 1.0f;		// white
 					break;
+
+				case Spectra::SPSC_F0 : 
+				case Spectra::SPSC_F1 : 
 				case Spectra::SPSC_F2 : 
+				case Spectra::SPSC_F3 : 
+				case Spectra::SPSC_F4 : 
 				case Spectra::SPSC_F5 : 
+				case Spectra::SPSC_F6 : 
+				case Spectra::SPSC_F7 : 
+				case Spectra::SPSC_F8 : 
 				case Spectra::SPSC_F9 : r= 1.0f; g=1.0f; b= 0.7f;		// white yellow
 					break;
+
 				case Spectra::SPSC_G0 : 
+				case Spectra::SPSC_G1 : 
 				case Spectra::SPSC_G2 : 
-				case Spectra::SPSC_G5 : r= 1.0f; g=1.0f; b= 0.0f;		// yellow
+				case Spectra::SPSC_G3 : 
+				case Spectra::SPSC_G4 : 
+				case Spectra::SPSC_G5 : 
+				case Spectra::SPSC_G6 : 
+				case Spectra::SPSC_G7 : 
+				case Spectra::SPSC_G8 : 
+				case Spectra::SPSC_G9 : r= 1.0f; g=1.0f; b= 0.0f;		// yellow
 					break;
+
 				case Spectra::SPSC_K1 : 
+				case Spectra::SPSC_K2 : 
 				case Spectra::SPSC_K3 : 
+				case Spectra::SPSC_K4 : 
 				case Spectra::SPSC_K5 : 
-				case Spectra::SPSC_K7 : r= 1.0f; g=0.5f; b= 0.0f;		// orange
+				case Spectra::SPSC_K6 : 
+				case Spectra::SPSC_K7 : 
+				case Spectra::SPSC_K8 : 
+				case Spectra::SPSC_K9 : r= 1.0f; g=0.5f; b= 0.0f;		// orange
 					break;
+
 				case Spectra::SPSC_M0V : 
 				case Spectra::SPSC_M2V : 
 				case Spectra::SPSC_M1 : 
@@ -1514,9 +1560,11 @@ void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network,
 				case Spectra::SPSC_M5 : 
 				case Spectra::SPSC_M6 : 
 				case Spectra::SPSC_M7 : 
-				case Spectra::SPSC_M8 : r= 1.0f; g=0.0f; b= 0.0f;		// red
+				case Spectra::SPSC_M8 : 
+				case Spectra::SPSC_M9 : r= 1.0f; g=0.0f; b= 0.0f;		// red
 					break;
 
+				case Spectra::SPSC_LDWARF : 
 				case Spectra::SPSC_L0 : 
 				case Spectra::SPSC_L1 : 
 				case Spectra::SPSC_L2 : 
@@ -1524,6 +1572,9 @@ void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network,
 				case Spectra::SPSC_L4 : 
 				case Spectra::SPSC_L5 : 
 				case Spectra::SPSC_L55 : 
+				case Spectra::SPSC_L6 : 
+				case Spectra::SPSC_L7 : 
+				case Spectra::SPSC_L8 : 
 				case Spectra::SPSC_L9 : r= 0.5f; g=0.0f; b= 0.0f;		// dark red
 					break;
 
@@ -1535,6 +1586,14 @@ void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network,
 				case Spectra::SPSC_CARBON : r= 0.0f; g=0.6f; b= 0.0f;		// dark green
 					break;
 
+				case Spectra::SPSC_CALCIUMWD : r= 0.0f; g=0.9f; b= 0.0f;	// lighter green
+					break;
+
+				case Spectra::SPSC_WD :
+				case Spectra::SPSC_WDCOOLER :
+				case Spectra::SPSC_WDHOTTER :
+				case Spectra::SPSC_WDMAGNETIC :	r= 0.0f; g=1.0f; b= 1.0f;	// cyan
+					break;
 				}
 			}
 

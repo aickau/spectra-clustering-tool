@@ -1323,7 +1323,8 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	sstrInfo +="<table ><tr><td bgcolor=\"#808080\">____</td><td>Empty Cells</td></tr><tr><td bgcolor=\"#000000\"></td><td>Non Star Spectra</td></tr><tr><td bgcolor=\"#333333\"></td><td>Star, No Subclass set</td></tr>";
 	sstrInfo +="<tr><td bgcolor=\"#0000FF\"></td><td>Type O</td></tr><tr><td bgcolor=\"#1919FF\"></td><td>Type O/B</td></tr><tr><td bgcolor=\"#8080FF\"></td><td>Type B</td></tr><tr><td bgcolor=\"#FFFFFF\"></td><td>Type A</td></tr>";
 	sstrInfo +="<tr><td bgcolor=\"#FFFFB2\"></td><td>Type F</td></tr><tr><td bgcolor=\"#FFFF00\"></td><td>Type G</td></tr><tr><td bgcolor=\"#FF8000\"></td><td>Type K</td></tr><tr><td bgcolor=\"#FF0000\"></td><td>Type M</td></tr>";
-	sstrInfo +="<tr><td bgcolor=\"#800000\"></td><td>Type L</td></tr><tr><td bgcolor=\"#803300\"></td><td>Type T</td></tr><tr><td bgcolor=\"#009900\"></td><td>Carbon Stars</td></tr></table>";
+	sstrInfo +="<tr><td bgcolor=\"#800000\"></td><td>Type L</td></tr><tr><td bgcolor=\"#803300\"></td><td>Type T</td></tr><tr><td bgcolor=\"#009900\"></td><td>Carbon Stars</td></tr>";
+	sstrInfo +="<tr><td bgcolor=\"#00EE00\"></td><td>CalciumWD</td></tr><tr><td bgcolor=\"#00FFFF\"></td><td>White Dwarfs</td></tr></table>";
 	sstrInfo +=HTMLExport::lineBreak();
 	sstrInfo +=HTMLExport::lineBreak();
 
