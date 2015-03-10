@@ -29,28 +29,24 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
-    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
-    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -184,12 +180,13 @@
     <ClCompile Include="..\sdsslib\spectraVFSMemOnly.cpp" />
     <ClCompile Include="..\sdsslib\spectraWrite.cpp" />
     <ClCompile Include="..\sdsslib\Timer.cpp" />
-    <ClCompile Include="AFANetworkSettings.cpp" />
-    <ClCompile Include="AFAProcessing.cpp" />
-    <ClCompile Include="AFARandom.cpp" />
-    <ClCompile Include="AFASpectra.cpp" />
     <ClCompile Include="fpgaPlayground.cpp" />
     <ClCompile Include="FPGASOFMNetwork.cpp" />
+    <ClCompile Include="HLS\AFA\AFANetworkSettings.cpp" />
+    <ClCompile Include="HLS\AFA\AFAProcessing.cpp" />
+    <ClCompile Include="HLS\AFA\AFARandom.cpp" />
+    <ClCompile Include="HLS\AFA\AFASpectra.cpp" />
+    <ClCompile Include="HLS\AFA\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\analyze\SOFMNetworkSettings.h" />
@@ -208,13 +205,15 @@
     <ClInclude Include="..\sdsslib\spectraVFSMemOnly.h" />
     <ClInclude Include="..\sdsslib\spectraWrite.h" />
     <ClInclude Include="..\sdsslib\Timer.h" />
-    <ClInclude Include="AFADefines.h" />
-    <ClInclude Include="AFANetworkSettings.h" />
-    <ClInclude Include="AFAProcessing.h" />
-    <ClInclude Include="AFARandom.h" />
-    <ClInclude Include="AFASpectra.h" />
     <ClInclude Include="FPGASOFMNetwork.h" />
-    <ClInclude Include="AFATypes.h" />
+    <ClInclude Include="HLS\AFA\include\AFADefines.h" />
+    <ClInclude Include="HLS\AFA\include\AFANetworkSettings.h" />
+    <ClInclude Include="HLS\AFA\include\AFAProcessFunction.h" />
+    <ClInclude Include="HLS\AFA\include\AFAProcessing.h" />
+    <ClInclude Include="HLS\AFA\include\AFARandom.h" />
+    <ClInclude Include="HLS\AFA\include\AFASpectra.h" />
+    <ClInclude Include="HLS\AFA\include\AFATypes.h" />
+    <ClInclude Include="HLS\AFA\include\FPGASOFMNetwork.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -52,10 +52,19 @@
     </ClCompile>
     <ClCompile Include="FPGASOFMNetwork.cpp" />
     <ClCompile Include="..\analyze\SOFMNetworkSettings.cpp" />
-    <ClCompile Include="AFAProcessing.cpp" />
-    <ClCompile Include="AFASpectra.cpp" />
-    <ClCompile Include="AFARandom.cpp" />
-    <ClCompile Include="AFANetworkSettings.cpp">
+    <ClCompile Include="HLS\AFA\AFANetworkSettings.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="HLS\AFA\AFAProcessing.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="HLS\AFA\AFARandom.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="HLS\AFA\AFASpectra.cpp">
+      <Filter>sdsslib</Filter>
+    </ClCompile>
+    <ClCompile Include="HLS\AFA\main.cpp">
       <Filter>sdsslib</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,11 +116,29 @@
     </ClInclude>
     <ClInclude Include="FPGASOFMNetwork.h" />
     <ClInclude Include="..\analyze\SOFMNetworkSettings.h" />
-    <ClInclude Include="AFATypes.h" />
-    <ClInclude Include="AFAProcessing.h" />
-    <ClInclude Include="AFASpectra.h" />
-    <ClInclude Include="AFADefines.h" />
-    <ClInclude Include="AFARandom.h" />
-    <ClInclude Include="AFANetworkSettings.h" />
+    <ClInclude Include="HLS\AFA\include\AFADefines.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="HLS\AFA\include\AFANetworkSettings.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="HLS\AFA\include\AFAProcessFunction.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="HLS\AFA\include\AFAProcessing.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="HLS\AFA\include\AFARandom.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="HLS\AFA\include\AFASpectra.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="HLS\AFA\include\AFATypes.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
+    <ClInclude Include="HLS\AFA\include\FPGASOFMNetwork.h">
+      <Filter>sdsslib</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
