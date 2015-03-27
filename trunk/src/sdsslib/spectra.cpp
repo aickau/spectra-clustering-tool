@@ -1848,26 +1848,36 @@ std::string Spectra::getURL()const
 
 	// e.g.: interactive spectrum http://dr10.sdss3.org/spectrumDetail?mjd=55280&fiber=1&plateid=3863
 	//       object explorer      http://skyserver.sdss.org/dr12/en/tools/explore/summary.aspx?plate=4031&mjd=55604&fiber=420 
-	std::string sstrUrlDR12("http://skyserver.sdss.org/dr12/en/tools/explore/summary.aspx?mjd=");
-	std::string sstrUrlDR10("http://skyserver.sdss.org/dr10/en/tools/explore/summary.aspx?mjd=");
+//	std::string sstrUrlDR12("http://dr12.sdss3.org/spectrumDetail?plateid=");
+//	std::string sstrUrlDR10("http://dr10.sdss3.org/spectrumDetail?plateid=");
+	std::string sstrUrlDR12("http://skyserver.sdss.org/dr12/en/tools/explore/summary.aspx?plate=");
+	std::string sstrUrlDR10("http://skyserver.sdss.org/dr10/en/tools/explore/summary.aspx?plate=");
 
 
 	std::string sstrUrl(sstrUrlDR12);
 
+	sstrUrl += Helpers::numberToString( getPlate() );
+	sstrUrl += "&mjd=";
 	sstrUrl += Helpers::numberToString( getMJD() );
 	sstrUrl += "&fiber=";
 	sstrUrl += Helpers::numberToString( getFiber() );
-	sstrUrl += "&plateid=";
-	sstrUrl += Helpers::numberToString( getPlate() );
 
 	return sstrUrl;
 }
 
 std::string Spectra::getImgURL() const
 {
-	if ( m_SpecObjID == 0 ) {
+	//if ( m_SpecObjID == 0 ) {
 		return "http://upload.wikimedia.org/wikipedia/en/d/d4/Mickey_Mouse.png";
-	}
+	//}
+	/*
+
+	TODO:
+	We have some problems with image links and ids:
+	what we get:
+	http://skyserver.sdss.org/dr12/en/get/SpecById.ashx?id=4565553074336625664
+	what it should be:
+	http://skyserver.sdss.org/dr12/en/get/SpecById.ashx?id=4565553074336886784
 
 	std::string sstrUrlDR12("http://skyserver.sdss3.org/dr12/en/get/SpecById.ashx?id=");
 	std::string sstrUrlDR10("http://skyserver.sdss3.org/dr10/en/get/SpecById.ashx?id=");
@@ -1881,7 +1891,7 @@ std::string Spectra::getImgURL() const
 
 	sstrUrl += Helpers::numberToString( m_SpecObjID );
 	return sstrUrl;
-
+	*/
 }
 
 
