@@ -1829,7 +1829,7 @@ std::string Spectra::getURL()const
 	
 		return sstrUrlObjectExplorer;
 	}
-
+/*
 
 	// check for DR1..DR7 spectra, they get the old overview page.
 	if ( m_version == SP_VERSION_DR7 ) {
@@ -1843,12 +1843,15 @@ std::string Spectra::getURL()const
 		strUrlDR9 += Helpers::numberToString( m_SpecObjID );
 		return strUrlDR9;
 	}
+*/
 
 
+	// e.g.: interactive spectrum http://dr10.sdss3.org/spectrumDetail?mjd=55280&fiber=1&plateid=3863
+	//       object explorer      http://skyserver.sdss.org/dr12/en/tools/explore/summary.aspx?plate=4031&mjd=55604&fiber=420 
+	std::string sstrUrlDR12("http://skyserver.sdss.org/dr12/en/tools/explore/summary.aspx?mjd=");
+	std::string sstrUrlDR10("http://skyserver.sdss.org/dr10/en/tools/explore/summary.aspx?mjd=");
 
-	// e.g.: http://dr10.sdss3.org/spectrumDetail?mjd=55280&fiber=1&plateid=3863
-	std::string sstrUrlDR12("http://dr12.sdss3.org/spectrumDetail?mjd=");
-	std::string sstrUrlDR10("http://dr10.sdss3.org/spectrumDetail?mjd=");
+
 	std::string sstrUrl(sstrUrlDR12);
 
 	sstrUrl += Helpers::numberToString( getMJD() );
@@ -1872,8 +1875,9 @@ std::string Spectra::getImgURL() const
 	std::string sstrUrlDR7("http://cas.sdss.org/dr7/en/get/specById.asp?id=");
 	std::string sstrUrl(sstrUrlDR12);
 
- 	if ( m_version == SP_VERSION_DR7 )
+  	if ( m_version == SP_VERSION_DR7 )
  		sstrUrl = sstrUrlDR7;
+
 
 	sstrUrl += Helpers::numberToString( m_SpecObjID );
 	return sstrUrl;
