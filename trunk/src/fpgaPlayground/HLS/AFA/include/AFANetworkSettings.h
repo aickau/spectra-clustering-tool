@@ -43,8 +43,8 @@ public:
 public:
     AFAParameters( size_t _numSteps, size_t _randomSeed, float _lRateBegin, float _lRateEnd, float _radiusBegin, float _radiusEnd);
 
-    size_t numSteps;											// number of learn steps. reasonable: 10..500
-    size_t randomSeed;											// zero is not allowed
+    int numSteps;											// number of learn steps. reasonable: 10..500
+    int randomSeed;											// zero is not allowed
     float lRateBegin;											// learn rate begin 0.0 .. 1.0
     float lRateEnd;												// learn rate end (0.0 .. 1.0)
     float radiusBegin;											// radius begin (0.0 .. grid size)
@@ -54,12 +54,12 @@ public:
     bool fullExport;											// if true create a detailed export for each spectrum after final calculation step (online useful for small maps)
     int imageBoderSize;											// to draw colored frames around the image icons, to distinguish between visited and not visited images
     int iconSize;												// icon width/height in pixels for all spectra icons
-//    std::string sstrSearchMode;									// search mode to control quality vs. computation time
-    AFANET_SETTINGS sstrSearchMode;									// search mode to control quality vs. computation time
-    // SOFMNET_SETTINGS_SEARCHMODE_global     < uses global search for BMUs, best quality, runtime is O(n²)
-    // SOFMNET_SETTINGS_SEARCHMODE_local      < uses local search for BMUs if possible.
-    // SOFMNET_SETTINGS_SEARCHMODE_localfast  < uses very fast local search for BMUs if possible, runtime is O(n) 
-    AFASpectra::SpectraNormalization normaliziationType;			// type of normalization of spectra
+
+    AFANET_SETTINGS searchMode;									// search mode to control quality vs. computation time
+																// SOFMNET_SETTINGS_SEARCHMODE_global     < uses global search for BMUs, best quality, runtime is O(n²)
+																// SOFMNET_SETTINGS_SEARCHMODE_local      < uses local search for BMUs if possible.
+																// SOFMNET_SETTINGS_SEARCHMODE_localfast  < uses very fast local search for BMUs if possible, runtime is O(n) 
+    AFASpectra::SpectraNormalization normaliziationType;		// type of normalization of spectra
 
     bool useBOSSWavelengthRange;								// process spectra in an extended wavelength window of 3650..10400 Angstrom 
     // instead of the 3800..92000 SDSS default window.

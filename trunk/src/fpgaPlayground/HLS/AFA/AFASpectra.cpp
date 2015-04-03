@@ -4,6 +4,7 @@
 
 #include <float.h>
 #include <assert.h>
+#include <math.h>
 
 int AFASpectra::pixelStart				= 0;		
 int AFASpectra::pixelEnd				= AFASpectra::numSamples;		
@@ -12,7 +13,7 @@ AFASpectra::AFASpectra()
 {
 }
 
-AFASpectra::AFASpectra( const AFASpectra &_source )
+AFASpectra::AFASpectra( AFASpectra &_source )
 {
     set( _source );
 }
@@ -132,11 +133,6 @@ void AFASpectra::clear()
 
 }
 
-float sinf(float x)
-{
-	// TODO
-	return x;
-}
 
 void AFASpectra::setSine( float _frequency, float _phase, float _amplitude, float _noize )
 {
@@ -175,7 +171,7 @@ void AFASpectra::randomize(float minrange, float maxrange )
     calcMinMax();
 }
 
-void AFASpectra::set(const AFASpectra &_spectra)
+void AFASpectra::set( AFASpectra &_spectra)
 {
     m_SamplesRead		= _spectra.m_SamplesRead;
     m_Min				= _spectra.m_Min;
@@ -305,25 +301,4 @@ void AFASpectra::setOperationRange( bool _BOSSWavelengthRange )
     assert( (pixelStart%4)==0 );
 }
 
-/*
-void AFASpectra::write( volatile AFASpectra *spectraArray, size_t _gridSize, float _minPeak, float _maxPeak )
-{
-    size_t gridSizeSqr = _gridSize*_gridSize;
-    float strengthScale = static_cast<float>(gridSizeSqr)*2.f;
 
-    AFASpectra spec;
-    spec.clear();
-    for ( size_t i=0;i<gridSizeSqr;i++)
-    {
-        volatile AFASpectra *spec = &spectraArray[ i ];
-        spec->clear();
-
-        size_t x = i%_gridSize;
-        size_t y = i/_gridSize;
-        float strength = (static_cast<float>(x*x+y*y)*0.25f)/strengthScale;
-        spec->randomize( _minPeak*strength, _maxPeak*strength );
-
-//        w.write(spec);
-    }
-}
-*/

@@ -289,7 +289,7 @@ public:
     //@{
 
     AFASpectra();
-    AFASpectra( const AFASpectra &_source );
+    AFASpectra( AFASpectra &_source );
     ~AFASpectra();
 
     //@}
@@ -345,7 +345,7 @@ public:
     // clear data/reset spectrum
 	void clear();
 
-    void set(const AFASpectra &_spectra);
+    void set( AFASpectra &_spectra);
 
     // set sine curve with a given frequency, phase and amplitude.
 	// Good to model test spectra
@@ -354,30 +354,12 @@ public:
     // fill spectrum with noise
 	void randomize( float _minrange, float _maxrange);
 
-    // add signals from other spectra
-//	void add(const Spectra &_spectra);
-
-    // add constant value to amplitudes
-//	void add(float _value);
-
-    // subtract signals from other spectra
-//	void subtract(const Spectra &_spectra);
-
-    // multiply signals with other spectra
-//	void multiply( const Spectra &_spectra);
-
-    // scale signals
-//	void multiply(float _multiplier);
-
 
     // calculate extrema
     void calcMinMax();
 
     // calculates the surface of the spectrum
     void calculateFlux();
-
-    // normalize to range -1..1
-//	void normalize();
 
     // normalize by flux
     void normalizeByFlux();
@@ -418,7 +400,6 @@ public:
     /** @name HELPER FUNCTIONS
     */
     //@{
-    void write( volatile AFASpectra *spectraArray, size_t _gridSize, float _minPeak, float _maxPeak );
 
     // if we use BOSS and SDSS spectra combined calculate offset for SDSS spectra.
     // BOSS spectra start at 3650A, SDSS spectra at 3800A -> thus use offset ~13 so both types operate in equal wavelengths

@@ -22,7 +22,7 @@ AFAParameters::AFAParameters( size_t _numSteps, size_t _randomSeed, float _lRate
     ,fullExport(true)
     ,imageBoderSize(6)
     ,iconSize(64)
-    ,sstrSearchMode(AFANET_SETTINGS_SEARCHMODE_global)
+    ,searchMode(AFANET_SETTINGS_SEARCHMODE_global)
     ,normaliziationType(AFASpectra::SN_FLUX)
     ,useBOSSWavelengthRange(false)
 {

@@ -731,7 +731,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	assert(_searchRadius > 0);
 	BestMatch bestMatch;
 	bestMatch.reset();
-	bool bOnFrame = false;
+
 	bool bFound = false;
 
 	if ( _src.m_Index < 0 )
