@@ -21,6 +21,97 @@ AFASpectra::~AFASpectra()
 {
 }
 
+
+
+
+int AFASpectra::getMJD() const
+{
+	int mjd;
+
+	if ( m_version == SP_LIGHTCURVE_RADEC || 
+		m_version == SP_LIGHTCURVE_PLAIN || 
+		m_version == SP_ARTIFICIAL ) {
+			mjd = 0;
+	} else if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE_SDSS || m_version == SP_CSV ) {
+		// light curve spectra use DR7 specObj ID encoding
+		mjd = static_cast<int>((m_SpecObjID&(uint64_t)0x0000FFFF00000000)>>(uint64_t)32);
+	} else {
+		// light curve spectra use DR8 and above specObj ID encoding
+		mjd = static_cast<int>((m_SpecObjID&(uint64_t)0x0000003FFFC00000)>>(uint64_t)24)+50000;
+	}
+
+	return mjd;
+}
+
+int AFASpectra::getFiber() const
+{
+	int fiber;
+
+	if ( m_version == SP_LIGHTCURVE_RADEC || 
+		m_version == SP_LIGHTCURVE_PLAIN || 
+		m_version == SP_ARTIFICIAL ) {
+			fiber = 0;
+	} else if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE_SDSS || m_version == SP_CSV ) {
+		// light curve spectra use DR7 specObj ID encoding
+		fiber = static_cast<int>((m_SpecObjID&(uint64_t)0x00000000FFC00000)>>(uint64_t)22);
+	} else {
+		// light curve spectra use DR8 and above specObj ID encoding
+		fiber = static_cast<int>((m_SpecObjID&(uint64_t)0x0003FFC000000000)>>(uint64_t)38);
+	}
+	return fiber;
+}
+
+int AFASpectra::getPlate() const
+{
+	int plate;
+	if ( m_version == SP_LIGHTCURVE_RADEC || 
+		m_version == SP_LIGHTCURVE_PLAIN || 
+		m_version == SP_ARTIFICIAL ) {
+			plate = 0;
+	} else if ( m_version == SP_VERSION_DR7 || m_version == SP_LIGHTCURVE_SDSS || m_version == SP_CSV ) {
+		// light curve spectra use DR7 specObj ID encoding
+		plate = static_cast<int>((m_SpecObjID&(uint64_t)0xFFFF000000000000)>>(uint64_t)48);
+	} else {
+		// light curve spectra use DR8 and above specObj ID encoding
+		plate = static_cast<int>((m_SpecObjID&(uint64_t)0xFFFC000000000000)>>(uint64_t)50);
+	}
+
+	return plate;
+}
+
+
+
+bool AFASpectra::isEmpty() const
+{
+	return (m_SpecObjID == 0);
+}
+
+
+
+
+AFASpectra::SpectraClass AFASpectra::getClass() const
+{
+	SpectraClass retVal = (SpectraClass) (m_Type & 0x07);
+	return retVal;
+}
+
+AFASpectra::SpectraSubClass AFASpectra::getSubClass() const
+{
+	SpectraSubClass retVal = (SpectraSubClass) ((m_Type >> 3) & 0x7f);
+	return retVal;
+}
+
+
+bool AFASpectra::isBroadline() const 
+{
+	bool retVal = (m_Type & 1024) > 0;
+	return retVal;
+}
+
+
+
+
+
 void AFASpectra::clear()
 {
     m_Min = 0.0f;
@@ -28,7 +119,7 @@ void AFASpectra::clear()
     m_SamplesRead = 0;
     m_Index = -1;
     m_SpecObjID = 0;
-    m_Type = SPT_NOT_SET;
+	m_Type = 0;
     m_version = SP_ARTIFICIAL;
     m_Z = 0.0;
     m_flux = 0.0f;
@@ -39,15 +130,28 @@ void AFASpectra::clear()
         m_Amplitude[i] = 0.0f;
     }
 
-#ifdef _USE_SPECTRALINES
-    for (size_t i=0;i<AFASpectra::numSpectraLines;i++)
-    {
-        m_Lines[i].height = 0.0f;
-        m_Lines[i].wave = 0.0f;
-        m_Lines[i].waveMin = 0.0f;
-        m_Lines[i].waveMax = 0.0f;
-    }
-#endif
+}
+
+float sinf(float x)
+{
+	// TODO
+	return x;
+}
+
+void AFASpectra::setSine( float _frequency, float _phase, float _amplitude, float _noize )
+{
+	static size_t UIDCount = 1;
+	m_SpecObjID =(UIDCount++)<<22;
+	m_version = SP_ARTIFICIAL;
+
+	AFARnd r;
+	for (size_t i=0;i<AFASpectra::numSamples;i++)
+	{
+		float x=_phase+(float)(i)*_frequency;
+		m_Amplitude[i] = sinf(x)*_amplitude+(r.randomFloat()-0.5f)*_noize;
+	}
+	m_SamplesRead = AFASpectra::numSamples;
+	calcMinMax();
 }
 
 void AFASpectra::randomize(float minrange, float maxrange )
@@ -88,20 +192,10 @@ void AFASpectra::set(const AFASpectra &_spectra)
     {
         m_Amplitude[i] = _spectra.m_Amplitude[i];
     }
-#ifdef _USE_SPECTRALINES
-    for (size_t i=0;i<AFASpectra::numSpectraLines;i++)
-    {
-        m_Lines[i].height = _spectra.m_Lines[i].height;
-        m_Lines[i].wave = _spectra.m_Lines[i].wave;
-        m_Lines[i].waveMin = _spectra.m_Lines[i].waveMin;
-        m_Lines[i].waveMax = _spectra.m_Lines[i].waveMax;
-    }
-#endif
 }
 
 
-void
-AFASpectra::normalizeByFlux()
+void AFASpectra::normalizeByFlux()
 {
     calculateFlux();
 
@@ -115,8 +209,34 @@ AFASpectra::normalizeByFlux()
     calcMinMax();
 }
 
-void
-AFASpectra::calculateFlux()
+
+
+float AFASpectra::compare(const AFASpectra &_spectra) const
+{
+	// c-version (slow)
+	float error=0.0f;
+	for (int i=AFASpectra::pixelStart;i<AFASpectra::pixelEnd;i++)
+	{
+		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
+		error += d*d;
+	}
+
+	return error;
+}
+
+
+
+void AFASpectra::adapt( const AFASpectra &_spectra, float _adaptionRate )
+{
+	// c-version (slow)
+	for ( int i=AFASpectra::pixelStart;i<AFASpectra::pixelEnd;i++ )
+	{
+		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
+	}
+
+}
+
+void AFASpectra::calculateFlux()
 {
     double flux = 0.0;
     float offset = (m_Min < 0.0f) ? -m_Min : 0.0f;
@@ -127,8 +247,7 @@ AFASpectra::calculateFlux()
     m_flux = static_cast<float>(flux);
 }
 
-void
-AFASpectra::calcMinMax()
+void AFASpectra::calcMinMax()
 {
     m_Min = FLT_MAX;
     m_Max = -FLT_MAX;
@@ -141,8 +260,7 @@ AFASpectra::calcMinMax()
     }
 }
 
-int
-AFASpectra::getSDSSSpectraOffsetStart()
+int AFASpectra::getSDSSSpectraOffsetStart()
 {
     int offset = 0;
     // if we use BOSS and SDSS spectra combined add spectrum at right offset.
@@ -156,8 +274,7 @@ AFASpectra::getSDSSSpectraOffsetStart()
 }
 
 
-int
-AFASpectra::getSDSSSpectraOffsetEnd()
+int AFASpectra::getSDSSSpectraOffsetEnd()
 {
     int offset = numSamples;
     // if we use BOSS and SDSS spectra combined add spectrum at right offset.
@@ -171,8 +288,7 @@ AFASpectra::getSDSSSpectraOffsetEnd()
 }
 
 
-void
-AFASpectra::setOperationRange( bool _BOSSWavelengthRange )
+void AFASpectra::setOperationRange( bool _BOSSWavelengthRange )
 {
     if ( _BOSSWavelengthRange )
     {
@@ -181,7 +297,7 @@ AFASpectra::setOperationRange( bool _BOSSWavelengthRange )
     }
     else
     {
-        pixelStart	= (getSDSSSpectraOffsetStart()>>2)<<2;  // pixel start must be alligned to 16 byte boundaries for SSE operations.
+        pixelStart	= (getSDSSSpectraOffsetStart()>>2)<<2;  // pixel start must be aligned to 16 byte boundaries for SSE operations.
         pixelEnd	= getSDSSSpectraOffsetEnd();	
     }
     assert( pixelStart<pixelEnd );
@@ -189,8 +305,8 @@ AFASpectra::setOperationRange( bool _BOSSWavelengthRange )
     assert( (pixelStart%4)==0 );
 }
 
-void
-AFASpectra::write( volatile AFASpectra *spectraArray, size_t _gridSize, float _minPeak, float _maxPeak )
+/*
+void AFASpectra::write( volatile AFASpectra *spectraArray, size_t _gridSize, float _minPeak, float _maxPeak )
 {
     size_t gridSizeSqr = _gridSize*_gridSize;
     float strengthScale = static_cast<float>(gridSizeSqr)*2.f;
@@ -199,7 +315,7 @@ AFASpectra::write( volatile AFASpectra *spectraArray, size_t _gridSize, float _m
     spec.clear();
     for ( size_t i=0;i<gridSizeSqr;i++)
     {
-        AFASpectra *spec = &spectraArray[ i ];
+        volatile AFASpectra *spec = &spectraArray[ i ];
         spec->clear();
 
         size_t x = i%_gridSize;
@@ -210,4 +326,4 @@ AFASpectra::write( volatile AFASpectra *spectraArray, size_t _gridSize, float _m
 //        w.write(spec);
     }
 }
-
+*/
