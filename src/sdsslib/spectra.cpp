@@ -2715,7 +2715,7 @@ void Spectra::setOperationRange( bool _BOSSWavelengthRange )
 	}
 	else
 	{
-		pixelStart	= (getSDSSSpectraOffsetStart()>>2)<<2;  // pixel start must be alligned to 16 byte boundaries for SSE operations.
+		pixelStart	= (getSDSSSpectraOffsetStart()>>2)<<2;  // pixel start must be aligned to 16 byte boundaries for SSE operations.
 		pixelEnd	= getSDSSSpectraOffsetEnd();	
 	}
 	assert( pixelStart<pixelEnd );

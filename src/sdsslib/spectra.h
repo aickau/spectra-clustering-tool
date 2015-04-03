@@ -595,7 +595,7 @@ public:
 	static int getSDSSSpectraOffsetStart();
 	static int getSDSSSpectraOffsetEnd();
 
-	// set to true if we should use the entire BOSS wavelength range during clusering or false if only default SDSS wavelength range should be used.
+	// set to true if we should use the entire BOSS wavelength range during clustering or false if only default SDSS wavelength range should be used.
 	static void setOperationRange( bool _BOSSWavelengthRange );
 
 	//@}

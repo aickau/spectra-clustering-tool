@@ -54,9 +54,120 @@ public:
         SP_COUNT						//< must be the last entry here.
     };
 
+
+
+	enum SpectraClass 
+	{
+		SPC_NOT_SET				= 0,
+		SPC_UNKNOWN				= 1,
+		SPC_STAR				= 2,
+		SPC_GALAXY				= 3,
+		SPC_QSO					= 4
+	};
+
+	// details: https://www.sdss3.org/dr8/spectro/catalogs.php#objects
+	enum SpectraSubClass 
+	{
+		SPSC_NOT_SET			= 0,
+		SPSC_STARFORMING		= 1,
+		SPSC_STARBURST			= 2,
+		SPSC_AGN				= 3,
+		SPSC_O					= 4,
+		SPSC_O8					= 5,
+		SPSC_O9					= 6,
+		SPSC_OB					= 7,
+		SPSC_B0					= 8,
+		SPSC_B1					= 9,
+		SPSC_B2					= 10,
+		SPSC_B3					= 11,
+		SPSC_B4					= 12,
+		SPSC_B5					= 13,
+		SPSC_B6					= 14,
+		SPSC_B7					= 15,
+		SPSC_B8					= 16,
+		SPSC_B9					= 17,
+		SPSC_A0					= 18,
+		SPSC_A0p				= 19,
+		SPSC_A1					= 20,
+		SPSC_A2					= 21,
+		SPSC_A3					= 22,
+		SPSC_A4					= 23,
+		SPSC_A5					= 24,
+		SPSC_A6					= 25,
+		SPSC_A7					= 26,
+		SPSC_A8					= 27,
+		SPSC_A9					= 28,
+		SPSC_F0					= 29,
+		SPSC_F1					= 30, // not used
+		SPSC_F2					= 31,
+		SPSC_F3					= 32,
+		SPSC_F4					= 33, // not used
+		SPSC_F5					= 34,
+		SPSC_F6					= 35,
+		SPSC_F7					= 36, // not used
+		SPSC_F8					= 37,
+		SPSC_F9					= 38,
+		SPSC_G0					= 39,
+		SPSC_G1					= 40,
+		SPSC_G2					= 41,
+		SPSC_G3					= 42,
+		SPSC_G4					= 43,
+		SPSC_G5					= 44,
+		SPSC_G6					= 45,
+		SPSC_G7					= 46,
+		SPSC_G8					= 47,
+		SPSC_G9					= 48,
+		SPSC_K0					= 49,
+		SPSC_K1					= 50,
+		SPSC_K2					= 51,
+		SPSC_K3					= 52,
+		SPSC_K4					= 53,
+		SPSC_K5					= 54,
+		SPSC_K6					= 55, // not used
+		SPSC_K7					= 56, 
+		SPSC_K8					= 57, // not used
+		SPSC_K9					= 58, // not used
+		SPSC_M0V				= 59,
+		SPSC_M2V				= 60,
+		SPSC_M1					= 61,
+		SPSC_M2					= 62,
+		SPSC_M3					= 63,
+		SPSC_M4					= 64,
+		SPSC_M5					= 65,
+		SPSC_M6					= 66,
+		SPSC_M7					= 67,
+		SPSC_M8					= 68,
+		SPSC_M9					= 69,
+		SPSC_L0					= 70,
+		SPSC_L1					= 71,
+		SPSC_L2					= 72,
+		SPSC_L3					= 73,
+		SPSC_L4					= 74,
+		SPSC_L5					= 75,
+		SPSC_L55				= 76,	// 5.5
+		SPSC_L6					= 77,
+		SPSC_L7					= 78, // not used
+		SPSC_L8					= 79, // not used
+		SPSC_L9					= 80,
+		SPSC_LDWARF				= 81,
+		SPSC_T2					= 82,
+		SPSC_CARBON				= 83,
+		SPSC_CARBONWD			= 84,
+		SPSC_CARBON_LINES		= 85,
+		SPSC_CV					= 86,
+		SPSC_CALCIUMWD			= 87, 
+		SPSC_WD					= 88,
+		SPSC_WDCOOLER			= 89,
+		SPSC_WDHOTTER			= 90,
+		SPSC_WDMAGNETIC			= 91,
+		SPSC_BROADLINE			= 128	// this can be combined with all subclasses (hence needs highest bit) 
+	};
+
+	// Older spectra type only for historic reasons here. 
+	// Now use SpectraClass and SpectraSubClass
     // was called objecttype in SDSS II
     // is now called source type in SDSS III
-    enum SpectraType
+	enum OldSpectraType
     {
         SPT_NOT_SET				= 0,
         SPT_UNKNOWN				= 0x000000001,
@@ -171,15 +282,6 @@ public:
     };
 
 
-    // emission and absorption lines info
-    struct SpectraLines
-    {
-        float wave;			// in Angström
-        float waveMin;		// in Angström
-        float waveMax;		// in Angström
-        float height;		// in 10^(-17) erg/cm/s^2/Ang
-    };
-
     //@}
 
     /** @name CONSTRUCTORS / DESTRUCTORS
@@ -196,12 +298,9 @@ public:
     */
     //@{
 
-    // returns assembled filename
-//	std::string getFileName() const;
-
     // get modified Julian date of observation.
     // MJD starts at November 7.th 1858, see http://en.wikipedia.org/wiki/Julian_date
-//	int getMJD() const;
+	int getMJD() const;
 
     // fiber ID for SDSS
     // 1..640 for SDSS I & II
@@ -210,37 +309,32 @@ public:
     // note that on re-observations fibers may change
     // see http://spectro.princeton.edu/#plots
     //     https://www.sdss3.org/dr9/spectro/spectro_basics.php
-//	int getFiber() const;
+	int getFiber() const;
 
     // plate id 
-//	int getPlate() const;
-
-    // center point right ascension in J2000 decimal degrees
-    // only for light curve import ATM.
-//	double getRa() const;
-
-    // center point declination in J2000 decimal degrees
-    // only for light curve import ATM.
-//	double getDec() const;
-
-    // get SDSS URL to spectrum overview page
-//	std::string getURL() const;
-
-    // get URL to SDSS image of spectrum
-//	std::string getImgURL() const;
+	int getPlate() const;
 
 
     // returns true if marked as empty spectrum (specObjID is set to zero).
-//	bool isEmpty() const;
-
-    // returns true if the number of bad pixels in spectrum are over a threshold of 5%
-//	bool hasBadPixels() const;
-
-    // return true if spectrum does not contain any awkward numbers, e.g. NANs, infinite numbers.
-//	bool checkConsistency() const;
+	bool isEmpty() const;
 
     // compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 //	float compare(const Spectra &_spectra) const;
+	SpectraClass getClass() const;
+
+	SpectraSubClass getSubClass() const;
+
+	// if spectrum is of class GALAXY or QSO and 
+	// have lines detected at the 10-sigma level with sigmas > 200 km/sec at the 5-sigma level
+	// see: https://www.sdss3.org/dr8/spectro/catalogs.php#objects
+	bool isBroadline() const;
+
+	// returns true spectrum class and subclass matches corresponding filter, otherwise false
+	bool matchesFilter( unsigned int spClassFilter, unsigned int spSubClassFilter=0x0ffffffff );
+
+	// compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
+	float compare(const AFASpectra &_spectra) const;
+
 
     //@}
 
@@ -253,16 +347,9 @@ public:
 
     void set(const AFASpectra &_spectra);
 
-    // set experimental test spectra
-    // type: 0=sin, 1=cos, 2=linear, 3=linear inverse, 4=squared
-//	void set( size_t _type, float _noize );
-
-    // set rectangular impulse (for testing purposes)
-    // _phase 0..1, _width 0..1
-//	void setRect( float _width=0.1, float _phase=0.5, float _amplitude=1.f );
-
     // set sine curve with a given frequency, phase and amplitude.
-//	void setSine( float _frequency = 1.f, float _phase = 0.f, float _amplitude=1.f, float _noize=0.f );
+	// Good to model test spectra
+	void setSine( float _frequency = 1.f, float _phase = 0.f, float _amplitude=1.f, float _noize=0.f );
 
     // fill spectrum with noise
 	void randomize( float _minrange, float _maxrange);
@@ -282,62 +369,6 @@ public:
     // scale signals
 //	void multiply(float _multiplier);
 
-    // Load spectrum from comma separated values, we assume ~3900 samples.
-    // spectrum should look like this:
-    //
-    //
-    //	Wavelength(A),Flux,Error,Mask
-    //	3830.01081226449, -1.97607004642487, 0, 83886080
-    //	3830.01081226449, -1.97607004642487, 0, 83886080
-    //  .. omitting next ~3900 lines.
-    //	3833.54000759044, 1.56192994117737, 1.66190469264984, 0
-    //
-    // _logStream optional log stream for detailed logging output in case loading fails.
-//	bool loadFromCSV(const std::string &_filename, std::ofstream *_logStream=NULL );
-
-    // Load spectrum or light curve from XML.
-    // Here we do not read the number of samples directly, instead we read sparse data. 
-    // A variable number of x,y value pairs are read and interpolated to the number of samples.
-    //
-    // Structure of the XML:
-    //
-    // 	<?xml version="1.0" encoding="UTF-8"?>
-    // 	<LIGHTCURVE>
-    // 		<type value="SDSS">										<!-- can be any type string, used to distinguish different datasets-->
-    // 		<plate value="4096"/>									<!-- SDSS plate ID -->
-    // 		<mjd value="55896"/>									<!-- SDSS modified Julian date of observation. -->
-    // 		<fiberId value="4"/>									<!-- SDSS fiber ID 1..640 for SDSS, 1..1000 for BOSS -->
-    // 		<ra value="0.01"/>										<!-- right ascension, J2000 -->
-    // 		<dec value="0.056"/>									<!-- declination, J2000 -->
-    // 		<z value="5.0"/>										<!-- red shift -->
-    // 		<DATA xMin="0.5" xMax="4.0" yMin="-2.0" yMax="0.0" >
-    // 		0.5,-1.2
-    // 		0.55,-1.3
-    // 		...
-    // 		</DATA>
-    // 	</LIGHTCURVE>
-    //
-    // _logStream optional log stream for detailed logging output in case loading fails.
-//	bool loadFromXML(const std::string &_filename, std::ofstream *_logStream=NULL);
-
-    // automatically checks the version
-    // _logStream optional log stream for detailed logging output in case loading fails.
-//	bool loadFromFITS(const std::string &_filename, std::ofstream *_logStream=NULL);
-
-    // load from SDSS .fit file up to DR7
-    // e.g. spSpec-51630-0266-633.fit
-    // FITS file description see http://www.sdss.org/DR6/dm/flatFiles/spSpec.html
-    // general info here: http://www.sdss.org/DR6/dm/flatFiles/FILES.html
-//	bool loadFromFITS_SDSS(const std::string &_filename, std::ofstream *_logStream=NULL);
-
-    // load SDSS DR8 spectra
-//	bool loadFromFITS_DR8(const std::string &_filename, std::ofstream *_logStream=NULL);
-
-    // BOSS Spectra from DR9/DR10. e.g. dr9spec-3588-55184-0511.fits
-//	bool loadFromFITS_BOSS(const std::string &_filename, std::ofstream *_logStream=NULL);
-
-    // save to ASCII CSV
-//	bool saveToCSV(const std::string &_filename);
 
     // calculate extrema
     void calcMinMax();
@@ -351,10 +382,11 @@ public:
     // normalize by flux
     void normalizeByFlux();
 
+
     // adapt spectrum towards another spectrum by a given factor
     // _spectra spectrum to adapt to
     // _adaptionRate [0..1]
-//	void adapt( const Spectra &_spectra, float _adaptionRate );
+	void adapt( const AFASpectra &_spectra, float _adaptionRate );
 
     //@}
 
@@ -371,12 +403,11 @@ public:
     sint32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
     sint16_t m_SamplesRead;
     sint64_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
-    SpectraType m_Type;
+    sint32_t m_Type;					// bits 0..2 SpectraClass 
+										// bits 3..9 SpectraSubClass
+										// bit 10 BROADLINE flag
     SpectraVersion m_version;
     double m_Z;
-#ifdef _USE_SPECTRALINES
-    SpectraLines m_Lines[numSpectraLines];
-#endif
     float m_flux;
     char m_status;						// 0=ok, 1=bad pixels
     char pad[3];						// for padding to multiple of 16 byte boundaries
@@ -389,46 +420,12 @@ public:
     //@{
     void write( volatile AFASpectra *spectraArray, size_t _gridSize, float _minPeak, float _maxPeak );
 
-#if 0
-    // calc unique photo object identifier from a bunch of parameters
-    static uint64_t calcPhotoObjID( int _run, int _rerun, int _camcol, int _field, int _obj );
-
-    // calc unique spec object identifier from a bunch of parameters (DR7 or below)
-    static uint64_t calcSpecObjID_DR7( int _plate, int _mjd, int _fiber, int _type );
-
-    // calc unique spec object identifier from a bunch of parameters for spectra (DR8 and above)
-    static uint64_t calcSpecObjID_DR8( int _plate, int _mjd, int _fiber, int _run2d_m, int _run2d_n, int _run2d_p );
-
-    // convert plate number to string, e.g 266 -> "0266"
-    static std::string plateToString( int _plate );
-
-    static float indexToWaveLength( size_t _index, float _waveBegin, float _waveEnd, int _numSamples );
-    static size_t waveLengthToIndex( float _waveLength, float _waveBegin, float _waveEnd, int _numSamples );
-
-    static float waveLenghtToRestFrame( float _waveLength, float _z );
-
-    // returns any combination of SpectraTypes as filter
-    static std::string spectraFilterToString( unsigned int _spectraFilter );
-    static SpectraType spectraTypeFromString( const std::string &_spectraType );
-
-    static std::string spectraVersionToString( SpectraVersion _spectraVersion );
-
-
-    // generate spectra filename from plate, MJD and fiber, e.g. spSpec-52203-0716-002.fit
-    // MJD has always five digits
-    // plate number has always four digits
-    // fiber id has always three digits
-    // dr8 set to true for data release 8 or above spectra, for DR 1..7 set to false.
-    static std::string getSpecObjFileName( int _plate, int _mjd, int _fiberID, bool dr8 );
-
-#endif
-
     // if we use BOSS and SDSS spectra combined calculate offset for SDSS spectra.
     // BOSS spectra start at 3650A, SDSS spectra at 3800A -> thus use offset ~13 so both types operate in equal wavelengths
     static int getSDSSSpectraOffsetStart();
     static int getSDSSSpectraOffsetEnd();
 
-    // set to true if we should use the entire BOSS wavelength range during clusering or false if only default SDSS wavelength range should be used.
+    // set to true if we should use the entire BOSS wavelength range during clustering or false if only default SDSS wavelength range should be used.
     static void setOperationRange( bool _BOSSWavelengthRange );
 
     //@}
