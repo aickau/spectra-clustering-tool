@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Analyzer config file, ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I, Copyright (c) 2013 Version 0.18, Revision 329, Build date 2014/07/06 23:24:06 -->
+<!-- Analyzer config file, ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I, Copyright (c) 2013 Version 0.20, Revision 344, Build date 2015/03/03 18:28:25 -->
 <SETTINGS>
 	<STEP current="200" total="200"/>
 	<GRIDSIZE value="6"/>
@@ -8,9 +8,9 @@
 	<RADIUS begin="1" end="0.125"/>
 	<SPECTRUM file="sofmnet.bin"/>
 	<EXPORT>
-		<SUBPAGES value="1"/>
+		<SUBPAGES value="0"/>
 		<WAITFORUSER value="0"/>
-		<FULLEXPORT value="0"/>
+		<FULLEXPORT value="1"/>
 		<IMGBORDERSIZE value="6"/>
 		<ICONSIZE value="64"/>
 	</EXPORT>

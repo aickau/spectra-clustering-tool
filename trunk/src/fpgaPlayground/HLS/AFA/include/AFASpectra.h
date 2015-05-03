@@ -289,7 +289,7 @@ public:
     //@{
 
     AFASpectra();
-    AFASpectra( AFASpectra &_source );
+    AFASpectra( volatile AFASpectra *_source );
     ~AFASpectra();
 
     //@}
@@ -316,7 +316,7 @@ public:
 
 
     // returns true if marked as empty spectrum (specObjID is set to zero).
-	bool isEmpty() const;
+	bool isEmpty()  volatile;
 
     // compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 //	float compare(const Spectra &_spectra) const;
@@ -333,7 +333,7 @@ public:
 	bool matchesFilter( unsigned int spClassFilter, unsigned int spSubClassFilter=0x0ffffffff );
 
 	// compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
-	float compare(const AFASpectra &_spectra) const;
+	float compare(volatile AFASpectra *_spectra) volatile;
 
 
     //@}
@@ -343,32 +343,32 @@ public:
     //@{
 
     // clear data/reset spectrum
-	void clear();
+	void clear() volatile;
 
-    void set( AFASpectra &_spectra);
+    void set( volatile AFASpectra *_spectra ) volatile;
 
     // set sine curve with a given frequency, phase and amplitude.
 	// Good to model test spectra
-	void setSine( float _frequency = 1.f, float _phase = 0.f, float _amplitude=1.f, float _noize=0.f );
+	void setSine( float _frequency = 1.f, float _phase = 0.f, float _amplitude=1.f, float _noize=0.f ) volatile;
 
     // fill spectrum with noise
-	void randomize( float _minrange, float _maxrange);
+	void randomize( float _minrange, float _maxrange) volatile;
 
 
     // calculate extrema
-    void calcMinMax();
+    void calcMinMax() volatile;
 
     // calculates the surface of the spectrum
-    void calculateFlux();
+    void calculateFlux() volatile;
 
     // normalize by flux
-    void normalizeByFlux();
+    void normalizeByFlux() volatile;
 
 
     // adapt spectrum towards another spectrum by a given factor
     // _spectra spectrum to adapt to
     // _adaptionRate [0..1]
-	void adapt( const AFASpectra &_spectra, float _adaptionRate );
+	void adapt( volatile AFASpectra *_spectra, float _adaptionRate ) volatile;
 
     //@}
 

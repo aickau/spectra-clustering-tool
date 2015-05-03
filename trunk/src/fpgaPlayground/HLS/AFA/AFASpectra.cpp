@@ -13,7 +13,7 @@ AFASpectra::AFASpectra()
 {
 }
 
-AFASpectra::AFASpectra( AFASpectra &_source )
+AFASpectra::AFASpectra( volatile AFASpectra *_source )
 {
     set( _source );
 }
@@ -82,7 +82,7 @@ int AFASpectra::getPlate() const
 
 
 
-bool AFASpectra::isEmpty() const
+bool AFASpectra::isEmpty() volatile
 {
 	return (m_SpecObjID == 0);
 }
@@ -113,7 +113,7 @@ bool AFASpectra::isBroadline() const
 
 
 
-void AFASpectra::clear()
+void AFASpectra::clear() volatile
 {
     m_Min = 0.0f;
     m_Max = 1.f;
@@ -134,7 +134,7 @@ void AFASpectra::clear()
 }
 
 
-void AFASpectra::setSine( float _frequency, float _phase, float _amplitude, float _noize )
+void AFASpectra::setSine( float _frequency, float _phase, float _amplitude, float _noize ) volatile
 {
 	static size_t UIDCount = 1;
 	m_SpecObjID =(UIDCount++)<<22;
@@ -150,7 +150,7 @@ void AFASpectra::setSine( float _frequency, float _phase, float _amplitude, floa
 	calcMinMax();
 }
 
-void AFASpectra::randomize(float minrange, float maxrange )
+void AFASpectra::randomize(float minrange, float maxrange ) volatile
 {
     if ( minrange > maxrange )
     {
@@ -171,27 +171,27 @@ void AFASpectra::randomize(float minrange, float maxrange )
     calcMinMax();
 }
 
-void AFASpectra::set( AFASpectra &_spectra)
+void AFASpectra::set( volatile AFASpectra *_spectra) volatile
 {
-    m_SamplesRead		= _spectra.m_SamplesRead;
-    m_Min				= _spectra.m_Min;
-    m_Max				= _spectra.m_Max;
-    m_Index				= _spectra.m_Index;
-    m_SpecObjID			= _spectra.m_SpecObjID;
-    m_version			= _spectra.m_version;
-    m_Type				= _spectra.m_Type;
-    m_Z					= _spectra.m_Z;
-    m_flux				= _spectra.m_flux;
-    m_status			= _spectra.m_status;
+    m_SamplesRead		= _spectra->m_SamplesRead;
+    m_Min				= _spectra->m_Min;
+    m_Max				= _spectra->m_Max;
+    m_Index				= _spectra->m_Index;
+    m_SpecObjID			= _spectra->m_SpecObjID;
+    m_version			= _spectra->m_version;
+    m_Type				= _spectra->m_Type;
+    m_Z					= _spectra->m_Z;
+    m_flux				= _spectra->m_flux;
+    m_status			= _spectra->m_status;
 
     for (size_t i=0;i<AFASpectra::numSamples;i++)
     {
-        m_Amplitude[i] = _spectra.m_Amplitude[i];
+        m_Amplitude[i] = _spectra->m_Amplitude[i];
     }
 }
 
 
-void AFASpectra::normalizeByFlux()
+void AFASpectra::normalizeByFlux() volatile
 {
     calculateFlux();
 
@@ -207,13 +207,13 @@ void AFASpectra::normalizeByFlux()
 
 
 
-float AFASpectra::compare(const AFASpectra &_spectra) const
+float AFASpectra::compare(volatile AFASpectra *_spectra) volatile
 {
 	// c-version (slow)
 	float error=0.0f;
 	for (int i=AFASpectra::pixelStart;i<AFASpectra::pixelEnd;i++)
 	{
-		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
+		float d = m_Amplitude[i]-_spectra->m_Amplitude[i];
 		error += d*d;
 	}
 
@@ -222,17 +222,17 @@ float AFASpectra::compare(const AFASpectra &_spectra) const
 
 
 
-void AFASpectra::adapt( const AFASpectra &_spectra, float _adaptionRate )
+void AFASpectra::adapt( volatile AFASpectra *_spectra, float _adaptionRate ) volatile
 {
 	// c-version (slow)
 	for ( int i=AFASpectra::pixelStart;i<AFASpectra::pixelEnd;i++ )
 	{
-		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
+		m_Amplitude[i] += _adaptionRate*(_spectra->m_Amplitude[i]-m_Amplitude[i]);
 	}
 
 }
 
-void AFASpectra::calculateFlux()
+void AFASpectra::calculateFlux() volatile
 {
     double flux = 0.0;
     float offset = (m_Min < 0.0f) ? -m_Min : 0.0f;
@@ -243,7 +243,7 @@ void AFASpectra::calculateFlux()
     m_flux = static_cast<float>(flux);
 }
 
-void AFASpectra::calcMinMax()
+void AFASpectra::calcMinMax() volatile
 {
     m_Min = FLT_MAX;
     m_Max = -FLT_MAX;
