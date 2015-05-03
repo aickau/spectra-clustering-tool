@@ -5,6 +5,9 @@
 #include "AFANetworkSettings.h"
 #include "AFARandom.h"
 
+#ifndef FLT_MAX
+#define FLT_MAX         3.402823466e+38F 
+#endif
 
 struct BestMatch
 {
@@ -64,7 +67,7 @@ private:
 private:
 
     // calculate min/max values for a given SpectraVFS
-    void calcMinMax( AFASpectra *_vfs, float &_outMin, float &_outMax );
+    void calcMinMax( volatile AFASpectra *_vfs, float &_outMin, float &_outMax );
 
     // calculate min/max values for the input data set.
     void calcMinMaxInputDS();
@@ -79,12 +82,12 @@ private:
     // this version will perform a brute-force full search in the entire network
     // _src source spectra
     // returns best spectra in the network
-    BestMatch searchBestMatchComplete( const AFASpectra &_src );
+    BestMatch searchBestMatchComplete( volatile AFASpectra *_src );
 
     // search for best matching spectrum/neuron in the network using only a local window ( s_searchRadius )
     // _src source spectra
     // returns best spectra in the network
-    BestMatch searchBestMatchLocal( const AFASpectra &_src, const int _searchRadius );
+    BestMatch searchBestMatchLocal( volatile AFASpectra *_src, const int _searchRadius );
 
     // adapt network for a given neuron/spectrum
     // _spectrum source spectrum to adapt
@@ -92,12 +95,12 @@ private:
     // _adaptionThreshold adaption threshold so we do not need to go through the whole network
     // _sigmaSqr sigma squared
     // _lRate current learning rate for the given processing step
-    void adaptNetwork( const AFASpectra &_spectrum, int _bestMatchIndex, float _adaptionThreshold, float _sigmaSqr, float _lRate );
+    void adaptNetwork( volatile AFASpectra *_spectrum, int _bestMatchIndex, float _adaptionThreshold, float _sigmaSqr, float _lRate );
 
     // calculate index from cell positions
     int getIndex( int _cellX, int _cellY );
 
-	static void compareSpectra(const AFASpectra &_a, AFASpectra *_pB, int _nCount, float *_pOutErrors );
+	static void compareSpectra( volatile AFASpectra *_a, volatile AFASpectra *_pB, int _nCount, float *_pOutErrors ); 
 
 
     // code book spectra
@@ -106,7 +109,7 @@ private:
     // training data
     volatile AFASpectra	*m_pSourceSpectra;
 
-	AFASpectra **m_localSearchSpectraVec;
+	volatile AFASpectra **m_localSearchSpectraVec;
 	int *m_localSearchIndexVec;
 	float *m_localSearchErrorVec;
 

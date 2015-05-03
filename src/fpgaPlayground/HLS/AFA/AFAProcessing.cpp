@@ -18,16 +18,16 @@
 // _networkIndex network index [0..gridsizesqr-1]
 // _bestMatchSpectrum source/input spectrum
 // _bestMatchIndex index to input spectrum [0..numspectra-1]
-static void setBestMatch( AFASpectra &_networkSpectrum, size_t _networkIndex, AFASpectra &_bestMatchSpectrum, size_t _bestMatchIndex )
+static void setBestMatch( volatile AFASpectra *_networkSpectrum, size_t _networkIndex, volatile AFASpectra *_bestMatchSpectrum, size_t _bestMatchIndex )
 {
 	//assert( _networkSpectrum.isEmpty() );
 	// set best matching related info.
-	_networkSpectrum.m_SpecObjID	= _bestMatchSpectrum.m_SpecObjID;
-	_networkSpectrum.m_Index		= _bestMatchIndex;
-	_networkSpectrum.m_version		= _bestMatchSpectrum.m_version;
+	_networkSpectrum->m_SpecObjID	= _bestMatchSpectrum->m_SpecObjID;
+	_networkSpectrum->m_Index		= _bestMatchIndex;
+	_networkSpectrum->m_version		= _bestMatchSpectrum->m_version;
 
 	// remember best match position to NW for faster search
-	_bestMatchSpectrum.m_Index = _networkIndex;
+	_bestMatchSpectrum->m_Index = _networkIndex;
 
 }
 
@@ -77,11 +77,11 @@ AFAProcessing::AFAProcessing(
             const size_t inset = 0;
             if ( xp >= inset && xp <= (m_gridSize-inset) && yp >= inset && yp <= (m_gridSize-inset) )
             {
-                AFASpectra *a = &m_pNet[ i ];
+                volatile AFASpectra *a = &m_pNet[ i ];
 
                 size_t spectraIndex = r.randomInt( m_numSpectra - 1 );
-                AFASpectra *b = &m_pSourceSpectra[ spectraIndex ];
-                a->set( *b );
+                volatile AFASpectra *b = &m_pSourceSpectra[ spectraIndex ];
+                a->set( b );
             }
         }
     }
@@ -108,7 +108,7 @@ AFAProcessing::AFAProcessing(
 	m_pSpectraIndexList = (int*)malloc( m_gridSizeSqr*sizeof(int) );
 
 
-	m_localSearchSpectraVec = (AFASpectra**)malloc( m_gridSizeSqr*sizeof(AFASpectra*) );
+	m_localSearchSpectraVec = (volatile AFASpectra**)malloc( m_gridSizeSqr*sizeof(AFASpectra*) );
 	m_localSearchIndexVec = (int*)malloc( m_gridSizeSqr*sizeof(int) );
 	m_localSearchErrorVec = (float*)malloc( m_gridSizeSqr*sizeof(float) );
 
@@ -185,7 +185,7 @@ bool AFAProcessing::process()
 	// clear names
 	for ( int i=0;i<m_gridSizeSqr;i++)
 	{
-		AFASpectra *a = m_pNet[i];
+		volatile AFASpectra *a = &m_pNet[i];
 		a->m_SpecObjID = 0;
 		a->m_Index = -1;
 	}
@@ -199,26 +199,26 @@ bool AFAProcessing::process()
 		BestMatch bmu;
 
 		const int spectraIndex = m_pSpectraIndexList[j];
-		AFASpectra *currentSourceSpectrum = m_pSourceSpectra[spectraIndex];
+		volatile AFASpectra *currentSourceSpectrum = &m_pSourceSpectra[spectraIndex];
 
 
 		// retrieve best match neuron for a source spectra
 		if (bFullSearch) 
 		{
-			bmu = searchBestMatchComplete( *currentSourceSpectrum );
+			bmu = searchBestMatchComplete( currentSourceSpectrum );
 		}
 		else
 		{
-			bmu = searchBestMatchLocal( *currentSourceSpectrum, searchRadius );
+			bmu = searchBestMatchLocal( currentSourceSpectrum, searchRadius );
 		}
 
 		// mark best match neuron
-		AFASpectra *bmuSpectrum = &m_pNet[bmu.index];
-		setBestMatch( *bmuSpectrum, bmu.index, *currentSourceSpectrum, spectraIndex );
+		volatile AFASpectra *bmuSpectrum = &m_pNet[bmu.index];
+		setBestMatch( bmuSpectrum, bmu.index, currentSourceSpectrum, spectraIndex );
 
 		// adapt neighborhood
 		// hint: this takes long.
-		adaptNetwork( *currentSourceSpectrum, bmu.index, adaptionThreshold, sigmaSqr, lRate );
+		adaptNetwork( currentSourceSpectrum, bmu.index, adaptionThreshold, sigmaSqr, lRate );
 	}
 
 
@@ -237,7 +237,7 @@ void AFAProcessing::calcFluxAndNormalizeInputDS()
     m_flux = 0.0f;
     for ( int i=0;i<m_numSpectra;i++ )
     {
-        AFASpectra *a = &m_pSourceSpectra[ i ];
+        volatile AFASpectra *a = &m_pSourceSpectra[ i ];
         a->normalizeByFlux();
         m_flux = AFAMAX( a->m_flux, m_flux );
     }
@@ -253,7 +253,7 @@ void AFAProcessing::reset( const AFAParameters &_params )
 }
 
 void AFAProcessing::calcMinMax(
-    AFASpectra *_vfs,
+    volatile AFASpectra *_vfs,
     float &_outMin,
     float &_outMax )
 {
@@ -263,7 +263,7 @@ void AFAProcessing::calcMinMax(
     // calc min/max
     for ( int i=0;i<m_numSpectra;i++ )
     {
-        AFASpectra *a = &m_pSourceSpectra[ i ];
+       volatile  AFASpectra *a = &m_pSourceSpectra[ i ];
 
         if ( _outMin > a->m_Min ) 
         {
@@ -308,7 +308,7 @@ void AFAProcessing::initNetwork( size_t _gridSize, float _minPeak, float _maxPea
 		float strength = (static_cast<float>(x*x+y*y)*0.25f)/strengthScale;
 		spec.randomize( _minPeak*strength, _maxPeak*strength );
 
-		sp->set(spec);
+		sp->set( &spec);
 	}
 }
 
@@ -342,7 +342,7 @@ BestMatch AFAProcessing::searchBestMatchCompleteNonBatchMode( const AFASpectra &
 // use any large number you like
 #define AFA_COMPARE_BATCH 140000
 
-BestMatch AFAProcessing::searchBestMatchComplete( const AFASpectra &_src )
+BestMatch AFAProcessing::searchBestMatchComplete( volatile AFASpectra *_src )
 {
 	// see for the same outcome only slightly easier to understand..
 	// searchBestMatchCompleteNonBatchMode()
@@ -359,7 +359,7 @@ BestMatch AFAProcessing::searchBestMatchComplete( const AFASpectra &_src )
 		const int jInc = AFAMIN( AFA_COMPARE_BATCH, (AFAMIN(m_gridSizeSqr, j+AFA_COMPARE_BATCH)-j));
 
 		// calc euclidean distances for spectrum _src and a batch of network spectra starting at m_pNet[j] .. m_pNet[j+jInc-1]
-		AFASpectra *a = &m_pNet[j];
+		volatile AFASpectra *a = &m_pNet[j];
 		compareSpectra( _src, a, jInc, err );
 
 		// find smallest error (i.e. winning neuron/ network spectrum) in batch
@@ -379,22 +379,22 @@ BestMatch AFAProcessing::searchBestMatchComplete( const AFASpectra &_src )
 }
 
 
-BestMatch AFAProcessing::searchBestMatchLocal( const AFASpectra &_src, const int _searchRadius )
+BestMatch AFAProcessing::searchBestMatchLocal( volatile AFASpectra *_src, const int _searchRadius )
 {
 	//assert(_searchRadius > 0);
 	BestMatch bestMatch;
 	bestMatch.reset();
 
 
-	if ( _src.m_Index < 0 )
+	if ( _src->m_Index < 0 )
 	{
 		// no old position, due to continue computation, we have to use complete search!
 		bestMatch = searchBestMatchComplete( _src );
 		return bestMatch;
 	}
 
-	const int xpBestMatchOld = _src.m_Index % m_gridSize;
-	const int ypBestMatchOld = _src.m_Index / m_gridSize;
+	const int xpBestMatchOld = _src->m_Index % m_gridSize;
+	const int ypBestMatchOld = _src->m_Index / m_gridSize;
 
 	// calc boundaries
 	const int xMin = AFAMAX( xpBestMatchOld-_searchRadius, 0 );
@@ -419,9 +419,9 @@ BestMatch AFAProcessing::searchBestMatchLocal( const AFASpectra &_src, const int
 	}
 
 	// calculate errors/distances
-	compareSpectra( _src, m_localSearchSpectraVec, &m_localSearchErrorVec[0] );
+	compareSpectra( _src, *m_localSearchSpectraVec, c, &m_localSearchErrorVec[0] );
 
-	//end read, find bmu from error list
+	// find bmu from error vector
 	for ( int i=0;i<numSpectraToSearch;i++ )
 	{
 		const int spectraIndex = m_localSearchIndexVec[i];
@@ -440,7 +440,7 @@ BestMatch AFAProcessing::searchBestMatchLocal( const AFASpectra &_src, const int
 }
 
 
-void AFAProcessing::compareSpectra(const AFASpectra &_a, AFASpectra *_pB, int _nCount, float *_pOutErrors )
+void AFAProcessing::compareSpectra(volatile AFASpectra *_a, volatile AFASpectra *_pB, int _nCount, float *_pOutErrors )
 {
 	//assert( _pB != NULL );
 	//assert( _pOutErrors != NULL );
@@ -451,7 +451,7 @@ void AFAProcessing::compareSpectra(const AFASpectra &_a, AFASpectra *_pB, int _n
 	{
 		if ( _pB[i].isEmpty() )
 		{
-			_pOutErrors[i] = _a.compare( _pB[i] );
+			_pOutErrors[i] = _a->compare( &_pB[i] );
 		}
 		else
 		{
@@ -461,7 +461,7 @@ void AFAProcessing::compareSpectra(const AFASpectra &_a, AFASpectra *_pB, int _n
 }
 
 
-void AFAProcessing::adaptNetwork( const AFASpectra &_srcSpectrum, int _bestMatchIndex, float _adaptionThreshold, float _sigmaSqr, float _lRate )
+void AFAProcessing::adaptNetwork( volatile AFASpectra *_srcSpectrum, int _bestMatchIndex, float _adaptionThreshold, float _sigmaSqr, float _lRate )
 {
 	const size_t xpBestMatch = _bestMatchIndex % m_gridSize;
 	const size_t ypBestMatch = _bestMatchIndex / m_gridSize;
@@ -492,7 +492,7 @@ void AFAProcessing::adaptNetwork( const AFASpectra &_srcSpectrum, int _bestMatch
 			if ( lratehsx > _adaptionThreshold )
 			{
 				const size_t spectraAdress = y*m_gridSize+x;
-				AFASpectra *a = &m_pNet[spectraAdress];
+				volatile AFASpectra *a = &m_pNet[spectraAdress];
 				a->adapt( _srcSpectrum, lratehsx );
 			}
 		}

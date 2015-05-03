@@ -133,7 +133,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_FITSDISABLED;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../;HLS/AFA/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -169,7 +169,12 @@
     <ClCompile Include="..\sdsslib\CSVExport.cpp" />
     <ClCompile Include="..\sdsslib\debug.cpp" />
     <ClCompile Include="..\sdsslib\fileHelpers.cpp" />
-    <ClCompile Include="..\sdsslib\helpers.cpp" />
+    <ClCompile Include="..\sdsslib\helpers.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../;HLS/AFA/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../;HLS/AFA/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../;HLS/AFA/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../;HLS/AFA/include</AdditionalIncludeDirectories>
+    </ClCompile>
     <ClCompile Include="..\sdsslib\memory.cpp" />
     <ClCompile Include="..\sdsslib\random.cpp" />
     <ClCompile Include="..\sdsslib\spectra.cpp" />
