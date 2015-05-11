@@ -114,6 +114,8 @@ AFAProcessing::AFAProcessing(
 
 }
 
+
+
 AFAProcessing::~AFAProcessing()
 {
 	free( m_pSpectraIndexList );
@@ -123,6 +125,28 @@ AFAProcessing::~AFAProcessing()
 }
 
 
+
+
+int AFAProcessing::getSrcSpectraIndex( int index ) const
+{
+	if ( m_pNet[index].isEmpty() ) 
+		return -1;
+
+	return m_pNet[index].m_Index;
+}
+
+volatile AFASpectra *AFAProcessing::getSrcSpectrum( int index ) const
+{
+	if ( m_pNet[index].isEmpty() ) 
+		return NULL;
+
+	const int srcIndex = m_pNet[index].m_Index;
+	if ( srcIndex < 0 || srcIndex >= m_numSpectra ) {
+		// should not happen
+		return NULL;
+	}
+	return &m_pSourceSpectra[srcIndex];
+}
 
 
 bool AFAProcessing::process()
@@ -284,7 +308,7 @@ void AFAProcessing::calcMinMaxInputDS()
 }
 
 
-int AFAProcessing::getIndex( int _cellX, int _cellY )
+int AFAProcessing::getNetworkIndex( int _cellX, int _cellY )
 {
 	return _cellX+_cellY*m_gridSize;
 }
@@ -411,7 +435,7 @@ BestMatch AFAProcessing::searchBestMatchLocal( volatile AFASpectra *_src, const 
 	{
 		for ( int x=xMin;x<xMax;x++ )
 		{
-			const int spectraIndex = getIndex( x, y );
+			const int spectraIndex = getNetworkIndex( x, y );
 			m_localSearchIndexVec[c] = spectraIndex;
 			m_localSearchSpectraVec[c] = &m_pNet[spectraIndex];
 			c++;

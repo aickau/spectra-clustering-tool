@@ -114,31 +114,50 @@ main(int argc, char* argv[])
     uint32_t spectraSize = sizeof( AFASpectra );
     printf( "AFASpectraSize=%d\n", spectraSize );
 
-    size_t gridSize = static_cast<size_t>(ceilf(sqrtf((float)numSpectra+1))*1.1f); // gives a factor of 1.1^2=1.21 in total
-    size_t gridSizeSqr = gridSize*gridSize;
+    int gridSize = static_cast<size_t>(ceilf(sqrtf((float)numSpectra+1))*1.1f); // gives a factor of 1.1^2=1.21 in total
+    int gridSizeSqr = gridSize*gridSize;
 
     AFASpectra *net = new AFASpectra[ gridSizeSqr ];
 
 
-    // here the calculation is done the first time (on hardware; or software if we're in simulation)
-    // =============================================================================================
     AFAProcessFunctionParameter_t paramBlock;
 
     paramBlock.numSpectra = numSpectra;
     paramBlock.bContinueComputation = false;
 
-    AFAProcessFunction(
-        ( uint32_t * )&paramBlock,	//< shitty casting needed because of burst transfers in AXI4 bus
-        spectraData,
-        net );
+	AFAProcessing AFAProc(
+		spectraData,
+		net,
+		numSpectra,
+		false );
 
-    // here the calculation is done a second time to compare with hardware results
-    // ===========================================================================
-    AFAProcessing AFAProc(
-        spectraData,
-        net,
-        numSpectra,
-        false );
+
+	for ( int i=0;i<AFAProc.m_params.numSteps;i++ ) {
+
+		// here the calculation is done the first time (on hardware; or software if we're in simulation)
+		AFAProcessFunction(
+			( uint32_t * )&paramBlock,	//< shitty casting needed because of burst transfers in AXI4 bus
+			spectraData,
+			net );
+
+		// here the calculation is done a second time to compare with hardware results
+
+		AFAProc.process();
+
+		for ( int x=0;x<gridSize;x++ ) {
+			for ( int y=0;y<gridSize;y++) {
+
+				int indexHw = 0; // TODO Jesko: get index to src spectrum from hardware path
+				int indexSw = AFAProc.getSrcSpectraIndex( AFAProc.getNetworkIndex(x,y) );
+
+				if ( indexSw != indexHw ) {
+					// error. Results do not match
+					printf( "Mismatching results learning step %i, at x=%i, y=%i: idx HW=%i idx SW%i\n", i, x, y, indexHw, indexSw  );
+				}
+			}
+		}
+		
+	}
 
     // compare results
     // ===============

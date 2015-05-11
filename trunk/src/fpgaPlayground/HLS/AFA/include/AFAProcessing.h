@@ -31,7 +31,19 @@ public:
         bool continueProcessing = false );
     ~AFAProcessing();
 
-private:
+
+	// calculate index from cell positions
+	int getNetworkIndex( int _cellX, int _cellY );
+
+	
+	// get index to src spectrum at network cell / index 
+	// returns [0..num src spectra] or -1 if cell is empty
+	int getSrcSpectraIndex( int index ) const;
+
+	// get source spectrum at network cell
+	// index to src spectrum at network cell / index 
+	// returns NULL if cell is empty
+	volatile AFASpectra *getSrcSpectrum( int index ) const;
 
     // resets the network
     void reset( const AFAParameters &_params );
@@ -97,8 +109,6 @@ private:
     // _lRate current learning rate for the given processing step
     void adaptNetwork( volatile AFASpectra *_spectrum, int _bestMatchIndex, float _adaptionThreshold, float _sigmaSqr, float _lRate );
 
-    // calculate index from cell positions
-    int getIndex( int _cellX, int _cellY );
 
 	static void compareSpectra( volatile AFASpectra *_a, volatile AFASpectra *_pB, int _nCount, float *_pOutErrors ); 
 
