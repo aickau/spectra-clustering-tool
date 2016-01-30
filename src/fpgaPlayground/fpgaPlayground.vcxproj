@@ -165,52 +165,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\analyze\SOFMNetworkSettings.cpp" />
-    <ClCompile Include="..\sdsslib\CSVExport.cpp" />
-    <ClCompile Include="..\sdsslib\debug.cpp" />
-    <ClCompile Include="..\sdsslib\fileHelpers.cpp" />
-    <ClCompile Include="..\sdsslib\helpers.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../;HLS/AFA/include</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../;HLS/AFA/include</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../;HLS/AFA/include</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../;HLS/AFA/include</AdditionalIncludeDirectories>
-    </ClCompile>
-    <ClCompile Include="..\sdsslib\memory.cpp" />
-    <ClCompile Include="..\sdsslib\random.cpp" />
-    <ClCompile Include="..\sdsslib\spectra.cpp" />
-    <ClCompile Include="..\sdsslib\spectraBaseHelpers.cpp" />
-    <ClCompile Include="..\sdsslib\spectraDB.cpp" />
-    <ClCompile Include="..\sdsslib\spectraVFS.cpp" />
-    <ClCompile Include="..\sdsslib\spectraVFSCached.cpp" />
-    <ClCompile Include="..\sdsslib\spectraVFSMemOnly.cpp" />
-    <ClCompile Include="..\sdsslib\spectraWrite.cpp" />
-    <ClCompile Include="..\sdsslib\Timer.cpp" />
     <ClCompile Include="fpgaPlayground.cpp" />
-    <ClCompile Include="FPGASOFMNetwork.cpp" />
     <ClCompile Include="HLS\AFA\AFANetworkSettings.cpp" />
     <ClCompile Include="HLS\AFA\AFAProcessing.cpp" />
     <ClCompile Include="HLS\AFA\AFARandom.cpp" />
     <ClCompile Include="HLS\AFA\AFASpectra.cpp" />
-    <ClCompile Include="HLS\AFA\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\analyze\SOFMNetworkSettings.h" />
-    <ClInclude Include="..\sdsslib\CSVExport.h" />
-    <ClInclude Include="..\sdsslib\debug.h" />
-    <ClInclude Include="..\sdsslib\defines.h" />
-    <ClInclude Include="..\sdsslib\fileHelpers.h" />
-    <ClInclude Include="..\sdsslib\helpers.h" />
-    <ClInclude Include="..\sdsslib\memory.h" />
-    <ClInclude Include="..\sdsslib\random.h" />
-    <ClInclude Include="..\sdsslib\spectra.h" />
-    <ClInclude Include="..\sdsslib\spectraBaseHelpers.h" />
-    <ClInclude Include="..\sdsslib\spectraDB.h" />
-    <ClInclude Include="..\sdsslib\spectraVFS.h" />
-    <ClInclude Include="..\sdsslib\spectraVFSCached.h" />
-    <ClInclude Include="..\sdsslib\spectraVFSMemOnly.h" />
-    <ClInclude Include="..\sdsslib\spectraWrite.h" />
-    <ClInclude Include="..\sdsslib\Timer.h" />
-    <ClInclude Include="FPGASOFMNetwork.h" />
     <ClInclude Include="HLS\AFA\include\AFADefines.h" />
     <ClInclude Include="HLS\AFA\include\AFANetworkSettings.h" />
     <ClInclude Include="HLS\AFA\include\AFAProcessFunction.h" />
@@ -218,7 +179,6 @@
     <ClInclude Include="HLS\AFA\include\AFARandom.h" />
     <ClInclude Include="HLS\AFA\include\AFASpectra.h" />
     <ClInclude Include="HLS\AFA\include\AFATypes.h" />
-    <ClInclude Include="HLS\AFA\include\FPGASOFMNetwork.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

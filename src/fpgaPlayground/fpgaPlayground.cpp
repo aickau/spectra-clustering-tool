@@ -4,9 +4,9 @@
 #include <Memory.h>
 #include <math.h>
 
-#include "AFATypes.h"
-#include "AFASpectra.h"
-#include "AFAProcessing.h"
+#include "HLS/AFA/include/AFATypes.h"
+#include "HLS/AFA/include/AFASpectra.h"
+#include "HLS/AFA/include/AFAProcessing.h"
 
 uint32_t
 ReadSpectraFileRAW(
