@@ -342,7 +342,7 @@ SpectraVFSCached::IOHandle::IOHandle( OVERLAPPED &_overlapped )
 	m_overlapped = _overlapped;
 }
 
-void SpectraVFSCached::IOHandle::set( uint32_t _offsetLow, uint32_t _offsetHigh )
+void SpectraVFSCached::IOHandle::AFASpectraSet( uint32_t _offsetLow, uint32_t _offsetHigh )
 {
 #ifdef SPECTRAVFS_ASYNC_IO
 	m_overlapped.hEvent = (HANDLE)1;

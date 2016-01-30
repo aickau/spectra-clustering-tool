@@ -21,93 +21,42 @@
 #define _AFANETWORKSETTINGS_H
 
 #include <stddef.h>
-#include "AFASpectra.h"
+#include "AFATypes.h"
 
-class AFAParameters
+typedef enum
 {
-public:
-    typedef enum
-    {
-        AFANET_SETTINGS_SEARCHMODE_localfast,
-        AFANET_SETTINGS_SEARCHMODE_local,
-        AFANET_SETTINGS_SEARCHMODE_global,
+	AFANET_SETTINGS_SEARCHMODE_localfast,
+	AFANET_SETTINGS_SEARCHMODE_local,
+	AFANET_SETTINGS_SEARCHMODE_global,
 
-        AFANET_SETTINGS_NORMALIZATION_amplitude,
-        AFANET_SETTINGS_NORMALIZATION_flux,
-        AFANET_SETTINGS_NORMALIZATION_none,
+	AFANET_SETTINGS_NORMALIZATION_amplitude,
+	AFANET_SETTINGS_NORMALIZATION_flux,
+	AFANET_SETTINGS_NORMALIZATION_none,
 
-        AFANET_SETTINGS_WAVELENGTHRANGE_sdss,
-        AFANET_SETTINGS_WAVELENGTHRANGE_boss
-    } AFANET_SETTINGS;
+	AFANET_SETTINGS_WAVELENGTHRANGE_sdss,
+	AFANET_SETTINGS_WAVELENGTHRANGE_boss
+} AFANET_SETTINGS;
 
-public:
-    AFAParameters( size_t _numSteps, size_t _randomSeed, float _lRateBegin, float _lRateEnd, float _radiusBegin, float _radiusEnd);
 
-    int numSteps;											// number of learn steps. reasonable: 10..500
-    int randomSeed;											// zero is not allowed
+typedef struct AFAParameters_
+{
+    int numSteps;												// number of learn steps. reasonable: 10..500
+    int randomSeed;												// zero is not allowed
     float lRateBegin;											// learn rate begin 0.0 .. 1.0
     float lRateEnd;												// learn rate end (0.0 .. 1.0)
     float radiusBegin;											// radius begin (0.0 .. grid size)
     float radiusEnd;											// radius end (0.0 .. grid size)
-    bool exportSubPage;											// if true add sub pages to HTML output
-    bool waitForUser;											// if true wait for user input after each calculation step
-    bool fullExport;											// if true create a detailed export for each spectrum after final calculation step (online useful for small maps)
-    int imageBoderSize;											// to draw colored frames around the image icons, to distinguish between visited and not visited images
-    int iconSize;												// icon width/height in pixels for all spectra icons
-
     AFANET_SETTINGS searchMode;									// search mode to control quality vs. computation time
 																// SOFMNET_SETTINGS_SEARCHMODE_global     < uses global search for BMUs, best quality, runtime is O(n²)
 																// SOFMNET_SETTINGS_SEARCHMODE_local      < uses local search for BMUs if possible.
 																// SOFMNET_SETTINGS_SEARCHMODE_localfast  < uses very fast local search for BMUs if possible, runtime is O(n) 
-    AFASpectra::SpectraNormalization normaliziationType;		// type of normalization of spectra
+    SpectraNormalization normaliziationType;					// type of normalization of spectra
 
-    bool useBOSSWavelengthRange;								// process spectra in an extended wavelength window of 3650..10400 Angstrom 
-    // instead of the 3800..92000 SDSS default window.
+    bool_t useBOSSWavelengthRange;								// process spectra in an extended wavelength window of 3650..10400 Angstrom 
+																// instead of the 3800..92000 SDSS default window.
+} AFAParameters;
 
-    static AFAParameters defaultParameters;
-};
+void afaSetDefaultParameters( AFAParameters *params );
 
-#if 0
-/** @name SETTING Groups
-*/
-//@{
-
-
-#define SOFMNET_SETTINGS						std::string("SETTINGS")
-#define SOFMNET_SETTINGS_STEP					std::string("STEP")
-#define SOFMNET_SETTINGS_GRIDSIZE				std::string("GRIDSIZE")
-#define SOFMNET_SETTINGS_RANDOMSEED				std::string("RANDOMSEED")
-#define SOFMNET_SETTINGS_LEARNRATE				std::string("LEARNRATE")
-#define SOFMNET_SETTINGS_RADIUS					std::string("RADIUS")
-#define SOFMNET_SETTINGS_SPECTRUM				std::string("SPECTRUM")
-#define SOFMNET_SETTINGS_EXPORT					std::string("EXPORT")
-#define SOFMNET_SETTINGS_EXPORT_SUBPAGES		std::string("SUBPAGES")
-#define SOFMNET_SETTINGS_EXPORT_WAITFORUSER		std::string("WAITFORUSER")
-#define SOFMNET_SETTINGS_EXPORT_FULLEXPORT		std::string("FULLEXPORT")
-#define SOFMNET_SETTINGS_EXPORT_IMGBORDERSIZE	std::string("IMGBORDERSIZE")
-#define SOFMNET_SETTINGS_EXPORT_ICONSIZE		std::string("ICONSIZE")
-#define SOFMNET_SETTINGS_SEARCHMODE				std::string("SEARCHMODE")
-#define SOFMNET_SETTINGS_NORMALIZATION			std::string("NORMALIZATION")
-#define SOFMNET_SETTINGS_WAVELENGTHRANGE		std::string("WAVELENGTHRANGE")
-
-//@}
-
-/** @name SETTING values
-*/
-//@{
-
-#define SOFMNET_SETTINGS_SEARCHMODE_localfast		std::string("localfast")
-#define SOFMNET_SETTINGS_SEARCHMODE_local			std::string("local")
-#define SOFMNET_SETTINGS_SEARCHMODE_global			std::string("global")
-
-#define SOFMNET_SETTINGS_NORMALIZATION_amplitude	std::string("amplitude")
-#define SOFMNET_SETTINGS_NORMALIZATION_flux			std::string("flux")
-#define SOFMNET_SETTINGS_NORMALIZATION_none			std::string("none")
-
-#define SOFMNET_SETTINGS_WAVELENGTHRANGE_sdss		std::string("sdss")
-#define SOFMNET_SETTINGS_WAVELENGTHRANGE_boss		std::string("boss")
-
-//@}	
-#endif
 
 #endif // _AFANETWORKSETTINGS_H

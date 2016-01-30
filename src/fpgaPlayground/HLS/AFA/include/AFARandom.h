@@ -19,40 +19,26 @@
 #ifndef AFA_RANDOM_H__
 #define AFA_RANDOM_H__
 
-// random number generation class
-class AFARnd
-{
-public:
 
-	// random seed, zero is not allowed.
-	AFARnd( unsigned long _seed = 4357 );
+// reset random number generation to a given seed
+void AFARandomInitRandom( unsigned long _seed );
 
-	// reset random number generation to a given seed
-	void initRandom( unsigned long _seed = 4357 );
+// return random number [0..1]
+float AFARandomFloat();
 
-	// return random number [0..1]
-	float randomFloat();
+// return random number [0..1]
+double AFARandomDouble();
 
-	// return random number [0..1]
-	double randomDouble();
+// return random number with logarithmic scale [0..1], ex = erwartungswert 
+double AFARandomDoubleLog( float _ex );
 
-	// return random number with logarithmic scale [0..1], ex = erwartungswert 
-	double randomDouleLog( float _ex );
+// return random number [0..0xffffffff]
+unsigned int AFARandomInt();
 
-	// return random number [0..0xffffffff]
-	unsigned int randomInt();
-
-	// return random number [0.._range]
-	unsigned int randomInt( unsigned int _range );
+// return random number [0.._range]
+unsigned int AFARandomIntRange( unsigned int _range );
 
 
-private:
-
-	static const int N=624;
-
-	unsigned long m_mt[N]; // the array for the state vector 
-	int m_mti; 
-};
 
 
 #endif

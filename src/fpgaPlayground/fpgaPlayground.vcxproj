@@ -166,10 +166,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="fpgaPlayground.cpp" />
-    <ClCompile Include="HLS\AFA\AFANetworkSettings.cpp" />
-    <ClCompile Include="HLS\AFA\AFAProcessing.cpp" />
-    <ClCompile Include="HLS\AFA\AFARandom.cpp" />
-    <ClCompile Include="HLS\AFA\AFASpectra.cpp" />
+    <ClCompile Include="HLS\AFA\AFANetworkSettings.c" />
+    <ClCompile Include="HLS\AFA\AFAProcessing.c" />
+    <ClCompile Include="HLS\AFA\AFARandom.c" />
+    <ClCompile Include="HLS\AFA\AFASpectra.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HLS\AFA\include\AFADefines.h" />

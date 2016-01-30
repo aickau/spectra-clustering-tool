@@ -36,16 +36,15 @@
 #define TEMPERING_SHIFT_L(y)  (y >> 18)
 
 
-AFARnd::AFARnd( unsigned long _seed )
-:m_mti(N)
-{
-	initRandom( _seed );
-}
+unsigned long m_mt[N]; // the array for the state vector 
+int m_mti = N; 
 
 
-void AFARnd::initRandom( unsigned long _seed )
+
+void AFARandomInitRandom( unsigned long _seed )
 {
-	for (int i=0;i<N;i++) 
+	int i=0;
+	for (i=0;i<N;i++) 
 	{
 		m_mt[i] = _seed & 0xffff0000;
 		_seed = 69069 * _seed + 1;
@@ -57,23 +56,23 @@ void AFARnd::initRandom( unsigned long _seed )
 
 
 
-float AFARnd::randomFloat()
+float AFARandomFloat()
 {
-	return ( (float)randomDouble() );
+	return ( (float)AFARandomDouble() );
 }
 
-double AFARnd::randomDouble()
+double AFARandomDouble()
 {
-	return ( (double)randomInt() * 2.3283064370807974e-10 );
+	return ( (double)AFARandomInt(31337) * 2.3283064370807974e-10 );
 }
 
-double AFARnd::randomDouleLog( float _ex )
+double AFARandomDoubleLog( float _ex )
 {
-	return ((randomDouble()-_ex)*(randomDouble()-_ex)+_ex);
+	return ((AFARandomDouble()-_ex)*(AFARandomDouble()-_ex)+_ex);
 }
 
 
-unsigned int AFARnd::randomInt()
+unsigned int AFARandomInt()
 {
 	unsigned long y;
 	static unsigned long mag01[2]={0x0, MATRIX_A};    
@@ -99,8 +98,8 @@ unsigned int AFARnd::randomInt()
 	return y; 
 }
 
-unsigned int AFARnd::randomInt( unsigned int _range )
+unsigned int AFARandomIntRange( unsigned int _range )
 {
 	assert(_range != 0x0ffffffff );
-	return randomInt() % (_range+1);
+	return AFARandomInt() % (_range+1);
 }

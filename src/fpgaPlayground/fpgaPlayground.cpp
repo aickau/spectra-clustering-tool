@@ -25,9 +25,9 @@ ReadSpectraFileRAW(
         {
             fseek( f, 0, SEEK_END );
 
-            const size_t fileSize = ( size_t ) ftell( f );
-            const size_t fileCount = fileSize / sizeof( AFASpectra );
-            const size_t remainder = fileSize % sizeof( AFASpectra );
+            const unsigned int fileSize = ( unsigned int ) ftell( f );
+            const unsigned int fileCount = fileSize / sizeof( AFASpectra );
+            const unsigned int remainder = fileSize % sizeof( AFASpectra );
 
             if ( 0 == fileSize )
             {
@@ -51,7 +51,7 @@ ReadSpectraFileRAW(
                         //
                         *spectraCount = ( unsigned long ) fileCount;
                         fseek( f, 0, SEEK_SET );
-                        size_t n = fread(( void * )( *spectraData ), fileSize, 1, f );
+                        unsigned int n = fread(( void * )( *spectraData ), fileSize, 1, f );
                         if ( 1 == n )
                         {
                             // everything is fine
@@ -86,22 +86,45 @@ ReadSpectraFileRAW(
     return rv;
 }
 
+void generateSineTestSpectra()
+{
+	const int numSpectra=10;
+
+	const float freqMin = 0.002f;
+	const float freqMax = 0.05f;
+	const float freqStepSize = (freqMax-freqMin)/static_cast<float>(m_numSpectra);
+	float freq = freqMin;
+
+	for (unsigned int i=0;i<m_numSpectra;i++)
+	{
+		Spectra *a = _pSourceVFS->beginRead(i);
+		a->setSine(freq);
+		a->m_Z = static_cast<float>(i)/static_cast<float>(m_numSpectra);
+		freq += freqStepSize;
+		_pSourceVFS->endRead(i);
+	}
+}
 
 
-int
-main(int argc, char* argv[])
+
+int main(int argc, char* argv[])
 {
     uint32_t numSpectra;
     AFASpectra *spectraData;
-    uint32_t rv = ReadSpectraFileRAW(
-        "allSpectra.bin",
-        &numSpectra,
-        &spectraData );
+
+
+
+
+
+// 	uint32_t rv = ReadSpectraFileRAW(
+//         "allSpectra.bin",
+//         &numSpectra,
+//         &spectraData );
 
     printf( "AFASpectraSize=%d\n", sizeof( AFASpectra ));
 
-    size_t gridSize = static_cast<size_t>(ceilf(sqrtf((float)numSpectra+1))*1.1f); // gives a factor of 1.1^2=1.21 in total
-    size_t gridSizeSqr = gridSize*gridSize;
+    unsigned int gridSize = static_cast<unsigned int>(ceilf(sqrtf((float)numSpectra+1))*1.1f); // gives a factor of 1.1^2=1.21 in total
+    unsigned int gridSizeSqr = gridSize*gridSize;
 
     AFASpectra *net = new AFASpectra[ gridSizeSqr ];
 

@@ -2,10 +2,10 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="fpgaPlayground.cpp" />
-    <ClCompile Include="HLS\AFA\AFANetworkSettings.cpp" />
-    <ClCompile Include="HLS\AFA\AFAProcessing.cpp" />
-    <ClCompile Include="HLS\AFA\AFARandom.cpp" />
-    <ClCompile Include="HLS\AFA\AFASpectra.cpp" />
+    <ClCompile Include="HLS\AFA\AFANetworkSettings.c" />
+    <ClCompile Include="HLS\AFA\AFASpectra.c" />
+    <ClCompile Include="HLS\AFA\AFARandom.c" />
+    <ClCompile Include="HLS\AFA\AFAProcessing.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HLS\AFA\include\AFADefines.h" />

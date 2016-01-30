@@ -6,7 +6,7 @@
 typedef struct
 {
 	uint32_t numSpectra;
-	bool bContinueComputation;
+	bool_t bContinueComputation;
 } AFAProcessFunctionParameter_t;
 
 void
