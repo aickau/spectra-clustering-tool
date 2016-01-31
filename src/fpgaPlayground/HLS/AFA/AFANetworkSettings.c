@@ -1,4 +1,5 @@
 #include "include/AFANetworkSettings.h"
+#include "include/AFADefines.h"
 
 
 void afaSetDefaultParameters( AFAParameters *params )
@@ -11,5 +12,5 @@ void afaSetDefaultParameters( AFAParameters *params )
 	params->radiusEnd = 0.5f;
 	params->searchMode = AFANET_SETTINGS_SEARCHMODE_global;
 	params->normaliziationType = SN_FLUX;
-	params->useBOSSWavelengthRange = false;
+	params->useBOSSWavelengthRange = FALSE;
 }

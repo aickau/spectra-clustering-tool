@@ -173,10 +173,40 @@ void initNetwork( unsigned int _gridSize, float _minPeak, float _maxPeak )
 	}
 }
 
+uint32_t AFACalcGridSize( uint32_t numSpectra )
+{
+	uint32_t gridSize = (unsigned int)(ceilf(sqrtf((float)numSpectra+1))*1.1f); // gives a factor of 1.1^2=1.21 in total
+	return gridSize;
+}
 
-void AFAInitProcessing(
+uint64_t AFACalcAllocSpaceForHelperStructures( uint32_t numSpectra )
+{
+	uint32_t gridSize = AFACalcGridSize( numSpectra );
+	uint32_t gridSizeSqr = gridSize*gridSize;
+	uint64_t neededBytes = 0;
+
+	// for m_pNet / SOM 
+	neededBytes += gridSizeSqr*sizeof(AFASpectra);
+
+	// for m_pSpectraIndexList 
+	neededBytes += gridSizeSqr*sizeof(int);
+
+	// for m_localSearchSpectraVec 
+	neededBytes += gridSizeSqr*sizeof(AFASpectra*);
+
+	// for m_localSearchIndexVec 
+	neededBytes += gridSizeSqr*sizeof(int);
+
+	// for m_localSearchErrorVec 
+	neededBytes += gridSizeSqr*sizeof(float);
+
+	return neededBytes;
+}
+
+
+bool_t AFAInitProcessing(
 	volatile void *spectraArray,
-	volatile void *spectraArray2,  // "sofmnet.bin"
+	volatile void *helperStucturesMem, 
 	uint32_t numSpectra,
 	bool_t continueProcessing,
 	AFAParameters *params
@@ -186,12 +216,34 @@ void AFAInitProcessing(
 	unsigned int xp, yp;
 	unsigned int inset, spectraIndex;
 	volatile AFASpectra *a, *b;
+	uint64_t memOffset;
 
+
+	if ( helperStucturesMem == NULL || spectraArray == NULL )
+		return FALSE;
+
+
+	m_gridSize = AFACalcGridSize(numSpectra);
+	m_gridSizeSqr = m_gridSize*m_gridSize;
 	m_currentStep = 0;
 	m_numSpectra = numSpectra;
-	m_pSourceSpectra =( volatile AFASpectra * ) spectraArray;
-	m_pNet = ( volatile AFASpectra * ) spectraArray2;
-	m_pSpectraIndexList = NULL;
+	m_pSourceSpectra = ( volatile AFASpectra * ) spectraArray;
+	
+	memOffset = 0;
+	m_pNet = ( volatile AFASpectra * )  &((unsigned char*)helperStucturesMem)[memOffset];
+	memOffset += m_gridSizeSqr*sizeof(AFASpectra);
+
+	m_pSpectraIndexList = ( volatile int * ) &((unsigned char*)helperStucturesMem)[memOffset];
+	memOffset += m_gridSizeSqr*sizeof(int);
+
+	m_localSearchSpectraVec = (volatile AFASpectra**) &((unsigned char*)helperStucturesMem)[memOffset];
+	memOffset += m_gridSizeSqr*sizeof(AFASpectra*);
+
+	m_localSearchIndexVec = (int*)  &((unsigned char*)helperStucturesMem)[memOffset];
+	memOffset += m_gridSizeSqr*sizeof(int);
+
+	m_localSearchErrorVec = (float*)  &((unsigned char*)helperStucturesMem)[memOffset];
+
 
 	reset(params);
 
@@ -204,8 +256,6 @@ void AFAInitProcessing(
 		//
 		// start new computation 
 		//
-		m_gridSize = (unsigned int)(ceilf(sqrtf((float)m_numSpectra+1))*1.1f); // gives a factor of 1.1^2=1.21 in total
-		m_gridSizeSqr = m_gridSize*m_gridSize;
 
 		// generate random filled cluster and load it. (AFA changes: do not load it, generate it in memory only)
 		initNetwork( m_gridSize, m_Min, m_Max*0.01f );
@@ -250,26 +300,11 @@ void AFAInitProcessing(
 		}
 #endif
 	}
-	m_pSpectraIndexList = (int*)malloc( m_gridSizeSqr*sizeof(int) );
 
-
-	m_localSearchSpectraVec = (volatile AFASpectra**)malloc( m_gridSizeSqr*sizeof(AFASpectra*) );
-	m_localSearchIndexVec = (int*)malloc( m_gridSizeSqr*sizeof(int) );
-	m_localSearchErrorVec = (float*)malloc( m_gridSizeSqr*sizeof(float) );
-
+	return TRUE;
 }
 
 
-
-
-
-void AFARandomDeinitProcessing()
-{
-	free( m_pSpectraIndexList );
-	free( m_localSearchSpectraVec );
-	free( m_localSearchIndexVec );
-	free( m_localSearchErrorVec );
-}
 
 
 /*
@@ -505,7 +540,7 @@ void searchBestMatchLocal( volatile AFASpectra *_src, const int _searchRadius, B
 }
 
 
-bool_t AFARandomProcess()
+bool_t AFAProcess()
 {
 	BestMatch bmu;
 	volatile AFASpectra *bmuSpectrum=NULL;

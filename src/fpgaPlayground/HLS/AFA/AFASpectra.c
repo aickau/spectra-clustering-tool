@@ -48,6 +48,7 @@ void AFASpectraSetSine( volatile AFASpectra *sp, float _frequency, float _phase,
 	unsigned int i=0;
 	sp->m_SpecObjID =(UIDCount++)<<22;
 	sp->m_version = SP_ARTIFICIAL;
+	sp->m_Type = 0;
 
 	for (i=0;i<numSamples;i++)
 	{
@@ -57,6 +58,7 @@ void AFASpectraSetSine( volatile AFASpectra *sp, float _frequency, float _phase,
 	sp->m_SamplesRead = numSamples;
 	AFASpectraCalcMinMax(sp);
 }
+
 
 void AFASpectraRandomize( volatile AFASpectra *sp, float minrange, float maxrange )
 {
