@@ -370,7 +370,7 @@ void adaptNetwork( volatile AFASpectra *_srcSpectrum, int _bestMatchIndex, float
 			distSqr = (distXSqr+distYSqr)/fGridSizeSqr;					// normalize squared distance with gridsize
 
 			// calculate neighborhood function
-			hxy = exp(-sqrtf(distSqr)/sigmaSqr2);						// spike
+			hxy = ( float )exp(-sqrtf(distSqr)/sigmaSqr2);						// spike
 			lratehsx = _lRate*hxy;
 
 			if ( lratehsx > _adaptionThreshold )
@@ -547,9 +547,9 @@ bool_t AFAProcess()
 	volatile AFASpectra *currentSourceSpectrum;
 	volatile AFASpectra *a;
 	float lPercent = (float)(m_currentStep)/(float)(m_params.numSteps);
-	float lRate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
+	float lRate = ( float ) ( m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent));
 	float adaptionThreshold = m_params.lRateEnd*0.01f;
-	float sigma = m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent);
+	float sigma = ( float ) ( m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent));
 	float sigmaSqr = sigma*sigma;
 	double avgDist = 0.0;
 	bool_t bFullSearch = TRUE;
