@@ -653,3 +653,12 @@ bool_t AFAProcess()
 
 
 
+int AFAGetSpectraIndex( int xp, int yp )
+{
+	int adr = xp+yp*m_gridSize;
+
+	if ( adr < 0 || adr >= m_gridSizeSqr )
+		return -1;
+
+	return m_pNet[adr].m_Index;
+}

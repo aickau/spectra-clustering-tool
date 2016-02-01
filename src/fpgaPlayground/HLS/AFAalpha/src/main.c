@@ -107,16 +107,20 @@ void generateSineTestSpectra( int numTestSpectra, AFASpectra *outSpectraArray )
 
 int main(int argc, char* argv[])
 {
-	int numSpectra = 10;
+	int numSpectra = 100;
 	void *helperStructureSpace;
 	uint64_t neededSystemSpace;
     AFASpectra *spectraData;
+	int xp, yp, gridSize;
+	int idx;
 
 	AFAParameters params;
 
 	spectraData = ( AFASpectra * )malloc( numSpectra * sizeof( AFASpectra ));
 
 	AFASetDefaultParameters( &params );
+	params.searchMode = AFANET_SETTINGS_SEARCHMODE_global;
+	params.numSteps = 200;
 
 	generateSineTestSpectra( numSpectra, spectraData );
 
@@ -129,6 +133,26 @@ int main(int argc, char* argv[])
 
 	while ( !AFAProcess() )
 		printf( "." );
+
+
+	// print results
+	gridSize = AFACalcGridSize(numSpectra);
+
+	printf("\n");
+	for ( yp=0;yp<gridSize;yp++ )
+	{
+		printf("\n");
+		for ( xp=0;xp<gridSize;xp++ )
+		{
+			idx = AFAGetSpectraIndex( xp,yp );
+			if ( idx < 0 )
+				printf(" x  ");
+			else
+				printf("%03d ", idx);
+		}
+	}
+	printf("\n");
+
 
 
 	free( spectraData );
