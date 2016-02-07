@@ -1,6 +1,7 @@
 #include <float.h>
 #include <math.h>
 #include <stddef.h>
+#include <memory.h>
 
 #include "include/AFASpectra.h"
 #include "include/AFAProcessing.h"
@@ -11,21 +12,7 @@
 #include "malloc.h"
 
 
-// use any large number you like
-#define AFA_COMPARE_BATCH 140000
-
-typedef struct BestMatch_
-{
-	unsigned int index;		//< index in the map
-	float error;			//< euclidean distance
-} BestMatch;
-
-void resetBM( BestMatch *bmu)
-{
-	bmu->error = FLT_MAX;
-	bmu->index = 0;
-}
-
+extern AFAProcessingParam_t	AFAPP_HW;
 
 // code book spectra
 volatile AFASpectra	*m_pNet;
@@ -38,8 +25,7 @@ int *m_localSearchIndexVec;
 float *m_localSearchErrorVec;
 
 // number of source spectra
-int m_numSpectra;
-
+int             m_numSpectra;
 
 // grid size in cells of the map
 int			    m_gridSize;
@@ -65,6 +51,36 @@ float			m_flux;
 // contains m_gridSize * m_gridSize  elements
 int				*m_pSpectraIndexList;
 
+AFAProcessingParam_t *
+AFAProcessGetParamBlockAddress()
+{
+	return &AFAPP_HW;
+}
+
+void
+AFAProcessSetParamBlockParameters()
+{
+	AFAProcessingParam_t	*AFAPP;
+
+	AFAPP = AFAProcessGetParamBlockAddress();
+	AFAPP->m_currentStep = m_currentStep;
+	AFAPP->m_gridSize = m_gridSize;
+	AFAPP->m_gridSizeSqr = m_gridSizeSqr;
+	AFAPP->m_localSearchErrorVec = m_localSearchErrorVec;
+	AFAPP->m_localSearchIndexVec = m_localSearchIndexVec;
+	AFAPP->m_localSearchSpectraVec = m_localSearchSpectraVec;
+	AFAPP->m_pSourceSpectra = m_pSourceSpectra;
+	AFAPP->m_pSpectraIndexList = m_pSpectraIndexList;
+	AFAPP->m_numSpectra = m_numSpectra;
+	memcpy( &AFAPP->m_params, &m_params, sizeof( AFAParameters ));
+	AFAPP->m_pNet = m_pNet;
+}
+
+void resetBM( BestMatch *bmu)
+{
+	bmu->error = FLT_MAX;
+	bmu->index = 0;
+}
 
 // set BMU in the map and source spectrum
 // _networkSpectrum artificial spectrum in the map
@@ -539,117 +555,6 @@ void searchBestMatchLocal( volatile AFASpectra *_src, const int _searchRadius, B
 	*outbm = bestMatch;
 }
 
-
-bool_t AFAProcess()
-{
-	BestMatch bmu;
-	volatile AFASpectra *bmuSpectrum=NULL;
-	volatile AFASpectra *currentSourceSpectrum;
-	volatile AFASpectra *a;
-	float lPercent = (float)(m_currentStep)/(float)(m_params.numSteps);
-	float lRate = ( float ) ( m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent));
-	float adaptionThreshold = m_params.lRateEnd*0.01f;
-	float sigma = ( float ) ( m_params.radiusBegin*pow(m_params.radiusEnd/m_params.radiusBegin,lPercent));
-	float sigmaSqr = sigma*sigma;
-	double avgDist = 0.0;
-	bool_t bFullSearch = TRUE;
-	unsigned int searchRadius = 1;
-	int i,j;
-	int spectraIndex=0;
-	int ind0, ind1, tmp;
-
-	if ( m_currentStep > m_params.numSteps )
-	{
-		//Clustering finished (success).
-		return TRUE;
-	}
-
-
-	// determine search strategy for BMUs for the current learning step
-	if ( m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_localfast )
-	{
-		// always use a constant search radius, never do a global search
-		bFullSearch = (m_currentStep<1);
-		searchRadius = 2;
-	}
-	else if ( m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_local )
-	{
-		// global search for the first 5 steps, decreasing search radius for increasing number of learning steps
-		bFullSearch = (m_currentStep<5);
-		searchRadius = (unsigned int)(((1.f-lPercent)*0.5f*(float)(m_gridSize)))+2;
-	}
-	else // SOFMNET_SETTINGS_SEARCHMODE_global
-	{
-		// always use global search, never go local.
-		// slow but guarantees optimal results in every case
-		bFullSearch = TRUE;
-	}
-
-
-	// select random spectra from spectra dataset
-
-	// store all indicies in a list
-	for ( i=0;i<m_numSpectra;i++)
-	{
-		m_pSpectraIndexList[i] = i;
-	}
-
-	// shake well
-	for ( i=0;i<m_numSpectra*2;i++)
-	{
-		ind0 = AFARandomIntRange(m_numSpectra-1);
-		ind1 = AFARandomIntRange(m_numSpectra-1);
-
-		// switch indices
-		tmp = m_pSpectraIndexList[ind0];
-		m_pSpectraIndexList[ind0] = m_pSpectraIndexList[ind1];
-		m_pSpectraIndexList[ind1] = tmp;
-	}
-
-	// clear names
-	for ( i=0;i<m_gridSizeSqr;i++)
-	{
-		a = &m_pNet[i];
-		a->m_SpecObjID = 0;
-		a->m_Index = -1;
-	}
-
-
-	// for each training spectra..
-	for ( j=0;j<m_numSpectra;j++ )
-	{
-		// initialize best match batch
-		resetBM(&bmu);
-
-		spectraIndex = m_pSpectraIndexList[j];
-		currentSourceSpectrum = &m_pSourceSpectra[spectraIndex];
-
-
-		// retrieve best match neuron for a source spectra
-		if (bFullSearch)
-		{
-			searchBestMatchComplete( currentSourceSpectrum, &bmu );
-		}
-		else
-		{
-			searchBestMatchLocal( currentSourceSpectrum, searchRadius, &bmu );
-		}
-
-		// mark best match neuron
-		bmuSpectrum = &m_pNet[bmu.index];
-		setBestMatch( bmuSpectrum, bmu.index, currentSourceSpectrum, spectraIndex );
-
-		// adapt neighborhood
-		// hint: this takes long.
-		adaptNetwork( currentSourceSpectrum, bmu.index, adaptionThreshold, sigmaSqr, lRate );
-	}
-
-
-	m_currentStep++;
-
-	// clustering not yet finished, need another learning step
-	return FALSE;
-}
 
 
 

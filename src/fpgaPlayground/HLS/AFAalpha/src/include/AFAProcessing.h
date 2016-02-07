@@ -1,13 +1,19 @@
 #ifndef AFA_PROCESSING_H__
 #define AFA_PROCESSING_H__
 
-#include "AFATypes.h"
-#include "AFANetworkSettings.h"
-#include "AFARandom.h"
+#include "include/AFATypes.h"
+#include "include/AFANetworkSettings.h"
+#include "include/AFARandom.h"
+#include "include/AFAProcessingCommon.h"
 
-#ifndef FLT_MAX
-#define FLT_MAX         3.402823466e+38F 
-#endif
+// use any large number you like
+#define AFA_COMPARE_BATCH 140000
+
+AFAProcessingParam_t *
+AFAProcessGetParamBlockAddress();
+
+void
+AFAProcessSetParamBlockParameters();
 
 // calculate SOM grid size based on number of input spectra
 uint32_t AFACalcGridSize( uint32_t numSpectra );

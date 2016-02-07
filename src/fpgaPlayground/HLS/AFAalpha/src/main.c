@@ -9,6 +9,10 @@
 #include "include/AFASpectra.h"
 #include "include/AFAProcessing.h"
 
+// HW-Section
+#include "include/AFAProcessingHW.h"
+
+
 /*
 uint32_t ReadSpectraFileRAW( const char *filename, uint32_t *spectraCount, AFASpectra **spectraData )
 {
@@ -131,7 +135,9 @@ int main(int argc, char* argv[])
 
 	AFAInitProcessing( spectraData, helperStructureSpace, numSpectra, FALSE, &params );
 
-	while ( !AFAProcess() )
+	AFAProcessSetParamBlockParameters();
+
+	while ( !AFAProcess_HW() )
 		printf( "." );
 
 

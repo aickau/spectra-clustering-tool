@@ -260,4 +260,10 @@ typedef enum
 	SP_ZWARNING_LOADER_MAPPED	= 0x00080000		//	Single unmapped fiber re-mapped by DB loader
 } SpectraZWarning;
 
+typedef struct BestMatch_
+{
+	unsigned int index;		//< index in the map
+	float error;			//< euclidean distance
+} BestMatch;
+
 #endif

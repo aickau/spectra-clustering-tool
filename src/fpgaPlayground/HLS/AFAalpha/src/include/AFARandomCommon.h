@@ -16,27 +16,19 @@
 //! \file  random.h
 //! \brief random number genration
 
-#ifndef AFA_RANDOM_H__
-#define AFA_RANDOM_H__
+#ifndef AFA_RANDOM_COMMON_H__
+#define AFA_RANDOM_COMMON_H__
 
-#include "include/AFARandomCommon.h"
-
-// reset random number generation to a given seed
-void AFARandomInitRandom( unsigned long _seed );
-
-// return random number [0..1]
-float AFARandomFloat();
-
-// return random number [0..1]
-double AFARandomDouble();
-
-// return random number with logarithmic scale [0..1], ex = erwartungswert 
-double AFARandomDoubleLog( float _ex );
-
-// return random number [0..0xffffffff]
-unsigned int AFARandomInt();
-
-// return random number [0.._range]
-unsigned int AFARandomIntRange( unsigned int _range );
+#define N 624
+#define M 397
+#define MATRIX_A 0x9908b0df   
+#define UPPER_MASK 0x80000000 
+#define LOWER_MASK 0x7fffffff 
+#define TEMPERING_MASK_B 0x9d2c5680
+#define TEMPERING_MASK_C 0xefc60000
+#define TEMPERING_SHIFT_U(y)  (y >> 11)
+#define TEMPERING_SHIFT_S(y)  (y << 7)
+#define TEMPERING_SHIFT_T(y)  (y << 15)
+#define TEMPERING_SHIFT_L(y)  (y >> 18)
 
 #endif

@@ -137,17 +137,28 @@
   <ItemGroup>
     <ClCompile Include="..\src\AFANetworkSettings.c" />
     <ClCompile Include="..\src\AFAProcessing.c" />
+    <ClCompile Include="..\src\AFAProcessingHW.c" />
     <ClCompile Include="..\src\AFARandom.c" />
+    <ClCompile Include="..\src\AFARandomHW.c" />
     <ClCompile Include="..\src\AFASpectra.c" />
+    <ClCompile Include="..\src\AFASpectraHW.c" />
     <ClCompile Include="..\src\main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\include\AFADefines.h" />
     <ClInclude Include="..\src\include\AFANetworkSettings.h" />
+    <ClInclude Include="..\src\include\AFANetworkSettingsCommon.h" />
+    <ClInclude Include="..\src\include\AFANetworkSettingsHW.h" />
     <ClInclude Include="..\src\include\AFAProcessFunction.h" />
     <ClInclude Include="..\src\include\AFAProcessing.h" />
+    <ClInclude Include="..\src\include\AFAProcessingCommon.h" />
+    <ClInclude Include="..\src\include\AFAProcessingHW.h" />
     <ClInclude Include="..\src\include\AFARandom.h" />
+    <ClInclude Include="..\src\include\AFARandomCommon.h" />
+    <ClInclude Include="..\src\include\AFARandomHW.h" />
     <ClInclude Include="..\src\include\AFASpectra.h" />
+    <ClInclude Include="..\src\include\AFASpectraCommon.h" />
+    <ClInclude Include="..\src\include\AFASpectraHW.h" />
     <ClInclude Include="..\src\include\AFATypes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

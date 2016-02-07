@@ -16,27 +16,27 @@
 //! \file  random.h
 //! \brief random number genration
 
-#ifndef AFA_RANDOM_H__
-#define AFA_RANDOM_H__
+#ifndef AFA_RANDOM_HW_H__
+#define AFA_RANDOM_HW_H__
 
 #include "include/AFARandomCommon.h"
 
 // reset random number generation to a given seed
-void AFARandomInitRandom( unsigned long _seed );
+void AFARandomInitRandom_HW( unsigned long _seed );
 
 // return random number [0..1]
-float AFARandomFloat();
+float AFARandomFloat_HW();
 
 // return random number [0..1]
-double AFARandomDouble();
+double AFARandomDouble_HW();
 
 // return random number with logarithmic scale [0..1], ex = erwartungswert 
-double AFARandomDoubleLog( float _ex );
+double AFARandomDoubleLog_HW( float _ex );
 
 // return random number [0..0xffffffff]
-unsigned int AFARandomInt();
+unsigned int AFARandomInt_HW();
 
 // return random number [0.._range]
-unsigned int AFARandomIntRange( unsigned int _range );
+unsigned int AFARandomIntRange_HW( unsigned int _range );
 
 #endif

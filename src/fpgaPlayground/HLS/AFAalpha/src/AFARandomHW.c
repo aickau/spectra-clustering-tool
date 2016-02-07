@@ -18,68 +18,65 @@
 //! \brief Random number generation taken from mt19937-1.c 
 //!        should give 2^19937-1 random numbers per seed
 
-#include "include/AFARandom.h"
+#include "include/AFARandomHW.h"
 
 #include <assert.h>
 
+unsigned long m_mt_HW[N]; // the array for the state vector 
+int m_mti_HW = N; 
 
 
 
-unsigned long m_mt[N]; // the array for the state vector 
-int m_mti = N; 
-
-
-
-void AFARandomInitRandom( unsigned long _seed )
+void AFARandomInitRandom_HW( unsigned long _seed )
 {
 	int i=0;
 	for (i=0;i<N;i++) 
 	{
-		m_mt[i] = _seed & 0xffff0000;
+		m_mt_HW[i] = _seed & 0xffff0000;
 		_seed = 69069 * _seed + 1;
-		m_mt[i] |= (_seed & 0xffff0000) >> 16;
+		m_mt_HW[i] |= (_seed & 0xffff0000) >> 16;
 		_seed = 69069 * _seed + 1;
 	}
-	m_mti = N;
+	m_mti_HW = N;
 }
 
 
 
-float AFARandomFloat()
+float AFARandomFloat_HW()
 {
-	return ( (float)AFARandomDouble() );
+	return ( (float)AFARandomDouble_HW() );
 }
 
-double AFARandomDouble()
+double AFARandomDouble_HW()
 {
-	return ( (double)AFARandomIntRange(31337) * 2.3283064370807974e-10 );
+	return ( (double)AFARandomIntRange_HW(31337) * 2.3283064370807974e-10 );
 }
 
-double AFARandomDoubleLog( float _ex )
+double AFARandomDoubleLog_HW( float _ex )
 {
-	return ((AFARandomDouble()-_ex)*(AFARandomDouble()-_ex)+_ex);
+	return ((AFARandomDouble_HW()-_ex)*(AFARandomDouble_HW()-_ex)+_ex);
 }
 
 
-unsigned int AFARandomInt()
+unsigned int AFARandomInt_HW()
 {
 	unsigned long y;
 	static unsigned long mag01[2]={0x0, MATRIX_A};    
-	if (m_mti >= N) { // generate N words at one time 
+	if (m_mti_HW >= N) { // generate N words at one time 
 		int kk;
 		for (kk=0;kk<N-M;kk++) {
-			y = (m_mt[kk]&UPPER_MASK)|(m_mt[kk+1]&LOWER_MASK);
-			m_mt[kk] = m_mt[kk+M] ^ (y >> 1) ^ mag01[y & 0x1];
+			y = (m_mt_HW[kk]&UPPER_MASK)|(m_mt_HW[kk+1]&LOWER_MASK);
+			m_mt_HW[kk] = m_mt_HW[kk+M] ^ (y >> 1) ^ mag01[y & 0x1];
 		}
 		for (;kk<N-1;kk++) {
-			y = (m_mt[kk]&UPPER_MASK)|(m_mt[kk+1]&LOWER_MASK);
-			m_mt[kk] = m_mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1];
+			y = (m_mt_HW[kk]&UPPER_MASK)|(m_mt_HW[kk+1]&LOWER_MASK);
+			m_mt_HW[kk] = m_mt_HW[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1];
 		}
-		y = (m_mt[N-1]&UPPER_MASK)|(m_mt[0]&LOWER_MASK);
-		m_mt[N-1] = m_mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1];
-		m_mti = 0;
+		y = (m_mt_HW[N-1]&UPPER_MASK)|(m_mt_HW[0]&LOWER_MASK);
+		m_mt_HW[N-1] = m_mt_HW[M-1] ^ (y >> 1) ^ mag01[y & 0x1];
+		m_mti_HW = 0;
 	}
-	y = m_mt[m_mti++];
+	y = m_mt_HW[m_mti_HW++];
 	y ^= TEMPERING_SHIFT_U(y);
 	y ^= TEMPERING_SHIFT_S(y) & TEMPERING_MASK_B;
 	y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
@@ -87,8 +84,8 @@ unsigned int AFARandomInt()
 	return y; 
 }
 
-unsigned int AFARandomIntRange( unsigned int _range )
+unsigned int AFARandomIntRange_HW( unsigned int _range )
 {
 	assert(_range != 0x0ffffffff );
-	return AFARandomInt() % (_range+1);
+	return AFARandomInt_HW() % (_range+1);
 }
