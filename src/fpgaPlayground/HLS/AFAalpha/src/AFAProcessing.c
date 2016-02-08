@@ -7,7 +7,6 @@
 #include "include/AFAProcessing.h"
 #include "include/AFADefines.h"
 #include "include/AFATypes.h"
-#include "include/AFARandom.h"
 
 #include "malloc.h"
 
@@ -61,8 +60,18 @@ void
 AFAProcessSetParamBlockParameters()
 {
 	AFAProcessingParam_t	*AFAPP;
+	unsigned long			*mt; // the array for the state vector 
+	int						*mti;
+	int						pStart;
+	int						pEnd;
 
 	AFAPP = AFAProcessGetParamBlockAddress();
+	AFARandomGetStateVectorBlockAddress( &mt, &mti );
+	AFASpectraPixelStartEndGet( &pStart, &pEnd );
+
+	// no misunderstandings here ...
+	memset( AFAPP, 0, sizeof( AFAProcessingParam_t ));
+
 	AFAPP->m_currentStep = m_currentStep;
 	AFAPP->m_gridSize = m_gridSize;
 	AFAPP->m_gridSizeSqr = m_gridSizeSqr;
@@ -74,6 +83,14 @@ AFAProcessSetParamBlockParameters()
 	AFAPP->m_numSpectra = m_numSpectra;
 	memcpy( &AFAPP->m_params, &m_params, sizeof( AFAParameters ));
 	AFAPP->m_pNet = m_pNet;
+
+	// the random generator state vector
+	memcpy( &AFAPP->m_mt[ 0 ], mt, sizeof( AFAPP->m_mt ));
+	AFAPP->m_mti = *mti;
+
+	// spectra start/stop
+	AFAPP->m_pStart = pStart;
+	AFAPP->m_pEnd = pEnd;
 }
 
 void resetBM( BestMatch *bmu)

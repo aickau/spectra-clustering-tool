@@ -21,6 +21,10 @@
 
 #include "include/AFARandomCommon.h"
 
+void AFARandomGetInit(
+	unsigned long *mt_HW, // the array for the state vector 
+	int mti_HW );
+
 // reset random number generation to a given seed
 void AFARandomInitRandom_HW( unsigned long _seed );
 

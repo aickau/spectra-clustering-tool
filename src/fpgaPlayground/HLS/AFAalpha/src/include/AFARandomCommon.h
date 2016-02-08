@@ -19,8 +19,8 @@
 #ifndef AFA_RANDOM_COMMON_H__
 #define AFA_RANDOM_COMMON_H__
 
-#define N 624
-#define M 397
+#define RANDOM_N			( 624 )
+#define RANDOM_M			( 397 )
 #define MATRIX_A 0x9908b0df   
 #define UPPER_MASK 0x80000000 
 #define LOWER_MASK 0x7fffffff 

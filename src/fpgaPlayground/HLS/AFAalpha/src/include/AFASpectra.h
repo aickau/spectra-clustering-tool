@@ -13,6 +13,10 @@ extern int pixelEnd;												// spectrum pixel range for compare and adaption
 /** @name ACCESSORS
 */
 //@{
+void
+AFASpectraPixelStartEndGet(
+	int *pStart,
+	int *pEnd );
 
 
 // returns true if marked as empty spectrum (specObjID is set to zero).

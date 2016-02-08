@@ -9,6 +9,12 @@
 #include <float.h>
 #include <math.h>
 
+#if 1
+ // temp only
+#include <stdio.h>
+FILE *f;
+#endif
+
 AFAProcessingParam_t	AFAPP_HW;
 
 void resetBM_HW( BestMatch *bmu)
@@ -231,6 +237,12 @@ bool_t AFAProcess_HW()
 		return TRUE;
 	}
 
+	AFARandomGetInit(
+		AFAPP_HW.m_mt, // the array for the state vector 
+		AFAPP_HW.m_mti );
+	AFASpectraPixelStartEndSet_HW(
+		AFAPP_HW.m_pStart,
+		AFAPP_HW.m_pEnd );
 
 	// determine search strategy for BMUs for the current learning step
 	if ( AFAPP_HW.m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_localfast )
@@ -304,6 +316,7 @@ bool_t AFAProcess_HW()
 
 		// mark best match neuron
 		bmuSpectrum = &AFAPP_HW.m_pNet[bmu.index];
+f = fopen("c:\\tmp\\outvs.txt","a+b");fprintf(f,"%d, ",bmu.index);fclose(f);
 		setBestMatch_HW( bmuSpectrum, bmu.index, currentSourceSpectrum, spectraIndex );
 
 		// adapt neighborhood

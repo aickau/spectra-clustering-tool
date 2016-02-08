@@ -202,6 +202,14 @@ int AFASpectraGetSDSSSpectraOffsetEnd()
     return offset;
 }
 
+void
+AFASpectraPixelStartEndGet(
+	int *pStart,
+	int *pEnd )
+{
+	*pStart = pixelStart;
+	*pEnd = pixelEnd;
+}
 
 void AFASpectraSetOperationRange( bool_t _BOSSWavelengthRange )
 {

@@ -119,8 +119,10 @@ int main(int argc, char* argv[])
 	int idx;
 
 	AFAParameters params;
+	size_t spectraDataSize = numSpectra * sizeof( AFASpectra );
 
-	spectraData = ( AFASpectra * )malloc( numSpectra * sizeof( AFASpectra ));
+	spectraData = ( AFASpectra * )malloc( spectraDataSize );
+	memset( spectraData, 0xe7, spectraDataSize );
 
 	AFASetDefaultParameters( &params );
 	params.searchMode = AFANET_SETTINGS_SEARCHMODE_global;
@@ -131,7 +133,7 @@ int main(int argc, char* argv[])
 	neededSystemSpace = AFACalcAllocSpaceForHelperStructures( numSpectra );
 
 	helperStructureSpace = malloc( neededSystemSpace );
-
+	memset( helperStructureSpace, 0x9e, neededSystemSpace );
 
 	AFAInitProcessing( spectraData, helperStructureSpace, numSpectra, FALSE, &params );
 

@@ -7,10 +7,18 @@
 #include <math.h>
 
 int pixelStart_HW				= 0;		
-int pixelEnd_HW					= numSamples;		
+int pixelEnd_HW					= 0x12345678;		
 
 // unique identifier count
 unsigned int UIDCount_HW = 1;
+
+void AFASpectraPixelStartEndSet_HW(
+	int pStart,
+	int pEnd )
+{
+	pixelStart_HW = pStart;
+	pixelEnd_HW = pEnd;
+}
 
 bool_t AFASpectraIsEmpty_HW(volatile AFASpectra *sp) 
 {

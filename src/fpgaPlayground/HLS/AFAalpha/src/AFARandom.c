@@ -25,25 +25,31 @@
 
 
 
-unsigned long m_mt[N]; // the array for the state vector 
-int m_mti = N; 
+unsigned long m_mt[RANDOM_N]; // the array for the state vector 
+int m_mti = RANDOM_N; 
 
 
 
 void AFARandomInitRandom( unsigned long _seed )
 {
 	int i=0;
-	for (i=0;i<N;i++) 
+	for (i=0;i<RANDOM_N;i++) 
 	{
 		m_mt[i] = _seed & 0xffff0000;
 		_seed = 69069 * _seed + 1;
 		m_mt[i] |= (_seed & 0xffff0000) >> 16;
 		_seed = 69069 * _seed + 1;
 	}
-	m_mti = N;
+	m_mti = RANDOM_N;
 }
 
-
+void AFARandomGetStateVectorBlockAddress(
+	unsigned long **mt, // the array for the state vector 
+	int **mti )
+{
+	*mt = &m_mt[ 0 ]; // the array for the state vector 
+	*mti = &m_mti; 
+}
 
 float AFARandomFloat()
 {
@@ -65,18 +71,18 @@ unsigned int AFARandomInt()
 {
 	unsigned long y;
 	static unsigned long mag01[2]={0x0, MATRIX_A};    
-	if (m_mti >= N) { // generate N words at one time 
+	if (m_mti >= RANDOM_N) { // generate N words at one time 
 		int kk;
-		for (kk=0;kk<N-M;kk++) {
+		for (kk=0;kk<RANDOM_N-RANDOM_M;kk++) {
 			y = (m_mt[kk]&UPPER_MASK)|(m_mt[kk+1]&LOWER_MASK);
-			m_mt[kk] = m_mt[kk+M] ^ (y >> 1) ^ mag01[y & 0x1];
+			m_mt[kk] = m_mt[kk+RANDOM_M] ^ (y >> 1) ^ mag01[y & 0x1];
 		}
-		for (;kk<N-1;kk++) {
+		for (;kk<RANDOM_N-1;kk++) {
 			y = (m_mt[kk]&UPPER_MASK)|(m_mt[kk+1]&LOWER_MASK);
-			m_mt[kk] = m_mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1];
+			m_mt[kk] = m_mt[kk+(RANDOM_M-RANDOM_N)] ^ (y >> 1) ^ mag01[y & 0x1];
 		}
-		y = (m_mt[N-1]&UPPER_MASK)|(m_mt[0]&LOWER_MASK);
-		m_mt[N-1] = m_mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1];
+		y = (m_mt[RANDOM_N-1]&UPPER_MASK)|(m_mt[0]&LOWER_MASK);
+		m_mt[RANDOM_N-1] = m_mt[RANDOM_M-1] ^ (y >> 1) ^ mag01[y & 0x1];
 		m_mti = 0;
 	}
 	y = m_mt[m_mti++];

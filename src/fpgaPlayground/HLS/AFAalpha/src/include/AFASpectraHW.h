@@ -6,13 +6,14 @@
 #include "AFATypes.h"
 #include "include/AFASpectraCommon.h"
 
-extern int pixelStart_HW;												// spectrum pixel range for compare and adaption processes [0..<pixelEnd], must be multiples of four.
-extern int pixelEnd_HW;												// spectrum pixel range for compare and adaption processes [0..numSamples]
-
 
 /** @name ACCESSORS
 */
 //@{
+
+void AFASpectraPixelStartEndSet_HW(
+	int pStart,
+	int pEnd );
 
 // returns true if marked as empty spectrum (specObjID is set to zero).
 bool_t AFASpectraIsEmpty_HW( volatile AFASpectra *sp);
