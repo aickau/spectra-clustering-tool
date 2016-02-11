@@ -35,6 +35,7 @@ typedef struct AFASpectra_
     float m_Max;
     sint32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
     sint16_t m_SamplesRead;
+    sint32_t m_JSCIndex;
     sint64_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
     sint32_t m_Type;					// bits 0..2 SpectraClass 
 										// bits 3..9 SpectraSubClass

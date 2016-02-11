@@ -309,6 +309,7 @@ bool_t AFAInitProcessing(
 
 				spectraIndex = AFARandomIntRange( m_numSpectra - 1 );
 				b = &m_pSourceSpectra[ spectraIndex ];
+a->m_JSCIndex = spectraIndex;
 				AFASpectraSet( a, b );
 			}
 		}
@@ -333,6 +334,11 @@ bool_t AFAInitProcessing(
 		}
 #endif
 	}
+	for ( i=0;i<m_gridSizeSqr;i++)
+	{
+		a = &m_pNet[ i ];
+      printf("%3d: %d\n", i, a->m_JSCIndex );
+   }
 
 	return TRUE;
 }

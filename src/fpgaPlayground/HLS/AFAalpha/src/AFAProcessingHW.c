@@ -230,6 +230,7 @@ bool_t AFAProcess_HW()
 	int i,j;
 	int spectraIndex=0;
 	int ind0, ind1, tmp;
+   static int paramInitialized = 0;
 
 	if ( AFAPP_HW.m_currentStep > AFAPP_HW.m_params.numSteps )
 	{
@@ -237,12 +238,16 @@ bool_t AFAProcess_HW()
 		return TRUE;
 	}
 
-	AFARandomGetInit(
-		AFAPP_HW.m_mt, // the array for the state vector 
-		AFAPP_HW.m_mti );
-	AFASpectraPixelStartEndSet_HW(
-		AFAPP_HW.m_pStart,
-		AFAPP_HW.m_pEnd );
+   if ( 0 == paramInitialized )
+   {
+	   AFARandomGetInit(
+		   AFAPP_HW.m_mt, // the array for the state vector 
+		   AFAPP_HW.m_mti );
+	   AFASpectraPixelStartEndSet_HW(
+		   AFAPP_HW.m_pStart,
+		   AFAPP_HW.m_pEnd );
+      paramInitialized = 1;
+   }
 
 	// determine search strategy for BMUs for the current learning step
 	if ( AFAPP_HW.m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_localfast )
