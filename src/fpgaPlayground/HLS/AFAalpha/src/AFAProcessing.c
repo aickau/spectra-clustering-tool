@@ -334,12 +334,13 @@ a->m_JSCIndex = spectraIndex;
 		}
 #endif
 	}
+#if 0
 	for ( i=0;i<m_gridSizeSqr;i++)
 	{
 		a = &m_pNet[ i ];
       printf("%3d: %d\n", i, a->m_JSCIndex );
-   }
-
+    }
+#endif
 	return TRUE;
 }
 

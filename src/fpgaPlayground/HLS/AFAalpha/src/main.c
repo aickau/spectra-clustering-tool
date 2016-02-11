@@ -175,78 +175,54 @@ int main(int argc, char* argv[])
 	AFAProcessSetParamBlockParameters();
 
 	while ( !AFAProcess_HW() )
-   {
+    {
 		printf( "." );
+#if 1
+    }
+    {
+#else
+#endif
+        rv = 0;
 
-      rv = 0;
+	    // print results
+	    gridSize = AFACalcGridSize(numSpectra);
 
-	   // print results
-	   gridSize = AFACalcGridSize(numSpectra);
-
-	   printf("\n");
-	   for ( yp=0;yp<gridSize;yp++ )
-	   {
-         printf("\t{");
-		   for ( xp=0;xp<gridSize;xp++ )
-		   {
-			   idx = AFAGetSpectraIndex( xp,yp );
-			   if ( idx < 0 )
-				   printf(" -1, ");
-			   else
-				   printf("%3d, ", idx);
-            idx = ( idx < 0 ) ? -1 : idx;
-            if ( idx != golden_data[ yp ][ xp ])
+	    printf("\n");
+	    for ( yp=0;yp<gridSize;yp++ )
+	    {
+            printf("\t{");
+            for ( xp=0;xp<gridSize;xp++ )
             {
-               rv = 1000000 + xp + yp * gridSize;
+                idx = AFAGetSpectraIndex( xp,yp );
+                if ( idx < 0 )
+	                printf(" -1, ");
+                else
+	                printf("%3d, ", idx);
+                idx = ( idx < 0 ) ? -1 : idx;
+                if ( idx != golden_data[ yp ][ xp ])
+                {
+                    rv = 1000000 + xp + yp * gridSize;
+                }
             }
-		   }
-         printf("},\n");
-	   }
-	   printf("\n");
-   }
+            printf("},\n");
+	    }
+	    printf("\n");
+    }
 
 
 	free( spectraData );
 	free( helperStructureSpace );
 
+    if ( rv )
+    {
+        printf( "ERROR!!!: %d\n", rv - 1000000 );
+    }
+    else
+    {
+        printf( "==> Fehlerfrei !!!\n" );
+    }
 
-	/*
-	AFAInitProcessing();
-
-
-// 	uint32_t rv = ReadSpectraFileRAW(
-//         "allSpectra.bin",
-//         &numSpectra,
-//         &spectraData );
-
-    printf( "AFASpectraSize=%d\n", sizeof( AFASpectra ));
-
-    unsigned int gridSize = static_cast<unsigned int>(ceilf(sqrtf((float)numSpectra+1))*1.1f); // gives a factor of 1.1^2=1.21 in total
-    unsigned int gridSizeSqr = gridSize*gridSize;
-
-    AFASpectra *net = new AFASpectra[ gridSizeSqr ];
-
-    AFAProcessing AFAProc(
-        spectraData,
-        net,
-        numSpectra,
-        false );
-
-    free( spectraData );
-    delete [] net;
-    return ( int ) rv;
-	*/
-
-   if ( rv )
-   {
-      printf( "ERROR!!!: %d\n", rv - 1000000 );
-   }
-   else
-   {
-      printf( "==> Fehlerfrei !!!\n" );
-   }
-
-	return rv;
+    return rv;
 }
 
 

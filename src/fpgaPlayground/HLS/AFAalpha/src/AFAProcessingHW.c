@@ -230,7 +230,7 @@ bool_t AFAProcess_HW()
 	int i,j;
 	int spectraIndex=0;
 	int ind0, ind1, tmp;
-   static int paramInitialized = 0;
+    static int paramInitialized = 0;
 
 	if ( AFAPP_HW.m_currentStep > AFAPP_HW.m_params.numSteps )
 	{
@@ -321,14 +321,12 @@ bool_t AFAProcess_HW()
 
 		// mark best match neuron
 		bmuSpectrum = &AFAPP_HW.m_pNet[bmu.index];
-f = fopen("c:\\tmp\\outvs.txt","a+b");fprintf(f,"%d, ",bmu.index);fclose(f);
 		setBestMatch_HW( bmuSpectrum, bmu.index, currentSourceSpectrum, spectraIndex );
 
 		// adapt neighborhood
 		// hint: this takes long.
 		adaptNetwork_HW( currentSourceSpectrum, bmu.index, adaptionThreshold, sigmaSqr, lRate );
 	}
-
 
 	AFAPP_HW.m_currentStep++;
 
