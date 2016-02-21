@@ -1,5 +1,5 @@
-#include "include/AFANetworkSettings.h"
-#include "include/AFADefines.h"
+#include "AFANetworkSettings.h"
+#include "AFADefines.h"
 
 
 void AFASetDefaultParameters( AFAParameters *params )

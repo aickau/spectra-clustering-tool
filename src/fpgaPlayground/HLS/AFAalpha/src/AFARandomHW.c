@@ -18,7 +18,8 @@
 //! \brief Random number generation taken from mt19937-1.c 
 //!        should give 2^19937-1 random numbers per seed
 
-#include "include/AFARandomHW.h"
+#include "AFARandomHW.h"
+#include "AFATypes.h"
 
 #include <assert.h>
 #include <memory.h>
@@ -30,7 +31,13 @@ void AFARandomGetInit(
 	unsigned long *mt_HW, // the array for the state vector 
 	int mti_HW )
 {
-	memcpy( &m_mt_HW[ 0 ], mt_HW, sizeof( m_mt_HW ));
+	uint32_t i;
+	uint32_t maxI = sizeof( m_mt_HW ) / sizeof( m_mt_HW[ 0 ]);
+	for (i = 0; i < maxI; ++i )
+	{
+		m_mt_HW[ i ] = mt_HW[ i ];
+	}
+	//memcpy( &m_mt_HW[ 0 ], mt_HW, sizeof( m_mt_HW ));
 	m_mti_HW = mti_HW;
 }
 

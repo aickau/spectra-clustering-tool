@@ -3,10 +3,10 @@
 #include <stddef.h>
 #include <memory.h>
 
-#include "include/AFASpectra.h"
-#include "include/AFAProcessing.h"
-#include "include/AFADefines.h"
-#include "include/AFATypes.h"
+#include "AFASpectra.h"
+#include "AFAProcessing.h"
+#include "AFADefines.h"
+#include "AFATypes.h"
 
 #include "malloc.h"
 
@@ -48,7 +48,7 @@ float			m_flux;
 
 // determine processing order. must be randomized every learning step
 // contains m_gridSize * m_gridSize  elements
-int				*m_pSpectraIndexList;
+volatile int *m_pSpectraIndexList;
 
 AFAProcessingParam_t *
 AFAProcessGetParamBlockAddress()

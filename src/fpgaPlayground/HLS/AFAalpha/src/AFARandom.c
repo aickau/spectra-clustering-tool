@@ -18,7 +18,7 @@
 //! \brief Random number generation taken from mt19937-1.c 
 //!        should give 2^19937-1 random numbers per seed
 
-#include "include/AFARandom.h"
+#include "AFARandom.h"
 
 #include <assert.h>
 

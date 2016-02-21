@@ -1,6 +1,6 @@
-#include "include/AFASpectraHW.h"
-#include "include/AFADefines.h"
-#include "include/AFARandomHW.h"
+#include "AFASpectraHW.h"
+#include "AFADefines.h"
+#include "AFARandomHW.h"
 
 #include <float.h>
 #include <assert.h>

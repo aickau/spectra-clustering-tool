@@ -1,0 +1,27 @@
+#ifndef AFA_DEFINES_H__
+#define AFA_DEFINES_H__
+
+//const float FLT_MAX = 3.40282347e+38f;
+
+#define AFAMIN(a,b)    (((a) < (b)) ? (a) : (b))
+#define AFAMAX(a,b)    (((a) > (b)) ? (a) : (b))
+#define AFACLAMP(x,min,max) AFAMAX(AFAMIN(x,max),min)
+
+#ifndef EULER
+#define EULER			( 2.718281828f )
+#endif 
+
+#ifndef NULL
+#define NULL			( 0 )
+#endif 
+
+#ifndef TRUE
+#define TRUE			( 1 )
+#endif 
+
+#ifndef FALSE
+#define FALSE			( 0 )
+#endif 
+
+
+#endif

@@ -1,15 +1,16 @@
-#include "include/AFATypes.h"
-#include "include/AFADefines.h"
+#include "AFATypes.h"
+#include "AFADefines.h"
 
-#include "include/AFASpectraHW.h"
-#include "include/AFANetworkSettingsHW.h"
-#include "include/AFAProcessingHW.h"
-#include "include/AFARandomHW.h"
+#include "AFASpectraHW.h"
+#include "AFANetworkSettingsHW.h"
+#include "AFAProcessingHW.h"
+#include "AFARandomHW.h"
 
 #include <float.h>
 #include <math.h>
+#include <memory.h>
 
-#if 1
+#if 0
  // temp only
 #include <stdio.h>
 FILE *f;
@@ -66,6 +67,7 @@ void adaptNetwork_HW( volatile AFASpectra *_srcSpectrum, int _bestMatchIndex, fl
 	}
 }
 
+#if 0
 void compareSpectra_HW(volatile AFASpectra *_a, volatile AFASpectra *_pB, int _nCount, float *_pOutErrors )
 {
 	//assert( _pB != NULL );
@@ -78,7 +80,29 @@ void compareSpectra_HW(volatile AFASpectra *_a, volatile AFASpectra *_pB, int _n
 	{
 		if ( AFASpectraIsEmpty_HW( &_pB[i] ) )
 		{
-			_pOutErrors[i] = AFASpectraCompare_HW( _a, &_pB[i] );
+			_pOutErrors[i] = AFASpectraCompare_HW( _a, &_pB[i] ); // compares single spectral lines
+		}
+		else
+		{
+			_pOutErrors[i] = FLT_MAX;
+		}
+	}
+}
+#endif
+
+void compareSpectra_HW( AFASpectra *_a, AFASpectra _pB[ AFA_SPECTRA_CACHE_NUMSPECTRA ], int _nCount, float *_pOutErrors )
+{
+	//assert( _pB != NULL );
+	//assert( _pOutErrors != NULL );
+	int i;
+	int numElements = (int)_nCount;
+
+	// hint this can run in parallel
+	for (i=0;i<numElements;i++)
+	{
+		if ( AFASpectraIsEmpty_HW( &_pB[i] ) )
+		{
+			_pOutErrors[i] = AFASpectraCompare_HW( _a, &_pB[i] ); // compares single spectral lines
 		}
 		else
 		{
@@ -97,15 +121,25 @@ void searchBestMatchComplete_HW( volatile AFASpectra *_src, BestMatch *outbm )
 	BestMatch bestMatch;
 	volatile AFASpectra *a;
 	resetBM_HW(&bestMatch);
+	AFASpectra localSpectrumSrc1;
+	AFASpectra localSpectrumSrc2[ AFA_SPECTRA_CACHE_NUMSPECTRA ];
 
+	// generate a local copy for spectrum #1
+	memcpy( &localSpectrumSrc1, ( const void * ) _src, sizeof( AFASpectra ));
 
 	while (j<AFAPP_HW.m_gridSizeSqr)
 	{
-		const int jInc = AFAMIN( AFA_COMPARE_BATCH_HW, (AFAMIN(AFAPP_HW.m_gridSizeSqr, j+AFA_COMPARE_BATCH_HW)-j));
+		const int jInc = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, (AFAMIN(AFAPP_HW.m_gridSizeSqr, j+AFA_SPECTRA_CACHE_NUMSPECTRA)-j));
 
 		// calc euclidean distances for spectrum _src and a batch of network spectra starting at m_pNet[j] .. m_pNet[j+jInc-1]
 		a = &AFAPP_HW.m_pNet[j];
-		compareSpectra_HW( _src, a, jInc, err );
+
+		// generate a local copy within spectrum #2
+		// it contains jInc number of single spectra
+		memcpy( &localSpectrumSrc2[ 0 ], ( const void * ) a, jInc * sizeof( AFASpectra ));
+
+		compareSpectra_HW( &localSpectrumSrc1, &localSpectrumSrc2[ 0 ], jInc, err );
+//		compareSpectra_HW( _src, a, jInc, err );
 
 		// find smallest error (i.e. winning neuron/ network spectrum) in batch
 		for ( k=0;k<jInc;k++ )
@@ -117,7 +151,7 @@ void searchBestMatchComplete_HW( volatile AFASpectra *_src, BestMatch *outbm )
 			}
 		}
 
-		j += jInc;
+		j += AFA_SPECTRA_CACHE_NUMSPECTRA;
 	}
 
 	*outbm = bestMatch;
@@ -148,6 +182,7 @@ void setBestMatch_HW( volatile AFASpectra *_networkSpectrum, unsigned int _netwo
 
 void searchBestMatchLocal_HW( volatile AFASpectra *_src, const int _searchRadius, BestMatch *outbm )
 {
+#if 0
 	//assert(_searchRadius > 0);
 	int i,x,y;
 	int xpBestMatchOld, ypBestMatchOld;
@@ -201,7 +236,6 @@ void searchBestMatchLocal_HW( volatile AFASpectra *_src, const int _searchRadius
 	{
 		spectraIndex = AFAPP_HW.m_localSearchIndexVec[i];
 		err = AFAPP_HW.m_localSearchErrorVec[i];
-
 		if (err < bestMatch.error )
 		{
 			bestMatch.error = err;
@@ -211,18 +245,33 @@ void searchBestMatchLocal_HW( volatile AFASpectra *_src, const int _searchRadius
 
 
 	*outbm = bestMatch;
+#endif
 }
 
-bool_t AFAProcess_HW()
+float newpow( float base, float exponent )
 {
+	return exp( exponent * log( base ));
+}
+
+bool_t
+AFAProcess_HW(
+		volatile unsigned char *addrMaster,		// start address of operation
+		unsigned long param[ 512 ]				// whole block ram used
+		)
+{
+#pragma HLS INTERFACE m_axi     port=addrMaster depth=10000 bundle=MASTER_BUS
+#pragma HLS INTERFACE bram      port=param                 bundle=BRAM_INTERFACE
+#pragma HLS INTERFACE s_axilite port=addrMaster            bundle=CTRL_BUS
+#pragma HLS INTERFACE s_axilite port=return                bundle=CTRL_BUS
+
 	BestMatch bmu;
 	volatile AFASpectra *bmuSpectrum=NULL;
 	volatile AFASpectra *currentSourceSpectrum;
 	volatile AFASpectra *a;
 	float lPercent = (float)(AFAPP_HW.m_currentStep)/(float)(AFAPP_HW.m_params.numSteps);
-	float lRate = ( float ) ( AFAPP_HW.m_params.lRateBegin*pow(AFAPP_HW.m_params.lRateEnd/AFAPP_HW.m_params.lRateBegin,lPercent));
+	float lRate = ( float ) ( AFAPP_HW.m_params.lRateBegin*newpow(AFAPP_HW.m_params.lRateEnd/AFAPP_HW.m_params.lRateBegin,lPercent));
 	float adaptionThreshold = AFAPP_HW.m_params.lRateEnd*0.01f;
-	float sigma = ( float ) ( AFAPP_HW.m_params.radiusBegin*pow(AFAPP_HW.m_params.radiusEnd/AFAPP_HW.m_params.radiusBegin,lPercent));
+	float sigma = ( float ) ( AFAPP_HW.m_params.radiusBegin*newpow(AFAPP_HW.m_params.radiusEnd/AFAPP_HW.m_params.radiusBegin,lPercent));
 	float sigmaSqr = sigma*sigma;
 	double avgDist = 0.0;
 	bool_t bFullSearch = TRUE;
@@ -231,6 +280,7 @@ bool_t AFAProcess_HW()
 	int spectraIndex=0;
 	int ind0, ind1, tmp;
     static int paramInitialized = 0;
+	const int spectraCacheSize = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, ( AFAMIN( AFAPP_HW.m_gridSizeSqr, AFA_COMPARE_BATCH_HW )));
 
 	if ( AFAPP_HW.m_currentStep > AFAPP_HW.m_params.numSteps )
 	{
@@ -307,7 +357,6 @@ bool_t AFAProcess_HW()
 
 		spectraIndex = AFAPP_HW.m_pSpectraIndexList[j];
 		currentSourceSpectrum = &AFAPP_HW.m_pSourceSpectra[spectraIndex];
-
 
 		// retrieve best match neuron for a source spectra
 		if (bFullSearch)
