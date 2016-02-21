@@ -120,11 +120,12 @@ void searchBestMatchComplete_HW( volatile AFASpectra *_src, BestMatch *outbm )
 	float err[AFA_COMPARE_BATCH_HW];
 	BestMatch bestMatch;
 	volatile AFASpectra *a;
-	resetBM_HW(&bestMatch);
 	AFASpectra localSpectrumSrc1;
 	AFASpectra localSpectrumSrc2[ AFA_SPECTRA_CACHE_NUMSPECTRA ];
 
-	// generate a local copy for spectrum #1
+    resetBM_HW(&bestMatch);
+
+    // generate a local copy for spectrum #1
 	memcpy( &localSpectrumSrc1, ( const void * ) _src, sizeof( AFASpectra ));
 
 	while (j<AFAPP_HW.m_gridSizeSqr)
