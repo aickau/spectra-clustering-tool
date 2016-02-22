@@ -16,7 +16,7 @@
 FILE *f;
 #endif
 
-AFAProcessingParam_t	AFAPP_HW;
+AFAProcessingParam_t	AFAPP_hw;
 
 void resetBM_HW( BestMatch *bmu)
 {
@@ -30,11 +30,11 @@ void adaptNetwork_HW( volatile AFASpectra *_srcSpectrum, int _bestMatchIndex, fl
 	float distY1, distY1Sqr, distYSqr;
 	float distX1, distX1Sqr, distXSqr, distSqr;
 	float hxy, lratehsx;
-	unsigned int xpBestMatch = _bestMatchIndex % AFAPP_HW.m_gridSize;
-	unsigned int ypBestMatch = _bestMatchIndex / AFAPP_HW.m_gridSize;
+	unsigned int xpBestMatch = _bestMatchIndex % AFAPP_hw.m_gridSize;
+	unsigned int ypBestMatch = _bestMatchIndex / AFAPP_hw.m_gridSize;
 	float sigmaSqr2 = _sigmaSqr*(1.f/EULER);
-	float fGridSizeSqr = (float)AFAPP_HW.m_gridSizeSqr;
-	int gridSize = (int) AFAPP_HW.m_gridSize;
+	float fGridSizeSqr = (float)AFAPP_hw.m_gridSizeSqr;
+	int gridSize = (int) AFAPP_hw.m_gridSize;
 	unsigned int spectraAdress;
 	volatile AFASpectra *a;
 
@@ -59,8 +59,8 @@ void adaptNetwork_HW( volatile AFASpectra *_srcSpectrum, int _bestMatchIndex, fl
 
 			if ( lratehsx > _adaptionThreshold )
 			{
-				spectraAdress = y*AFAPP_HW.m_gridSize+x;
-				a = &AFAPP_HW.m_pNet[spectraAdress];
+				spectraAdress = y*AFAPP_hw.m_gridSize+x;
+				a = &AFAPP_hw.spectraDataWorkingSet[spectraAdress];
 				AFASpectraAdapt_HW( a, _srcSpectrum, lratehsx );
 			}
 		}
@@ -128,12 +128,12 @@ void searchBestMatchComplete_HW( volatile AFASpectra *_src, BestMatch *outbm )
     // generate a local copy for spectrum #1
 	memcpy( &localSpectrumSrc1, ( const void * ) _src, sizeof( AFASpectra ));
 
-	while (j<AFAPP_HW.m_gridSizeSqr)
+	while (j<AFAPP_hw.m_gridSizeSqr)
 	{
-		const int jInc = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, (AFAMIN(AFAPP_HW.m_gridSizeSqr, j+AFA_SPECTRA_CACHE_NUMSPECTRA)-j));
+		const int jInc = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, (AFAMIN(AFAPP_hw.m_gridSizeSqr, j+AFA_SPECTRA_CACHE_NUMSPECTRA)-j));
 
 		// calc euclidean distances for spectrum _src and a batch of network spectra starting at m_pNet[j] .. m_pNet[j+jInc-1]
-		a = &AFAPP_HW.m_pNet[j];
+		a = &AFAPP_hw.spectraDataWorkingSet[j];
 
 		// generate a local copy within spectrum #2
 		// it contains jInc number of single spectra
@@ -160,7 +160,7 @@ void searchBestMatchComplete_HW( volatile AFASpectra *_src, BestMatch *outbm )
 
 int getNetworkIndex_HW( int _cellX, int _cellY )
 {
-	return _cellX+_cellY*AFAPP_HW.m_gridSize;
+	return _cellX+_cellY*AFAPP_hw.m_gridSize;
 }
 
 // set BMU in the map and source spectrum
@@ -251,7 +251,7 @@ void searchBestMatchLocal_HW( volatile AFASpectra *_src, const int _searchRadius
 
 float newpow( float base, float exponent )
 {
-	return exp( exponent * log( base ));
+	return expf( exponent * logf( base ));
 }
 
 bool_t
@@ -269,10 +269,10 @@ AFAProcess_HW(
 	volatile AFASpectra *bmuSpectrum=NULL;
 	volatile AFASpectra *currentSourceSpectrum;
 	volatile AFASpectra *a;
-	float lPercent = (float)(AFAPP_HW.m_currentStep)/(float)(AFAPP_HW.m_params.numSteps);
-	float lRate = ( float ) ( AFAPP_HW.m_params.lRateBegin*newpow(AFAPP_HW.m_params.lRateEnd/AFAPP_HW.m_params.lRateBegin,lPercent));
-	float adaptionThreshold = AFAPP_HW.m_params.lRateEnd*0.01f;
-	float sigma = ( float ) ( AFAPP_HW.m_params.radiusBegin*newpow(AFAPP_HW.m_params.radiusEnd/AFAPP_HW.m_params.radiusBegin,lPercent));
+	float lPercent = (float)(AFAPP_hw.m_currentStep)/(float)(AFAPP_hw.m_params.numSteps);
+	float lRate = ( float ) ( AFAPP_hw.m_params.lRateBegin*newpow(AFAPP_hw.m_params.lRateEnd/AFAPP_hw.m_params.lRateBegin,lPercent));
+	float adaptionThreshold = AFAPP_hw.m_params.lRateEnd*0.01f;
+	float sigma = ( float ) ( AFAPP_hw.m_params.radiusBegin*newpow(AFAPP_hw.m_params.radiusEnd/AFAPP_hw.m_params.radiusBegin,lPercent));
 	float sigmaSqr = sigma*sigma;
 	double avgDist = 0.0;
 	bool_t bFullSearch = TRUE;
@@ -281,9 +281,9 @@ AFAProcess_HW(
 	int spectraIndex=0;
 	int ind0, ind1, tmp;
     static int paramInitialized = 0;
-	const int spectraCacheSize = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, ( AFAMIN( AFAPP_HW.m_gridSizeSqr, AFA_COMPARE_BATCH_HW )));
+	const int spectraCacheSize = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, ( AFAMIN( AFAPP_hw.m_gridSizeSqr, AFA_COMPARE_BATCH_HW )));
 
-	if ( AFAPP_HW.m_currentStep > AFAPP_HW.m_params.numSteps )
+	if ( AFAPP_hw.m_currentStep > AFAPP_hw.m_params.numSteps )
 	{
 		//Clustering finished (success).
 		return TRUE;
@@ -292,26 +292,26 @@ AFAProcess_HW(
    if ( 0 == paramInitialized )
    {
 	   AFARandomGetInit(
-		   AFAPP_HW.m_mt, // the array for the state vector 
-		   AFAPP_HW.m_mti );
+		   AFAPP_hw.m_mt, // the array for the state vector 
+		   AFAPP_hw.m_mti );
 	   AFASpectraPixelStartEndSet_HW(
-		   AFAPP_HW.m_pStart,
-		   AFAPP_HW.m_pEnd );
+		   AFAPP_hw.m_pStart,
+		   AFAPP_hw.m_pEnd );
       paramInitialized = 1;
    }
 
 	// determine search strategy for BMUs for the current learning step
-	if ( AFAPP_HW.m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_localfast )
+	if ( AFAPP_hw.m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_localfast )
 	{
 		// always use a constant search radius, never do a global search
-		bFullSearch = (AFAPP_HW.m_currentStep<1);
+		bFullSearch = (AFAPP_hw.m_currentStep<1);
 		searchRadius = 2;
 	}
-	else if ( AFAPP_HW.m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_local )
+	else if ( AFAPP_hw.m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_local )
 	{
 		// global search for the first 5 steps, decreasing search radius for increasing number of learning steps
-		bFullSearch = (AFAPP_HW.m_currentStep<5);
-		searchRadius = (unsigned int)(((1.f-lPercent)*0.5f*(float)(AFAPP_HW.m_gridSize)))+2;
+		bFullSearch = (AFAPP_hw.m_currentStep<5);
+		searchRadius = (unsigned int)(((1.f-lPercent)*0.5f*(float)(AFAPP_hw.m_gridSize)))+2;
 	}
 	else // SOFMNET_SETTINGS_SEARCHMODE_global
 	{
@@ -324,40 +324,40 @@ AFAProcess_HW(
 	// select random spectra from spectra dataset
 
 	// store all indicies in a list
-	for ( i=0;i<AFAPP_HW.m_numSpectra;i++)
+	for ( i=0;i<AFAPP_hw.m_numSpectra;i++)
 	{
-		AFAPP_HW.m_pSpectraIndexList[i] = i;
+		AFAPP_hw.m_pSpectraIndexList[i] = i;
 	}
 
 	// shake well
-	for ( i=0;i<AFAPP_HW.m_numSpectra*2;i++)
+	for ( i=0;i<AFAPP_hw.m_numSpectra*2;i++)
 	{
-		ind0 = AFARandomIntRange_HW(AFAPP_HW.m_numSpectra-1);
-		ind1 = AFARandomIntRange_HW(AFAPP_HW.m_numSpectra-1);
+		ind0 = AFARandomIntRange_HW(AFAPP_hw.m_numSpectra-1);
+		ind1 = AFARandomIntRange_HW(AFAPP_hw.m_numSpectra-1);
 
 		// switch indices
-		tmp = AFAPP_HW.m_pSpectraIndexList[ind0];
-		AFAPP_HW.m_pSpectraIndexList[ind0] = AFAPP_HW.m_pSpectraIndexList[ind1];
-		AFAPP_HW.m_pSpectraIndexList[ind1] = tmp;
+		tmp = AFAPP_hw.m_pSpectraIndexList[ind0];
+		AFAPP_hw.m_pSpectraIndexList[ind0] = AFAPP_hw.m_pSpectraIndexList[ind1];
+		AFAPP_hw.m_pSpectraIndexList[ind1] = tmp;
 	}
 
 	// clear names
-	for ( i=0;i<AFAPP_HW.m_gridSizeSqr;i++)
+	for ( i=0;i<AFAPP_hw.m_gridSizeSqr;i++)
 	{
-		a = &AFAPP_HW.m_pNet[i];
+		a = &AFAPP_hw.spectraDataWorkingSet[i];
 		a->m_SpecObjID = 0;
 		a->m_Index = -1;
 	}
 
 
 	// for each training spectra..
-	for ( j=0;j<AFAPP_HW.m_numSpectra;j++ )
+	for ( j=0;j<AFAPP_hw.m_numSpectra;j++ )
 	{
 		// initialize best match batch
 		resetBM_HW(&bmu);
 
-		spectraIndex = AFAPP_HW.m_pSpectraIndexList[j];
-		currentSourceSpectrum = &AFAPP_HW.m_pSourceSpectra[spectraIndex];
+		spectraIndex = AFAPP_hw.m_pSpectraIndexList[j];
+		currentSourceSpectrum = &AFAPP_hw.g_spectraDataInput[spectraIndex];
 
 		// retrieve best match neuron for a source spectra
 		if (bFullSearch)
@@ -370,7 +370,7 @@ AFAProcess_HW(
 		}
 
 		// mark best match neuron
-		bmuSpectrum = &AFAPP_HW.m_pNet[bmu.index];
+		bmuSpectrum = &AFAPP_hw.spectraDataWorkingSet[bmu.index];
 		setBestMatch_HW( bmuSpectrum, bmu.index, currentSourceSpectrum, spectraIndex );
 
 		// adapt neighborhood
@@ -378,7 +378,7 @@ AFAProcess_HW(
 		adaptNetwork_HW( currentSourceSpectrum, bmu.index, adaptionThreshold, sigmaSqr, lRate );
 	}
 
-	AFAPP_HW.m_currentStep++;
+	AFAPP_hw.m_currentStep++;
 
 	// clustering not yet finished, need another learning step
 	return FALSE;

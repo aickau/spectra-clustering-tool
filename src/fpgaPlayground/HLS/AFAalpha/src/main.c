@@ -12,7 +12,7 @@
 // HW-Section
 #include "AFAProcessingHW.h"
 
-#define JSCDBG_ITER_SPECIAL
+//#define JSCDBG_ITER_SPECIAL
 //#define JSCDBG_ACCEPT_LITTLE_INACCURACIES
 
 sint16_t golden_data[12][12]=
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
 	int numSpectra = 100;
 	void *helperStructureSpace;
 	uint64_t neededSystemSpace;
-    AFASpectra *spectraData;
+    AFASpectra *spectraDataInput;
 	int xp, yp, gridSize;
 	int idx;
     int rv;
@@ -175,8 +175,8 @@ int main(int argc, char* argv[])
 	AFAParameters params;
 	size_t spectraDataSize = numSpectra * sizeof( AFASpectra );
 
-	spectraData = ( AFASpectra * )malloc( spectraDataSize );
-	memset( spectraData, 0xe7, spectraDataSize );
+	spectraDataInput = ( AFASpectra * )malloc( spectraDataSize );
+	memset( spectraDataInput, 0xe7, spectraDataSize );
 
 	AFASetDefaultParameters( &params );
 	params.searchMode = AFANET_SETTINGS_SEARCHMODE_global;
@@ -186,14 +186,14 @@ int main(int argc, char* argv[])
 	params.numSteps = 200;
 #endif
 
-	generateSineTestSpectra( numSpectra, spectraData );
+	generateSineTestSpectra( numSpectra, spectraDataInput );
 
 	neededSystemSpace = AFACalcAllocSpaceForHelperStructures( numSpectra );
 
 	helperStructureSpace = malloc( neededSystemSpace );
 	memset( helperStructureSpace, 0x9e, neededSystemSpace );
 
-	AFAInitProcessing( spectraData, helperStructureSpace, numSpectra, FALSE, &params );
+	AFAInitProcessing( spectraDataInput, helperStructureSpace, numSpectra, FALSE, &params );
 
 	AFAProcessSetParamBlockParameters();
 
@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
     }
 
 
-	free( spectraData );
+	free( spectraDataInput );
 	free( helperStructureSpace );
 
     if ( rv > 0 )

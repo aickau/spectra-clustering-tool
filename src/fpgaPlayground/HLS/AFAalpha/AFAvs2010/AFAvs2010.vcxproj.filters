@@ -41,49 +41,49 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\include\AFADefines.h">
+    <ClInclude Include="..\src\AFADefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFAProcessFunction.h">
+    <ClInclude Include="..\src\AFANetworkSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFAProcessing.h">
+    <ClInclude Include="..\src\AFANetworkSettingsCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFASpectra.h">
+    <ClInclude Include="..\src\AFANetworkSettingsHW.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFATypes.h">
+    <ClInclude Include="..\src\AFAProcessFunction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFAProcessingHW.h">
+    <ClInclude Include="..\src\AFAProcessing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFASpectraHW.h">
+    <ClInclude Include="..\src\AFAProcessingCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFASpectraCommon.h">
+    <ClInclude Include="..\src\AFAProcessingHW.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFANetworkSettingsCommon.h">
+    <ClInclude Include="..\src\AFARandom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFANetworkSettings.h">
+    <ClInclude Include="..\src\AFARandomCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFANetworkSettingsHW.h">
+    <ClInclude Include="..\src\AFARandomHW.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFARandomCommon.h">
+    <ClInclude Include="..\src\AFASpectra.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFARandom.h">
+    <ClInclude Include="..\src\AFASpectraCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFARandomHW.h">
+    <ClInclude Include="..\src\AFASpectraHW.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\include\AFAProcessingCommon.h">
+    <ClInclude Include="..\src\AFATypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

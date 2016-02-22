@@ -10,10 +10,10 @@
 typedef struct  
 {
 	// code book spectra
-	volatile AFASpectra	*m_pNet;
+	volatile AFASpectra	*spectraDataWorkingSet;
 
 	// training data
-	volatile AFASpectra	*m_pSourceSpectra;
+	volatile AFASpectra	*g_spectraDataInput;
 
 	volatile AFASpectra **m_localSearchSpectraVec;
 	int *m_localSearchIndexVec;

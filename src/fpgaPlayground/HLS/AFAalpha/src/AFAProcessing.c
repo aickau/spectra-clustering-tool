@@ -11,86 +11,56 @@
 #include "malloc.h"
 
 
-extern AFAProcessingParam_t	AFAPP_HW;
+extern AFAProcessingParam_t	AFAPP_hw;
+AFAProcessingParam_t	    AFAPP_sw;
 
-// code book spectra
-volatile AFASpectra	*m_pNet;
-
-// training data
-volatile AFASpectra	*m_pSourceSpectra;
-
-volatile AFASpectra **m_localSearchSpectraVec;
-int *m_localSearchIndexVec;
-float *m_localSearchErrorVec;
-
-// number of source spectra
-int             m_numSpectra;
-
-// grid size in cells of the map
-int			    m_gridSize;
-
-// squared grid size, number of neurons
-int			    m_gridSizeSqr;
-
-// current learning step
-int			    m_currentStep;
-
-AFAParameters	m_params;
-
-// maximum amplitude (before normalization)
-float			m_Min;
-
-// minimum amplitude (before normalization)
-float			m_Max;
+// local variables to this file
+// ============================
 
 // maximum flux of input spectra
-float			m_flux;
+static float m_flux;
 
-// determine processing order. must be randomized every learning step
-// contains m_gridSize * m_gridSize  elements
-volatile int *m_pSpectraIndexList;
+// maximum amplitude (before normalization)
+static float m_Min;
 
-AFAProcessingParam_t *
-AFAProcessGetParamBlockAddress()
-{
-	return &AFAPP_HW;
-}
+// minimum amplitude (before normalization)
+static float m_Max;
 
 void
 AFAProcessSetParamBlockParameters()
 {
-	AFAProcessingParam_t	*AFAPP;
+//	AFAProcessingParam_t	*AFAPP_hw;
 	unsigned long			*mt; // the array for the state vector 
 	int						*mti;
 	int						pStart;
 	int						pEnd;
 
-	AFAPP = AFAProcessGetParamBlockAddress();
+//	AFAPP_hw = AFAProcessGetParamBlockAddress();
 	AFARandomGetStateVectorBlockAddress( &mt, &mti );
 	AFASpectraPixelStartEndGet( &pStart, &pEnd );
 
 	// no misunderstandings here ...
-	memset( AFAPP, 0, sizeof( AFAProcessingParam_t ));
+	memset( &AFAPP_hw, 0, sizeof( AFAProcessingParam_t ));
 
-	AFAPP->m_currentStep = m_currentStep;
-	AFAPP->m_gridSize = m_gridSize;
-	AFAPP->m_gridSizeSqr = m_gridSizeSqr;
-	AFAPP->m_localSearchErrorVec = m_localSearchErrorVec;
-	AFAPP->m_localSearchIndexVec = m_localSearchIndexVec;
-	AFAPP->m_localSearchSpectraVec = m_localSearchSpectraVec;
-	AFAPP->m_pSourceSpectra = m_pSourceSpectra;
-	AFAPP->m_pSpectraIndexList = m_pSpectraIndexList;
-	AFAPP->m_numSpectra = m_numSpectra;
-	memcpy( &AFAPP->m_params, &m_params, sizeof( AFAParameters ));
-	AFAPP->m_pNet = m_pNet;
+	AFAPP_hw.m_currentStep = AFAPP_sw.m_currentStep;
+	AFAPP_hw.m_gridSize = AFAPP_sw.m_gridSize;
+	AFAPP_hw.m_gridSizeSqr = AFAPP_sw.m_gridSizeSqr;
+	AFAPP_hw.m_localSearchErrorVec = AFAPP_sw.m_localSearchErrorVec;
+	AFAPP_hw.m_localSearchIndexVec = AFAPP_sw.m_localSearchIndexVec;
+	AFAPP_hw.m_localSearchSpectraVec = AFAPP_sw.m_localSearchSpectraVec;
+	AFAPP_hw.g_spectraDataInput = AFAPP_sw.g_spectraDataInput;
+	AFAPP_hw.m_pSpectraIndexList = AFAPP_sw.m_pSpectraIndexList;
+	AFAPP_hw.m_numSpectra = AFAPP_sw.m_numSpectra;
+	memcpy( &AFAPP_hw.m_params, &AFAPP_sw.m_params, sizeof( AFAParameters ));
+	AFAPP_hw.spectraDataWorkingSet = AFAPP_sw.spectraDataWorkingSet;
 
 	// the random generator state vector
-	memcpy( &AFAPP->m_mt[ 0 ], mt, sizeof( AFAPP->m_mt ));
-	AFAPP->m_mti = *mti;
+	memcpy( &AFAPP_hw.m_mt[ 0 ], mt, sizeof( AFAPP_hw.m_mt ));
+	AFAPP_hw.m_mti = *mti;
 
 	// spectra start/stop
-	AFAPP->m_pStart = pStart;
-	AFAPP->m_pEnd = pEnd;
+	AFAPP_hw.m_pStart = pStart;
+	AFAPP_hw.m_pEnd = pEnd;
 }
 
 void resetBM( BestMatch *bmu)
@@ -121,10 +91,10 @@ void setBestMatch( volatile AFASpectra *_networkSpectrum, unsigned int _networkI
 void reset( AFAParameters *params )
 {
 	// input from outside
-	m_params = *params;
-	AFARandomInitRandom( m_params.randomSeed );
+	AFAPP_sw.m_params = *params;
+	AFARandomInitRandom( AFAPP_sw.m_params.randomSeed );
 
-	m_currentStep = 0;
+	AFAPP_sw.m_currentStep = 0;
 }
 
 
@@ -136,9 +106,9 @@ void calcFluxAndNormalizeInputDS()
 	int i;
 	m_flux = 0.0f;
 
-	for ( i=0;i<m_numSpectra;i++ )
+	for ( i=0;i<AFAPP_sw.m_numSpectra;i++ )
 	{
-		a = &m_pSourceSpectra[ i ];
+		a = &AFAPP_sw.g_spectraDataInput[ i ];
 		AFASpectraNormalizeByFlux(a);
 		m_flux = AFAMAX( a->m_flux, m_flux );
 	}
@@ -158,9 +128,9 @@ void calcMinMaxSp(
 	*_outMax = -FLT_MAX;
 
 	// calc min/max
-	for ( i=0;i<m_numSpectra;i++ )
+	for ( i=0;i<AFAPP_sw.m_numSpectra;i++ )
 	{
-		a = &m_pSourceSpectra[ i ];
+		a = &AFAPP_sw.g_spectraDataInput[ i ];
 
 		if ( *_outMin > a->m_Min )
 		{
@@ -177,7 +147,7 @@ void calcMinMaxSp(
 
 void calcMinMaxInputDS()
 {
-	calcMinMaxSp( m_pSourceSpectra, &m_Min, &m_Max );
+	calcMinMaxSp( AFAPP_sw.g_spectraDataInput, &m_Min, &m_Max );
 }
 
 
@@ -195,7 +165,7 @@ void initNetwork( unsigned int _gridSize, float _minPeak, float _maxPeak )
 
 	for ( i=0;i<gridSizeSqr;i++)
 	{
-		sp = &m_pNet[ i ];
+		sp = &AFAPP_sw.spectraDataWorkingSet[ i ];
 
 		x = i%_gridSize;
 		y = i/_gridSize;
@@ -238,7 +208,7 @@ uint64_t AFACalcAllocSpaceForHelperStructures( uint32_t numSpectra )
 
 
 bool_t AFAInitProcessing(
-	volatile void *spectraArray,
+	volatile void *spectraArrayInput,
 	volatile void *helperStucturesMem,
 	uint32_t numSpectra,
 	bool_t continueProcessing,
@@ -252,35 +222,35 @@ bool_t AFAInitProcessing(
 	uint64_t memOffset;
 
 
-	if ( helperStucturesMem == NULL || spectraArray == NULL )
+	if ( helperStucturesMem == NULL || spectraArrayInput == NULL )
 		return FALSE;
 
 
-	m_gridSize = AFACalcGridSize(numSpectra);
-	m_gridSizeSqr = m_gridSize*m_gridSize;
-	m_currentStep = 0;
-	m_numSpectra = numSpectra;
-	m_pSourceSpectra = ( volatile AFASpectra * ) spectraArray;
+	AFAPP_sw.m_gridSize = AFACalcGridSize(numSpectra);
+	AFAPP_sw.m_gridSizeSqr = AFAPP_sw.m_gridSize*AFAPP_sw.m_gridSize;
+	AFAPP_sw.m_currentStep = 0;
+	AFAPP_sw.m_numSpectra = numSpectra;
+	AFAPP_sw.g_spectraDataInput = ( volatile AFASpectra * ) spectraArrayInput;
 
 	memOffset = 0;
-	m_pNet = ( volatile AFASpectra * )  &((unsigned char*)helperStucturesMem)[memOffset];
-	memOffset += m_gridSizeSqr*sizeof(AFASpectra);
+	AFAPP_sw.spectraDataWorkingSet = ( volatile AFASpectra * )  &((unsigned char*)helperStucturesMem)[memOffset];
+	memOffset += AFAPP_sw.m_gridSizeSqr*sizeof(AFASpectra);
 
-	m_pSpectraIndexList = ( volatile int * ) &((unsigned char*)helperStucturesMem)[memOffset];
-	memOffset += m_gridSizeSqr*sizeof(int);
+	AFAPP_sw.m_pSpectraIndexList = ( volatile int * ) &((unsigned char*)helperStucturesMem)[memOffset];
+	memOffset += AFAPP_sw.m_gridSizeSqr*sizeof(int);
 
-	m_localSearchSpectraVec = (volatile AFASpectra**) &((unsigned char*)helperStucturesMem)[memOffset];
-	memOffset += m_gridSizeSqr*sizeof(AFASpectra*);
+	AFAPP_sw.m_localSearchSpectraVec = (volatile AFASpectra**) &((unsigned char*)helperStucturesMem)[memOffset];
+	memOffset += AFAPP_sw.m_gridSizeSqr*sizeof(AFASpectra*);
 
-	m_localSearchIndexVec = (int*)  &((unsigned char*)helperStucturesMem)[memOffset];
-	memOffset += m_gridSizeSqr*sizeof(int);
+	AFAPP_sw.m_localSearchIndexVec = (int*)  &((unsigned char*)helperStucturesMem)[memOffset];
+	memOffset += AFAPP_sw.m_gridSizeSqr*sizeof(int);
 
-	m_localSearchErrorVec = (float*)  &((unsigned char*)helperStucturesMem)[memOffset];
+	AFAPP_sw.m_localSearchErrorVec = (float*)  &((unsigned char*)helperStucturesMem)[memOffset];
 
 
 	reset(params);
 
-	AFASpectraSetOperationRange( m_params.useBOSSWavelengthRange );
+	AFASpectraSetOperationRange( AFAPP_sw.m_params.useBOSSWavelengthRange );
 	calcFluxAndNormalizeInputDS();
 	calcMinMaxInputDS();
 
@@ -291,24 +261,24 @@ bool_t AFAInitProcessing(
 		//
 
 		// generate random filled cluster and load it. (AFA changes: do not load it, generate it in memory only)
-		initNetwork( m_gridSize, m_Min, m_Max*0.01f );
+		initNetwork( AFAPP_sw.m_gridSize, m_Min, m_Max*0.01f );
 
 
 		// fill network with random spectra, this improves the convergence times.
 		// it does not matter if some spectra are inserted multiple times or other may missing since this is just for initialization purposes.
-		AFARandomInitRandom( m_params.randomSeed );
+		AFARandomInitRandom( AFAPP_sw.m_params.randomSeed );
 
-		for ( i=0;i<m_gridSizeSqr;i++ )
+		for ( i=0;i<AFAPP_sw.m_gridSizeSqr;i++ )
 		{
-			xp = i % m_gridSize;
-			yp = i / m_gridSize;
+			xp = i % AFAPP_sw.m_gridSize;
+			yp = i / AFAPP_sw.m_gridSize;
 			inset = 0;
-			if ( xp >= inset && xp <= (m_gridSize-inset) && yp >= inset && yp <= (m_gridSize-inset) )
+			if ( xp >= inset && xp <= (AFAPP_sw.m_gridSize-inset) && yp >= inset && yp <= (AFAPP_sw.m_gridSize-inset) )
 			{
-				a = &m_pNet[ i ];
+				a = &AFAPP_sw.spectraDataWorkingSet[ i ];
 
-				spectraIndex = AFARandomIntRange( m_numSpectra - 1 );
-				b = &m_pSourceSpectra[ spectraIndex ];
+				spectraIndex = AFARandomIntRange( AFAPP_sw.m_numSpectra - 1 );
+				b = &AFAPP_sw.g_spectraDataInput[ spectraIndex ];
 a->m_JSCIndex = spectraIndex;
 				AFASpectraSet( a, b );
 			}
@@ -334,13 +304,6 @@ a->m_JSCIndex = spectraIndex;
 		}
 #endif
 	}
-#if 0
-	for ( i=0;i<m_gridSizeSqr;i++)
-	{
-		a = &m_pNet[ i ];
-      printf("%3d: %d\n", i, a->m_JSCIndex );
-    }
-#endif
 	return TRUE;
 }
 
@@ -375,7 +338,7 @@ volatile AFASpectra *AFAProcessing::getSrcSpectrum( int index ) const
 
 int getNetworkIndex( int _cellX, int _cellY )
 {
-	return _cellX+_cellY*m_gridSize;
+	return _cellX+_cellY*AFAPP_sw.m_gridSize;
 }
 
 
@@ -386,11 +349,11 @@ void adaptNetwork( volatile AFASpectra *_srcSpectrum, int _bestMatchIndex, float
 	float distY1, distY1Sqr, distYSqr;
 	float distX1, distX1Sqr, distXSqr, distSqr;
 	float hxy, lratehsx;
-	unsigned int xpBestMatch = _bestMatchIndex % m_gridSize;
-	unsigned int ypBestMatch = _bestMatchIndex / m_gridSize;
+	unsigned int xpBestMatch = _bestMatchIndex % AFAPP_sw.m_gridSize;
+	unsigned int ypBestMatch = _bestMatchIndex / AFAPP_sw.m_gridSize;
 	float sigmaSqr2 = _sigmaSqr*(1.f/EULER);
-	float fGridSizeSqr = (float)m_gridSizeSqr;
-	int gridSize = (int) m_gridSize;
+	float fGridSizeSqr = (float)AFAPP_sw.m_gridSizeSqr;
+	int gridSize = (int) AFAPP_sw.m_gridSize;
 	unsigned int spectraAdress;
 	volatile AFASpectra *a;
 
@@ -415,8 +378,8 @@ void adaptNetwork( volatile AFASpectra *_srcSpectrum, int _bestMatchIndex, float
 
 			if ( lratehsx > _adaptionThreshold )
 			{
-				spectraAdress = y*m_gridSize+x;
-				a = &m_pNet[spectraAdress];
+				spectraAdress = y*AFAPP_sw.m_gridSize+x;
+				a = &AFAPP_sw.spectraDataWorkingSet[spectraAdress];
 				AFASpectraAdapt( a, _srcSpectrum, lratehsx );
 			}
 		}
@@ -487,12 +450,12 @@ void searchBestMatchComplete( volatile AFASpectra *_src, BestMatch *outbm )
 	resetBM(&bestMatch);
 
 
-	while (j<m_gridSizeSqr)
+	while (j<AFAPP_sw.m_gridSizeSqr)
 	{
-		const int jInc = AFAMIN( AFA_COMPARE_BATCH, (AFAMIN(m_gridSizeSqr, j+AFA_COMPARE_BATCH)-j));
+		const int jInc = AFAMIN( AFA_COMPARE_BATCH, (AFAMIN(AFAPP_sw.m_gridSizeSqr, j+AFA_COMPARE_BATCH)-j));
 
 		// calc euclidean distances for spectrum _src and a batch of network spectra starting at m_pNet[j] .. m_pNet[j+jInc-1]
-		a = &m_pNet[j];
+		a = &AFAPP_sw.spectraDataWorkingSet[j];
 		compareSpectra( _src, a, jInc, err );
 
 		// find smallest error (i.e. winning neuron/ network spectrum) in batch
@@ -534,14 +497,14 @@ void searchBestMatchLocal( volatile AFASpectra *_src, const int _searchRadius, B
 		return;
 	}
 
-	xpBestMatchOld = _src->m_Index % m_gridSize;
-	ypBestMatchOld = _src->m_Index / m_gridSize;
+	xpBestMatchOld = _src->m_Index % AFAPP_sw.m_gridSize;
+	ypBestMatchOld = _src->m_Index / AFAPP_sw.m_gridSize;
 
 	// calc boundaries
 	xMin = AFAMAX( xpBestMatchOld-_searchRadius, 0 );
 	yMin = AFAMAX( ypBestMatchOld-_searchRadius, 0 );
-	xMax = AFAMIN( xpBestMatchOld+_searchRadius+1, m_gridSize );
-	yMax = AFAMIN( ypBestMatchOld+_searchRadius+1, m_gridSize );
+	xMax = AFAMIN( xpBestMatchOld+_searchRadius+1, AFAPP_sw.m_gridSize );
+	yMax = AFAMIN( ypBestMatchOld+_searchRadius+1, AFAPP_sw.m_gridSize );
 
 	numSpectraToSearch = ( (xMax-xMin)*(yMax-yMin) );
 
@@ -553,20 +516,20 @@ void searchBestMatchLocal( volatile AFASpectra *_src, const int _searchRadius, B
 		for ( x=xMin;x<xMax;x++ )
 		{
 			spectraIndex = getNetworkIndex( x, y );
-			m_localSearchIndexVec[c] = spectraIndex;
-			m_localSearchSpectraVec[c] = &m_pNet[spectraIndex];
+			AFAPP_sw.m_localSearchIndexVec[c] = spectraIndex;
+			AFAPP_sw.m_localSearchSpectraVec[c] = &AFAPP_sw.spectraDataWorkingSet[spectraIndex];
 			c++;
 		}
 	}
 
 	// calculate errors/distances
-	compareSpectra( _src, *m_localSearchSpectraVec, c, &m_localSearchErrorVec[0] );
+	compareSpectra( _src, *AFAPP_sw.m_localSearchSpectraVec, c, &AFAPP_sw.m_localSearchErrorVec[0] );
 
 	// find bmu from error vector
 	for ( i=0;i<numSpectraToSearch;i++ )
 	{
-		spectraIndex = m_localSearchIndexVec[i];
-		err = m_localSearchErrorVec[i];
+		spectraIndex = AFAPP_sw.m_localSearchIndexVec[i];
+		err = AFAPP_sw.m_localSearchErrorVec[i];
 
 		if (err < bestMatch.error )
 		{
@@ -579,15 +542,12 @@ void searchBestMatchLocal( volatile AFASpectra *_src, const int _searchRadius, B
 	*outbm = bestMatch;
 }
 
-
-
-
 int AFAGetSpectraIndex( int xp, int yp )
 {
-	int adr = xp+yp*m_gridSize;
+	int adr = xp+yp*AFAPP_sw.m_gridSize;
 
-	if ( adr < 0 || adr >= m_gridSizeSqr )
+	if ( adr < 0 || adr >= AFAPP_sw.m_gridSizeSqr )
 		return -1;
 
-	return m_pNet[adr].m_Index;
+	return AFAPP_sw.spectraDataWorkingSet[adr].m_Index;
 }
