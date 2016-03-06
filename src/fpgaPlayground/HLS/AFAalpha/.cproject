@@ -81,7 +81,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="AFAProcessing_64Bit_250MHz|source/AFASpectraCommon.h|source/AFARandomCommon.h|source/AFATypes.h|source/AFAProcessingCommon.h|source/AFANetworkSettingsCommon.h|source/AFADefines.h|*.c*|*.C*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="AFAProcessing_64Bit_250MHz|source/AFATypes.h|source/AFADefines.h|*.c*|*.C*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -160,7 +160,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="AFAProcessing_64Bit_250MHz|source/AFASpectraCommon.h|source/AFARandomCommon.h|source/AFATypes.h|source/AFAProcessingCommon.h|source/AFANetworkSettingsCommon.h|source/AFADefines.h|*.c*|*.C*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="AFAProcessing_64Bit_250MHz|source/AFATypes.h|source/AFADefines.h|*.c*|*.C*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

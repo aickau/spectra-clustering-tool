@@ -9,62 +9,68 @@
 #include "AFASpectra.h"
 #include "AFAProcessing.h"
 
-// HW-Section
-#include "AFAProcessingHW.h"
-
-//#define JSCDBG_ITER_SPECIAL
+#define JSCDBG_ITER_SPECIAL
 //#define JSCDBG_ACCEPT_LITTLE_INACCURACIES
+
+extern AFAProcessingParamSW_t	    AFAPP_sw;
+// current learning step
+int m_currentStep;
 
 sint16_t golden_data[12][12]=
 {
 #ifdef JSCDBG_ITER_SPECIAL
 // params.numSteps = 1;
-		{  5,   7,  12,   3,   1,   9,  -1,  37,  34,  35,  33,  31 },
-		{  2,   8,  10,   4,   0,  -1,  -1,  -1,  32,  36,  30,  40 },
-		{ 11,  13,   6,  -1,  -1,  -1,  -1,  -1,  -1,  39,  41,  38 },
-		{ -1,  -1,  -1,  -1,  67,  64,  -1,  -1,  -1,  43,  42,  45 },
-		{ 99,  -1,  -1,  68,  66,  62,  61,  60,  -1,  -1,  44,  47 },
-		{ 94,  93,  -1,  -1,  65,  59,  58,  56,  -1,  -1,  49,  48 },
-		{ 97,  96,  -1,  -1,  -1,  63,  57,  -1,  -1,  -1,  53,  46 },
-		{ 95,  98,  86,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  55,  54 },
-		{ 91,  89,  88,  -1,  69,  -1,  -1,  -1,  22,  16,  52,  51 },
-		{ 92,  90,  80,  85,  70,  71,  -1,  26,  27,  23,  24,  50 },
-		{ 87,  81,  84,  76,  72,  77,  -1,  29,  28,  19,  17,  15 },
-		{ 79,  83,  82,  78,  73,  74,  75,  20,  18,  25,  21,  14 }
+	{  5,   7,  12,   3,   1,   9,  -1,  37,  34,  35,  33,  31 },
+	{  2,   8,  10,   4,   0,  -1,  -1,  -1,  32,  36,  30,  40 },
+	{ 11,  13,   6,  -1,  -1,  -1,  -1,  -1,  -1,  39,  41,  38 },
+	{ -1,  -1,  -1,  -1,  67,  64,  -1,  -1,  -1,  43,  42,  45 },
+	{ 99,  -1,  -1,  68,  66,  62,  61,  60,  -1,  -1,  44,  47 },
+	{ 94,  93,  -1,  -1,  65,  59,  58,  56,  -1,  -1,  49,  48 },
+	{ 97,  96,  -1,  -1,  -1,  63,  57,  -1,  -1,  -1,  53,  46 },
+	{ 95,  98,  86,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  55,  54 },
+	{ 91,  89,  88,  -1,  69,  -1,  -1,  -1,  22,  16,  52,  51 },
+	{ 92,  90,  80,  85,  70,  71,  -1,  26,  27,  23,  24,  50 },
+	{ 87,  81,  84,  76,  72,  77,  -1,  29,  28,  19,  17,  15 },
+	{ 79,  83,  82,  78,  73,  74,  75,  20,  18,  25,  21,  14 }
 #else
+
+///////////////////////////////////////////////////////////
+#define JSCDBG_ACCEPT_LITTLE_INACCURACIES
+///////////////////////////////////////////////////////////
+
 #ifdef JSCDBG_ACCEPT_LITTLE_INACCURACIES
 // params.numSteps = 200;
-		{  6,   5,  10,  13,  15,  17,  24,  25,  29,  30,  33,  34 },
-		{  7,   8,  -1,  12,  16,  18,  23,  26,  27,  32,  31,  36 },
-		{  2,   4,   9,  11,  14,  20,  21,  -1,  28,  39,  35,  38 },
-		{  0,   1,  -1,  -1,  -1,  19,  22,  -1,  -1,  37,  40,  41 },
-		{  3,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  43,  42,  44 },
-		{ -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  47,  46,  45 },
-		{ 96,  95,  97,  98,  -1,  -1,  -1,  -1,  -1,  50,  49,  48 },
-		{ 93,  94,  92,  99,  -1,  -1,  -1,  -1,  -1,  51,  53,  52 },
-		{ 90,  91,  89,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  54,  55 },
-		{ 88,  87,  -1,  -1,  76,  74,  70,  -1,  65,  60,  57,  56 },
-		{ 86,  84,  82,  79,  78,  75,  72,  69,  66,  62,  59,  58 },
-		{ 85,  83,  81,  80,  77,  73,  71,  68,  67,  64,  63,  61 }
+	{  6,   5,  10,  13,  15,  17,  24,  25,  29,  30,  33,  34 },
+	{  7,   8,  -1,  12,  16,  18,  23,  26,  27,  32,  31,  36 },
+	{  2,   4,   9,  11,  14,  20,  21,  -1,  28,  39,  35,  38 },
+	{  0,   1,  -1,  -1,  -1,  19,  22,  -1,  -1,  37,  40,  41 },
+	{  3,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  43,  42,  44 },
+	{ -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  47,  46,  45 },
+	{ 96,  95,  97,  98,  -1,  -1,  -1,  -1,  -1,  50,  49,  48 },
+	{ 93,  94,  92,  99,  -1,  -1,  -1,  -1,  -1,  51,  53,  52 },
+	{ 90,  91,  89,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  54,  55 },
+	{ 88,  87,  -1,  -1,  76,  74,  70,  -1,  65,  60,  57,  56 },
+	{ 86,  84,  82,  79,  78,  75,  72,  69,  66,  62,  59,  58 },
+	{ 85,  83,  81,  80,  77,  73,  71,  68,  67,  64,  63,  61 }
 #else
 // params.numSteps = 200;
-		{  6,   5,  10,  13,  15,  17,  24,  25,  29,  30,  33,  34 },
-		{  7,   8,  -1,  12,  16,  18,  23,  26,  27,  32,  31,  36 },
-		{  2,   4,   9,  11,  14,  20,  21,  -1,  28,  39,  35,  38 },
-		{  0,   1,  -1,  -1,  -1,  19,  22,  -1,  -1,  37,  40,  41 },
-		{  3,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  43,  42,  44 },
-		{ -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  47,  46,  45 },
-		{ 96,  95,  97,  98,  -1,  -1,  -1,  -1,  -1,  51,  49,  48 },
-		{ 93,  94,  92,  99,  -1,  -1,  -1,  -1,  -1,  50,  53,  52 },
-		{ 90,  91,  89,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  54,  55 },
-		{ 88,  87,  -1,  -1,  76,  74,  70,  -1,  65,  60,  57,  56 },
-		{ 86,  84,  82,  79,  78,  75,  72,  69,  66,  62,  59,  58 },
-		{ 85,  83,  81,  80,  77,  73,  71,  68,  67,  64,  63,  61 }
+	{  6,   5,  10,  13,  15,  17,  24,  25,  29,  30,  33,  34 },
+	{  7,   8,  -1,  12,  16,  18,  23,  26,  27,  32,  31,  36 },
+	{  2,   4,   9,  11,  14,  20,  21,  -1,  28,  39,  35,  38 },
+	{  0,   1,  -1,  -1,  -1,  19,  22,  -1,  -1,  37,  40,  41 },
+	{  3,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  43,  42,  44 },
+	{ -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  47,  46,  45 },
+	{ 96,  95,  97,  98,  -1,  -1,  -1,  -1,  -1,  51,  49,  48 },
+	{ 93,  94,  92,  99,  -1,  -1,  -1,  -1,  -1,  50,  53,  52 },
+	{ 90,  91,  89,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  54,  55 },
+	{ 88,  87,  -1,  -1,  76,  74,  70,  -1,  65,  60,  57,  56 },
+	{ 86,  84,  82,  79,  78,  75,  72,  69,  66,  62,  59,  58 },
+	{ 85,  83,  81,  80,  77,  73,  71,  68,  67,  64,  63,  61 }
 #endif
 #endif
 };
 
-/*
+#if 0
 uint32_t ReadSpectraFileRAW( const char *filename, uint32_t *spectraCount, AFASpectra **spectraData )
 {
     FILE *f;
@@ -138,8 +144,7 @@ uint32_t ReadSpectraFileRAW( const char *filename, uint32_t *spectraCount, AFASp
     }
     return rv;
 }
-*/
-
+#endif
 
 void generateSineTestSpectra( int numTestSpectra, AFASpectra *outSpectraArray )
 {
@@ -171,6 +176,7 @@ int main(int argc, char* argv[])
 	int xp, yp, gridSize;
 	int idx;
     int rv;
+    bool_t rc;
 
 	AFAParameters params;
 	size_t spectraDataSize = numSpectra * sizeof( AFASpectra );
@@ -197,20 +203,106 @@ int main(int argc, char* argv[])
 
 	AFAProcessSetParamBlockParameters();
 
-	while ( !AFAProcess_HW(	NULL /* start address of operation */, param /* whole block ram used */ ))
-    {
-		printf( "." );
-#if 1
-    }
-    {
-#else
+	do 
+	{
+	    if ( m_currentStep > AFAPP_sw.m_params.numSteps )
+	    {
+	        //Clustering finished (success).
+	        rc = TRUE;
+	    }
+	    else
+	    {
+	        float lPercent = (float)(m_currentStep)/(float)(AFAPP_sw.m_params.numSteps);
+	        float lRate = ( float ) ( AFAPP_sw.m_params.lRateBegin*powf(AFAPP_sw.m_params.lRateEnd/AFAPP_sw.m_params.lRateBegin,lPercent));
+	        float adaptionThreshold = AFAPP_sw.m_params.lRateEnd*0.01f;
+	        float sigma = ( float ) ( AFAPP_sw.m_params.radiusBegin*pow(AFAPP_sw.m_params.radiusEnd/AFAPP_sw.m_params.radiusBegin,lPercent));
+	        float sigmaSqr = sigma*sigma;
+	        bool_t bFullSearch = TRUE;
+	        unsigned int searchRadius = 1;
+
+	        // determine search strategy for BMUs for the current learning step
+	        if ( AFAPP_sw.m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_localfast )
+	        {
+	            // always use a constant search radius, never do a global search
+	        	bFullSearch = ( m_currentStep < 1 );
+	            searchRadius = 2;
+	        }
+	        else if ( AFAPP_sw.m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_local )
+	        {
+	            // global search for the first 5 steps, decreasing search radius for increasing number of learning steps
+	        	bFullSearch = ( m_currentStep < 5 );
+	        	searchRadius = ( unsigned int )((( 1.f - lPercent ) * 0.5f * ( float )( AFAPP_sw.m_gridSize ))) + 2;
+	        }
+	        else // SOFMNET_SETTINGS_SEARCHMODE_global
+	        {
+	            // always use global search, never go local.
+	            // slow but guarantees optimal results in every case
+	        	bFullSearch = TRUE;
+	        }
+	        param[ AFA_PARAM_INDICES_FULL_SEARCH        ] = bFullSearch;
+	        param[ AFA_PARAM_INDICES_SEARCH_RADIUS      ] = searchRadius;
+	        param[ AFA_PARAM_INDICES_ADAPTION_THRESHOLD ] = *(( uint32_t * ) &adaptionThreshold );
+	        param[ AFA_PARAM_INDICES_SIGMA_SQR          ] = *(( uint32_t * ) &sigmaSqr          );
+	        param[ AFA_PARAM_INDICES_LRATE              ] = *(( uint32_t * ) &lRate             );
+
+			printf( "." );fflush(stdout);
+			rc = AFAProcess_HW(
+				param, /* whole block ram used */
+				AFAPP_sw.spectraDataWorkingSet,
+				AFAPP_sw.m_pSpectraIndexList,
+				AFAPP_sw.g_spectraDataInput );
+#if 0
+		    {
+		        rv = 0;
+
+			    // print results
+			    gridSize = AFACalcGridSize(numSpectra);
+
+			    printf("\n");
+			    for ( yp=0;yp<gridSize;yp++ )
+			    {
+		            printf("\t{");
+		            for ( xp=0;xp<gridSize;xp++ )
+		            {
+		                idx = AFAGetSpectraIndex( xp,yp );
+		                idx = ( idx < 0 ) ? -1 : idx;
+		                if ( idx != golden_data[ yp ][ xp ])
+		                {
+		                    rv = 1000000 + xp + yp * gridSize;
+
+		                    if ( idx < 0 )
+		                		printf("* -1* ");
+		                	else
+		                		printf("*%3d* ", idx);
+		                }
+		                else
+		                {
+		                	if ( idx < 0 )
+		                		printf("  -1, ");
+		                	else
+		                		printf(" %3d, ", idx);
+		                }
+		            }
+		            printf("},\n");
+			    }
+			    printf("\n");fflush(stdout);
+		    }
+
 #endif
+			if ( !rc )
+			{
+			    m_currentStep++;
+			}
+	    }
+	} while ( !rc );
+
+    {
         rv = 0;
 
 	    // print results
 	    gridSize = AFACalcGridSize(numSpectra);
 
-	    printf("\n");
+	    printf("\nFinal result !\n");
 	    for ( yp=0;yp<gridSize;yp++ )
 	    {
             printf("\t{");

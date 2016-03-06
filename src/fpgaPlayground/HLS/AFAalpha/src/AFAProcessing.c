@@ -11,8 +11,8 @@
 #include "malloc.h"
 
 
-extern AFAProcessingParam_t	AFAPP_hw;
-AFAProcessingParam_t	    AFAPP_sw;
+extern AFAProcessingParamHW_t	AFAPP_hw;
+AFAProcessingParamSW_t	        AFAPP_sw;
 
 // local variables to this file
 // ============================
@@ -40,19 +40,19 @@ AFAProcessSetParamBlockParameters()
 	AFASpectraPixelStartEndGet( &pStart, &pEnd );
 
 	// no misunderstandings here ...
-	memset( &AFAPP_hw, 0, sizeof( AFAProcessingParam_t ));
+	memset( &AFAPP_hw, 0, sizeof( AFAProcessingParamHW_t ));
 
-	AFAPP_hw.m_currentStep = AFAPP_sw.m_currentStep;
+//	AFAPP_hw.m_currentStep = AFAPP_sw.m_currentStep;
 	AFAPP_hw.m_gridSize = AFAPP_sw.m_gridSize;
 	AFAPP_hw.m_gridSizeSqr = AFAPP_sw.m_gridSizeSqr;
-	AFAPP_hw.m_localSearchErrorVec = AFAPP_sw.m_localSearchErrorVec;
-	AFAPP_hw.m_localSearchIndexVec = AFAPP_sw.m_localSearchIndexVec;
-	AFAPP_hw.m_localSearchSpectraVec = AFAPP_sw.m_localSearchSpectraVec;
-	AFAPP_hw.g_spectraDataInput = AFAPP_sw.g_spectraDataInput;
-	AFAPP_hw.m_pSpectraIndexList = AFAPP_sw.m_pSpectraIndexList;
+//	AFAPP_hw.m_localSearchErrorVec = AFAPP_sw.m_localSearchErrorVec;
+//	AFAPP_hw.m_localSearchIndexVec = AFAPP_sw.m_localSearchIndexVec;
+//	AFAPP_hw.m_localSearchSpectraVec = AFAPP_sw.m_localSearchSpectraVec;
+//	AFAPP_hw.g_spectraDataInput = AFAPP_sw.g_spectraDataInput;
+//	AFAPP_hw.m_pSpectraIndexList = AFAPP_sw.m_pSpectraIndexList;
 	AFAPP_hw.m_numSpectra = AFAPP_sw.m_numSpectra;
 	memcpy( &AFAPP_hw.m_params, &AFAPP_sw.m_params, sizeof( AFAParameters ));
-	AFAPP_hw.spectraDataWorkingSet = AFAPP_sw.spectraDataWorkingSet;
+//	AFAPP_hw.spectraDataWorkingSet = AFAPP_sw.spectraDataWorkingSet;
 
 	// the random generator state vector
 	memcpy( &AFAPP_hw.m_mt[ 0 ], mt, sizeof( AFAPP_hw.m_mt ));
@@ -474,7 +474,7 @@ void searchBestMatchComplete( volatile AFASpectra *_src, BestMatch *outbm )
 	*outbm = bestMatch;
 }
 
-
+#if 0
 void searchBestMatchLocal( volatile AFASpectra *_src, const int _searchRadius, BestMatch *outbm )
 {
 	//assert(_searchRadius > 0);
@@ -541,6 +541,7 @@ void searchBestMatchLocal( volatile AFASpectra *_src, const int _searchRadius, B
 
 	*outbm = bestMatch;
 }
+#endif
 
 int AFAGetSpectraIndex( int xp, int yp )
 {

@@ -47,19 +47,9 @@
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFADefines.h</location>
 		</link>
 		<link>
-			<name>source/AFANetworkSettingsCommon.h</name>
-			<type>1</type>
-			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFANetworkSettingsCommon.h</location>
-		</link>
-		<link>
 			<name>source/AFANetworkSettingsHW.h</name>
 			<type>1</type>
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFANetworkSettingsHW.h</location>
-		</link>
-		<link>
-			<name>source/AFAProcessingCommon.h</name>
-			<type>1</type>
-			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFAProcessingCommon.h</location>
 		</link>
 		<link>
 			<name>source/AFAProcessingHW.c</name>
@@ -72,11 +62,6 @@
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFAProcessingHW.h</location>
 		</link>
 		<link>
-			<name>source/AFARandomCommon.h</name>
-			<type>1</type>
-			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFARandomCommon.h</location>
-		</link>
-		<link>
 			<name>source/AFARandomHW.c</name>
 			<type>1</type>
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFARandomHW.c</location>
@@ -85,11 +70,6 @@
 			<name>source/AFARandomHW.h</name>
 			<type>1</type>
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFARandomHW.h</location>
-		</link>
-		<link>
-			<name>source/AFASpectraCommon.h</name>
-			<type>1</type>
-			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFASpectraCommon.h</location>
 		</link>
 		<link>
 			<name>source/AFASpectraHW.c</name>
@@ -105,16 +85,6 @@
 			<name>source/AFATypes.h</name>
 			<type>1</type>
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFATypes.h</location>
-		</link>
-		<link>
-			<name>source/SuperParallelCopy.c</name>
-			<type>1</type>
-			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/SuperParallelCopy.c</location>
-		</link>
-		<link>
-			<name>source/SuperParallelCopy.h</name>
-			<type>1</type>
-			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/SuperParallelCopy.h</location>
 		</link>
 		<link>
 			<name>testbench/AFADefines.h</name>

@@ -9,20 +9,23 @@
 // use any large number you like
 #define AFA_COMPARE_BATCH 140000
 
-AFAProcessingParam_t *
+AFAProcessingParamHW_t *
 AFAProcessGetParamBlockAddress();
 
 void
 AFAProcessSetParamBlockParameters();
 
 // calculate SOM grid size based on number of input spectra
-uint32_t AFACalcGridSize( uint32_t numSpectra );
+uint32_t
+AFACalcGridSize( uint32_t numSpectra );
 
 // calculate memory space to allocate in bytes needed for helper structures, including the SOM
-uint64_t AFACalcAllocSpaceForHelperStructures( uint32_t numSpectra );
+uint64_t
+AFACalcAllocSpaceForHelperStructures( uint32_t numSpectra );
 
 // returns true if system could be successfully initialized
-bool_t AFAInitProcessing(
+bool_t
+AFAInitProcessing(
 	volatile void *spectraArray,		// source spectra to cluster
 	volatile void *helperStucturesMem,  // memory region for helper structures. Use AFACalcAllocSpaceForHelpStructures() to calculate needed size in bytes
 	uint32_t numSpectra,				// number of source spectra in spectraArray
@@ -34,13 +37,15 @@ bool_t AFAInitProcessing(
 
 // one learning step
 // returns true if learning is finished and maximum number of learning steps are reached.
-bool_t AFAProcess();
+bool_t
+AFAProcess();
 
 // get index to source spectrum in SOM 
 // xp = x grid pos [0..gridsize-1]
 // yp = y grid pos [0..gridsize-1]
 // returns index to src spectrum [0..numSpectra] or -1 if cell is empty or index out of range
-int AFAGetSpectraIndex( int xp, int yp ); 
+int
+AFAGetSpectraIndex( int xp, int yp ); 
 
 
 #endif
