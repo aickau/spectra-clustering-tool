@@ -6,10 +6,6 @@
 #include "AFATypes.h"
 #include "AFASpectraCommon.h"
 
-extern int pixelStart;												// spectrum pixel range for compare and adaption processes [0..<pixelEnd], must be multiples of four.
-extern int pixelEnd;												// spectrum pixel range for compare and adaption processes [0..numSamples]
-
-
 /** @name ACCESSORS
 */
 //@{

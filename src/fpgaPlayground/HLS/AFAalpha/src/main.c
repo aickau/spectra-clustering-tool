@@ -10,9 +10,13 @@
 #include "AFAProcessing.h"
 
 #define JSCDBG_ITER_SPECIAL
-//#define JSCDBG_ACCEPT_LITTLE_INACCURACIES
 
 extern AFAProcessingParamSW_t	    AFAPP_sw;
+extern uint32_t m_mt[ RANDOM_N ]; // the array for the state vector 
+extern int m_mti; 
+extern int pixelStart;                                              // spectrum pixel range for compare and adaption processes [0..<pixelEnd], must be multiples of four.
+extern int pixelEnd;                                                // spectrum pixel range for compare and adaption processes [0..numSamples]
+
 // current learning step
 int m_currentStep;
 
@@ -165,7 +169,8 @@ void generateSineTestSpectra( int numTestSpectra, AFASpectra *outSpectraArray )
 }
 
 
-unsigned long param[ 512 ];
+uint32_t param[ 512 ];
+uint32_t rng_mt_HW[ RANDOM_N ];			// whole block ram used
 
 int main(int argc, char* argv[])
 {
@@ -175,10 +180,12 @@ int main(int argc, char* argv[])
     AFASpectra *spectraDataInput;
 	int xp, yp, gridSize;
 	int idx;
-    int rv;
+    int rv = 0;
     bool_t rc;
-
 	AFAParameters params;
+	
+	printf( "Starting main() ...\n" );
+
 	size_t spectraDataSize = numSpectra * sizeof( AFASpectra );
 
 	spectraDataInput = ( AFASpectra * )malloc( spectraDataSize );
@@ -244,13 +251,21 @@ int main(int argc, char* argv[])
 	        param[ AFA_PARAM_INDICES_ADAPTION_THRESHOLD ] = *(( uint32_t * ) &adaptionThreshold );
 	        param[ AFA_PARAM_INDICES_SIGMA_SQR          ] = *(( uint32_t * ) &sigmaSqr          );
 	        param[ AFA_PARAM_INDICES_LRATE              ] = *(( uint32_t * ) &lRate             );
+	        param[ AFA_PARAM_INDICES_GRID_SIZE          ] = AFAPP_sw.m_gridSize;
+			param[ AFA_PARAM_INDICES_GRID_SIZE_SQR      ] = AFAPP_sw.m_gridSizeSqr;
+			param[ AFA_PARAM_INDICES_NUM_SPECTRA        ] = numSpectra;
+			param[ AFA_PARAM_INDICES_RNG_MTI            ] = m_mti;
+			param[ AFA_PARAM_INDICES_PIXEL_START        ] = pixelStart;
+			param[ AFA_PARAM_INDICES_PIXEL_END          ] = pixelEnd;
 
 			printf( "." );fflush(stdout);
 			rc = AFAProcess_HW(
-				param, /* whole block ram used */
+				param,								// whole block ram used
+				m_mt,								// some block ram used
 				AFAPP_sw.spectraDataWorkingSet,
-				AFAPP_sw.m_pSpectraIndexList,
-				AFAPP_sw.g_spectraDataInput );
+				AFAPP_sw.g_spectraDataInput,
+				AFAPP_sw.m_pSpectraIndexList
+				);
 #if 0
 		    {
 		        rv = 0;
@@ -296,9 +311,9 @@ int main(int argc, char* argv[])
 	    }
 	} while ( !rc );
 
+    rv = 0;
+	if ( 1 )
     {
-        rv = 0;
-
 	    // print results
 	    gridSize = AFACalcGridSize(numSpectra);
 

@@ -19,13 +19,14 @@
 //!        should give 2^19937-1 random numbers per seed
 
 #include "AFARandom.h"
+#include "AFATypes.h"
 
 #include <assert.h>
 
 
 
 
-unsigned long m_mt[RANDOM_N]; // the array for the state vector 
+uint32_t m_mt[ RANDOM_N ]; // the array for the state vector 
 int m_mti = RANDOM_N; 
 
 

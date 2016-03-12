@@ -14,7 +14,13 @@ enum
 	AFA_PARAM_INDICES_FULL_SEARCH,
 	AFA_PARAM_INDICES_ADAPTION_THRESHOLD,
 	AFA_PARAM_INDICES_SIGMA_SQR,
-	AFA_PARAM_INDICES_LRATE
+	AFA_PARAM_INDICES_LRATE,
+    AFA_PARAM_INDICES_GRID_SIZE,
+    AFA_PARAM_INDICES_GRID_SIZE_SQR,
+	AFA_PARAM_INDICES_NUM_SPECTRA,
+	AFA_PARAM_INDICES_RNG_MTI,
+	AFA_PARAM_INDICES_PIXEL_START,
+	AFA_PARAM_INDICES_PIXEL_END
 };
 
 typedef struct
@@ -92,9 +98,10 @@ typedef struct
 bool_t
 AFAProcess_HW(
 	uint32_t param[ 512 ],				// whole block ram used
+    uint32_t mt[ RANDOM_N ],			// whole block ram used
 	volatile AFASpectra	*spectraDataWorkingSet,
-	volatile int *m_pSpectraIndexList,
-	volatile AFASpectra	*g_spectraDataInput
+	volatile AFASpectra *spectraDataInput,
+	volatile int *m_pSpectraIndexList
     );
 
 #endif

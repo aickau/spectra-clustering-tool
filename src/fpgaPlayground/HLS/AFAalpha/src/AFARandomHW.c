@@ -24,7 +24,7 @@
 #include <assert.h>
 #include <memory.h>
 
-unsigned long m_mt_HW[ RANDOM_N ]; // the array for the state vector 
+uint32_t m_mt_HW[ RANDOM_N ]; // the array for the state vector 
 int m_mti_HW = 0x01234567; // invalid number !!! 
 
 void AFARandomGetInit(

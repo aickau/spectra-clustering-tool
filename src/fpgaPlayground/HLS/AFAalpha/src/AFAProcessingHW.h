@@ -24,13 +24,21 @@ adaptNetwork_HW(
     float _lRate );
 
 //void compareSpectra_HW(volatile AFASpectra *_a, volatile AFASpectra *_pB, int _nCount, float *_pOutErrors );
-void compareSpectra_HW( AFASpectra *_a, AFASpectra _pB[ AFA_SPECTRA_CACHE_NUMSPECTRA ], int _nCount, float *_pOutErrors );
-
+void
+compareSpectra_HW(
+    volatile AFASpectra *_a,
+    volatile AFASpectra _pB[ AFA_SPECTRA_CACHE_NUMSPECTRA ],
+    int _nCount,
+    float *_pOutErrors );
+#if 0
 void
 searchBestMatchComplete_HW(
     volatile AFASpectra *_src,
     volatile AFASpectra	*spectraDataWorkingSet,
-    BestMatch *outbm );
+    BestMatch *outbm,
+    uint32_t m_gridSizeSqr,
+    uint32_t spectraIndex );
+#endif
 
 void searchBestMatchLocal_HW( volatile AFASpectra *_src, const int _searchRadius, BestMatch *outbm );
 void setBestMatch_HW( volatile AFASpectra *_networkSpectrum, unsigned int _networkIndex, volatile AFASpectra *_bestMatchSpectrum, unsigned int _bestMatchIndex );

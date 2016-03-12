@@ -11,7 +11,7 @@
 #include "malloc.h"
 
 
-extern AFAProcessingParamHW_t	AFAPP_hw;
+AFAProcessingParamHW_t	        AFAPP_hw;
 AFAProcessingParamSW_t	        AFAPP_sw;
 
 // local variables to this file
