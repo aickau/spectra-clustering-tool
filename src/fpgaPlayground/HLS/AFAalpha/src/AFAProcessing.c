@@ -80,7 +80,7 @@ void setBestMatch( volatile AFASpectra *_networkSpectrum, unsigned int _networkI
 	// set best matching related info.
 	_networkSpectrum->m_SpecObjID	= _bestMatchSpectrum->m_SpecObjID;
 	_networkSpectrum->m_Index		= _bestMatchIndex;
-	_networkSpectrum->m_version		= _bestMatchSpectrum->m_version;
+//	_networkSpectrum->m_version		= _bestMatchSpectrum->m_version;
 
 	// remember best match position to NW for faster search
 	_bestMatchSpectrum->m_Index = _networkIndex;
@@ -279,7 +279,7 @@ bool_t AFAInitProcessing(
 
 				spectraIndex = AFARandomIntRange( AFAPP_sw.m_numSpectra - 1 );
 				b = &AFAPP_sw.g_spectraDataInput[ spectraIndex ];
-a->m_JSCIndex = spectraIndex;
+
 				AFASpectraSet( a, b );
 			}
 		}

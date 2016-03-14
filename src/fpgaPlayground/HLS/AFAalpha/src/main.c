@@ -9,7 +9,7 @@
 #include "AFASpectra.h"
 #include "AFAProcessing.h"
 
-#define JSCDBG_ITER_SPECIAL
+//#define JSCDBG_ITER_SPECIAL
 
 extern AFAProcessingParamSW_t	    AFAPP_sw;
 extern uint32_t m_mt[ RANDOM_N ]; // the array for the state vector 
@@ -162,9 +162,8 @@ void generateSineTestSpectra( int numTestSpectra, AFASpectra *outSpectraArray )
 	{
 		AFASpectra *sp =  &outSpectraArray[i];
 		AFASpectraSetSine( sp, freq, 0.0f, 1.0f, 0.0f );
-		sp->m_Z = (float)i/numTestSpectra;
+//		sp->m_Z = (float)i/numTestSpectra;
 		freq += freqStepSize;
-      sp->m_JSCIndex = i;
 	}
 }
 

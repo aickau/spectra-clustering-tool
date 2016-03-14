@@ -11,12 +11,12 @@ int pixelEnd				= numSamples;
 
 // unique identifier count
 unsigned int UIDCount = 1;
-
+#if 1
 bool_t AFASpectraIsEmpty(volatile AFASpectra *sp) 
 {
 	return (sp->m_SpecObjID == 0);
-	}
-
+}
+#endif
 
 
 void AFASpectraClear(volatile AFASpectra *sp)
@@ -25,14 +25,14 @@ void AFASpectraClear(volatile AFASpectra *sp)
 
     sp->m_Min = 0.0f;
     sp->m_Max = 1.f;
-    sp->m_SamplesRead = 0;
+//    sp->m_SamplesRead = 0;
     sp->m_Index = -1;
     sp->m_SpecObjID = 0;
-	sp->m_Type = 0;
-    sp->m_version = SP_ARTIFICIAL;
-    sp->m_Z = 0.0;
+//	sp->m_Type = 0;
+//    sp->m_version = SP_ARTIFICIAL;
+//    sp->m_Z = 0.0;
     sp->m_flux = 0.0f;
-    sp->m_status = 0;
+//    sp->m_status = 0;
 
     for (i=0;i<numSamples;i++)
     {
@@ -45,16 +45,20 @@ void AFASpectraClear(volatile AFASpectra *sp)
 void AFASpectraSetSine( AFASpectra *sp, float _frequency, float _phase, float _amplitude, float _noize )
 {
 	unsigned int i=0;
+#ifndef ASK_AICK_WHETHER_THIS_IS_OK
+	sp->m_SpecObjID = UIDCount++;
+#else
 	sp->m_SpecObjID =(UIDCount++)<<22;
-	sp->m_version = SP_ARTIFICIAL;
-	sp->m_Type = 0;
+#endif
+//	sp->m_version = SP_ARTIFICIAL;
+//	sp->m_Type = 0;
 
 	for (i=0;i<numSamples;i++)
 	{
 		float x=_phase+(float)(i)*_frequency;
 		sp->m_Amplitude[i] = sinf(x)*_amplitude+(AFARandomFloat()-0.5f)*_noize;
 	}
-	sp->m_SamplesRead = numSamples;
+//	sp->m_SamplesRead = numSamples;
 	AFASpectraCalcMinMax(sp);
 }
 
@@ -77,23 +81,23 @@ void AFASpectraRandomize( volatile AFASpectra *sp, float minrange, float maxrang
     {
         sp->m_Amplitude[i] = AFARandomFloat()*d+minrange;
     }
-    sp->m_SamplesRead = numSamples;
+//    sp->m_SamplesRead = numSamples;
     AFASpectraCalcMinMax(sp);
 }
 
 void AFASpectraSet( volatile AFASpectra *dst, volatile AFASpectra *src)
 {
 	unsigned int i=0;
-    dst->m_SamplesRead		= src->m_SamplesRead;
+//    dst->m_SamplesRead		= src->m_SamplesRead;
     dst->m_Min				= src->m_Min;
     dst->m_Max				= src->m_Max;
     dst->m_Index			= src->m_Index;
     dst->m_SpecObjID		= src->m_SpecObjID;
-    dst->m_version			= src->m_version;
-    dst->m_Type				= src->m_Type;
-    dst->m_Z				= src->m_Z;
+//    dst->m_version			= src->m_version;
+//    dst->m_Type				= src->m_Type;
+//    dst->m_Z				= src->m_Z;
     dst->m_flux				= src->m_flux;
-    dst->m_status			= src->m_status;
+//    dst->m_status			= src->m_status;
 
     for ( i=0;i<numSamples;i++)
     {

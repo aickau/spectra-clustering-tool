@@ -14,7 +14,7 @@ typedef unsigned long long  uint64_t;
 
 typedef float               float32_t;
 typedef double              float64_t;
-typedef int					bool_t;	
+typedef uint32_t			bool_t;
 
 
 
@@ -262,8 +262,8 @@ typedef enum
 
 typedef struct BestMatch_
 {
-	unsigned int index;		//< index in the map
-	float error;			//< euclidean distance
+	uint32_t index;				//< index in the map
+	float32_t error;			//< euclidean distance
 } BestMatch;
 
 #endif

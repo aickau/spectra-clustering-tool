@@ -1,3 +1,4 @@
+#if 0
 #include "AFASpectraHW.h"
 #include "AFADefines.h"
 #include "AFARandomHW.h"
@@ -51,3 +52,4 @@ void AFASpectraAdapt_HW( volatile AFASpectra *dst, volatile AFASpectra *src, flo
 
 }
 
+#endif
