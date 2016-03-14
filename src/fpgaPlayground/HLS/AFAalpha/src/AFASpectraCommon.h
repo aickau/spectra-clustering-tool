@@ -18,6 +18,13 @@
 #define reductionFactor			8									// reduce number of pixel by a factor of 8 (use only values of 2^n)
 #define numSamples				(numSamplesBOSS/reductionFactor)	// number of samples in reduced spectra
 
+//
+//
+// COMMENT for AICK:
+// * Can we reduce the size of AFASpectra to 2048Bytes in all cases (SDSS & BOSS) ?
+// * Can we omit all unnecessary data like m_Min, m_Max, m_SpecObjID ?
+//
+
 // Can hold only one spectrum so the name is a bit misleading here.
 //
 // warning:

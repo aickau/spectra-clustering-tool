@@ -42,6 +42,11 @@
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/AFAProcessing_64Bit_250MHz/.tcls</location>
 		</link>
 		<link>
+			<name>AFAProcessing_64Bit_400MHz/constraints</name>
+			<type>2</type>
+			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/AFAProcessing_64Bit_400MHz/.tcls</location>
+		</link>
+		<link>
 			<name>source/AFADefines.h</name>
 			<type>1</type>
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFADefines.h</location>
@@ -175,6 +180,21 @@
 			<name>AFAProcessing_64Bit_250MHz/constraints/script.tcl</name>
 			<type>1</type>
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/AFAProcessing_64Bit_250MHz/script.tcl</location>
+		</link>
+		<link>
+			<name>AFAProcessing_64Bit_400MHz/constraints/.xml.directive</name>
+			<type>1</type>
+			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/AFAProcessing_64Bit_400MHz/AFAProcessing_64Bit_400MHz.directive</location>
+		</link>
+		<link>
+			<name>AFAProcessing_64Bit_400MHz/constraints/directives.tcl</name>
+			<type>1</type>
+			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/AFAProcessing_64Bit_400MHz/directives.tcl</location>
+		</link>
+		<link>
+			<name>AFAProcessing_64Bit_400MHz/constraints/script.tcl</name>
+			<type>1</type>
+			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/AFAProcessing_64Bit_400MHz/script.tcl</location>
 		</link>
 	</linkedResources>
 </projectDescription>
