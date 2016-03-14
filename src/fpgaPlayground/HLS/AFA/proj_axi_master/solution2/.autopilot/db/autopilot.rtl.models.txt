@@ -1,5 +1,0 @@
-AFAProcessFunction_AFAProcessFunctionParamBlock
-AFAProcessFunction_p_m_axi
-AFAProcessFunction_srcNet_m_axi
-AFAProcessFunction_dstNet_m_axi
-AFAProcessFunction

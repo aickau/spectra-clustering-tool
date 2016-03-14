@@ -1,3 +1,0 @@
-example_buff
-example_a_m_axi
-example
