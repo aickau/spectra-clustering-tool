@@ -1,14 +1,13 @@
+#include <stdio.h>
+#include <stddef.h>
+#include <string.h>
 #include <float.h>
 #include <math.h>
-#include <stddef.h>
-#include <memory.h>
 
 #include "AFASpectra.h"
 #include "AFAProcessing.h"
 #include "AFADefines.h"
 #include "AFATypes.h"
-
-#include "malloc.h"
 
 
 AFAProcessingParamHW_t	        AFAPP_hw;
@@ -236,16 +235,16 @@ bool_t AFAInitProcessing(
 	AFAPP_sw.spectraDataWorkingSet = ( volatile AFASpectra * )  &((unsigned char*)helperStucturesMem)[memOffset];
 	memOffset += AFAPP_sw.m_gridSizeSqr*sizeof(AFASpectra);
 
-	AFAPP_sw.m_pSpectraIndexList = ( volatile int * ) &((unsigned char*)helperStucturesMem)[memOffset];
+	AFAPP_sw.m_pSpectraIndexList = ( volatile sint32_t * ) &((unsigned char*)helperStucturesMem)[memOffset];
+	memOffset += AFAPP_sw.m_gridSizeSqr * sizeof(int);
+
+	AFAPP_sw.m_localSearchSpectraVec = ( volatile AFASpectra ** ) &((unsigned char*)helperStucturesMem)[memOffset];
+	memOffset += AFAPP_sw.m_gridSizeSqr * sizeof( AFASpectra * );
+
+	AFAPP_sw.m_localSearchIndexVec = ( sint32_t * ) &((unsigned char*)helperStucturesMem)[memOffset];
 	memOffset += AFAPP_sw.m_gridSizeSqr*sizeof(int);
 
-	AFAPP_sw.m_localSearchSpectraVec = (volatile AFASpectra**) &((unsigned char*)helperStucturesMem)[memOffset];
-	memOffset += AFAPP_sw.m_gridSizeSqr*sizeof(AFASpectra*);
-
-	AFAPP_sw.m_localSearchIndexVec = (int*)  &((unsigned char*)helperStucturesMem)[memOffset];
-	memOffset += AFAPP_sw.m_gridSizeSqr*sizeof(int);
-
-	AFAPP_sw.m_localSearchErrorVec = (float*)  &((unsigned char*)helperStucturesMem)[memOffset];
+	AFAPP_sw.m_localSearchErrorVec = ( float32_t *)  &(( unsigned char * )helperStucturesMem)[memOffset];
 
 
 	reset(params);

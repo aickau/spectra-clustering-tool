@@ -14,7 +14,11 @@ unsigned int UIDCount = 1;
 #if 1
 bool_t AFASpectraIsEmpty(volatile AFASpectra *sp) 
 {
-	return (sp->m_SpecObjID == 0);
+	// following two lines should only be a wiring thing in synthesis (maybe with a register involved)
+	float32_t tmp = sp->m_SpecObjID;
+	uint32_t tmp2 = *(( uint32_t * ) &tmp );
+
+	return ( tmp2 == 0 );
 }
 #endif
 
@@ -27,7 +31,7 @@ void AFASpectraClear(volatile AFASpectra *sp)
     sp->m_Max = 1.f;
 //    sp->m_SamplesRead = 0;
     sp->m_Index = -1;
-    sp->m_SpecObjID = 0;
+    sp->m_SpecObjID = 0.0f;
 //	sp->m_Type = 0;
 //    sp->m_version = SP_ARTIFICIAL;
 //    sp->m_Z = 0.0;
@@ -44,22 +48,18 @@ void AFASpectraClear(volatile AFASpectra *sp)
 
 void AFASpectraSetSine( AFASpectra *sp, float _frequency, float _phase, float _amplitude, float _noize )
 {
-	unsigned int i=0;
-#ifndef ASK_AICK_WHETHER_THIS_IS_OK
-	sp->m_SpecObjID = UIDCount++;
-#else
-	sp->m_SpecObjID =(UIDCount++)<<22;
-#endif
-//	sp->m_version = SP_ARTIFICIAL;
-//	sp->m_Type = 0;
+	uint32_t i;
+	uint32_t tmp;
 
-	for (i=0;i<numSamples;i++)
+	tmp = UIDCount++;
+	sp->m_SpecObjID = *(( float32_t * ) &tmp );
+
+	for ( i = 0; i < numSamples; i++ )
 	{
-		float x=_phase+(float)(i)*_frequency;
-		sp->m_Amplitude[i] = sinf(x)*_amplitude+(AFARandomFloat()-0.5f)*_noize;
+		float32_t x =_phase + ( float32_t )( i ) * _frequency;
+		sp->m_Amplitude[ i ] = sinf( x ) * _amplitude + ( AFARandomFloat() - 0.5f ) * _noize;
 	}
-//	sp->m_SamplesRead = numSamples;
-	AFASpectraCalcMinMax(sp);
+	AFASpectraCalcMinMax( sp );
 }
 
 

@@ -30,40 +30,18 @@
 // warning:
 // changing order and / or size of this structure will invalidate all dumped files !
 // 
+
 typedef struct AFASpectra_
 {
-    /** @name MEMBERS
-    */
-    //@{
-
-
-    float m_Amplitude[numSamples];		// amplitude in 10^(-17) erg/cm/s^2/Ang
-    float m_Min;
-    float m_Max;
-    sint32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
-//    sint16_t m_SamplesRead;
-//    sint32_t m_JSCIndex;
-#ifndef ASK_AICK_WHETHER_THIS_IS_OK
-	uint32_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
-//	uint32_t m_SpecObjIDLowerBits;
-#else
-	sint64_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
-#endif
-//    sint32_t m_Type;					// bits 0..2 SpectraClass
-										// bits 3..9 SpectraSubClass
-										// bit 10 BROADLINE flag
-//	SpectraVersion m_version;
-//    double m_Z_;
-    float m_flux;
-//    char m_status;						// 0=ok, 1=bad pixels
-//    char pad[3];						// for padding to multiple of 16 byte boundaries
-
-
-    //@}
-
+    float32_t m_Amplitude[numSamples];		// amplitude in 10^(-17) erg/cm/s^2/Ang
+    float32_t m_Min;
+    float32_t m_Max;
+    float32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
+	float32_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
+	float32_t m_flux;
 } AFASpectra;
 
-//typedef uint32_t [ ]
-
+typedef float32_t
+    *AFASpectra_t;
 
 #endif

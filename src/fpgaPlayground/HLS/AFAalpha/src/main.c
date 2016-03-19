@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <Memory.h>
+#include <string.h>
 #include <math.h>
 
 #include "AFADefines.h"
@@ -9,7 +9,7 @@
 #include "AFASpectra.h"
 #include "AFAProcessing.h"
 
-//#define JSCDBG_ITER_SPECIAL
+#define JSCDBG_ITER_SPECIAL
 
 extern AFAProcessingParamSW_t	    AFAPP_sw;
 extern uint32_t m_mt[ RANDOM_N ]; // the array for the state vector 
@@ -168,7 +168,7 @@ void generateSineTestSpectra( int numTestSpectra, AFASpectra *outSpectraArray )
 }
 
 
-uint32_t param[ 512 ];
+uint32_t param[ 256 ];
 uint32_t rng_mt_HW[ RANDOM_N ];			// whole block ram used
 
 int main(int argc, char* argv[])
@@ -184,7 +184,11 @@ int main(int argc, char* argv[])
 	AFAParameters params;
 	
 	printf( "Starting main() ...\n" );
-
+	if ( !AFATypesOK())
+	{
+		printf( "Error with AFATypes.h\n" );
+		exit( 1 );
+	}
 	size_t spectraDataSize = numSpectra * sizeof( AFASpectra );
 
 	spectraDataInput = ( AFASpectra * )malloc( spectraDataSize );
@@ -218,13 +222,13 @@ int main(int argc, char* argv[])
 	    }
 	    else
 	    {
-	        float lPercent = (float)(m_currentStep)/(float)(AFAPP_sw.m_params.numSteps);
-	        float lRate = ( float ) ( AFAPP_sw.m_params.lRateBegin*powf(AFAPP_sw.m_params.lRateEnd/AFAPP_sw.m_params.lRateBegin,lPercent));
-	        float adaptionThreshold = AFAPP_sw.m_params.lRateEnd*0.01f;
-	        float sigma = ( float ) ( AFAPP_sw.m_params.radiusBegin*pow(AFAPP_sw.m_params.radiusEnd/AFAPP_sw.m_params.radiusBegin,lPercent));
-	        float sigmaSqr = sigma*sigma;
+	        float32_t lPercent = ( float32_t )( m_currentStep ) / ( float32_t )( AFAPP_sw.m_params.numSteps );
+	        float32_t lRate = ( float32_t ) ( AFAPP_sw.m_params.lRateBegin * powf( AFAPP_sw.m_params.lRateEnd / AFAPP_sw.m_params.lRateBegin, lPercent ));
+	        float32_t adaptionThreshold = AFAPP_sw.m_params.lRateEnd * 0.01f;
+	        float32_t sigma = ( float32_t ) ( AFAPP_sw.m_params.radiusBegin * powf( AFAPP_sw.m_params.radiusEnd / AFAPP_sw.m_params.radiusBegin, lPercent));
+	        float32_t sigmaSqr = sigma*sigma;
 	        bool_t bFullSearch = TRUE;
-	        unsigned int searchRadius = 1;
+	        uint32_t searchRadius = 1;
 
 	        // determine search strategy for BMUs for the current learning step
 	        if ( AFAPP_sw.m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_localfast )

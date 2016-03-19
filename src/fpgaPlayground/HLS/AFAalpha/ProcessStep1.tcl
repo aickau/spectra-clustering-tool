@@ -23,16 +23,17 @@ add_files -tb src/AFARandomCommon.h
 add_files -tb src/AFASpectra.c
 add_files -tb src/AFASpectra.h
 add_files -tb src/AFASpectraCommon.h
+add_files -tb src/AFATypes.c
 add_files -tb src/AFATypes.h
 add_files -tb src/main.c
 
 open_solution "AFAProcessing_64Bit_250MHz"
 set_part {xc7vx690tffg1761-2}
-create_clock -period 2.5ns -name default
+create_clock -period 4ns -name default
 config_interface -m_axi_addr64 -m_axi_offset off -register_io off
 
 #source "./AFAalpha/AFAProcessing_64Bit_250MHz/directives.tcl"
 csim_design -clean
-#csynth_design
+csynth_design
 #cosim_design -rtl vhdl
 #export_design -format ip_catalog

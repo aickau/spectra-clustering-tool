@@ -22,10 +22,10 @@
 #include "AFATypes.h"
 
 #include <assert.h>
-#include <memory.h>
+#include <string.h>
 
 uint32_t m_mt_HW[ RANDOM_N ]; // the array for the state vector 
-int m_mti_HW = 0x01234567; // invalid number !!! 
+uint32_t m_mti_HW = 0x01234567; // invalid number !!! 
 
 void AFARandomGetInit(
 	unsigned long *mt_HW, // the array for the state vector 

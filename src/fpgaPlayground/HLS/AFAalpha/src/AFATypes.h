@@ -266,4 +266,9 @@ typedef struct BestMatch_
 	float32_t error;			//< euclidean distance
 } BestMatch;
 
+bool_t
+AFATypesOK();
+
+
+
 #endif

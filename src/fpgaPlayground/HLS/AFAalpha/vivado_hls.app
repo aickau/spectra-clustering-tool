@@ -1,7 +1,13 @@
 <project xmlns="com.autoesl.autopilot.project" name="AFAalpha" top="AFAProcess_HW">
-    <files>
+    <includePaths/>
+    <libraryPaths/>
+    <Simulation>
+        <SimFlow name="csim" clean="true" csimMode="0" lastCsimMode="0"/>
+    </Simulation>
+    <files xmlns="">
         <file name="../src/main.c" sc="0" tb="1" cflags=" "/>
         <file name="../src/AFATypes.h" sc="0" tb="1" cflags=" "/>
+        <file name="../src/AFATypes.c" sc="0" tb="1" cflags=" "/>
         <file name="../src/AFASpectraCommon.h" sc="0" tb="1" cflags=" "/>
         <file name="../src/AFASpectra.h" sc="0" tb="1" cflags=" "/>
         <file name="../src/AFASpectra.c" sc="0" tb="1" cflags=" "/>
@@ -25,11 +31,6 @@
         <file name="AFAalpha/src/AFANetworkSettingsHW.h" sc="0" tb="false" cflags=""/>
         <file name="AFAalpha/src/AFADefines.h" sc="0" tb="false" cflags=""/>
     </files>
-    <includePaths/>
-    <libraryPaths/>
-    <Simulation>
-        <SimFlow name="csim" clean="true" csimMode="0" lastCsimMode="0"/>
-    </Simulation>
     <solutions xmlns="">
         <solution name="AFAProcessing_64Bit_250MHz" status="active"/>
         <solution name="AFAProcessing_64Bit_400MHz" status="inactive"/>

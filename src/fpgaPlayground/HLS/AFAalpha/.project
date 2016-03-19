@@ -157,6 +157,11 @@
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFASpectraCommon.h</location>
 		</link>
 		<link>
+			<name>testbench/AFATypes.c</name>
+			<type>1</type>
+			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFATypes.c</location>
+		</link>
+		<link>
 			<name>testbench/AFATypes.h</name>
 			<type>1</type>
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFATypes.h</location>
