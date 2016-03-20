@@ -19,19 +19,40 @@ AFAProcessSetParamBlockParameters();
 uint32_t
 AFACalcGridSize( uint32_t numSpectra );
 
+void
+AFAHelperStructures_MemAllocate();
+void
+AFAHelperStructures_MemFree();
+
 // calculate memory space to allocate in bytes needed for helper structures, including the SOM
+void
+AFAHelperStructures_PrepareDataStructure(
+    const uint32_t numSpectra );
+void
+AFAHelperStructures_UpdateAddressData();
+
+void *
+AFAHelperStructures_GetAddressOf(
+    const char *dataName );
+
 uint64_t
-AFACalcAllocSpaceForHelperStructures( uint32_t numSpectra );
+AFAHelperStructures_GetOffsetToBaseAddress(
+    const char *dataName );
 
 // returns true if system could be successfully initialized
 bool_t
+AFAInitProcessingNew(
+    bool_t continueProcessing
+    );
+
+bool_t
 AFAInitProcessing(
-	volatile void *spectraArray,		// source spectra to cluster
-	volatile void *helperStucturesMem,  // memory region for helper structures. Use AFACalcAllocSpaceForHelpStructures() to calculate needed size in bytes
-	uint32_t numSpectra,				// number of source spectra in spectraArray
-	bool_t continueProcessing,			// continue computation, hint: currently not supported
-	AFAParameters *params				// spectra clustering params
-	);
+    volatile void *spectraArray,		// source spectra to cluster
+    volatile void *helperStucturesMem,  // memory region for helper structures. Use AFACalcAllocSpaceForHelpStructures() to calculate needed size in bytes
+    uint32_t numSpectra,				// number of source spectra in spectraArray
+    bool_t continueProcessing,			// continue computation, hint: currently not supported
+    AFAParameters *params				// spectra clustering params
+    );
 
 
 
@@ -44,8 +65,10 @@ AFAProcess();
 // xp = x grid pos [0..gridsize-1]
 // yp = y grid pos [0..gridsize-1]
 // returns index to src spectrum [0..numSpectra] or -1 if cell is empty or index out of range
-int
-AFAGetSpectraIndex( int xp, int yp ); 
+uint32_t
+AFAGetSpectraIndex(
+    uint32_t xp,
+    uint32_t yp ); 
 
 
 #endif

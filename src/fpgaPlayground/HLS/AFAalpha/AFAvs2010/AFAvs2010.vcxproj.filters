@@ -39,6 +39,9 @@
     <ClCompile Include="..\src\AFASpectraHW.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\AFATypes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\AFADefines.h">

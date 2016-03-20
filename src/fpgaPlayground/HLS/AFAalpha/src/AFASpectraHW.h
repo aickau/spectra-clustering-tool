@@ -12,8 +12,8 @@
 //@{
 
 void AFASpectraPixelStartEndSet_HW(
-	int pStart,
-	int pEnd );
+    int pStart,
+    int pEnd );
 
 // returns true if marked as empty spectrum (specObjID is set to zero).
 bool_t AFASpectraIsEmpty_HW( volatile AFASpectra *sp);

@@ -11,8 +11,8 @@
 //@{
 void
 AFASpectraPixelStartEndGet(
-	int *pStart,
-	int *pEnd );
+    uint32_t *pStart,
+    uint32_t *pEnd );
 
 
 // returns true if marked as empty spectrum (specObjID is set to zero).

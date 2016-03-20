@@ -94,6 +94,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996;4068</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,6 +143,7 @@
     <ClCompile Include="..\src\AFARandomHW.c" />
     <ClCompile Include="..\src\AFASpectra.c" />
     <ClCompile Include="..\src\AFASpectraHW.c" />
+    <ClCompile Include="..\src\AFATypes.c" />
     <ClCompile Include="..\src\main.c" />
   </ItemGroup>
   <ItemGroup>

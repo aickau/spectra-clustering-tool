@@ -38,7 +38,7 @@ searchBestMatchComplete_HW(
 
     while ( j < m_gridSizeSqr )
     {
-        const int jInc = AFAMIN( AFA_COMPARE_BATCH_HW, (AFAMIN(m_gridSizeSqr, j+AFA_COMPARE_BATCH_HW)-j));
+        const uint32_t jInc = AFAMIN( AFA_COMPARE_BATCH_HW, (AFAMIN(m_gridSizeSqr, j+AFA_COMPARE_BATCH_HW)-j));
 
         // calculate euclidean distances for spectrum _src and a batch of network spectra starting at m_pNet[j] .. m_pNet[j+jInc-1]
         //a = &AFAPP_HW.m_pNet[j];
@@ -83,16 +83,16 @@ searchBestMatchComplete_HW(
 void
 AFASpectraAdapt_HW_integrated(
     volatile AFASpectra *dst,
-	volatile AFASpectra *src,
-	float _adaptionRate )
+    volatile AFASpectra *src,
+    float adaptionRate )
 {
-	int i=0;
-	// c-version (slow)
-	for (i=pixelStart_HW;i<pixelEnd_HW;i++ )
-	{
-		dst->m_Amplitude[i] += _adaptionRate*(src->m_Amplitude[i]-dst->m_Amplitude[i]);
-	}
-
+    uint32_t i = 0;
+    // c-version (slow)
+    for ( i = pixelStart_HW; i < pixelEnd_HW; i++ )
+    {
+        dst->m_Amplitude[ i ] +=
+            adaptionRate * ( src->m_Amplitude[ i ] - dst->m_Amplitude[ i ]);
+    }
 }
 
 void
@@ -141,15 +141,15 @@ adaptNetwork_HW_integrated(
                 spectraAdress = y * m_gridSize + x;
                 a = &spectraDataWorkingSet[ spectraAdress ];
 #if 1
-            	for ( i = pixelStart_HW; i < pixelEnd_HW; i++ )
-            	{
-            		a->m_Amplitude[ i ] += lratehsx * ( _srcSpectrum->m_Amplitude[ i ]  - a->m_Amplitude[ i ]);
-            	}
+                for ( i = pixelStart_HW; i < pixelEnd_HW; i++ )
+                {
+                    a->m_Amplitude[ i ] += lratehsx * ( _srcSpectrum->m_Amplitude[ i ]  - a->m_Amplitude[ i ]);
+                }
 #else
-            	AFASpectraAdapt_HW_integrated(
-            	    a,
-					_srcSpectrum,
-					lratehsx );
+                AFASpectraAdapt_HW_integrated(
+                    a,
+                    _srcSpectrum,
+                    lratehsx );
 #endif
             }
         }
@@ -158,16 +158,18 @@ adaptNetwork_HW_integrated(
 
 bool_t
 AFAProcess_HW(
-	uint32_t param[ 256 ],              // whole block ram used
-	uint32_t mt_HW[ RANDOM_N ],         // block ram used
-	volatile AFASpectra *spectraDataWorkingSet,
-	volatile AFASpectra *g_spectraDataInput,
-	volatile sint32_t *pSpectraIndexList
-	)
+    uint32_t param[ 256 ],              // whole block ram used
+    uint32_t mt_HW[ RANDOM_N ],         // block ram used
+    volatile uint32_t *baseAddr,		// default starting address in memory
+    volatile AFASpectra *spectraDataWorkingSet,
+    volatile AFASpectra *g_spectraDataInput,
+    volatile sint32_t *pSpectraIndexList
+    )
 {
 #pragma HLS RESOURCE            variable=param             core=RAM_1P_BRAM
 #pragma HLS INTERFACE bram      port=param
 #pragma HLS INTERFACE bram      port=mt_HW
+#pragma HLS INTERFACE m_axi     port=baseAddr              depth=10000
 #pragma HLS INTERFACE m_axi     port=spectraDataWorkingSet depth=10000 bundle=INTERFACE_AXI_BUSMASTER1
 #pragma HLS INTERFACE m_axi     port=g_spectraDataInput    depth=10000 bundle=INTERFACE_AXI_BUSMASTER2
 #pragma HLS INTERFACE m_axi     port=pSpectraIndexList     depth=10000 bundle=INTERFACE_AXI_BUSMASTER3
@@ -178,7 +180,6 @@ AFAProcess_HW(
 
     volatile AFASpectra *bmuSpectrum = NULL;
     volatile AFASpectra *currentSourceSpectrum;
-    volatile AFASpectra *a;
     BestMatch bmu;
 
     uint32_t i,j;
@@ -281,7 +282,7 @@ AFAProcess_HW(
         // _bestMatchIndex index to input spectrum [0..numspectra-1]
         // set best matching related info.
         bmuSpectrum->m_SpecObjID    = currentSourceSpectrum->m_SpecObjID;
-        bmuSpectrum->m_Index        = spectraIndex;
+        bmuSpectrum->m_Index        = ( float32_t )spectraIndex;
 //        bmuSpectrum->m_version      = currentSourceSpectrum->m_version;
 
         // remember best match position to NW for faster search

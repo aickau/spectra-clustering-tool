@@ -5,8 +5,8 @@
 
 typedef struct
 {
-	uint32_t numSpectra;
-	bool_t bContinueComputation;
+    uint32_t numSpectra;
+    bool_t bContinueComputation;
 } AFAProcessFunctionParameter_t;
 
 void

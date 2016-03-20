@@ -22,8 +22,8 @@
 #include "AFARandomCommon.h"
 
 void AFARandomGetStateVectorBlockAddress(
-	unsigned long **mt, // the array for the state vector 
-	int **mti );
+    unsigned long **mt, // the array for the state vector 
+    int **mti );
 
 // reset random number generation to a given seed
 void AFARandomInitRandom( unsigned long _seed );
