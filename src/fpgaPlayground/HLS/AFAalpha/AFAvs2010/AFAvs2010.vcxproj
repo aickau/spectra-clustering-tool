@@ -151,7 +151,6 @@
     <ClInclude Include="..\src\AFANetworkSettings.h" />
     <ClInclude Include="..\src\AFANetworkSettingsCommon.h" />
     <ClInclude Include="..\src\AFANetworkSettingsHW.h" />
-    <ClInclude Include="..\src\AFAProcessFunction.h" />
     <ClInclude Include="..\src\AFAProcessing.h" />
     <ClInclude Include="..\src\AFAProcessingCommon.h" />
     <ClInclude Include="..\src\AFAProcessingHW.h" />

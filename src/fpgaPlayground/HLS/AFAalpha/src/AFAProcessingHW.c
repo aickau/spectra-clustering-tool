@@ -160,22 +160,23 @@ bool_t
 AFAProcess_HW(
     uint32_t param[ 256 ],              // whole block ram used
     uint32_t mt_HW[ RANDOM_N ],         // block ram used
-    volatile uint32_t *baseAddr,		// default starting address in memory
-    volatile AFASpectra *spectraDataWorkingSet,
-    volatile AFASpectra *g_spectraDataInput,
-    volatile sint32_t *pSpectraIndexList
+    volatile uint32_t *baseAddr 		// default starting address in memory
+    //volatile AFASpectra *spectraDataWorkingSet,
+    //volatile AFASpectra *g_spectraDataInput,
+    //volatile sint32_t *pSpectraIndexList
     )
 {
 #pragma HLS RESOURCE            variable=param             core=RAM_1P_BRAM
 #pragma HLS INTERFACE bram      port=param
 #pragma HLS INTERFACE bram      port=mt_HW
 #pragma HLS INTERFACE m_axi     port=baseAddr              depth=10000
-#pragma HLS INTERFACE m_axi     port=spectraDataWorkingSet depth=10000 bundle=INTERFACE_AXI_BUSMASTER1
-#pragma HLS INTERFACE m_axi     port=g_spectraDataInput    depth=10000 bundle=INTERFACE_AXI_BUSMASTER2
-#pragma HLS INTERFACE m_axi     port=pSpectraIndexList     depth=10000 bundle=INTERFACE_AXI_BUSMASTER3
-#pragma HLS INTERFACE s_axilite port=spectraDataWorkingSet             bundle=INTERFACE_AXILITE_SLAVE
-#pragma HLS INTERFACE s_axilite port=pSpectraIndexList                 bundle=INTERFACE_AXILITE_SLAVE
-#pragma HLS INTERFACE s_axilite port=g_spectraDataInput                bundle=INTERFACE_AXILITE_SLAVE
+//#pragma HLS INTERFACE m_axi     port=spectraDataWorkingSet depth=10000 bundle=INTERFACE_AXI_BUSMASTER1
+//#pragma HLS INTERFACE m_axi     port=g_spectraDataInput    depth=10000 bundle=INTERFACE_AXI_BUSMASTER2
+//#pragma HLS INTERFACE m_axi     port=pSpectraIndexList     depth=10000 bundle=INTERFACE_AXI_BUSMASTER3
+#pragma HLS INTERFACE s_axilite port=baseAddr                          bundle=INTERFACE_AXILITE_SLAVE
+//#pragma HLS INTERFACE s_axilite port=spectraDataWorkingSet             bundle=INTERFACE_AXILITE_SLAVE
+//#pragma HLS INTERFACE s_axilite port=pSpectraIndexList                 bundle=INTERFACE_AXILITE_SLAVE
+//#pragma HLS INTERFACE s_axilite port=g_spectraDataInput                bundle=INTERFACE_AXILITE_SLAVE
 #pragma HLS INTERFACE s_axilite port=return                            bundle=INTERFACE_AXILITE_SLAVE
 
     volatile AFASpectra *bmuSpectrum = NULL;
@@ -202,8 +203,14 @@ AFAProcess_HW(
     uint32_t m_gridSize = param[ AFA_PARAM_INDICES_GRID_SIZE ];
     uint32_t m_gridSizeSqr = param[ AFA_PARAM_INDICES_GRID_SIZE_SQR ];
     uint32_t m_numSpectra = param[ AFA_PARAM_INDICES_NUM_SPECTRA ];
-
+    uint64_t spectraDataWorkingSetIndexToMem = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_LOW         ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH         ] << 32 )) / sizeof( uint32_t );
+    uint64_t g_spectraDataInputIndexToMem    = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH      ] << 32 )) / sizeof( uint32_t );
+    uint64_t pSpectraIndexListIndexToMem     = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] << 32 )) / sizeof( uint32_t );
     const int spectraCacheSize = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, ( AFAMIN( m_gridSizeSqr, AFA_COMPARE_BATCH_HW )));
+
+    volatile AFASpectra *spectraDataWorkingSet = ( volatile AFASpectra * ) &baseAddr[ spectraDataWorkingSetIndexToMem ];
+    volatile AFASpectra *g_spectraDataInput    = ( volatile AFASpectra * ) &baseAddr[ g_spectraDataInputIndexToMem    ];
+    volatile sint32_t   *pSpectraIndexList     = ( volatile sint32_t *   ) &baseAddr[ pSpectraIndexListIndexToMem     ];
 
     if ( paramNotInitialized )
     {

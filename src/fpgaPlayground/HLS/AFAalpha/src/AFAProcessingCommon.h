@@ -26,7 +26,7 @@ enum
     AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW,
     AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH,
     AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW,
-    AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDRHIGH
+    AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH
 };
 
 typedef struct  
@@ -125,10 +125,10 @@ bool_t
 AFAProcess_HW(
     uint32_t param[ 256 ],				// whole block ram used
     uint32_t mt[ RANDOM_N ],			// whole block ram used
-    volatile uint32_t *baseAddr,
-    volatile AFASpectra	*spectraDataWorkingSet,
-    volatile AFASpectra *spectraDataInput,
-    volatile sint32_t *m_pSpectraIndexList
+    volatile uint32_t *baseAddr
+    //volatile AFASpectra	*spectraDataWorkingSet,
+    //volatile AFASpectra *spectraDataInput,
+    //volatile sint32_t *m_pSpectraIndexList
     );
 
 #endif
