@@ -43,17 +43,17 @@ typedef struct
 typedef struct
 {
     // code book spectra
-    volatile AFASpectra	*spectraDataWorkingSet;
+    volatile AFASpectra_SW	*spectraDataWorkingSet;
 
     // training data
-    volatile AFASpectra	*g_spectraDataInput;
+    volatile AFASpectra_SW	*g_spectraDataInput;
 
     // determine processing order. must be randomized every learning step
     // contains m_gridSize * m_gridSize  elements
     volatile sint32_t *m_pSpectraIndexList;
 
 
-    volatile AFASpectra **m_localSearchSpectraVec;
+    volatile AFASpectra_SW **m_localSearchSpectraVec;
     volatile sint32_t *m_localSearchIndexVec;
     volatile float32_t *m_localSearchErrorVec;
 

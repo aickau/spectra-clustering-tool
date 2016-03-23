@@ -12,7 +12,8 @@ uint32_t pixelEnd				= AFA_SPECTRA_NUM_SAMPLES;
 // unique identifier count
 unsigned int UIDCount = 1;
 #if 1
-bool_t AFASpectraIsEmpty(volatile AFASpectra *sp) 
+bool_t AFASpectraIsEmpty(
+    AFASpectra_SW *sp) 
 {
     // following two lines should only be a wiring thing in synthesis (maybe with a register involved)
     float32_t tmp = sp->m_SpecObjID;
@@ -23,7 +24,9 @@ bool_t AFASpectraIsEmpty(volatile AFASpectra *sp)
 #endif
 
 
-void AFASpectraClear(volatile AFASpectra *sp)
+void
+AFASpectraClear(
+    AFASpectra_SW *sp)
 {
     unsigned int i=0;
 
@@ -46,7 +49,13 @@ void AFASpectraClear(volatile AFASpectra *sp)
 }
 
 
-void AFASpectraSetSine( AFASpectra *sp, float _frequency, float _phase, float _amplitude, float _noize )
+void
+AFASpectraSetSine(
+    AFASpectra_SW *sp,
+    float32_t _frequency,
+    float32_t _phase,
+    float32_t _amplitude,
+    float32_t _noize )
 {
     uint32_t i;
     uint32_t tmp;
@@ -63,7 +72,11 @@ void AFASpectraSetSine( AFASpectra *sp, float _frequency, float _phase, float _a
 }
 
 
-void AFASpectraRandomize( volatile AFASpectra *sp, float minrange, float maxrange )
+void
+AFASpectraRandomize(
+    AFASpectra_SW *sp,
+    float32_t minrange,
+    float32_t maxrange )
 {
     uint32_t i = 0;
     float32_t d = 0.0f;
@@ -85,7 +98,10 @@ void AFASpectraRandomize( volatile AFASpectra *sp, float minrange, float maxrang
     AFASpectraCalcMinMax( sp );
 }
 
-void AFASpectraSet( volatile AFASpectra *dst, volatile AFASpectra *src)
+void
+AFASpectraSet(
+    AFASpectra_SW *dst,
+    AFASpectra_SW *src )
 {
     uint32_t i = 0;
 //    dst->m_SamplesRead		= src->m_SamplesRead;
@@ -106,11 +122,13 @@ void AFASpectraSet( volatile AFASpectra *dst, volatile AFASpectra *src)
 }
 
 
-void AFASpectraNormalizeByFlux(volatile AFASpectra *sp) 
+void
+AFASpectraNormalizeByFlux(
+    AFASpectra_SW *sp ) 
 {
     int i;
 
-    AFASpectraCalculateFlux(sp);
+    AFASpectraCalculateFlux( sp );
 
     if ( sp->m_flux <= 0.0f )
         return;
@@ -124,14 +142,17 @@ void AFASpectraNormalizeByFlux(volatile AFASpectra *sp)
 
 
 
-float AFASpectraCompare(volatile AFASpectra *sp1, volatile AFASpectra *sp2) 
+float32_t
+AFASpectraCompare(
+    AFASpectra_SW *sp1,
+    AFASpectra_SW *sp2) 
 {
     // c-version (slow)
     uint32_t i=0;
-    float error=0.0f;
+    float32_t error=0.0f;
     for (i=pixelStart;i<pixelEnd;i++)
     {
-        float d = sp2->m_Amplitude[i]-sp1->m_Amplitude[i];
+        float32_t d = sp2->m_Amplitude[i]-sp1->m_Amplitude[i];
         error += d*d;
     }
 
@@ -140,7 +161,11 @@ float AFASpectraCompare(volatile AFASpectra *sp1, volatile AFASpectra *sp2)
 
 
 
-void AFASpectraAdapt( volatile AFASpectra *dst, volatile AFASpectra *src, float _adaptionRate ) 
+void
+AFASpectraAdapt(
+    AFASpectra_SW *dst,
+    AFASpectra_SW *src,
+    float32_t  _adaptionRate ) 
 {
     uint32_t i=0;
     // c-version (slow)
@@ -151,7 +176,8 @@ void AFASpectraAdapt( volatile AFASpectra *dst, volatile AFASpectra *src, float 
 
 }
 
-void AFASpectraCalculateFlux(volatile AFASpectra *sp) 
+void AFASpectraCalculateFlux(
+    AFASpectra_SW *sp ) 
 {
     unsigned int i;
     double flux = 0.0;
@@ -165,7 +191,7 @@ void AFASpectraCalculateFlux(volatile AFASpectra *sp)
 
 void
 AFASpectraCalcMinMax(
-    volatile AFASpectra *sp ) 
+    AFASpectra_SW *sp ) 
 {
     uint32_t i;
     sp->m_Min = FLT_MAX;
@@ -179,7 +205,8 @@ AFASpectraCalcMinMax(
     }
 }
 
-int AFASpectraGetSDSSSpectraOffsetStart()
+int
+AFASpectraGetSDSSSpectraOffsetStart()
 {
     float wavelenPerPixel;
     int offset = 0;

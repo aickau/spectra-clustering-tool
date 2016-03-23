@@ -30,6 +30,20 @@
 // warning:
 // changing order and / or size of this structure will invalidate all dumped files !
 // 
+enum
+{
+    // indices describe index in float array describing the spectrum
+    AFA_SPECTRA_INDEX_AMPLITUDE = 0,
+    AFA_SPECTRA_INDEX_MIN = AFA_SPECTRA_NUM_SAMPLES,
+    AFA_SPECTRA_INDEX_MAX,
+    AFA_SPECTRA_INDEX_INDEX,
+    AFA_SPECTRA_INDEX_SPEC_OBJ_ID,
+    AFA_SPECTRA_INDEX_FLUX,
+
+    AFA_SPECTRA_INDEX_SIZE_IN_FLOAT32,
+    XXX//AFA_SPECTRA_INDEX_SIZE_IN_BYTES = AFA_SPECTRA_INDEX_SIZE_IN_FLOAT32 / sizeof( float32_t )
+};
+
 
 typedef struct AFASpectra_
 {
@@ -39,9 +53,9 @@ typedef struct AFASpectra_
     float32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
     float32_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
     float32_t m_flux;
-} AFASpectra;
+} AFASpectra_SW;
 
 typedef float32_t
-    *AFASpectra_t;
+    AFASpectra_t;
 
 #endif

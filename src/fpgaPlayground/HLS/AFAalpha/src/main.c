@@ -150,7 +150,7 @@ uint32_t ReadSpectraFileRAW( const char *filename, uint32_t *spectraCount, AFASp
 }
 #endif
 
-void generateSineTestSpectra( int numTestSpectra, AFASpectra *outSpectraArray )
+void generateSineTestSpectra( int numTestSpectra, AFASpectra_SW *outSpectraArray )
 {
     int i;
     float freqMin = 0.002f;
@@ -160,7 +160,7 @@ void generateSineTestSpectra( int numTestSpectra, AFASpectra *outSpectraArray )
 
     for (i=0;i<numTestSpectra;i++)
     {
-        AFASpectra *sp =  &outSpectraArray[i];
+        AFASpectra_SW *sp =  &outSpectraArray[i];
         AFASpectraSetSine( sp, freq, 0.0f, 1.0f, 0.0f );
 //		sp->m_Z = (float)i/numTestSpectra;
         freq += freqStepSize;
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
     uint32_t *baseAddr = NULL;	// that's a dummy address pointing to the start of work area of HW in memory
     void *dataBaseAddress;
     uint64_t neededSystemSpace;
-    AFASpectra *spectraDataInput;
+    AFASpectra_SW *spectraDataInput;
     uint32_t xp, yp, gridSize;
     uint32_t idx;
     int rv = 0;
@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
         numSpectra );
     AFAHelperStructures_MemAllocate();
     AFAHelperStructures_UpdateAddressData();
-    spectraDataInput = ( AFASpectra * ) AFAHelperStructures_GetAddressOf(
+    spectraDataInput = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf(
         "example data" );
     generateSineTestSpectra(
         numSpectra,
@@ -265,13 +265,13 @@ int main(int argc, char* argv[])
             param[ AFA_PARAM_INDICES_NUM_SPECTRA        ] = numSpectra;
             param[ AFA_PARAM_INDICES_RNG_MTI            ] = m_mti;
             param[ AFA_PARAM_INDICES_PIXEL_START        ] = pixelStart;
-            param[ AFA_PARAM_INDICES_PIXEL_END          ] = pixelEnd;
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_LOW          ] = ( uint32_t )( spectraDataWorkingSetOffsetToBaseAddress       );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH         ] = ( uint32_t )( spectraDataWorkingSetOffsetToBaseAddress >> 32 );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW       ] = ( uint32_t )( g_spectraDataInputOffsetToBaseAddress          );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH      ] = ( uint32_t )( g_spectraDataInputOffsetToBaseAddress    >> 32 );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW  ] = ( uint32_t )( pSpectraIndexListOffsetToBaseAddress           );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] = ( uint32_t )( pSpectraIndexListOffsetToBaseAddress     >> 32 );
+            param[ AFA_PARAM_INDICES_PIXEL_END          ] = pixelEnd;                 // spectraDataWorkingSetOffsetToBaseAddress
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_LOW          ] = ( uint32_t )((             spectraDataWorkingSetOffsetToBaseAddress )       );
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH         ] = ( uint32_t )((( uint64_t ) spectraDataWorkingSetOffsetToBaseAddress ) >> 32 );
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW       ] = ( uint32_t )((             g_spectraDataInputOffsetToBaseAddress    )       );
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH      ] = ( uint32_t )((( uint64_t ) g_spectraDataInputOffsetToBaseAddress    ) >> 32 );
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW  ] = ( uint32_t )((             pSpectraIndexListOffsetToBaseAddress     )       );
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] = ( uint32_t )((( uint64_t ) pSpectraIndexListOffsetToBaseAddress     ) >> 32 );
 
             printf( "." );fflush(stdout);
             rc = AFAProcess_HW(
