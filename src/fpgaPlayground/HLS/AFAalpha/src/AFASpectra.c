@@ -13,7 +13,7 @@ uint32_t pixelEnd				= AFA_SPECTRA_NUM_SAMPLES;
 unsigned int UIDCount = 1;
 #if 1
 bool_t AFASpectraIsEmpty(
-    AFASpectra_SW *sp) 
+	volatile AFASpectra_SW *sp)
 {
     // following two lines should only be a wiring thing in synthesis (maybe with a register involved)
     float32_t tmp = sp->m_SpecObjID;
@@ -26,7 +26,7 @@ bool_t AFASpectraIsEmpty(
 
 void
 AFASpectraClear(
-    AFASpectra_SW *sp)
+	volatile AFASpectra_SW *sp)
 {
     unsigned int i=0;
 
@@ -51,7 +51,7 @@ AFASpectraClear(
 
 void
 AFASpectraSetSine(
-    AFASpectra_SW *sp,
+	volatile AFASpectra_SW *sp,
     float32_t _frequency,
     float32_t _phase,
     float32_t _amplitude,
@@ -74,7 +74,7 @@ AFASpectraSetSine(
 
 void
 AFASpectraRandomize(
-    AFASpectra_SW *sp,
+	volatile AFASpectra_SW *sp,
     float32_t minrange,
     float32_t maxrange )
 {
@@ -100,8 +100,8 @@ AFASpectraRandomize(
 
 void
 AFASpectraSet(
-    AFASpectra_SW *dst,
-    AFASpectra_SW *src )
+	volatile AFASpectra_SW *dst,
+	volatile AFASpectra_SW *src )
 {
     uint32_t i = 0;
 //    dst->m_SamplesRead		= src->m_SamplesRead;
@@ -124,7 +124,7 @@ AFASpectraSet(
 
 void
 AFASpectraNormalizeByFlux(
-    AFASpectra_SW *sp ) 
+    volatile AFASpectra_SW *sp )
 {
     int i;
 
@@ -144,8 +144,8 @@ AFASpectraNormalizeByFlux(
 
 float32_t
 AFASpectraCompare(
-    AFASpectra_SW *sp1,
-    AFASpectra_SW *sp2) 
+	volatile AFASpectra_SW *sp1,
+	volatile AFASpectra_SW *sp2)
 {
     // c-version (slow)
     uint32_t i=0;
@@ -163,8 +163,8 @@ AFASpectraCompare(
 
 void
 AFASpectraAdapt(
-    AFASpectra_SW *dst,
-    AFASpectra_SW *src,
+	volatile AFASpectra_SW *dst,
+	volatile AFASpectra_SW *src,
     float32_t  _adaptionRate ) 
 {
     uint32_t i=0;
@@ -177,7 +177,7 @@ AFASpectraAdapt(
 }
 
 void AFASpectraCalculateFlux(
-    AFASpectra_SW *sp ) 
+	volatile AFASpectra_SW *sp )
 {
     unsigned int i;
     double flux = 0.0;
@@ -191,7 +191,7 @@ void AFASpectraCalculateFlux(
 
 void
 AFASpectraCalcMinMax(
-    AFASpectra_SW *sp ) 
+	volatile AFASpectra_SW *sp )
 {
     uint32_t i;
     sp->m_Min = FLT_MAX;

@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
     uint64_t neededSystemSpace;
     AFASpectra_SW *spectraDataInput;
     uint32_t xp, yp, gridSize;
-    uint32_t idx;
+    sint32_t idx;
     int rv = 0;
     bool_t rc;
     size_t spectraInputDataSizeInBytes;
@@ -349,14 +349,14 @@ int main(int argc, char* argv[])
                     if ( idx < 0 )
                         printf("* -1* ");
                     else
-                        printf("*%3d* ", idx);
+                        printf("*%3ld* ", idx);
                 }
                 else
                 {
                     if ( idx < 0 )
                         printf("  -1, ");
                     else
-                        printf(" %3d, ", idx);
+                        printf(" %3ld, ", idx);
                 }
             }
             printf("},\n");

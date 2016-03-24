@@ -31,8 +31,8 @@ AFAProcessSetParamBlockParameters()
 //	AFAProcessingParam_t	*AFAPP_hw;
     unsigned long			*mt; // the array for the state vector 
     int						*mti;
-    int						pStart;
-    int						pEnd;
+    uint32_t				pStart;
+    uint32_t				pEnd;
 
 //	AFAPP_hw = AFAProcessGetParamBlockAddress();
     AFARandomGetStateVectorBlockAddress( &mt, &mti );
@@ -112,7 +112,7 @@ void calcFluxAndNormalizeInputDS()
     for ( i=0;i<AFAPP_sw.m_numSpectra;i++ )
     {
         a = &AFAPP_sw.g_spectraDataInput[ i ];
-        AFASpectraNormalizeByFlux(a);
+        AFASpectraNormalizeByFlux( a );
         m_flux = AFAMAX( a->m_flux, m_flux );
     }
 }
@@ -326,10 +326,10 @@ AFAHelperStructures_GetOffsetToBaseAddress(
     {
         if ( 0 == strncmp( AFAPP_sw.workData[ i ].name, dataName, sizeof( AFAPP_sw.workData[ i ].name )))
         {
-            return ( void * )AFAPP_sw.workData[ i ].offsetToBaseAddress;
+            return AFAPP_sw.workData[ i ].offsetToBaseAddress;
         }
     }
-    return -1;
+    return ( uint64_t ) -1;
 }
 
 void
@@ -764,7 +764,7 @@ AFAGetSpectraIndex(
 {
     uint32_t adr = xp + yp * AFAPP_sw.m_gridSize;
 
-    if ( adr < 0 || adr >= AFAPP_sw.m_gridSizeSqr )
+    if ( adr >= AFAPP_sw.m_gridSizeSqr )
         return ( uint32_t ) ( -1 );
 
     return ( uint32_t )AFAPP_sw.spectraDataWorkingSet[ adr ].m_Index;

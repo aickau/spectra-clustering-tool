@@ -18,14 +18,14 @@ AFASpectraPixelStartEndGet(
 // returns true if marked as empty spectrum (specObjID is set to zero).
 bool_t
 AFASpectraIsEmpty(
-    AFASpectra_SW *sp);
+	volatile AFASpectra_SW *sp);
 
 
 // compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 float
 AFASpectraCompare(
-    AFASpectra_SW *sp1,
-    AFASpectra_SW *sp2);
+	volatile AFASpectra_SW *sp1,
+	volatile AFASpectra_SW *sp2);
 
 
 //@}
@@ -37,18 +37,18 @@ AFASpectraCompare(
 // clear data/reset spectrum
 void
 AFASpectraClear(
-    AFASpectra_SW *sp );
+	volatile AFASpectra_SW *sp );
 
 void
 AFASpectraSet(
-    AFASpectra_SW *dst,
-    AFASpectra_SW *src );
+	volatile AFASpectra_SW *dst,
+	volatile AFASpectra_SW *src );
 
 // set sine curve with a given frequency, phase and amplitude.
 // Good to model test spectra
 void
 AFASpectraSetSine(
-    AFASpectra_SW *sp,
+	volatile AFASpectra_SW *sp,
     float32_t _frequency,
     float32_t _phase,
     float32_t _amplitude,
@@ -57,24 +57,24 @@ AFASpectraSetSine(
 // fill spectrum with noise
 void
 AFASpectraRandomize(
-    AFASpectra_SW *sp,
+	volatile AFASpectra_SW *sp,
     float32_t _minrange,
     float32_t _maxrange);
 
 // calculate extrema
 void
 AFASpectraCalcMinMax(
-    AFASpectra_SW *sp );
+	volatile AFASpectra_SW *sp );
 
 // calculates the surface of the spectrum
 void
 AFASpectraCalculateFlux(
-    AFASpectra_SW *sp );
+	volatile AFASpectra_SW *sp );
 
 // normalize by flux
 void
 AFASpectraNormalizeByFlux(
-    AFASpectra_SW *sp );
+	volatile AFASpectra_SW *sp );
 
 
 // adapt spectrum towards another spectrum by a given factor
@@ -82,8 +82,8 @@ AFASpectraNormalizeByFlux(
 // _adaptionRate [0..1]
 void
 AFASpectraAdapt(
-    AFASpectra_SW *dst,
-    AFASpectra_SW *src,
+	volatile AFASpectra_SW *dst,
+	volatile AFASpectra_SW *src,
     float32_t _adaptionRate );
 
 //@}
