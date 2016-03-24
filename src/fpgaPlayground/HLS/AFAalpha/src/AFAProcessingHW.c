@@ -201,8 +201,11 @@ AFAProcess_HW(
     uint64_t spectraDataWorkingSetIndexToMem;
     uint64_t g_spectraDataInputIndexToMem;
     uint64_t pSpectraIndexListIndexToMem;
+    volatile AFASpectra_t *spectraDataWorkingSetBase;
     volatile AFASpectra_t *spectraDataWorkingSet;
+    volatile AFASpectra_t *g_spectraDataInputBase;
     volatile AFASpectra_t *g_spectraDataInput;
+    volatile sint32_t *pSpectraIndexListBase;
     volatile sint32_t *pSpectraIndexList;
 
     spectraDataWorkingSetIndexToMem = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_LOW         ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH         ] << 32 ));
@@ -212,9 +215,13 @@ AFAProcess_HW(
     g_spectraDataInputIndexToMem    /= sizeof( uint32_t );
     pSpectraIndexListIndexToMem     /= sizeof( uint32_t );
 
-    spectraDataWorkingSet = ( volatile AFASpectra_t * ) &baseAddr[ spectraDataWorkingSetIndexToMem ];
-    g_spectraDataInput    = ( volatile AFASpectra_t * ) &baseAddr[ g_spectraDataInputIndexToMem    ];
-    pSpectraIndexList     = ( volatile sint32_t *     ) &baseAddr[ pSpectraIndexListIndexToMem     ];
+    spectraDataWorkingSetBase = ( volatile AFASpectra_t * ) baseAddr;
+    g_spectraDataInputBase    = ( volatile AFASpectra_t * ) baseAddr;
+    pSpectraIndexListBase     = ( volatile sint32_t *     ) baseAddr;
+
+    spectraDataWorkingSet = &spectraDataWorkingSetBase[ spectraDataWorkingSetIndexToMem ];
+    g_spectraDataInput    = &g_spectraDataInputBase[ g_spectraDataInputIndexToMem ];
+    pSpectraIndexList     = &pSpectraIndexListBase[ pSpectraIndexListIndexToMem ];
 
     if ( paramNotInitialized )
     {
