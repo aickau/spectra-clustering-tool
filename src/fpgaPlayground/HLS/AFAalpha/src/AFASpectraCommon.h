@@ -50,8 +50,8 @@ typedef struct AFASpectra_
     float32_t m_Amplitude[ AFA_SPECTRA_NUM_SAMPLES ];		// amplitude in 10^(-17) erg/cm/s^2/Ang
     float32_t m_Min;
     float32_t m_Max;
-    float32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
-    float32_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
+    sint32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
+    uint32_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
     float32_t m_flux;
 } AFASpectra_SW;
 

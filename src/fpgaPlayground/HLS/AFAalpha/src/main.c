@@ -18,7 +18,7 @@ extern int pixelStart;                                              // spectrum 
 extern int pixelEnd;                                                // spectrum pixel range for compare and adaption processes [0..numSamples]
 
 // current learning step
-int m_currentStep;
+sint32_t m_currentStep;
 
 sint16_t golden_data[ 12 ][ 12 ]=
 {
@@ -175,14 +175,12 @@ int main(int argc, char* argv[])
 {
     uint32_t numSpectra = 100;  // do we have more than 4bn spectra ... ? not in THESE times
     uint32_t *baseAddr = NULL;	// that's a dummy address pointing to the start of work area of HW in memory
-    void *dataBaseAddress;
-    uint64_t neededSystemSpace;
     AFASpectra_SW *spectraDataInput;
     uint32_t xp, yp, gridSize;
     sint32_t idx;
+    sint32_t idx_golden;
     int rv = 0;
     bool_t rc;
-    size_t spectraInputDataSizeInBytes;
     uint64_t spectraDataWorkingSetOffsetToBaseAddress;
     uint64_t g_spectraDataInputOffsetToBaseAddress;
     uint64_t pSpectraIndexListOffsetToBaseAddress;
@@ -342,7 +340,8 @@ int main(int argc, char* argv[])
             {
                 idx = AFAGetSpectraIndex( xp,yp );
                 idx = ( idx < 0 ) ? -1 : idx;
-                if ( idx != golden_data[ yp ][ xp ])
+                idx_golden = golden_data[ yp ][ xp ];
+                if ( idx != idx_golden )
                 {
                     rv = 1000000 + xp + yp * gridSize;
 

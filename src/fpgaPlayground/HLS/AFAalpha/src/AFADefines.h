@@ -7,8 +7,8 @@
 #define AFAMAX(a,b)    (((a) > (b)) ? (a) : (b))
 #define AFACLAMP(x,min,max) AFAMAX(AFAMIN(x,max),min)
 
-#ifndef EULER
-#define EULER			( 2.718281828f )
+#ifndef AFA_CONST_EULER
+#define AFA_CONST_EULER			( 2.718281828f )
 #endif 
 
 #ifndef NULL

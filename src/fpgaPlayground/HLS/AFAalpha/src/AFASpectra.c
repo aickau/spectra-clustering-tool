@@ -11,18 +11,6 @@ uint32_t pixelEnd				= AFA_SPECTRA_NUM_SAMPLES;
 
 // unique identifier count
 unsigned int UIDCount = 1;
-#if 1
-bool_t AFASpectraIsEmpty(
-	volatile AFASpectra_SW *sp)
-{
-    // following two lines should only be a wiring thing in synthesis (maybe with a register involved)
-    float32_t tmp = sp->m_SpecObjID;
-    uint32_t tmp2 = *(( uint32_t * ) &tmp );
-
-    return ( tmp2 == 0 );
-}
-#endif
-
 
 void
 AFASpectraClear(
@@ -61,7 +49,7 @@ AFASpectraSetSine(
     uint32_t tmp;
 
     tmp = UIDCount++;
-    sp->m_SpecObjID = *(( float32_t * ) &tmp ); // store binary uint into float
+    sp->m_SpecObjID = tmp;
 
     for ( i = 0; i < AFA_SPECTRA_NUM_SAMPLES; i++ )
     {

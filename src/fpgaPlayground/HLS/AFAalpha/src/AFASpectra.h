@@ -14,12 +14,12 @@ AFASpectraPixelStartEndGet(
     uint32_t *pStart,
     uint32_t *pEnd );
 
-
+#if 0
 // returns true if marked as empty spectrum (specObjID is set to zero).
 bool_t
 AFASpectraIsEmpty(
 	volatile AFASpectra_SW *sp);
-
+#endif
 
 // compare spectra and return accumulated quadratic error of all compared samples (euclidean style).
 float
