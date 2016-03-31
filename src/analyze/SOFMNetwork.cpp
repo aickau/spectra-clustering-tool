@@ -116,7 +116,16 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 		exit(0);
 	}
 
-	Spectra::setOperationRange( m_params.useBOSSWavelengthRange );
+	
+	// select amplitude / pixel window we are operation in:
+	// -for light curve spectra we have two reserve the last last two pixels for right ascension and declination coordinates
+	// -for BOSS spectra only we can use the full wavelength range i.e. all pixels
+	// -for SDSS and BOSS spectra combined we use a more narrow wavelength window where both spectra types have flux values
+	const Spectra::SpectraOperationRange spor = isLightCurveDS() ? Spectra::SP_OPERATION_LIGHTCURVES : m_params.useBOSSWavelengthRange ? Spectra::SP_OPERATION_BOSS : Spectra::SP_OPERATION_SDSS;  
+	Spectra::setOperationRange( spor );
+
+	Helpers::print( "Pixel operation range " + Helpers::numberToString<size_t>(Spectra::pixelStart) + ".." + Helpers::numberToString<size_t>(Spectra::pixelEnd)+"\n", _logStream );
+
 
 #ifdef SDSS_SINETEST
 	const float freqMin = 0.002f;
@@ -447,6 +456,27 @@ void SOFMNetwork::calcMinMaxInputDS()
 	Helpers::print( std::string("Calculating min/max of input.\n"), m_pLogStream );
 	calcMinMax( *m_pSourceVFS, m_Min, m_Max );
 	Helpers::print( std::string("global min / max: ") + Helpers::numberToString(m_Min) + std::string(" / " ) + Helpers::numberToString(m_Max) + std::string("\n" ), m_pLogStream );
+}
+
+bool SOFMNetwork::isLightCurveDS()
+{
+	const size_t numSpectra = m_pSourceVFS->getNumSpectra();
+
+	// calc min/max
+	for ( size_t i=0;i<numSpectra;i++ )
+	{
+		Spectra *a = m_pSourceVFS->beginRead( i );
+
+		if ( a->m_version == Spectra::SP_LIGHTCURVE_SDSS || a->m_version == Spectra::SP_LIGHTCURVE_RADEC || a->m_version == Spectra::SP_LIGHTCURVE_PLAIN )
+		{
+			m_pSourceVFS->endRead( i );
+			return true;
+		}
+
+		m_pSourceVFS->endRead( i );
+	}
+
+	return false;
 }
 
 void SOFMNetwork::calcFluxAndNormalizeInputDS( Spectra::SpectraNormalization _normalizationType )

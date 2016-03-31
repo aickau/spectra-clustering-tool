@@ -50,7 +50,8 @@ public:
 	Spectra *beginRead( size_t _nSpectraIndex );
 
 	// end read access. pointer will become invalid (and may used for other data).
-	void endRead( size_t _nSpectraIndex );
+	// here: nop
+	void endRead( size_t _nSpectraIndex ) {};
 
 	// get spectrum for rw access.
 	Spectra *beginWrite( size_t _nSpectraIndex );

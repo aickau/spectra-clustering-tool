@@ -87,10 +87,6 @@ Spectra *SpectraVFSMemOnly::beginRead( size_t _nSpectraIndex )
 	return &m_pSpectaPool[_nSpectraIndex];
 }
 
-void SpectraVFSMemOnly::endRead( size_t )
-{
-	// NOP
-}
 
 
 Spectra *SpectraVFSMemOnly::beginWrite( size_t _nSpectraIndex )

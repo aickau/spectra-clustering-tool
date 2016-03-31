@@ -63,7 +63,7 @@ void main(int argc, char* argv[])
 
 	Helpers::print("Welcome to SDSS Dump "+sstrSDSSVersionString+" !\n\n\n", &logFile);
 	Helpers::print("Reads SDSS spectra as fits files from a given directory (and subdirectories) and dumps the data to a binary file.\n", &logFile);
-	Helpers::print("RDR12 spectra can be downloaded here: http://data.sdss3.org/sas/dr12/sdss/spectro/redux/26/spectra\n", &logFile);
+	Helpers::print("DR12 spectra can be downloaded here: http://data.sdss3.org/sas/dr12/sdss/spectro/redux/26/spectra\n", &logFile);
 	Helpers::print("Reads binary dump files and extracts text tables out of it.\n\n", &logFile);
 
 	std::string sstrDataDir = FileHelpers::getCurrentDirectory()+DATADIR;

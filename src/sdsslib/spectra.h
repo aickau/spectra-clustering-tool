@@ -304,13 +304,11 @@ public:
 	};
 
 
-	// emission and absorption lines info
-	struct SpectraLines
+	enum SpectraOperationRange
 	{
-		float wave;			// in Angström
-		float waveMin;		// in Angström
-		float waveMax;		// in Angström
-		float height;		// in 10^(-17) erg/cm/s^2/Ang
+		SP_OPERATION_SDSS,								// if all spectra are SDSS spectra only use the default SDSS wavelength range.
+		SP_OPERATION_BOSS,								// if we should use the entire BOSS wavelength range during clustering
+		SP_OPERATION_LIGHTCURVES						// for lightcurves the last two amplitude values encode ra and declination coordinates
 	};
 
 	//@}
@@ -532,9 +530,7 @@ public:
 										// bit 10 BROADLINE flag
 	SpectraVersion m_version;
 	double m_Z;
-#ifdef _USE_SPECTRALINES
-	SpectraLines m_Lines[numSpectraLines];
-#endif
+
 	float m_flux;
 	char m_status;						// 0=ok, 1=bad pixels
 	char pad[3];						// for padding to multiple of 16 byte boundaries
@@ -595,8 +591,8 @@ public:
 	static int getSDSSSpectraOffsetStart();
 	static int getSDSSSpectraOffsetEnd();
 
-	// set to true if we should use the entire BOSS wavelength range during clustering or false if only default SDSS wavelength range should be used.
-	static void setOperationRange( bool _BOSSWavelengthRange );
+	// set operation range, i.e. number of used pixels from spectrum depending type of input spectra 
+	static void setOperationRange( SpectraOperationRange _operationRange );
 
 	//@}
 

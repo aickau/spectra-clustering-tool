@@ -30,7 +30,10 @@
 #include "CSVExport.h"
 #include "spectraDB.h"
 
+// temporary disable XML support under linux.
+#ifndef _WIN32
 #define _XMLIMPORT_DISABLED
+#endif
 
 #ifndef _XMLIMPORT_DISABLED
 #include "XMLParser.h"
@@ -105,15 +108,6 @@ void Spectra::clear()
 		m_Amplitude[i] = 0.0f;
 	}
 
-#ifdef _USE_SPECTRALINES
-	for (size_t i=0;i<Spectra::numSpectraLines;i++)
-	{
-		m_Lines[i].height = 0.0f;
-		m_Lines[i].wave = 0.0f;
-		m_Lines[i].waveMin = 0.0f;
-		m_Lines[i].waveMax = 0.0f;
-	}
-#endif
 }
 
 void Spectra::randomize(float minrange, float maxrange )
@@ -155,15 +149,6 @@ void Spectra::set(const Spectra &_spectra)
 	{
 		m_Amplitude[i] = _spectra.m_Amplitude[i];
 	}
-#ifdef _USE_SPECTRALINES
-	for (size_t i=0;i<Spectra::numSpectraLines;i++)
-	{
-		m_Lines[i].height = _spectra.m_Lines[i].height;
-		m_Lines[i].wave = _spectra.m_Lines[i].wave;
-		m_Lines[i].waveMin = _spectra.m_Lines[i].waveMin;
-		m_Lines[i].waveMax = _spectra.m_Lines[i].waveMax;
-	}
-#endif
 }
 
 
@@ -797,6 +782,8 @@ bool Spectra::loadFromFITS(const std::string &_filename, std::ofstream *_logStre
 {
 #ifdef _FITSDISABLED
 	assert(0); // temporary disabled.
+	Helpers::print("Could not load spectrum from FITS file. Reason: Code disabled, undefine _FITSDISABLED.\n", _logStream );
+
 	return false;
 #else
 	fitsfile *f=NULL;
@@ -1440,7 +1427,7 @@ void Spectra::calcMinMax()
 {
 	m_Min = FLT_MAX;
 	m_Max = -FLT_MAX;
-	for (size_t i=0;i<Spectra::numSamples;i++)
+	for (size_t i=pixelStart;i<pixelEnd;i++)
 	{
 		if ( m_Min > m_Amplitude[i])
 			m_Min = m_Amplitude[i];
@@ -1454,7 +1441,7 @@ void Spectra::calculateFlux()
 {
 	double flux = 0.0;
 	float offset = (m_Min < 0.0f) ? -m_Min : 0.0f;
-	for (size_t i=0;i<Spectra::numSamples;i++)
+	for (size_t i=pixelStart;i<pixelEnd;i++)
 	{
 		flux += static_cast<double>(m_Amplitude[i]+offset);
 	}
@@ -1478,7 +1465,7 @@ void Spectra::normalize()
 		return;
 	}
 
-	for (size_t i=0;i<Spectra::numSamples;i++)
+	for (size_t i=pixelStart;i<pixelEnd;i++)
 	{
 		m_Amplitude[i] /= delta;
 	}
@@ -2706,16 +2693,23 @@ int Spectra::getSDSSSpectraOffsetEnd()
 }
 
 
-void Spectra::setOperationRange( bool _BOSSWavelengthRange )
+void Spectra::setOperationRange( SpectraOperationRange _operationRange )
 {
-	if ( _BOSSWavelengthRange )
+	if ( _operationRange == SP_OPERATION_BOSS )
 	{
 		pixelStart	= 0;
 		pixelEnd	= numSamples;	
 	}
+	else if ( _operationRange == SP_OPERATION_LIGHTCURVES )
+	{
+		pixelStart = 0;
+		pixelEnd = numSamples-2;
+	}
 	else
 	{
-		pixelStart	= (getSDSSSpectraOffsetStart()>>2)<<2;  // pixel start must be aligned to 16 byte boundaries for SSE operations.
+		// SDSS
+		// pixel start must be aligned to 16 byte boundaries for SSE operations.
+		pixelStart	= (getSDSSSpectraOffsetStart()>>2)<<2;  
 		pixelEnd	= getSDSSSpectraOffsetEnd();	
 	}
 	assert( pixelStart<pixelEnd );

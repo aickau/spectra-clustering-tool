@@ -337,20 +337,10 @@ SpectraVFSCached::IOHandle::IOHandle()
 	reset();
 }
 
+
 SpectraVFSCached::IOHandle::IOHandle( OVERLAPPED &_overlapped )
 {
 	m_overlapped = _overlapped;
-}
-
-void SpectraVFSCached::IOHandle::AFASpectraSet( uint32_t _offsetLow, uint32_t _offsetHigh )
-{
-#ifdef SPECTRAVFS_ASYNC_IO
-	m_overlapped.hEvent = (HANDLE)1;
-#else
-	m_overlapped.hEvent = (HANDLE)0;
-#endif
-	m_overlapped.Offset = _offsetLow;
-	m_overlapped.OffsetHigh = _offsetHigh;
 }
 
 void SpectraVFSCached::IOHandle::reset()

@@ -221,25 +221,6 @@ void drawSpectra(Spectra &_spectra,
 // 	GLHelper::Print( s_largeFontID, pos, sstrOut.c_str() );
 
 
-#ifdef _USE_SPECTRALINES
-	if ( _showSpectraLines )
-	{
-		for ( int i=0;i<_spectra.numSpectraLines;i++)
-		{
-			glEnable(GL_LINE_STIPPLE);
-			glLineStipple(1.f, 61680 );
-			if ( _spectra.m_Lines[i].wave>0.0f )
-			{
-				float x = static_cast<float>(Spectra::waveLengthToIndex(_spectra.m_Lines[i].wave, Spectra::waveLenStartSDSS, Spectra::waveLenEndSDSS, Spectra::numSamples))*xscale+xoffset;
-				float l1[3]={x,100,-10.f};
-				float l2[3]={x,800,-10.f};
-				GLHelper::DrawLine( l1, l2 );
-			}
-			glDisable(GL_LINE_STIPPLE);
-		}
-	}
-#endif // _USE_SPECTRALINES
-
 	if (_showInfo)
 	{
 		float pos[]={X2Win(10.f),Y2Win(_height-20.f),-10};

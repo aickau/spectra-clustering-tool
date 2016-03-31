@@ -108,6 +108,9 @@ protected:
 	// calculate flux values for the input data set and normalize
 	void calcFluxAndNormalizeInputDS( Spectra::SpectraNormalization _normalizationType );
 
+	// check if input data set consists of light curve spectra
+	bool isLightCurveDS();
+
 
 	// render icons for input data set to disk.
 	void renderIcons();
