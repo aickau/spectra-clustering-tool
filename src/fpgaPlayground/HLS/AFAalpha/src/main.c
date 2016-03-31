@@ -150,9 +150,9 @@ uint32_t ReadSpectraFileRAW( const char *filename, uint32_t *spectraCount, AFASp
 }
 #endif
 
-void generateSineTestSpectra( int numTestSpectra, AFASpectra_SW *outSpectraArray )
+void generateSineTestSpectra( uint32_t numTestSpectra, AFASpectra_SW *outSpectraArray )
 {
-    int i;
+    uint32_t i;
     float freqMin = 0.002f;
     float freqMax = 0.05f;
     float freqStepSize = (freqMax-freqMin)/(float)numTestSpectra;
@@ -168,8 +168,46 @@ void generateSineTestSpectra( int numTestSpectra, AFASpectra_SW *outSpectraArray
 }
 
 
+// translates sw spectra to hw spectra.
+// spectraArraySw incoming sw spectra
+// outHWAddr allocated hardware memory where we write AFA_SPECTRA_INDEX_SIZE_IN_BYTES*numSpectra bytes
+void swSpectraToHwSpectra(  AFASpectra_SW *spectraArraySw,  uint32_t *outHWAddr, uint32_t numSpectra )
+{
+	uint64_t spectraAdress;
+	uint32_t i,j;
+	AFASpectra_SW *sp;
+	float64_t amplitudeScaled;
+
+	// we currently only use the SDSS wavelength range to fit spectra into 2K chunks
+	// the entire BOSS wavelength range does not fit into 2K. 
+	uint32_t pixelStart	= AFASpectraGetSDSSSpectraOffsetStart();  
+
+
+	for ( i=0;i<numSpectra;i++ )
+	{
+		sp = &spectraArraySw[i];
+
+		spectraAdress =  i * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
+
+		for ( j=0;j<AFA_SPECTRA_NUM_SAMPLES_SDSS;j++ )
+		{
+			// cost to float ptr to write float values
+			float32_t *tmpValFloatPtr = (( float32_t * ) &outHWAddr[ spectraAdress+AFA_SPECTRA_INDEX_AMPLITUDE+j ] );
+			(*tmpValFloatPtr) = sp->m_Amplitude[j+pixelStart];
+		}
+
+
+		outHWAddr[ spectraAdress+AFA_SPECTRA_INDEX_INDEX ] = 0;
+		outHWAddr[ spectraAdress+AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] = (sp->m_SpecObjID & 0x0ffffffff);
+		outHWAddr[ spectraAdress+AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = (sp->m_SpecObjID >> 32);
+	}
+}
+
+
 uint32_t param[ 256 ];
 uint32_t rng_mt_HW[ RANDOM_N ];			// whole block ram used
+
+
 
 int main(int argc, char* argv[])
 {
@@ -181,6 +219,7 @@ int main(int argc, char* argv[])
     sint32_t idx_golden;
     int rv = 0;
     bool_t rc;
+
     uint64_t spectraDataWorkingSetOffsetToBaseAddress;
     uint64_t g_spectraDataInputOffsetToBaseAddress;
     uint64_t pSpectraIndexListOffsetToBaseAddress;
@@ -215,6 +254,9 @@ int main(int argc, char* argv[])
     spectraDataWorkingSetOffsetToBaseAddress = ( char * ) AFAPP_sw.spectraDataWorkingSet - (( char * ) baseAddr );
     g_spectraDataInputOffsetToBaseAddress    = ( char * ) AFAPP_sw.g_spectraDataInput    - (( char * ) baseAddr );
     pSpectraIndexListOffsetToBaseAddress     = ( char * ) AFAPP_sw.m_pSpectraIndexList   - (( char * ) baseAddr );
+
+	// TODO Jesko: where to write HW spectra ??
+	swSpectraToHwSpectra( AFAPP_sw.g_spectraDataInput, numSpectra, baseAddr );
 
     do 
     {
