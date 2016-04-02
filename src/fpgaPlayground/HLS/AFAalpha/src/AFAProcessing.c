@@ -49,7 +49,7 @@ void calcFluxAndNormalizeInputDS()
 
     for ( i=0;i<AFAPP_sw.m_numSpectra;i++ )
     {
-        a = &AFAPP_sw.g_spectraDataInput[ i ];
+        a = &AFAPP_sw.spectraDataInput[ i ];
         AFASpectraNormalizeByFlux( a );
         m_flux = AFAMAX( a->m_flux, m_flux );
     }
@@ -71,7 +71,7 @@ void calcMinMaxSp(
     // calc min/max
     for ( i=0;i<AFAPP_sw.m_numSpectra;i++ )
     {
-        a = &AFAPP_sw.g_spectraDataInput[ i ];
+        a = &AFAPP_sw.spectraDataInput[ i ];
 
         if ( *_outMin > a->m_Min )
         {
@@ -89,7 +89,7 @@ void calcMinMaxSp(
 #if 1
 void calcMinMaxInputDS()
 {
-    calcMinMaxSp( AFAPP_sw.g_spectraDataInput, &m_Min, &m_Max );
+    calcMinMaxSp( AFAPP_sw.spectraDataInput, &m_Min, &m_Max );
 }
 #endif
 
@@ -184,54 +184,70 @@ AFAHelperStructures_PrepareDataStructure(
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = numSpectra * sizeof( AFASpectra_SW );
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );
+    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     memoryOffsetInBlock += memoryBlockSize;
+    printf( "%32s: %10llu [%10llu]\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated );
+    idx++;
+
+    strncpy( AFAPP_sw.workData[ idx ].name, "example data reduced", AFA_WORKING_DATA_NAME_LENGTH );
+    AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
+    memoryBlockSize = numSpectra * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
+    AFAPP_sw.workData[ idx ].size = memoryBlockSize;
+    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
+    AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
+    memoryOffsetInBlock += memoryBlockSize;
+    printf( "%32s: %10llu [%10llu]\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated );
     idx++;
 
     strncpy( AFAPP_sw.workData[ idx ].name, "m_pNet / SOM", AFA_WORKING_DATA_NAME_LENGTH );
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * sizeof( AFASpectra_SW );
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );
+    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     memoryOffsetInBlock += memoryBlockSize;
+    printf( "%32s: %10llu [%10llu]\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated );
     idx++;
 
     strncpy( AFAPP_sw.workData[ idx ].name, "m_pSpectraIndexList", AFA_WORKING_DATA_NAME_LENGTH );
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * sizeof( sint32_t );
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );
+    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     memoryOffsetInBlock += memoryBlockSize;
+    printf( "%32s: %10llu [%10llu]\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated );
     idx++;
 
     strncpy( AFAPP_sw.workData[ idx ].name, "m_localSearchSpectraVec", AFA_WORKING_DATA_NAME_LENGTH );
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * sizeof( AFASpectra_SW * );
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );
+    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     memoryOffsetInBlock += memoryBlockSize;
+    printf( "%32s: %10llu [%10llu]\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated );
     idx++;
 
     strncpy( AFAPP_sw.workData[ idx ].name, "m_localSearchIndexVec", AFA_WORKING_DATA_NAME_LENGTH );
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * sizeof( uint32_t );
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );
+    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     memoryOffsetInBlock += memoryBlockSize;
+    printf( "%32s: %10llu [%10llu]\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated );
     idx++;
 
     strncpy( AFAPP_sw.workData[ idx ].name, "m_localSearchErrorVec", AFA_WORKING_DATA_NAME_LENGTH );
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * sizeof( float32_t );
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );
+    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     memoryOffsetInBlock += memoryBlockSize;
+    printf( "%32s: %10llu [%10llu]\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated );
     idx++;
 
     // store final memory needs, final values
@@ -296,8 +312,9 @@ AFAInitProcessingNew(
     uint64_t memOffset;
     AFAPP_sw.m_currentStep = 0;
 
+    AFAPP_sw.spectraDataInput      = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf( "example data" );
+    AFAPP_sw.spectraDataInputHW    = ( uint32_t *      ) AFAHelperStructures_GetAddressOf( "example data reduced" );
     AFAPP_sw.spectraDataWorkingSet = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf( "m_pNet / SOM" );
-    AFAPP_sw.g_spectraDataInput    = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf( "example data" );
     AFAPP_sw.m_pSpectraIndexList   = ( sint32_t *      ) AFAHelperStructures_GetAddressOf( "m_pSpectraIndexList" );
 
     reset( &AFAPP_sw.m_params );
@@ -331,7 +348,7 @@ AFAInitProcessingNew(
                 a = &AFAPP_sw.spectraDataWorkingSet[ i ];
 
                 spectraIndex = AFARandomIntRange( AFAPP_sw.m_numSpectra - 1 );
-                b = &AFAPP_sw.g_spectraDataInput[ spectraIndex ];
+                b = &AFAPP_sw.spectraDataInput[ spectraIndex ];
 
                 AFASpectraSet( a, b );
             }

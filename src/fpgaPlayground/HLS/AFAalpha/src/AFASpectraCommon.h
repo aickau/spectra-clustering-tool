@@ -34,13 +34,14 @@
 enum
 {
     // indices describe index in float array describing the spectrum
-    AFA_SPECTRA_INDEX_AMPLITUDE = 0,
-    AFA_SPECTRA_INDEX_INDEX = AFA_SPECTRA_NUM_SAMPLES,
-    AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW,						//< lower 32 bit part of object id
-	AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH,						//< higher 32 bit part of object id
+    AFA_SPECTRA_INDEX_AMPLITUDE = 0,                                //< index 0: amplitude 0
+                                                                    //< index n-1: amplitude n-1 (indices 0 .. n-1 are amplitudes)
+    AFA_SPECTRA_INDEX_INDEX = AFA_SPECTRA_NUM_SAMPLES,              //< index n: index-value
+    AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW,                              //< index n+1: ObjID - lower 32 bit part of object id
+	AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH,						        //< index n+2: ObjID - higher 32 bit part of object id
 
-	AFA_SPECTRA_INDEX_SIZE_IN_UINT32,
-    AFA_SPECTRA_INDEX_SIZE_IN_BYTES = AFA_SPECTRA_INDEX_SIZE_IN_UINT32*4
+	AFA_SPECTRA_INDEX_SIZE_IN_UINT32,                               //< size of data-record := n+3 elements (with n:=AFA_SPECTRA_NUM_SAMPLES)
+    AFA_SPECTRA_INDEX_SIZE_IN_BYTES = AFA_SPECTRA_INDEX_SIZE_IN_UINT32 * 4  //< size of data-record in bytes
 };
 
 

@@ -21,10 +21,12 @@ enum
     AFA_PARAM_INDICES_RNG_MTI,
     AFA_PARAM_INDICES_PIXEL_START,
     AFA_PARAM_INDICES_PIXEL_END,
-    AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_LOW,
-    AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH,
     AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW,
     AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH,
+    AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW,
+    AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH,
+    AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_LOW,
+    AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH,
     AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW,
     AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH
 };
@@ -43,19 +45,20 @@ typedef struct
 typedef struct
 {
     // code book spectra
-    volatile AFASpectra_SW	*spectraDataWorkingSet;
+    AFASpectra_SW	*spectraDataWorkingSet;
 
     // training data
-    volatile AFASpectra_SW	*g_spectraDataInput;
+    AFASpectra_SW	*spectraDataInput;
+    uint32_t *spectraDataInputHW;
 
     // determine processing order. must be randomized every learning step
     // contains m_gridSize * m_gridSize  elements
-    volatile sint32_t *m_pSpectraIndexList;
+    sint32_t *m_pSpectraIndexList;
 
 
-    volatile AFASpectra_SW **m_localSearchSpectraVec;
-    volatile sint32_t *m_localSearchIndexVec;
-    volatile float32_t *m_localSearchErrorVec;
+    AFASpectra_SW **m_localSearchSpectraVec;
+    sint32_t *m_localSearchIndexVec;
+    float32_t *m_localSearchErrorVec;
 
 
     // number of source spectra
