@@ -162,7 +162,6 @@ void generateSineTestSpectra( uint32_t numTestSpectra, AFASpectra_SW *outSpectra
     {
         AFASpectra_SW *sp =  &outSpectraArray[i];
         AFASpectraSetSine( sp, freq, 0.0f, 1.0f, 0.0f );
-//		sp->m_Z = (float)i/numTestSpectra;
         freq += freqStepSize;
     }
 }
@@ -171,7 +170,11 @@ void generateSineTestSpectra( uint32_t numTestSpectra, AFASpectra_SW *outSpectra
 // translates sw spectra to hw spectra.
 // spectraArraySw incoming sw spectra
 // outHWAddr allocated hardware memory where we write AFA_SPECTRA_INDEX_SIZE_IN_BYTES*numSpectra bytes
-void swSpectraToHwSpectraInput(  AFASpectra_SW *spectraArraySw,  uint32_t *outHWAddr, uint32_t numSpectra )
+void
+swSpectraToHwSpectraInput(
+    AFASpectra_SW *spectraArraySw,
+    uint32_t *outHWAddr,
+    uint32_t numSpectra )
 {
 	uint64_t spectraAdress;
 	uint32_t i,j;
@@ -190,16 +193,16 @@ void swSpectraToHwSpectraInput(  AFASpectra_SW *spectraArraySw,  uint32_t *outHW
 
 		spectraAdress =  i * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
 
-		for ( j=0;j<numSamples;j++ )
+		for ( j = 0; j < numSamples; j++ )
 		{
 			// cost to float ptr to write float values
-			float32_t *tmpValFloatPtr = (( float32_t * ) &outHWAddr[ spectraAdress+AFA_SPECTRA_INDEX_AMPLITUDE+j ] );
-			(*tmpValFloatPtr) = sp->m_Amplitude[j+pixelStart];
+			float32_t *tmpValFloatPtr = (( float32_t * ) &outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_AMPLITUDE + j ]);
+			( *tmpValFloatPtr ) = sp->m_Amplitude[ j + pixelStart ];
 		}
 
-		outHWAddr[ spectraAdress+AFA_SPECTRA_INDEX_INDEX ] = 0;
-		outHWAddr[ spectraAdress+AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] = (sp->m_SpecObjID & 0x0ffffffff);
-		outHWAddr[ spectraAdress+AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = (sp->m_SpecObjID >> 32);
+		outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_INDEX ] = sp->m_Index;
+		outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] = ( sp->m_SpecObjID & 0x0ffffffff );
+		outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = ( sp->m_SpecObjID >> 32 );
 	}
 }
 

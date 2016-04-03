@@ -43,8 +43,12 @@ AFASpectraSetSine(
     uint32_t i;
     uint32_t tmp;
 
+    // create individual object ID
     tmp = UIDCount++;
     sp->m_SpecObjID = tmp;
+
+    // reset index
+    sp->m_Index = 0;
 
     for ( i = 0; i < AFA_SPECTRA_NUM_SAMPLES; i++ )
     {
