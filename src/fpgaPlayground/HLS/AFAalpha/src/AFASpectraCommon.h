@@ -7,23 +7,28 @@
 
 #define AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR	( 8 )			// reduce number of pixel by a factor of 8 (use only values of 2^n)
 
-// convert defines
-#define AFA_SPECTRA_NUM_SAMPLES_SDSS			(  3900	)			// number of samples in SDSS spectra
-#define waveLenStartSDSS		                (  3800 )								// wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
-#define waveLenEndSDSS			                (  9200 )									
-#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_SW ( AFA_SPECTRA_NUM_SAMPLES_SDSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra
+#define AFA_SPECTRA_NUM_SAMPLES_SDSS			(  3900	)		// number of samples in SDSS spectra
+#define AFA_WAVE_LEN_START_SDSS		            (  3800 )		// wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
+#define AFA_WAVE_LEN_END_SDSS			        (  9200 )									
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_SW ( AFA_SPECTRA_NUM_SAMPLES_SDSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra for our processing
 #define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_HW ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_SW )	// number of samples in reduced spectra
 
-#define AFA_SPECTRA_NUM_SAMPLES_BOSS			(  4700 )				// number of samples in BOSS spectra
-#define waveLenStartBOSS		                (  3650 )								// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
-#define waveLenEndBOSS			                ( 10400 )						
-#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS_SW ( AFA_SPECTRA_NUM_SAMPLES_BOSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra#define AFA_BOSS_WAVELEN_PER_PIXEL              (( float32_t )AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR * ( float32_t )( waveLenEndBOSS - waveLenStartBOSS ) / ( float32_t )AFA_SPECTRA_NUM_SAMPLES_BOSS )
-#define AFA_BOSS_SPECTRA_START                  (( uint32_t )(( float32_t )( waveLenStartSDSS - waveLenStartBOSS ) / wavelenPerPixel ))
-#define AFA_BOSS_SPECTRA_END                    (( uint32_t )(( float32_t )( waveLenEndSDSS   - waveLenStartSDSS ) / wavelenPerPixel ))
+#define AFA_SPECTRA_NUM_SAMPLES_BOSS			(  4700 )			// number of samples in BOSS spectra
+#define AFA_WAVE_LEN_START_BOSS		            (  3650 )			// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
+#define AFA_WAVE_LEN_END_BOSS			        ( 10400 )						
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS_SW ( AFA_SPECTRA_NUM_SAMPLES_BOSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra
+#define AFA_BOSS_WAVELEN_PER_PIXEL              (( float32_t )AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR * ( float32_t )( AFA_WAVE_LEN_END_BOSS - AFA_WAVE_LEN_START_BOSS ) / ( float32_t )AFA_SPECTRA_NUM_SAMPLES_BOSS )
+#define AFA_BOSS_SPECTRA_START                  (( uint32_t )(( float32_t )( AFA_WAVE_LEN_START_SDSS - AFA_WAVE_LEN_START_BOSS ) / AFA_BOSS_WAVELEN_PER_PIXEL ))
+#define AFA_BOSS_SPECTRA_END                    (( uint32_t )(( float32_t )( AFA_WAVE_LEN_END_SDSS   - AFA_WAVE_LEN_START_SDSS ) / AFA_BOSS_WAVELEN_PER_PIXEL ))
 #define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS_HW ( AFA_BOSS_SPECTRA_END - AFA_BOSS_SPECTRA_START + 1 )
 
-#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW      ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_SW )
-#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW      ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_HW )
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW      ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS_SW )
+
+// we currently only use the SDSS wavelength range to fit spectra into 2K chunks
+// the entire BOSS wavelength range does not fit into 2K. 
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW      ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS_HW )
+#define AFA_PROCESS_PIXEL_START					(AFA_BOSS_SPECTRA_START)
+#define AFA_PROCESS_PIXEL_END					(AFA_BOSS_SPECTRA_END)
 
 
 //

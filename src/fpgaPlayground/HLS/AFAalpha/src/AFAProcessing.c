@@ -158,6 +158,8 @@ AFAHelperStructures_PrepareDataStructure(
     AFAPP_sw.m_numSpectra = numSpectra;
     AFAPP_sw.m_gridSizeSqr = AFAPP_sw.m_gridSize * AFAPP_sw.m_gridSize;
 
+	// TODO: put this into a function
+
     // prepare memory control structure
     strncpy( AFAPP_sw.workData[ idx ].name, "example data", AFA_WORKING_DATA_NAME_LENGTH );
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
@@ -319,11 +321,14 @@ AFAInitProcessingNew(
 
     // normalizes all INPUT spectra records to have a flux of 1.0 ...
     // little below because of 0.001 in function AFASpectraNormalizeByFlux()
-    for ( i = 0; i < AFAPP_sw.m_numSpectra; i++ )
-    {
-        a = &AFAPP_sw.spectraDataInput[ i ];
-        AFASpectraNormalizeByFlux( a );
-    }
+	if ( AFAPP_sw.m_params.normaliziationType == SN_FLUX )
+	{
+		for ( i = 0; i < AFAPP_sw.m_numSpectra; i++ )
+		{
+			a = &AFAPP_sw.spectraDataInput[ i ];
+			AFASpectraNormalizeByFlux( a );
+		}
+	}
 
     // calculates the min and max of the complete INPUT spectra grid and give back values
     calcMinMaxSp( AFAPP_sw.spectraDataInput, &m_Min, &m_Max );
@@ -352,8 +357,8 @@ AFAInitProcessingNew(
         // 2.) initialize the random function, second time so far (see reset()). Is this intended ? e.g. seed etc. ?
         AFARandomInitRandom( AFAPP_sw.m_params.randomSeed );
 
-        // 3.) now select randomly for each destination an input one.
-        //     JSC: looks very wrong as it is not ensured that all inputs are read <<<<<<<
+        // 3.) now select randomly for each network cell an input one, this improves the convergence times.
+		//     it does not matter if some spectra are inserted multiple times or other may missing since this is just for initialization purposes.
         // -------------------------------------------------------------------------------
         for ( i = 0; i < AFAPP_sw.m_gridSizeSqr; i++ )
         {
