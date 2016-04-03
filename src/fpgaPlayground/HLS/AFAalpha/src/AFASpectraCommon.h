@@ -5,20 +5,24 @@
 
 #define SPT_DEFAULTFILTER (0x0ffffffff)
 
+#define AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR	( 8 )			// reduce number of pixel by a factor of 8 (use only values of 2^n)
 
 // convert defines
-#define AFA_SPECTRA_NUM_SAMPLES_SDSS			3900				// number of samples in SDSS spectra
-#define waveLenStartSDSS		3800								// wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
-#define waveLenEndSDSS			9200									
+#define AFA_SPECTRA_NUM_SAMPLES_SDSS			(  3900	)			// number of samples in SDSS spectra
+#define waveLenStartSDSS		                (  3800 )								// wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
+#define waveLenEndSDSS			                (  9200 )									
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS    ( AFA_SPECTRA_NUM_SAMPLES_SDSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra
 
-#define AFA_SPECTRA_NUM_SAMPLES_BOSS			4700				// number of samples in BOSS spectra
-#define waveLenStartBOSS		3650								// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
-#define waveLenEndBOSS			10400						
+#define AFA_SPECTRA_NUM_SAMPLES_BOSS			(  4700 )				// number of samples in BOSS spectra
+#define waveLenStartBOSS		                (  3650 )								// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
+#define waveLenEndBOSS			                ( 10400 )						
+#define AFA_BOSS_WAVELEN_PER_PIXEL              (( float32_t )AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR * ( float32_t )( waveLenEndBOSS - waveLenStartBOSS ) / ( float32_t )AFA_SPECTRA_NUM_SAMPLES_BOSS )
+#define AFA_BOSS_SPECTRA_START                  (( uint32_t )(( float32_t )( waveLenStartSDSS - waveLenStartBOSS ) / wavelenPerPixel ))
+#define AFA_BOSS_SPECTRA_END                    (( uint32_t )( (float32_t ) (waveLenEndSDSS   - waveLenStartSDSS ) / wavelenPerPixel ))
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS    ( AFA_BOSS_SPECTRA_END - AFA_BOSS_SPECTRA_START + 1 )
 
-#define AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR		( 8 )			// reduce number of pixel by a factor of 8 (use only values of 2^n)
-#define AFA_SPECTRA_NUM_SAMPLES				        (AFA_SPECTRA_NUM_SAMPLES_BOSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR)	// number of samples in reduced spectra
-#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS        ( 457 )
-#define AFA_SPECTRA_NUM_SAMPLES_PROCESS             AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW      ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS )
+
 
 //
 //
@@ -37,11 +41,11 @@ enum
     // indices describe index in float array describing the spectrum
     AFA_SPECTRA_INDEX_AMPLITUDE = 0,                                //< index 0: amplitude 0
                                                                     //< index n-1: amplitude n-1 (indices 0 .. n-1 are amplitudes)
-    AFA_SPECTRA_INDEX_INDEX = AFA_SPECTRA_NUM_SAMPLES,              //< index n: index-value
+    AFA_SPECTRA_INDEX_INDEX = AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW,   //< index n: index-value
     AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW,                              //< index n+1: ObjID - lower 32 bit part of object id
     AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH,						        //< index n+2: ObjID - higher 32 bit part of object id
 
-    AFA_SPECTRA_INDEX_SIZE_IN_UINT32,                               //< size of data-record := n+3 elements (with n:=AFA_SPECTRA_NUM_SAMPLES)
+    AFA_SPECTRA_INDEX_SIZE_IN_UINT32,                               //< size of data-record := n+3 elements (with n:=AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW)
     AFA_SPECTRA_INDEX_SIZE_IN_BYTES = AFA_SPECTRA_INDEX_SIZE_IN_UINT32 * 4  //< size of data-record in bytes
 };
 
