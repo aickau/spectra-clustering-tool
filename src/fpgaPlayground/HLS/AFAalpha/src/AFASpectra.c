@@ -14,20 +14,15 @@ unsigned int UIDCount = 1;
 
 void
 AFASpectraClear(
-	volatile AFASpectra_SW *sp)
+	AFASpectra_SW *sp)
 {
     unsigned int i=0;
 
     sp->m_Min = 0.0f;
-    sp->m_Max = 1.f;
-//    sp->m_SamplesRead = 0;
+    sp->m_Max = 1.f;    //< shouldn't this be 0.0f ???
     sp->m_Index = -1;
-    sp->m_SpecObjID = 0.0f;
-//	sp->m_Type = 0;
-//    sp->m_version = SP_ARTIFICIAL;
-//    sp->m_Z = 0.0;
+    sp->m_SpecObjID = 0;
     sp->m_flux = 0.0f;
-//    sp->m_status = 0;
 
     for (i=0;i<AFA_SPECTRA_NUM_SAMPLES;i++)
     {
@@ -39,7 +34,7 @@ AFASpectraClear(
 
 void
 AFASpectraSetSine(
-	volatile AFASpectra_SW *sp,
+	AFASpectra_SW *sp,
     float32_t _frequency,
     float32_t _phase,
     float32_t _amplitude,
@@ -59,10 +54,28 @@ AFASpectraSetSine(
     AFASpectraCalcMinMax( sp );
 }
 
+// calculates local m_Min and m_Max of spectra amplitude and stores it into record
+void
+AFASpectraCalcMinMax(
+    AFASpectra_SW *sp )
+{
+    uint32_t i;
+    sp->m_Min = FLT_MAX;
+    sp->m_Max = -FLT_MAX;
+    for ( i = 0; i < AFA_SPECTRA_NUM_SAMPLES; i++ )
+    {
+        if ( sp->m_Min > sp->m_Amplitude[ i ])
+            sp->m_Min = sp->m_Amplitude[ i ];
+        if ( sp->m_Max < sp->m_Amplitude[ i ])
+            sp->m_Max = sp->m_Amplitude[ i ];
+    }
+}
 
+// 1.) set for spectrum *sp the amplitudes to random values between minrange and maxrange.
+// 2.) set real m_Min and m_Max values for this random numbers
 void
 AFASpectraRandomize(
-	volatile AFASpectra_SW *sp,
+	AFASpectra_SW *sp,
     float32_t minrange,
     float32_t maxrange )
 {
@@ -82,26 +95,21 @@ AFASpectraRandomize(
     {
         sp->m_Amplitude[ i ] = AFARandomFloat() * d + minrange;
     }
-//    sp->m_SamplesRead = numSamples;
+
     AFASpectraCalcMinMax( sp );
 }
 
 void
 AFASpectraSet(
-	volatile AFASpectra_SW *dst,
-	volatile AFASpectra_SW *src )
+	AFASpectra_SW *dst,
+	AFASpectra_SW *src )
 {
     uint32_t i = 0;
-//    dst->m_SamplesRead		= src->m_SamplesRead;
     dst->m_Min				= src->m_Min;
     dst->m_Max				= src->m_Max;
     dst->m_Index			= src->m_Index;
     dst->m_SpecObjID		= src->m_SpecObjID;
-//    dst->m_version			= src->m_version;
-//    dst->m_Type				= src->m_Type;
-//    dst->m_Z				= src->m_Z;
     dst->m_flux				= src->m_flux;
-//    dst->m_status			= src->m_status;
 
     for ( i = 0; i < AFA_SPECTRA_NUM_SAMPLES; i++ )
     {
@@ -109,31 +117,47 @@ AFASpectraSet(
     }
 }
 
+// sum up all amplitude values. if the minimum of values is below zero
+// than offset the amplitudes to always be positive.
+void AFASpectraCalculateFlux(
+    AFASpectra_SW *sp )
+{
+    unsigned int i;
+    double flux = 0.0;
+    float offset = ( sp->m_Min < 0.0f ) ? -sp->m_Min : 0.0f; //< the offset in negative cases leads to wrong normalization
+    for ( i = 0; i < AFA_SPECTRA_NUM_SAMPLES; i++ )
+    {
+        flux += ( double )( sp->m_Amplitude[ i ] + offset );
+    }
+    sp->m_flux = ( float )( flux );
+}
 
 void
 AFASpectraNormalizeByFlux(
-    volatile AFASpectra_SW *sp )
+    AFASpectra_SW *sp )
 {
     int i;
 
     AFASpectraCalculateFlux( sp );
 
-    if ( sp->m_flux <= 0.0f )
+    // flux is already been zero or positive; zero is not allowed.
+    // maybe better to check against little epsilon barrier !?
+    if ( sp->m_flux <= 0.0f )   
         return;
-
-    for (i=0;i<AFA_SPECTRA_NUM_SAMPLES;i++)
+    // here the amplitudes are normalized. In the end they together should sum up to one.
+    for ( i = 0; i < AFA_SPECTRA_NUM_SAMPLES; i++ )
     {	
-        sp->m_Amplitude[i] /= (sp->m_flux*0.001f);
+        sp->m_Amplitude[ i ] /= ( sp->m_flux * 0.001f );  //< JSC: is this 0.001 to escape from far too small flux values?
     }
-    AFASpectraCalcMinMax(sp);
+    AFASpectraCalcMinMax( sp );
 }
 
 
 
 float32_t
 AFASpectraCompare(
-	volatile AFASpectra_SW *sp1,
-	volatile AFASpectra_SW *sp2)
+	AFASpectra_SW *sp1,
+	AFASpectra_SW *sp2)
 {
     // c-version (slow)
     uint32_t i=0;
@@ -151,8 +175,8 @@ AFASpectraCompare(
 
 void
 AFASpectraAdapt(
-	volatile AFASpectra_SW *dst,
-	volatile AFASpectra_SW *src,
+	AFASpectra_SW *dst,
+	AFASpectra_SW *src,
     float32_t  _adaptionRate ) 
 {
     uint32_t i=0;
@@ -162,35 +186,6 @@ AFASpectraAdapt(
         dst->m_Amplitude[i] += _adaptionRate*(src->m_Amplitude[i]-dst->m_Amplitude[i]);
     }
 
-}
-
-void AFASpectraCalculateFlux(
-	volatile AFASpectra_SW *sp )
-{
-    unsigned int i;
-    double flux = 0.0;
-    float offset = (sp->m_Min < 0.0f) ? -sp->m_Min : 0.0f;
-    for (i=0;i<AFA_SPECTRA_NUM_SAMPLES;i++)
-    {
-        flux += (double)(sp->m_Amplitude[i]+offset);
-    }
-    sp->m_flux = (float)(flux);
-}
-
-void
-AFASpectraCalcMinMax(
-	volatile AFASpectra_SW *sp )
-{
-    uint32_t i;
-    sp->m_Min = FLT_MAX;
-    sp->m_Max = -FLT_MAX;
-    for ( i = 0; i < AFA_SPECTRA_NUM_SAMPLES; i++ )
-    {
-        if ( sp->m_Min > sp->m_Amplitude[ i ])
-            sp->m_Min = sp->m_Amplitude[ i ];
-        if ( sp->m_Max < sp->m_Amplitude[ i ])
-            sp->m_Max = sp->m_Amplitude[ i ];
-    }
 }
 
 int

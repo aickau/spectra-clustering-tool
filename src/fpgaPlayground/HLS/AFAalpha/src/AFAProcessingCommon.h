@@ -44,16 +44,17 @@ typedef struct
 
 typedef struct
 {
-    // code book spectra
-    AFASpectra_SW	*spectraDataWorkingSet;
-
     // training data
     AFASpectra_SW	*spectraDataInput;
-    uint32_t *spectraDataInputHW;
+    uint32_t        *spectraDataInputHW;
+
+    // code book spectra
+    AFASpectra_SW	*spectraDataWorkingSet;
+    uint32_t        *spectraDataWorkingSetHW;
 
     // determine processing order. must be randomized every learning step
     // contains m_gridSize * m_gridSize  elements
-    sint32_t *m_pSpectraIndexList;
+    sint32_t        *m_pSpectraIndexList;
 
 
     AFASpectra_SW **m_localSearchSpectraVec;
@@ -65,7 +66,7 @@ typedef struct
     uint32_t        m_numSpectra;
 
     // current learning step
-    uint32_t			    m_currentStep;
+    uint32_t			    currentStep;
     AFAParameters	m_params;
 
     // grid size in cells of the map

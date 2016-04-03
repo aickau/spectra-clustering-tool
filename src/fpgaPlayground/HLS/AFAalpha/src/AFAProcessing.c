@@ -15,15 +15,6 @@ AFAProcessingParamSW_t	        AFAPP_sw;
 // local variables to this file
 // ============================
 
-// maximum flux of input spectra
-static float m_flux;
-
-// maximum amplitude (before normalization)
-static float m_Min;
-
-// minimum amplitude (before normalization)
-static float m_Max;
-
 void resetBM( BestMatch *bmu)
 {
     bmu->error = FLT_MAX;
@@ -36,50 +27,49 @@ void reset( AFAParameters *params )
     AFAPP_sw.m_params = *params;
     AFARandomInitRandom( AFAPP_sw.m_params.randomSeed );
 
-    AFAPP_sw.m_currentStep = 0;
+    AFAPP_sw.currentStep = 0;
 }
 
 
-#if 1
+#if 0
 void calcFluxAndNormalizeInputDS()
 {
-    volatile AFASpectra_SW *a;
+    AFASpectra_SW *a;
     uint32_t i;
-    m_flux = 0.0f;
 
-    for ( i=0;i<AFAPP_sw.m_numSpectra;i++ )
+    for ( i = 0; i < AFAPP_sw.m_numSpectra; i++ )
     {
         a = &AFAPP_sw.spectraDataInput[ i ];
         AFASpectraNormalizeByFlux( a );
-        m_flux = AFAMAX( a->m_flux, m_flux );
-    }
+   }
 }
 #endif
 
 
 #if 1
+// calculates min and max over all spectra records
 void calcMinMaxSp(
-    volatile AFASpectra_SW *_vfs,
-    float *_outMin,
-    float *_outMax )
+    AFASpectra_SW *_vfs,
+    float *outMin,
+    float *outMax )
 {
-    volatile  AFASpectra_SW *a;
+    AFASpectra_SW *a;
     uint32_t i;
-    *_outMin = FLT_MAX;
-    *_outMax = -FLT_MAX;
+    *outMin = FLT_MAX;
+    *outMax = -FLT_MAX;
 
     // calc min/max
-    for ( i=0;i<AFAPP_sw.m_numSpectra;i++ )
+    for ( i = 0; i < AFAPP_sw.m_numSpectra; i++ )
     {
         a = &AFAPP_sw.spectraDataInput[ i ];
 
-        if ( *_outMin > a->m_Min )
+        if ( *outMin > a->m_Min )
         {
-            *_outMin = a->m_Min;
+            *outMin = a->m_Min;
         }
-        if ( *_outMax < a->m_Max)
+        if ( *outMax < a->m_Max)
         {
-            *_outMax = a->m_Max;
+            *outMax = a->m_Max;
         }
     }
     // for sdds: -560 .. ~20.000 Angström
@@ -87,37 +77,30 @@ void calcMinMaxSp(
 #endif
 
 #if 1
-void calcMinMaxInputDS()
-{
-    calcMinMaxSp( AFAPP_sw.spectraDataInput, &m_Min, &m_Max );
-}
-#endif
-
-#if 1
 void initNetwork(
-    unsigned int _gridSize,
-    float _minPeak,
-    float _maxPeak )
+    uint32_t gridSize,  //< edge-length of grid
+    float32_t minPeak,
+    float32_t maxPeak )
 {
-    unsigned int i, x, y;
-    float strength;
-    unsigned int gridSizeSqr = _gridSize*_gridSize;
-    float strengthScale = (float)gridSizeSqr*2.f;
+    uint32_t i, x, y;
+    float32_t strength;
+    uint32_t gridSizeSqr = gridSize * gridSize;
+    float32_t strengthScale = ( float32_t ) gridSizeSqr * 2.f;
     AFASpectra_SW spec;
-    volatile AFASpectra_SW *sp;
+    AFASpectra_SW *sp;
 
     AFASpectraClear( &spec );
 
-    for ( i=0;i<gridSizeSqr;i++)
+    for ( i = 0; i < gridSizeSqr; i++ )
     {
         sp = &AFAPP_sw.spectraDataWorkingSet[ i ];
 
-        x = i%_gridSize;
-        y = i/_gridSize;
-        strength = ((float)(x*x+y*y))*0.25f/strengthScale;
-        AFASpectraRandomize( &spec, _minPeak*strength, _maxPeak*strength );
+        x = i % gridSize;
+        y = i / gridSize;
+        strength = (( float32_t )( x * x + y * y )) * 0.25f / strengthScale;
+        AFASpectraRandomize( &spec, minPeak * strength, maxPeak * strength );
 
-        AFASpectraSet( sp, &spec);
+        AFASpectraSet( sp, &spec );
     }
 }
 #endif
@@ -169,10 +152,6 @@ AFAHelperStructures_PrepareDataStructure(
     uint64_t memoryOffsetInBlock = 0;
     uint64_t memoryBlockSize;
     uint32_t idx = 0;
-    uint32_t *mt; // the array for the state vector 
-    uint32_t *mti;
-    uint32_t pStart;
-    uint32_t pEnd;
 
     // store calculation constants and values
     AFAPP_sw.m_gridSize = AFACalcGridSize( numSpectra );
@@ -192,7 +171,7 @@ AFAHelperStructures_PrepareDataStructure(
 
     strncpy( AFAPP_sw.workData[ idx ].name, "example data reduced", AFA_WORKING_DATA_NAME_LENGTH );
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
-    memoryBlockSize = numSpectra * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
+    memoryBlockSize = numSpectra * AFA_SPECTRA_INDEX_SIZE_IN_BYTES;
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
     memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
@@ -203,6 +182,16 @@ AFAHelperStructures_PrepareDataStructure(
     strncpy( AFAPP_sw.workData[ idx ].name, "m_pNet / SOM", AFA_WORKING_DATA_NAME_LENGTH );
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * sizeof( AFASpectra_SW );
+    AFAPP_sw.workData[ idx ].size = memoryBlockSize;
+    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
+    AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
+    memoryOffsetInBlock += memoryBlockSize;
+    printf( "%32s: %10llu [%10llu]\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated );
+    idx++;
+
+    strncpy( AFAPP_sw.workData[ idx ].name, "m_pNet / SOM reduced ", AFA_WORKING_DATA_NAME_LENGTH );
+    AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
+    memoryBlockSize = AFAPP_sw.m_gridSizeSqr * AFA_SPECTRA_INDEX_SIZE_IN_BYTES;
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
     memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
@@ -296,7 +285,7 @@ AFAHelperStructures_UpdateAddressData()
     for ( i = 0; i < sizeof( AFAPP_sw.workData ) / sizeof( AFAPP_sw.workData[ 0 ]); i++ )
     {
         AFAPP_sw.workData[ i ].address = ( void * )offset;
-        offset += AFAPP_sw.workData[ i ].size;
+        offset += AFAPP_sw.workData[ i ].sizeAllocated;             // add the padded size of the block to get correct alignment
     }
 }
 
@@ -308,21 +297,36 @@ AFAInitProcessingNew(
     uint32_t i;
     uint32_t xp, yp;
     uint32_t inset, spectraIndex;
-    volatile AFASpectra_SW *a, *b;
-    uint64_t memOffset;
-    AFAPP_sw.m_currentStep = 0;
+    AFASpectra_SW *a, *b;
+    float32_t m_Min;
+    float32_t m_Max;
 
-    AFAPP_sw.spectraDataInput      = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf( "example data" );
-    AFAPP_sw.spectraDataInputHW    = ( uint32_t *      ) AFAHelperStructures_GetAddressOf( "example data reduced" );
-    AFAPP_sw.spectraDataWorkingSet = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf( "m_pNet / SOM" );
-    AFAPP_sw.m_pSpectraIndexList   = ( sint32_t *      ) AFAHelperStructures_GetAddressOf( "m_pSpectraIndexList" );
+    // store addresses new to ease accesses
+    AFAPP_sw.spectraDataInput        = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf( "example data" );
+    AFAPP_sw.spectraDataInputHW      = ( uint32_t *      ) AFAHelperStructures_GetAddressOf( "example data reduced" );
+    AFAPP_sw.spectraDataWorkingSet   = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf( "m_pNet / SOM" );
+    AFAPP_sw.spectraDataWorkingSetHW = ( uint32_t *      ) AFAHelperStructures_GetAddressOf( "m_pNet / SOM reduced" );
+    AFAPP_sw.m_pSpectraIndexList     = ( sint32_t *      ) AFAHelperStructures_GetAddressOf( "m_pSpectraIndexList" );
 
+    // * reset global loop counter.
+    // * initialize params
+    // * initialize RNG
     reset( &AFAPP_sw.m_params );
 
+    // set the start and end of amplitude range
     AFASpectraSetOperationRange(
         AFAPP_sw.m_params.useBOSSWavelengthRange );
-    calcFluxAndNormalizeInputDS();
-    calcMinMaxInputDS();
+    
+    // normalizes all INPUT spectra records to have a flux of 1.0 ...
+    // little below because of 0.001 in function AFASpectraNormalizeByFlux()
+    for ( i = 0; i < AFAPP_sw.m_numSpectra; i++ )
+    {
+        a = &AFAPP_sw.spectraDataInput[ i ];
+        AFASpectraNormalizeByFlux( a );
+    }
+
+    // calculates the min and max of the complete INPUT spectra grid and give back values
+    calcMinMaxSp( AFAPP_sw.spectraDataInput, &m_Min, &m_Max );
 
     if ( !continueProcessing )
     {
@@ -330,15 +334,28 @@ AFAInitProcessingNew(
         // start new computation
         //
 
-        // generate random filled cluster and load it. (AFA changes: do not load it, generate it in memory only)
-        initNetwork( AFAPP_sw.m_gridSize, m_Min, m_Max*0.01f );
+        // generate random filled cluster and load it.
+        // ==> (AFA changes: do not load it, generate it in memory only)
+        // -------------------------------------------------------------
 
-
+        // =======================================================================
         // fill network with random spectra, this improves the convergence times.
-        // it does not matter if some spectra are inserted multiple times or other may missing since this is just for initialization purposes.
+        // it does not matter if some spectra are inserted multiple times or other
+        // may missing since this is just for initialization purposes.
+        // =======================================================================
+
+        // 1.) generate random spectra with increasing amplitude
+        //     from lower left to upper right corner based on
+        //     min/max from INPUT spectra
+        initNetwork( AFAPP_sw.m_gridSize, m_Min, m_Max * 0.01f );
+
+        // 2.) initialize the random function, second time so far (see reset()). Is this intended ? e.g. seed etc. ?
         AFARandomInitRandom( AFAPP_sw.m_params.randomSeed );
 
-        for ( i=0;i<AFAPP_sw.m_gridSizeSqr;i++ )
+        // 3.) now select randomly for each destination an input one.
+        //     JSC: looks very wrong as it is not ensured that all inputs are read <<<<<<<
+        // -------------------------------------------------------------------------------
+        for ( i = 0; i < AFAPP_sw.m_gridSizeSqr; i++ )
         {
             xp = i % AFAPP_sw.m_gridSize;
             yp = i / AFAPP_sw.m_gridSize;

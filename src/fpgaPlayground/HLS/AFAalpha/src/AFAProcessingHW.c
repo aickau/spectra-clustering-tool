@@ -20,11 +20,11 @@ uint32_t pixelStart_HW;
 uint32_t pixelEnd_HW;
 
 void
-searchBestMatchComplete_HW(
-	volatile uint32_t *baseAddr, 		// default starting address in memory
-	uint64_t g_spectraDataInputIndexToMem,
-	uint64_t spectraDataWorkingSetIndexToMem,
-	BestMatch *outbm,
+    searchBestMatchComplete_HW(
+    volatile uint32_t *baseAddr, 		// default starting address in memory
+    uint64_t g_spectraDataInputIndexToMem,
+    uint64_t spectraDataWorkingSetIndexToMem,
+    BestMatch *outbm,
     uint32_t m_gridSizeSqr,
     uint32_t spectraIndex )
 {
@@ -54,19 +54,19 @@ searchBestMatchComplete_HW(
             float32_t error = 0.0f;
 
             uint32_t objIDLow = baseAddr[ spectraDataWorkingSetIndexToMem + ( j + i ) * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ];
-			uint32_t objIDHigh = baseAddr[ spectraDataWorkingSetIndexToMem + ( j + i ) * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ];
-			//uint64_t objID = objIDLow | ((uint64_t)objIDHigh << 32 );
+            uint32_t objIDHigh = baseAddr[ spectraDataWorkingSetIndexToMem + ( j + i ) * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ];
+            //uint64_t objID = objIDLow | ((uint64_t)objIDHigh << 32 );
             if ( objIDLow == 0 && objIDHigh == 0 )
             {
                 const uint32_t pixelStart_HW = 0;
-                const uint32_t pixelEnd_HW = AFA_SPECTRA_NUM_SAMPLES;
+                const uint32_t pixelEnd_HW = 469 - 12;
 
                 for ( k = AFA_SPECTRA_INDEX_AMPLITUDE + pixelStart_HW; k < AFA_SPECTRA_INDEX_AMPLITUDE + pixelEnd_HW; k++ )
                 {
-                	uint32_t tmpVal1 = baseAddr[ g_spectraDataInputIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + k ];
-                	uint32_t tmpVal2 = baseAddr[ spectraDataWorkingSetIndexToMem + ( j + i ) * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + k ];
-                	float32_t tmpVal1Float = *(( float32_t * ) &tmpVal1 );
-                	float32_t tmpVal2Float = *(( float32_t * ) &tmpVal2 );
+                    uint32_t tmpVal1 = baseAddr[ g_spectraDataInputIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + k ];
+                    uint32_t tmpVal2 = baseAddr[ spectraDataWorkingSetIndexToMem + ( j + i ) * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + k ];
+                    float32_t tmpVal1Float = *(( float32_t * ) &tmpVal1 );
+                    float32_t tmpVal2Float = *(( float32_t * ) &tmpVal2 );
                     float32_t d = ( tmpVal2Float - tmpVal1Float );
                     error += d * d;
                 }
@@ -95,10 +95,10 @@ searchBestMatchComplete_HW(
 }
 
 void
-adaptNetwork_HW_integrated(
-	volatile uint32_t *baseAddr, 		// default starting address in memory
-	uint64_t currentSourceSpectrumIndex,
-	uint64_t spectraDataWorkingSetIndex,
+    adaptNetwork_HW_integrated(
+    volatile uint32_t *baseAddr, 		// default starting address in memory
+    uint64_t currentSourceSpectrumIndex,
+    uint64_t spectraDataWorkingSetIndex,
     sint32_t _bestMatchIndex,
     float32_t _adaptionThreshold,
     float32_t _sigmaSqr,
@@ -141,22 +141,22 @@ adaptNetwork_HW_integrated(
             if ( lratehsx > _adaptionThreshold )
             {
                 const uint32_t pixelStart_HW = 0;
-                const uint32_t pixelEnd_HW = AFA_SPECTRA_NUM_SAMPLES;
+                const uint32_t pixelEnd_HW = 469 - 12;
 
                 spectraAdress = ( y * m_gridSize + x ) * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
 
                 for ( i = AFA_SPECTRA_INDEX_AMPLITUDE + pixelStart_HW; i < AFA_SPECTRA_INDEX_AMPLITUDE + pixelEnd_HW; i++ )
                 {
-                	uint32_t aTmp = baseAddr[ spectraDataWorkingSetIndex + spectraAdress + i ];
-                	uint32_t cTmp = baseAddr[ currentSourceSpectrumIndex + i ];
-                	float32_t aTmpFloat = *(( float32_t * ) &aTmp );
-                	float32_t cTmpFloat = *(( float32_t * ) &cTmp );
+                    uint32_t aTmp = baseAddr[ spectraDataWorkingSetIndex + spectraAdress + i ];
+                    uint32_t cTmp = baseAddr[ currentSourceSpectrumIndex + i ];
+                    float32_t aTmpFloat = *(( float32_t * ) &aTmp );
+                    float32_t cTmpFloat = *(( float32_t * ) &cTmp );
 
-                	aTmpFloat += lratehsx * ( cTmpFloat - aTmpFloat );
+                    aTmpFloat += lratehsx * ( cTmpFloat - aTmpFloat );
 
-                	aTmp = *(( uint32_t * ) &aTmpFloat );
+                    aTmp = *(( uint32_t * ) &aTmpFloat );
 
-                	baseAddr[ spectraDataWorkingSetIndex + spectraAdress + i ] = aTmp;
+                    baseAddr[ spectraDataWorkingSetIndex + spectraAdress + i ] = aTmp;
                 }
             }
         }
@@ -164,7 +164,7 @@ adaptNetwork_HW_integrated(
 }
 
 bool_t
-AFAProcess_HW(
+    AFAProcess_HW(
     uint32_t param[ 256 ],              // whole block ram used
     uint32_t mt_HW[ RANDOM_N ],         // block ram used
     volatile uint32_t *baseAddr 		// default starting address in memory
@@ -177,17 +177,9 @@ AFAProcess_HW(
 #pragma HLS INTERFACE bram      port=param
 #pragma HLS INTERFACE bram      port=mt_HW
 #pragma HLS INTERFACE m_axi     port=baseAddr              depth=10000
-//#pragma HLS INTERFACE m_axi     port=spectraDataWorkingSet depth=10000 bundle=INTERFACE_AXI_BUSMASTER1
-//#pragma HLS INTERFACE m_axi     port=g_spectraDataInput    depth=10000 bundle=INTERFACE_AXI_BUSMASTER2
-//#pragma HLS INTERFACE m_axi     port=pSpectraIndexList     depth=10000 bundle=INTERFACE_AXI_BUSMASTER3
 #pragma HLS INTERFACE s_axilite port=baseAddr                          bundle=INTERFACE_AXILITE_SLAVE
-//#pragma HLS INTERFACE s_axilite port=spectraDataWorkingSet             bundle=INTERFACE_AXILITE_SLAVE
-//#pragma HLS INTERFACE s_axilite port=pSpectraIndexList                 bundle=INTERFACE_AXILITE_SLAVE
-//#pragma HLS INTERFACE s_axilite port=g_spectraDataInput                bundle=INTERFACE_AXILITE_SLAVE
 #pragma HLS INTERFACE s_axilite port=return                            bundle=INTERFACE_AXILITE_SLAVE
 
-    volatile AFASpectra_t *bmuSpectrum = NULL;
-    volatile AFASpectra_t *currentSourceSpectrum;
     BestMatch bmu;
 
     uint32_t i,j;
@@ -200,7 +192,6 @@ AFAProcess_HW(
     // get data from param block
     // =========================
     bool_t bFullSearch = param[ AFA_PARAM_INDICES_FULL_SEARCH ];
-    uint32_t searchRadius = param[ AFA_PARAM_INDICES_SEARCH_RADIUS ];
     uint32_t adaptionThreshold_temp = param[ AFA_PARAM_INDICES_ADAPTION_THRESHOLD ];
     float adaptionThreshold = *(( float32_t * )&adaptionThreshold_temp );
     uint32_t sigmaSqr_temp = param[ AFA_PARAM_INDICES_SIGMA_SQR ];
@@ -210,17 +201,20 @@ AFAProcess_HW(
     uint32_t m_gridSize = param[ AFA_PARAM_INDICES_GRID_SIZE ];
     uint32_t m_gridSizeSqr = param[ AFA_PARAM_INDICES_GRID_SIZE_SQR ];
     uint32_t m_numSpectra = param[ AFA_PARAM_INDICES_NUM_SPECTRA ];
-    const int spectraCacheSize = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, ( AFAMIN( m_gridSizeSqr, AFA_COMPARE_BATCH_HW )));
     //uint64_t g_spectraDataInputIndexToMem;  // in future obsolete
     uint64_t g_spectraDataInputHWIndexToMem;
     uint64_t spectraDataWorkingSetIndexToMem;
     uint64_t pSpectraIndexListIndexToMem;
+#ifdef LOCAL_SEARCH_ENABLED
+    const int spectraCacheSize = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, ( AFAMIN( m_gridSizeSqr, AFA_COMPARE_BATCH_HW )));
     const sint32_t AFAConstantM1 = -1;
+    const uint32_t searchRadius = param[ AFA_PARAM_INDICES_SEARCH_RADIUS ];
     const float32_t AFAConstantM1F = -1.0f;
     const uint32_t AFAConstant0  = 0;
+#endif
 
     // get offsets to different memory locations as 2 32-bit words combining them to 64bit offsets
-/* obsolete in future */    //g_spectraDataInputIndexToMem    = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH      ] << 32 ));
+    /* obsolete in future */    //g_spectraDataInputIndexToMem    = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH      ] << 32 ));
     g_spectraDataInputHWIndexToMem  = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW   ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] << 32 ));
     spectraDataWorkingSetIndexToMem = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_LOW         ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH         ] << 32 ));
     pSpectraIndexListIndexToMem     = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] << 32 ));
@@ -268,9 +262,9 @@ AFAProcess_HW(
     // clear names
     for ( i = 0; i < m_gridSizeSqr * AFA_SPECTRA_INDEX_SIZE_IN_UINT32; i += AFA_SPECTRA_INDEX_SIZE_IN_UINT32 )
     {
-    	baseAddr[ spectraDataWorkingSetIndexToMem + i + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW  ] = 0;
-		baseAddr[ spectraDataWorkingSetIndexToMem + i + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = 0;
-    	baseAddr[ spectraDataWorkingSetIndexToMem + i + AFA_SPECTRA_INDEX_INDEX            ] = -1;
+        baseAddr[ spectraDataWorkingSetIndexToMem + i + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW  ] = 0;
+        baseAddr[ spectraDataWorkingSetIndexToMem + i + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = 0;
+        baseAddr[ spectraDataWorkingSetIndexToMem + i + AFA_SPECTRA_INDEX_INDEX            ] = ( uint32_t ) ( -1 );
     }
 
     // for each training spectra..
@@ -285,17 +279,19 @@ AFAProcess_HW(
         // retrieve best match neuron for a source spectra
         if ( bFullSearch )
         {
-        	searchBestMatchComplete_HW(
-				baseAddr, 		// default starting address in memory
-				g_spectraDataInputHWIndexToMem,
-				spectraDataWorkingSetIndexToMem,
+            searchBestMatchComplete_HW(
+                baseAddr, 		// default starting address in memory
+                g_spectraDataInputHWIndexToMem,
+                spectraDataWorkingSetIndexToMem,
                 &bmu,
                 m_gridSizeSqr,
                 spectraIndex );
         }
         else
         {
-//            searchBestMatchLocal_HW( currentSourceSpectrum, searchRadius, &bmu );
+#ifdef LOCAL_SEARCH_ENABLED
+            searchBestMatchLocal_HW( currentSourceSpectrum, searchRadius, &bmu );
+#endif
         }
         // mark best match neuron
 
@@ -306,21 +302,21 @@ AFAProcess_HW(
         // _bestMatchIndex index to input spectrum [0..numspectra-1]
         // set best matching related info.
         {
-        	uint64_t bmuSpectrumIndex = spectraDataWorkingSetIndexToMem + bmu.index * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
-        	baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] = baseAddr[ g_spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ];
-			baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = baseAddr[ g_spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ];
-        	baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_INDEX ] = spectraIndex;
+            uint64_t bmuSpectrumIndex = spectraDataWorkingSetIndexToMem + bmu.index * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
+            baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] = baseAddr[ g_spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ];
+            baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = baseAddr[ g_spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ];
+            baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_INDEX ] = spectraIndex;
 
-        	// remember best match position to NW for faster search
-        	baseAddr[ g_spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_INDEX ] = bmu.index;
+            // remember best match position to NW for faster search
+            baseAddr[ g_spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_INDEX ] = bmu.index;
         }
 
         // adapt neighborhood
         // hint: this takes long.
         adaptNetwork_HW_integrated(
-        	baseAddr, 		// default starting address in memory
-			g_spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32, // this is the "currentSourceSpectrumIndex"
-			spectraDataWorkingSetIndexToMem, // this is the spectraDataWorkingSetIndexToMem
+            baseAddr, 		// default starting address in memory
+            g_spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32, // this is the "currentSourceSpectrumIndex"
+            spectraDataWorkingSetIndexToMem, // this is the spectraDataWorkingSetIndexToMem
             bmu.index,
             adaptionThreshold,
             sigmaSqr,
