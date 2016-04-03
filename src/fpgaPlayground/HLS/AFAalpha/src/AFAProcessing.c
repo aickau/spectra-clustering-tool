@@ -189,7 +189,7 @@ AFAHelperStructures_PrepareDataStructure(
     printf( "%32s: %10llu [%10llu]\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated );
     idx++;
 
-    strncpy( AFAPP_sw.workData[ idx ].name, "m_pNet / SOM reduced ", AFA_WORKING_DATA_NAME_LENGTH );
+    strncpy( AFAPP_sw.workData[ idx ].name, "m_pNet / SOM reduced", AFA_WORKING_DATA_NAME_LENGTH );
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * AFA_SPECTRA_INDEX_SIZE_IN_BYTES;
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
@@ -314,9 +314,9 @@ AFAInitProcessingNew(
     reset( &AFAPP_sw.m_params );
 
     // set the start and end of amplitude range
-    AFASpectraSetOperationRange(
-        AFAPP_sw.m_params.useBOSSWavelengthRange );
-    
+    //AFASpectraSetOperationRange(
+    //    AFAPP_sw.m_params.useBOSSWavelengthRange );
+
     // normalizes all INPUT spectra records to have a flux of 1.0 ...
     // little below because of 0.001 in function AFASpectraNormalizeByFlux()
     for ( i = 0; i < AFAPP_sw.m_numSpectra; i++ )
