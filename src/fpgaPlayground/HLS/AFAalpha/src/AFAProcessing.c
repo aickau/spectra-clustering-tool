@@ -76,7 +76,6 @@ void calcMinMaxSp(
 }
 #endif
 
-#if 1
 void initNetwork(
     uint32_t gridSize,  //< edge-length of grid
     float32_t minPeak,
@@ -103,7 +102,6 @@ void initNetwork(
         AFASpectraSet( sp, &spec );
     }
 }
-#endif
 
 uint32_t AFACalcGridSize( uint32_t numSpectra )
 {

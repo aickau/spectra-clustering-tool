@@ -13,7 +13,7 @@ void
 AFASpectraClear(
 	AFASpectra_SW *sp )
 {
-    uint8_t i = 0;
+    uint16_t i = 0;
     sp->m_Min = 0.0f;
     sp->m_Max = 1.f;    //< shouldn't this be 0.0f ???
     sp->m_Index = -1;

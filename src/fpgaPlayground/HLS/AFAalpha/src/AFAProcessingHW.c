@@ -203,14 +203,14 @@ AFAProcess_HW(
 #endif
 
     // get offsets to different memory locations as 2 32-bit words combining them to 64bit offsets
-    /* obsolete in future */    //g_spectraDataInputIndexToMem    = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH      ] << 32 ));
+//    g_spectraDataInputIndexToMem    = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH      ] << 32 ));
     g_spectraDataInputHWIndexToMem    = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW   ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] << 32 ));
 //    spectraDataWorkingSetIndexToMem   = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_LOW         ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH         ] << 32 ));
     spectraDataWorkingSetHWIndexToMem = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH         ] << 32 ));
     pSpectraIndexListIndexToMem       = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] << 32 ));
 
     // these offsets are used as array indices into an uint32_t array. So divide them up by the byte width
-    //g_spectraDataInputIndexToMem    /= sizeof( uint32_t );
+//    g_spectraDataInputIndexToMem    /= sizeof( uint32_t );
     g_spectraDataInputHWIndexToMem    /= sizeof( uint32_t );
 //    spectraDataWorkingSetIndexToMem   /= sizeof( uint32_t );
     spectraDataWorkingSetHWIndexToMem /= sizeof( uint32_t );

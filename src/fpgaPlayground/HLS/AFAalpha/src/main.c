@@ -9,7 +9,7 @@
 #include "AFASpectra.h"
 #include "AFAProcessing.h"
 
-#define JSCDBG_ITER_SPECIAL
+//#define JSCDBG_ITER_SPECIAL
 
 extern AFAProcessingParamSW_t	    AFAPP_sw;
 extern uint32_t m_mt[ RANDOM_N ]; // the array for the state vector 
@@ -22,18 +22,18 @@ sint16_t golden_data[ 12 ][ 12 ]=
 {
 #ifdef JSCDBG_ITER_SPECIAL
 // params.numSteps = 1;
-    {  5,   7,  12,   3,   1,   9,  -1,  37,  34,  35,  33,  31 },
-    {  2,   8,  10,   4,   0,  -1,  -1,  -1,  32,  36,  30,  40 },
-    { 11,  13,   6,  -1,  -1,  -1,  -1,  -1,  -1,  39,  41,  38 },
-    { -1,  -1,  -1,  -1,  67,  64,  -1,  -1,  -1,  43,  42,  45 },
-    { 99,  -1,  -1,  68,  66,  62,  61,  60,  -1,  -1,  44,  47 },
-    { 94,  93,  -1,  -1,  65,  59,  58,  56,  -1,  -1,  49,  48 },
-    { 97,  96,  -1,  -1,  -1,  63,  57,  -1,  -1,  -1,  53,  46 },
-    { 95,  98,  86,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  55,  54 },
-    { 91,  89,  88,  -1,  69,  -1,  -1,  -1,  22,  16,  52,  51 },
-    { 92,  90,  80,  85,  70,  71,  -1,  26,  27,  23,  24,  50 },
-    { 87,  81,  84,  76,  72,  77,  -1,  29,  28,  19,  17,  15 },
-    { 79,  83,  82,  78,  73,  74,  75,  20,  18,  25,  21,  14 }
+    {   8,    2,   12,   14,   17,   18,   52,   49,   51,   48,   47,   40, },
+    {  90,    3,    7,   15,   11,   16,   53,   55,   54,   46,   38,   45, },
+    {  92,   89,    5,   10,    9,   13,   -1,   56,   50,   41,   44,   35, },
+    {  91,   87,    1,    4,   93,   -1,   -1,   -1,   -1,   43,   42,   36, },
+    {  95,   94,   96,    0,    6,   -1,   -1,   -1,   -1,   -1,   37,   39, },
+    {  97,   98,   99,   86,   -1,   -1,   -1,   -1,   -1,   -1,   32,   34, },
+    {  84,   88,   85,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   20,   33, },
+    {  83,   80,   -1,   -1,   -1,   -1,   -1,   57,   -1,   -1,   23,   30, },
+    {  81,   77,   -1,   -1,   -1,   -1,   61,   58,   -1,   22,   29,   31, },
+    {  78,   76,   -1,   71,   67,   66,   62,   59,   60,   24,   25,   28, },
+    {  82,   74,   75,   70,   68,   65,   64,   63,   -1,   -1,   27,   21, },
+    {  79,   73,   72,   69,   -1,   -1,   -1,   -1,   -1,   -1,   19,   26, }
 #else
 
 ///////////////////////////////////////////////////////////
@@ -42,32 +42,32 @@ sint16_t golden_data[ 12 ][ 12 ]=
 
 #ifdef JSCDBG_ACCEPT_LITTLE_INACCURACIES
 // params.numSteps = 200;
-    {  6,   5,  10,  13,  15,  17,  24,  25,  29,  30,  33,  34 },
-    {  7,   8,  -1,  12,  16,  18,  23,  26,  27,  32,  31,  36 },
-    {  2,   4,   9,  11,  14,  20,  21,  -1,  28,  39,  35,  38 },
-    {  0,   1,  -1,  -1,  -1,  19,  22,  -1,  -1,  37,  40,  41 },
-    {  3,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  43,  42,  44 },
-    { -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  47,  46,  45 },
-    { 96,  95,  97,  98,  -1,  -1,  -1,  -1,  -1,  50,  49,  48 },
-    { 93,  94,  92,  99,  -1,  -1,  -1,  -1,  -1,  51,  53,  52 },
-    { 90,  91,  89,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  54,  55 },
-    { 88,  87,  -1,  -1,  76,  74,  70,  -1,  65,  60,  57,  56 },
-    { 86,  84,  82,  79,  78,  75,  72,  69,  66,  62,  59,  58 },
-    { 85,  83,  81,  80,  77,  73,  71,  68,  67,  64,  63,  61 }
+    {  10,   11,   13,   15,   18,   19,   25,   27,   29,   30,   33,   34, },
+    {   8,    9,   12,   14,   17,   20,   24,   26,   31,   32,   35,   36, },
+    {   7,    4,   -1,   -1,   16,   21,   23,   28,   -1,   -1,   37,   38, },
+    {   6,    2,    5,   -1,   -1,   22,   -1,   -1,   -1,   39,   40,   41, },
+    {   0,    1,    3,   -1,   -1,   -1,   -1,   -1,   -1,   43,   42,   44, },
+    {  -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   47,   46,   45, },
+    {  97,   95,   98,   99,   -1,   -1,   -1,   -1,   -1,   51,   49,   48, },
+    {  93,   94,   92,   96,   -1,   -1,   -1,   -1,   -1,   50,   53,   52, },
+    {  90,   91,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   54,   55, },
+    {  88,   89,   -1,   81,   -1,   76,   72,   70,   65,   60,   57,   56, },
+    {  87,   82,   84,   79,   78,   74,   73,   69,   66,   62,   59,   58, },
+    {  86,   85,   83,   80,   77,   75,   71,   68,   67,   64,   63,   61, }
 #else
 // params.numSteps = 200;
-    {  6,   5,  10,  13,  15,  17,  24,  25,  29,  30,  33,  34 },
-    {  7,   8,  -1,  12,  16,  18,  23,  26,  27,  32,  31,  36 },
-    {  2,   4,   9,  11,  14,  20,  21,  -1,  28,  39,  35,  38 },
-    {  0,   1,  -1,  -1,  -1,  19,  22,  -1,  -1,  37,  40,  41 },
-    {  3,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  43,  42,  44 },
-    { -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  47,  46,  45 },
-    { 96,  95,  97,  98,  -1,  -1,  -1,  -1,  -1,  51,  49,  48 },
-    { 93,  94,  92,  99,  -1,  -1,  -1,  -1,  -1,  50,  53,  52 },
-    { 90,  91,  89,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  54,  55 },
-    { 88,  87,  -1,  -1,  76,  74,  70,  -1,  65,  60,  57,  56 },
-    { 86,  84,  82,  79,  78,  75,  72,  69,  66,  62,  59,  58 },
-    { 85,  83,  81,  80,  77,  73,  71,  68,  67,  64,  63,  61 }
+    {  10,   11,   13,   15,   18,   19,   25,   27,   29,   30,   33,   34, },
+    {   8,    9,   12,   14,   17,   20,   24,   26,   31,   32,   35,   36, },
+    {   7,    4,   -1,   -1,   16,   21,   23,   28,   -1,   -1,   37,   38, },
+    {   6,    2,    5,   -1,   -1,   22,   -1,   -1,   -1,   39,   40,   41, },
+    {   0,    1,    3,   -1,   -1,   -1,   -1,   -1,   -1,   43,   42,   44, },
+    {  -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   47,   46,   45, },
+    {  97,   95,   98,   99,   -1,   -1,   -1,   -1,   -1,   51,   49,   48, },
+    {  93,   94,   92,   96,   -1,   -1,   -1,   -1,   -1,   50,   53,   52, },
+    {  90,   91,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   54,   55, },
+    {  88,   89,   -1,   81,   -1,   76,   72,   70,   65,   60,   57,   56, },
+    {  87,   82,   84,   79,   78,   74,   73,   69,   66,   62,   59,   58, },
+    {  86,   85,   83,   80,   77,   75,   71,   68,   67,   64,   63,   61, }
 #endif
 #endif
 };
@@ -201,7 +201,7 @@ swSpectraToHwSpectra(
 // spectraArrayHw incoming hw spectra with AFA_SPECTRA_INDEX_SIZE_IN_BYTES*numSpectra data
 // outSwArray allocated software memory where we write spectra to
 void
-	hwSpectraToSwSpectra(
+hwSpectraToSwSpectra(
 	uint32_t *spectraArrayHw,
 	AFASpectra_SW *outSwArray,
 	uint32_t numSpectra )
@@ -212,9 +212,9 @@ void
 	float32_t *tmpValFloatPtr;
 
 
-	for ( i=0;i<numSpectra;i++ )
+	for ( i = 0; i < numSpectra; i++ )
 	{
-		outSp = &outSwArray[i];
+		outSp = &outSwArray[ i ];
 
 		spectraAdress =  i * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
 		tmpValFloatPtr = (( float32_t * ) &spectraArrayHw[ spectraAdress + AFA_SPECTRA_INDEX_AMPLITUDE ]);
@@ -222,7 +222,7 @@ void
 		for ( j = 0; j < AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW; j++ )
 		{
 			// cast to float ptr to read float values
-			outSp->m_Amplitude[j+AFA_PROCESS_PIXEL_START] = tmpValFloatPtr[j];
+			outSp->m_Amplitude[ j + AFA_PROCESS_PIXEL_START ] = tmpValFloatPtr[ j ];
 		}
 
 		outSp->m_Index = spectraArrayHw[ spectraAdress + AFA_SPECTRA_INDEX_INDEX ];
@@ -240,7 +240,7 @@ AFAGetSpectraIndexNew(
     if ( adr >= AFAPP_sw.m_gridSizeSqr )
         return ( uint32_t ) ( -1 );
 
-    return ( uint32_t )AFAPP_sw.spectraDataInputHW[ adr * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_INDEX ];
+    return ( uint32_t )AFAPP_sw.spectraDataWorkingSetHW[ adr * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_INDEX ];
 }
 
 
@@ -372,12 +372,12 @@ int main(int argc, char* argv[])
             param[ AFA_PARAM_INDICES_RNG_MTI            ] = m_mti;
             param[ AFA_PARAM_INDICES_PIXEL_START        ] = 0;
             param[ AFA_PARAM_INDICES_PIXEL_END          ] = 0;
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW       ] = ( uint32_t )((             spectraDataInput_OffsetToBaseAddress        )       );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH      ] = ( uint32_t )((( uint64_t ) spectraDataInput_OffsetToBaseAddress        ) >> 32 );
+//            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW       ] = ( uint32_t )((             spectraDataInput_OffsetToBaseAddress        )       );
+//            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH      ] = ( uint32_t )((( uint64_t ) spectraDataInput_OffsetToBaseAddress        ) >> 32 );
             param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW    ] = ( uint32_t )((             spectraDataInputHW_OffsetToBaseAddress      )       );
             param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] = ( uint32_t )((( uint64_t ) spectraDataInputHW_OffsetToBaseAddress      ) >> 32 );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_LOW          ] = ( uint32_t )((             spectraDataWorkingSet_OffsetToBaseAddress   )       );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH         ] = ( uint32_t )((( uint64_t ) spectraDataWorkingSet_OffsetToBaseAddress   ) >> 32 );
+//            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_LOW          ] = ( uint32_t )((             spectraDataWorkingSet_OffsetToBaseAddress   )       );
+//            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH         ] = ( uint32_t )((( uint64_t ) spectraDataWorkingSet_OffsetToBaseAddress   ) >> 32 );
             param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_LOW       ] = ( uint32_t )((             spectraDataWorkingSetHW_OffsetToBaseAddress )       );
             param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_HIGH      ] = ( uint32_t )((( uint64_t ) spectraDataWorkingSetHW_OffsetToBaseAddress ) >> 32 );
             param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW  ] = ( uint32_t )((             pSpectraIndexList_OffsetToBaseAddress       )       );
