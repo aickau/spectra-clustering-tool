@@ -11,17 +11,19 @@
 #define AFA_SPECTRA_NUM_SAMPLES_SDSS			(  3900	)			// number of samples in SDSS spectra
 #define waveLenStartSDSS		                (  3800 )								// wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
 #define waveLenEndSDSS			                (  9200 )									
-#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS    ( AFA_SPECTRA_NUM_SAMPLES_SDSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_SW ( AFA_SPECTRA_NUM_SAMPLES_SDSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_HW ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_SW )	// number of samples in reduced spectra
 
 #define AFA_SPECTRA_NUM_SAMPLES_BOSS			(  4700 )				// number of samples in BOSS spectra
 #define waveLenStartBOSS		                (  3650 )								// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
 #define waveLenEndBOSS			                ( 10400 )						
-#define AFA_BOSS_WAVELEN_PER_PIXEL              (( float32_t )AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR * ( float32_t )( waveLenEndBOSS - waveLenStartBOSS ) / ( float32_t )AFA_SPECTRA_NUM_SAMPLES_BOSS )
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS_SW ( AFA_SPECTRA_NUM_SAMPLES_BOSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra#define AFA_BOSS_WAVELEN_PER_PIXEL              (( float32_t )AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR * ( float32_t )( waveLenEndBOSS - waveLenStartBOSS ) / ( float32_t )AFA_SPECTRA_NUM_SAMPLES_BOSS )
 #define AFA_BOSS_SPECTRA_START                  (( uint32_t )(( float32_t )( waveLenStartSDSS - waveLenStartBOSS ) / wavelenPerPixel ))
-#define AFA_BOSS_SPECTRA_END                    (( uint32_t )( (float32_t ) (waveLenEndSDSS   - waveLenStartSDSS ) / wavelenPerPixel ))
-#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS    ( AFA_BOSS_SPECTRA_END - AFA_BOSS_SPECTRA_START + 1 )
+#define AFA_BOSS_SPECTRA_END                    (( uint32_t )(( float32_t )( waveLenEndSDSS   - waveLenStartSDSS ) / wavelenPerPixel ))
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS_HW ( AFA_BOSS_SPECTRA_END - AFA_BOSS_SPECTRA_START + 1 )
 
-#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW      ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS )
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW      ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_SW )
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW      ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_HW )
 
 
 //
@@ -52,7 +54,7 @@ enum
 
 typedef struct AFASpectra_
 {
-    float32_t m_Amplitude[ AFA_SPECTRA_NUM_SAMPLES ];		// amplitude in 10^(-17) erg/cm/s^2/Ang
+    float32_t m_Amplitude[ AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW ];		// amplitude in 10^(-17) erg/cm/s^2/Ang
     float32_t m_Min;
     float32_t m_Max;
     sint32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
