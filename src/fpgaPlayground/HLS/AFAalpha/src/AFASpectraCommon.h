@@ -3,20 +3,20 @@
 
 #include "AFATypes.h"
 
-#define SPT_DEFAULTFILTER (0x0ffffffff)
+#define SPT_DEFAULTFILTER                       ( 0x0ffffffff )
 
-#define AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR	( 8 )			// reduce number of pixel by a factor of 8 (use only values of 2^n)
+#define AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR    ( 8 )             // reduce number of pixel by a factor of 8 (use only values of 2^n)
 
-#define AFA_SPECTRA_NUM_SAMPLES_SDSS			(  3900	)		// number of samples in SDSS spectra
-#define AFA_WAVE_LEN_START_SDSS		            (  3800 )		// wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
-#define AFA_WAVE_LEN_END_SDSS			        (  9200 )
+#define AFA_SPECTRA_NUM_SAMPLES_SDSS			   (  3900 )         // number of samples in SDSS spectra
+#define AFA_WAVE_LEN_START_SDSS		            (  3800 )		   // wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
+#define AFA_WAVE_LEN_END_SDSS			            (  9200 )
 #define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_SW ( AFA_SPECTRA_NUM_SAMPLES_SDSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra for our processing
 #define AFA_SDSS_SPECTRA_START                  (     0 )
 #define AFA_SDSS_SPECTRA_END                    ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_SW - 1 )
 
-#define AFA_SPECTRA_NUM_SAMPLES_BOSS			(  4700 )			// number of samples in BOSS spectra
+#define AFA_SPECTRA_NUM_SAMPLES_BOSS			   (  4700 )			// number of samples in BOSS spectra
 #define AFA_WAVE_LEN_START_BOSS		            (  3650 )			// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
-#define AFA_WAVE_LEN_END_BOSS			        ( 10400 )						
+#define AFA_WAVE_LEN_END_BOSS			            ( 10400 )						
 #define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS_SW ( AFA_SPECTRA_NUM_SAMPLES_BOSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra
 #define AFA_BOSS_WAVELEN_PER_PIXEL              (( float32_t )AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR * ( float32_t )( AFA_WAVE_LEN_END_BOSS - AFA_WAVE_LEN_START_BOSS ) / ( float32_t )AFA_SPECTRA_NUM_SAMPLES_BOSS )
 #define AFA_BOSS_SPECTRA_START                  (( uint32_t )(( float32_t )( AFA_WAVE_LEN_START_SDSS - AFA_WAVE_LEN_START_BOSS ) / AFA_BOSS_WAVELEN_PER_PIXEL ))

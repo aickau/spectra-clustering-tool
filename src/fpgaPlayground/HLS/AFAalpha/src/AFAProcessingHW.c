@@ -1,9 +1,9 @@
 #include "AFATypes.h"
 #include "AFADefines.h"
 
-#include "AFASpectraHW.h"
 #include "AFANetworkSettingsHW.h"
 #include "AFAProcessingHW.h"
+#include "AFASpectraCommon.h"
 
 #include <float.h>
 #include <math.h>

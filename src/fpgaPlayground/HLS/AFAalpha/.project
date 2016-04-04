@@ -67,26 +67,6 @@
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFAProcessingHW.h</location>
 		</link>
 		<link>
-			<name>source/AFARandomHW.c</name>
-			<type>1</type>
-			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFARandomHW.c</location>
-		</link>
-		<link>
-			<name>source/AFARandomHW.h</name>
-			<type>1</type>
-			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFARandomHW.h</location>
-		</link>
-		<link>
-			<name>source/AFASpectraHW.c</name>
-			<type>1</type>
-			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFASpectraHW.c</location>
-		</link>
-		<link>
-			<name>source/AFASpectraHW.h</name>
-			<type>1</type>
-			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFASpectraHW.h</location>
-		</link>
-		<link>
 			<name>source/AFATypes.h</name>
 			<type>1</type>
 			<location>C:/Xilinx_JSC/vc709_2015.4_SimpleDesign/SimpleDesign.hls/AFAalpha/src/AFATypes.h</location>

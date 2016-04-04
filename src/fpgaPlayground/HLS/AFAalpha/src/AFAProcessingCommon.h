@@ -1,7 +1,8 @@
 #ifndef AFA_PROCESSING_COMMON_H__
 #define AFA_PROCESSING_COMMON_H__
 
-#include "AFARandom.h"
+#include "AFATypes.h"
+#include "AFASpectraCommon.h"
 
 enum
 {
@@ -44,33 +45,33 @@ typedef struct
 {
     // training data
     AFASpectra_SW	*spectraDataInput;
-    uint32_t        *spectraDataInputHW;
+    uint32_t      *spectraDataInputHW;
 
     // code book spectra
     AFASpectra_SW	*spectraDataWorkingSet;
-    uint32_t        *spectraDataWorkingSetHW;
+    uint32_t      *spectraDataWorkingSetHW;
 
     // determine processing order. must be randomized every learning step
     // contains m_gridSize * m_gridSize  elements
-    sint32_t        *m_pSpectraIndexList;
+    sint32_t      *m_pSpectraIndexList;
 
 
     AFASpectra_SW **m_localSearchSpectraVec;
-    sint32_t *m_localSearchIndexVec;
-    float32_t *m_localSearchErrorVec;
+    sint32_t      *m_localSearchIndexVec;
+    float32_t     *m_localSearchErrorVec;
 
 
     // number of source spectra
-    uint32_t        m_numSpectra;
+    uint32_t      m_numSpectra;
 
     // current learning step
-    uint32_t			    currentStep;
+    uint32_t		currentStep;
     AFAParameters	m_params;
 
     // grid size in cells of the map
-    uint32_t	    m_gridSize;
+    uint32_t	   m_gridSize;
     // squared grid size, number of neurons
-    uint32_t	    m_gridSizeSqr;
+    uint32_t	   m_gridSizeSqr;
 
     //// random
     //unsigned long m_mt[ RANDOM_N ]; // the array for the state vector 
@@ -113,12 +114,6 @@ typedef struct
     // squared grid size, number of neurons
     uint32_t	    m_gridSizeSqr;
 
-    // random
-    uint32_t m_mt[ RANDOM_N ]; // the array for the state vector
-    int m_mti;
-
-    int m_pStart;
-    int m_pEnd;
 } AFAProcessingParamHW_t;
 
 // one learning step
