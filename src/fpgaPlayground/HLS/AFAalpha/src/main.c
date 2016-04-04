@@ -192,8 +192,8 @@ swSpectraToHwSpectra(
 		}
 
 		outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_INDEX ] = sp->m_Index;
-		outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] = ( sp->m_SpecObjID & 0x0ffffffff );
-		outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = ( sp->m_SpecObjID >> 32 );
+		outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ]  = ( uint32_t )( sp->m_SpecObjID & 0x0ffffffff );
+		outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = ( uint32_t )( sp->m_SpecObjID >> 32 );
 	}
 }
 
@@ -262,9 +262,7 @@ int main(int argc, char* argv[])
     int rv = 0;
     bool_t rc;
 
-    uint64_t spectraDataInput_OffsetToBaseAddress;
     uint64_t spectraDataInputHW_OffsetToBaseAddress;
-    uint64_t spectraDataWorkingSet_OffsetToBaseAddress;
     uint64_t spectraDataWorkingSetHW_OffsetToBaseAddress;
     uint64_t pSpectraIndexList_OffsetToBaseAddress;
 
@@ -318,9 +316,7 @@ int main(int argc, char* argv[])
 
 
     // here we convert pointer differences to byte offsets (baseAddr is NULL)
-    spectraDataInput_OffsetToBaseAddress        = ( char * ) AFAPP_sw.spectraDataInput        - (( char * ) baseAddr );
     spectraDataInputHW_OffsetToBaseAddress      = ( char * ) AFAPP_sw.spectraDataInputHW      - (( char * ) baseAddr );
-    spectraDataWorkingSet_OffsetToBaseAddress   = ( char * ) AFAPP_sw.spectraDataWorkingSet   - (( char * ) baseAddr );
     spectraDataWorkingSetHW_OffsetToBaseAddress = ( char * ) AFAPP_sw.spectraDataWorkingSetHW - (( char * ) baseAddr );
     pSpectraIndexList_OffsetToBaseAddress       = ( char * ) AFAPP_sw.m_pSpectraIndexList     - (( char * ) baseAddr );
 
@@ -361,28 +357,17 @@ int main(int argc, char* argv[])
                 // slow but guarantees optimal results in every case
                 bFullSearch = TRUE;
             }
-            param[ AFA_PARAM_INDICES_FULL_SEARCH        ] = bFullSearch;
-            param[ AFA_PARAM_INDICES_SEARCH_RADIUS      ] = searchRadius;
-            param[ AFA_PARAM_INDICES_ADAPTION_THRESHOLD ] = *(( uint32_t * ) &adaptionThreshold );
-            param[ AFA_PARAM_INDICES_SIGMA_SQR          ] = *(( uint32_t * ) &sigmaSqr          );
-            param[ AFA_PARAM_INDICES_LRATE              ] = *(( uint32_t * ) &lRate             );
-            param[ AFA_PARAM_INDICES_GRID_SIZE          ] = gridSize;
-            param[ AFA_PARAM_INDICES_GRID_SIZE_SQR      ] = gridSizeSqr;
-            param[ AFA_PARAM_INDICES_NUM_SPECTRA        ] = numSpectra;
-            param[ AFA_PARAM_INDICES_RNG_MTI            ] = m_mti;
-            param[ AFA_PARAM_INDICES_PIXEL_START        ] = 0;
-            param[ AFA_PARAM_INDICES_PIXEL_END          ] = 0;
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW    ] = ( uint32_t )((             spectraDataInputHW_OffsetToBaseAddress      )       );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] = ( uint32_t )((( uint64_t ) spectraDataInputHW_OffsetToBaseAddress      ) >> 32 );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_LOW       ] = ( uint32_t )((             spectraDataWorkingSetHW_OffsetToBaseAddress )       );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_HIGH      ] = ( uint32_t )((( uint64_t ) spectraDataWorkingSetHW_OffsetToBaseAddress ) >> 32 );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW  ] = ( uint32_t )((             pSpectraIndexList_OffsetToBaseAddress       )       );
-            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] = ( uint32_t )((( uint64_t ) pSpectraIndexList_OffsetToBaseAddress       ) >> 32 );
+
+            // ==================================================
+            //
+            // prepare HW data structures (swizzle indices, etc.)
+            //
+            // ==================================================
 
             // store all indices in a list
             for ( i = 0; i < numSpectra; i++ )
             {
-                baseAddr[ pSpectraIndexList_OffsetToBaseAddress / 4 + i ] = i;
+                AFAPP_sw.m_pSpectraIndexList[ i ] = i;
             }
 
             // shake well
@@ -392,19 +377,50 @@ int main(int argc, char* argv[])
                 uint32_t ind1 = AFARandomIntRange( numSpectra - 1 );
 
                 // switch indices
-                sint32_t tmp = baseAddr[ pSpectraIndexList_OffsetToBaseAddress / 4 + ind0 ];
-                baseAddr[ pSpectraIndexList_OffsetToBaseAddress / 4 + ind0 ] = baseAddr[ pSpectraIndexList_OffsetToBaseAddress / 4 + ind1 ];
-                baseAddr[ pSpectraIndexList_OffsetToBaseAddress / 4 + ind1 ] = tmp;
+                sint32_t tmp = AFAPP_sw.m_pSpectraIndexList[ ind0 ];
+                AFAPP_sw.m_pSpectraIndexList[ ind0 ] = AFAPP_sw.m_pSpectraIndexList[ ind1 ];
+                AFAPP_sw.m_pSpectraIndexList[ ind1 ] = tmp;
             }
 
             // clear names
             for ( i = 0; i < gridSizeSqr * AFA_SPECTRA_INDEX_SIZE_IN_UINT32; i += AFA_SPECTRA_INDEX_SIZE_IN_UINT32 )
             {
-                baseAddr[ spectraDataWorkingSetHW_OffsetToBaseAddress / 4 + i + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW  ] = 0;
-                baseAddr[ spectraDataWorkingSetHW_OffsetToBaseAddress / 4 + i + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = 0;
-                baseAddr[ spectraDataWorkingSetHW_OffsetToBaseAddress / 4 + i + AFA_SPECTRA_INDEX_INDEX            ] = ( uint32_t ) ( -1 );
+                AFAPP_sw.spectraDataWorkingSetHW[ i + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW  ] = 0;
+                AFAPP_sw.spectraDataWorkingSetHW[ i + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = 0;
+                AFAPP_sw.spectraDataWorkingSetHW[ i + AFA_SPECTRA_INDEX_INDEX            ] = ( uint32_t ) ( -1 );
             }
-            printf( "." );fflush(stdout);
+
+            // ==================================================
+            //
+            // prepare parameter block
+            //
+            // ==================================================
+
+            param[ AFA_PARAM_INDICES_FULL_SEARCH                       ] = bFullSearch;
+            param[ AFA_PARAM_INDICES_SEARCH_RADIUS                     ] = searchRadius;
+            param[ AFA_PARAM_INDICES_ADAPTION_THRESHOLD                ] = *(( uint32_t * ) &adaptionThreshold );
+            param[ AFA_PARAM_INDICES_SIGMA_SQR                         ] = *(( uint32_t * ) &sigmaSqr          );
+            param[ AFA_PARAM_INDICES_LRATE                             ] = *(( uint32_t * ) &lRate             );
+            param[ AFA_PARAM_INDICES_GRID_SIZE                         ] = gridSize;
+            param[ AFA_PARAM_INDICES_GRID_SIZE_SQR                     ] = gridSizeSqr;
+            param[ AFA_PARAM_INDICES_NUM_SPECTRA                       ] = numSpectra;
+            param[ AFA_PARAM_INDICES_RNG_MTI                           ] = m_mti;
+            param[ AFA_PARAM_INDICES_PIXEL_START                       ] = 0;
+            param[ AFA_PARAM_INDICES_PIXEL_END                         ] = 0;
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW    ] = ( uint32_t )((             spectraDataInputHW_OffsetToBaseAddress      )       );
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] = ( uint32_t )((( uint64_t ) spectraDataInputHW_OffsetToBaseAddress      ) >> 32 );
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_LOW       ] = ( uint32_t )((             spectraDataWorkingSetHW_OffsetToBaseAddress )       );
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_HIGH      ] = ( uint32_t )((( uint64_t ) spectraDataWorkingSetHW_OffsetToBaseAddress ) >> 32 );
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW  ] = ( uint32_t )((             pSpectraIndexList_OffsetToBaseAddress       )       );
+            param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] = ( uint32_t )((( uint64_t ) pSpectraIndexList_OffsetToBaseAddress       ) >> 32 );
+
+            // ==================================================
+            //
+            // call HW calculation
+            //
+            // ==================================================
+
+            printf( "." );fflush(stdout);    // print out a dot
             rc = AFAProcess_HW(
                 param,								// whole block ram used
                 baseAddr
@@ -415,7 +431,7 @@ int main(int argc, char* argv[])
                 rv = 0;
 
  
-                printf("\n");
+                printf("\n"); 
                 for ( yp=0;yp<gridSize;yp++ )
                 {
                     printf("\t{");
