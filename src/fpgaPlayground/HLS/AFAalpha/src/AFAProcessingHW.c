@@ -189,9 +189,7 @@ AFAProcess_HW(
     uint32_t m_gridSize = param[ AFA_PARAM_INDICES_GRID_SIZE ];
     uint32_t m_gridSizeSqr = param[ AFA_PARAM_INDICES_GRID_SIZE_SQR ];
     uint32_t m_numSpectra = param[ AFA_PARAM_INDICES_NUM_SPECTRA ];
-    //uint64_t g_spectraDataInputIndexToMem;  // in future obsolete
     uint64_t g_spectraDataInputHWIndexToMem;
-//    uint64_t spectraDataWorkingSetIndexToMem;
     uint64_t spectraDataWorkingSetHWIndexToMem;
     uint64_t pSpectraIndexListIndexToMem;
 #ifdef LOCAL_SEARCH_ENABLED
@@ -203,16 +201,12 @@ AFAProcess_HW(
 #endif
 
     // get offsets to different memory locations as 2 32-bit words combining them to 64bit offsets
-//    g_spectraDataInputIndexToMem    = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_ADDR_HIGH      ] << 32 ));
     g_spectraDataInputHWIndexToMem    = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW   ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] << 32 ));
-//    spectraDataWorkingSetIndexToMem   = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_LOW         ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH         ] << 32 ));
-    spectraDataWorkingSetHWIndexToMem = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_ADDR_HIGH         ] << 32 ));
+    spectraDataWorkingSetHWIndexToMem = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_HIGH      ] << 32 ));
     pSpectraIndexListIndexToMem       = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] << 32 ));
 
     // these offsets are used as array indices into an uint32_t array. So divide them up by the byte width
-//    g_spectraDataInputIndexToMem    /= sizeof( uint32_t );
     g_spectraDataInputHWIndexToMem    /= sizeof( uint32_t );
-//    spectraDataWorkingSetIndexToMem   /= sizeof( uint32_t );
     spectraDataWorkingSetHWIndexToMem /= sizeof( uint32_t );
     pSpectraIndexListIndexToMem       /= sizeof( uint32_t );
 
