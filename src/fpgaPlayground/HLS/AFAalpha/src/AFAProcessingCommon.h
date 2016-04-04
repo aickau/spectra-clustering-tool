@@ -126,7 +126,6 @@ typedef struct
 bool_t
 AFAProcess_HW(
     uint32_t param[ 256 ],				// whole block ram used
-    uint32_t mt[ RANDOM_N ],			// whole block ram used
     volatile uint32_t *baseAddr
     );
 

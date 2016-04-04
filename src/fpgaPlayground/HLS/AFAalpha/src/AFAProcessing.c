@@ -49,9 +49,10 @@ void calcFluxAndNormalizeInputDS()
 #if 1
 // calculates min and max over all spectra records
 void calcMinMaxSp(
-    AFASpectra_SW *_vfs,
-    float *outMin,
-    float *outMax )
+    AFASpectra_SW *spectraDataInput,
+    uint32_t numSpectra,
+    float32_t *outMin,
+    float32_t *outMax )
 {
     AFASpectra_SW *a;
     uint32_t i;
@@ -59,9 +60,9 @@ void calcMinMaxSp(
     *outMax = -FLT_MAX;
 
     // calc min/max
-    for ( i = 0; i < AFAPP_sw.m_numSpectra; i++ )
+    for ( i = 0; i < numSpectra; i++ )
     {
-        a = &AFAPP_sw.spectraDataInput[ i ];
+        a = &spectraDataInput[ i ];
 
         if ( *outMin > a->m_Min )
         {
@@ -329,7 +330,11 @@ AFAInitProcessingNew(
 	}
 
     // calculates the min and max of the complete INPUT spectra grid and give back values
-    calcMinMaxSp( AFAPP_sw.spectraDataInput, &m_Min, &m_Max );
+    calcMinMaxSp(
+        AFAPP_sw.spectraDataInput,
+        AFAPP_sw.m_numSpectra,
+        &m_Min,
+        &m_Max );
 
     if ( !continueProcessing )
     {
