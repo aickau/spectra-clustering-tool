@@ -1,8 +1,16 @@
 open_project AFAHls2015.4
 
-set all_solution [list AFAProcessing_64Bit_250MHz-1 AFAProcessing_64Bit_250MHz-2 AFAProcessing_64Bit_333MHz-1 AFAProcessing_64Bit_333MHz-2 AFAProcessing_64Bit_400MHz-1 AFAProcessing_64Bit_400MHz-2]
-set all_part     [list xc7vx690tffg1761-1           xc7vx690tffg1761-2           xc7vx690tffg1761-1           xc7vx690tffg1761-2           xc7vx690tffg1761-1           xc7vx690tffg1761-2          ]
-set all_clocks   [list 4ns                          4ns                          3.333ns                      3.333ns                      2.5ns                        2.5ns                       ]
+set all_solution [list AFAProcessing_64Bit_250MHz-2 ]
+set all_part     [list xc7vx690tffg1761-2           ]
+set all_clocks   [list 4ns                          ]
+
+#set all_solution [list AFAProcessing_64Bit_250MHz-2 AFAProcessing_64Bit_400MHz-2 ]
+#set all_part     [list xc7vx690tffg1761-2           xc7vx690tffg1761-2           ]
+#set all_clocks   [list 4ns                          2.5ns                        ]
+
+#set all_solution [list AFAProcessing_64Bit_250MHz-1 AFAProcessing_64Bit_250MHz-2 AFAProcessing_64Bit_333MHz-1 AFAProcessing_64Bit_333MHz-2 AFAProcessing_64Bit_400MHz-1 AFAProcessing_64Bit_400MHz-2]
+#set all_part     [list xc7vx690tffg1761-1           xc7vx690tffg1761-2           xc7vx690tffg1761-1           xc7vx690tffg1761-2           xc7vx690tffg1761-1           xc7vx690tffg1761-2          ]
+#set all_clocks   [list 4ns                          4ns                          3.333ns                      3.333ns                      2.5ns                        2.5ns                       ]
 
 # Hardware entry function
 set_top AFAProcess_HW
@@ -39,10 +47,14 @@ foreach solution $all_solution part $all_part clock $all_clocks {
 
 	config_interface -m_axi_addr64 -m_axi_offset off -register_io off
 
-	csim_design -clean
+#	csim_design -clean
 	csynth_design
 #    cosim_design -rtl vhdl
 #    export_design -format ip_catalog
+
+#	report_timing_summary -return_string
+#	report_utilization -file ReportJSC.txt -hierarchical -slr -pblocks -name JeskoTest
+	export_design -format ip_catalog -evaluate vhdl -description $solution-$part-$clock -library Jesko -vendor SystemberatungSchwarzer -version 1.0
 }
 
 exit

@@ -163,6 +163,16 @@ AFAProcess_HW(
     uint32_t i;
 
     sint32_t spectraIndex = 0;
+#ifdef LOCAL_SEARCH_ENABLED
+    const sint32_t AFAConstantM1 = -1;
+    const float32_t AFAConstantM1F = -1.0f;
+    const uint32_t AFAConstant0  = 0;
+#endif
+
+    // define the offsets to access external memory through arrays
+    uint64_t spectraDataInputHWIndexToMem;
+    uint64_t spectraDataWorkingSetHWIndexToMem;
+    uint64_t spectraIndexListIndexToMem;
 
     // get data from param block
     // =========================
@@ -176,16 +186,11 @@ AFAProcess_HW(
     uint32_t m_gridSize = param[ AFA_PARAM_INDICES_GRID_SIZE ];
     uint32_t m_gridSizeSqr = param[ AFA_PARAM_INDICES_GRID_SIZE_SQR ];
     uint32_t m_numSpectra = param[ AFA_PARAM_INDICES_NUM_SPECTRA ];
-    uint64_t spectraDataInputHWIndexToMem;
-    uint64_t spectraDataWorkingSetHWIndexToMem;
-    uint64_t spectraIndexListIndexToMem;
 #ifdef LOCAL_SEARCH_ENABLED
     const uint32_t spectraCacheSize = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, ( AFAMIN( m_gridSizeSqr, AFA_COMPARE_BATCH_HW )));
-    const sint32_t AFAConstantM1 = -1;
     const uint32_t searchRadius = param[ AFA_PARAM_INDICES_SEARCH_RADIUS ];
-    const float32_t AFAConstantM1F = -1.0f;
-    const uint32_t AFAConstant0  = 0;
 #endif
+
 
     // get offsets to different memory locations as 2 32-bit words combining them to 64bit offsets
     spectraDataInputHWIndexToMem      = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW   ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] << 32 ));
