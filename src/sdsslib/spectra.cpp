@@ -1480,7 +1480,7 @@ void Spectra::normalizeByFlux()
 	if ( m_flux <= 0.0f )
 		return;
 
-	for (int i=0;i<Spectra::numSamples;i++)
+	for (size_t i=pixelStart;i<pixelEnd;i++)
 	{	
 		m_Amplitude[i] /= (m_flux*0.001f);
 	}
