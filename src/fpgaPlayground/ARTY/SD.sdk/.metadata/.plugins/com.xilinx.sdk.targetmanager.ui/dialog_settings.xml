@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item value="Local" key="JSC_0_HW-target"/>
+	<item value="JSC_0_HW" key="programfpga.hwplatform"/>
+	<item value="SBD_wrapper.bit" key="JSC_0_HW-bitFile"/>
+	<item value="Auto Detect" key="JSC_0_HW-device"/>
+	<item value="false" key="JSC_0_HW-partial_bit"/>
+	<item value="bootloop" key="JSC_0_HW-microblaze_0-initElf"/>
+	<item value="SBD_wrapper.mmi" key="JSC_0_HW-bmmFile"/>
+</section>

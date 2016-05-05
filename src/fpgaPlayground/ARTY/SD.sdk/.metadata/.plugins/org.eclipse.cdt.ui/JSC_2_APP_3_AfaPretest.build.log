@@ -1,0 +1,78 @@
+12:32:25 **** Auto Build of configuration Debug for project JSC_2_APP_3_AfaPretest ****
+make all 
+'Building file: ../src/afa_main.c'
+'Invoking: MicroBlaze gcc compiler'
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/afa_main.o" -I../../JSC_1_BSP/microblaze_0/include -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/afa_main.d" -MT"src/afa_main.d" -o "src/afa_main.o" "../src/afa_main.c"
+'Finished building: ../src/afa_main.c'
+' '
+'Building file: ../src/interrupts.c'
+'Invoking: MicroBlaze gcc compiler'
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/interrupts.o" -I../../JSC_1_BSP/microblaze_0/include -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/interrupts.d" -MT"src/interrupts.d" -o "src/interrupts.o" "../src/interrupts.c"
+'Finished building: ../src/interrupts.c'
+' '
+'Building file: ../src/main.c'
+'Invoking: MicroBlaze gcc compiler'
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/main.o" -I../../JSC_1_BSP/microblaze_0/include -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/main.d" -MT"src/main.d" -o "src/main.o" "../src/main.c"
+../src/main.c: In function 'main':
+../src/main.c:40:5: warning: implicit declaration of function 'AfaTestApp' [-Wimplicit-function-declaration]
+     AfaTestApp();
+     ^
+../src/main.c:30:20: warning: unused variable 'axi_timer_0_Timer' [-Wunused-variable]
+     static XTmrCtr axi_timer_0_Timer;
+                    ^
+../src/main.c:29:22: warning: unused variable 'axi_ethernetlite_0_EmacLite' [-Wunused-variable]
+     static XEmacLite axi_ethernetlite_0_EmacLite;
+                      ^
+../src/main.c:28:18: warning: unused variable 'intc' [-Wunused-variable]
+     static XIntc intc;
+                  ^
+'Finished building: ../src/main.c'
+' '
+'Building file: ../src/xemaclite_example_util.c'
+'Invoking: MicroBlaze gcc compiler'
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/xemaclite_example_util.o" -I../../JSC_1_BSP/microblaze_0/include -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/xemaclite_example_util.d" -MT"src/xemaclite_example_util.d" -o "src/xemaclite_example_util.o" "../src/xemaclite_example_util.c"
+'Finished building: ../src/xemaclite_example_util.c'
+' '
+'Building file: ../src/xemaclite_intr_example.c'
+'Invoking: MicroBlaze gcc compiler'
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/xemaclite_intr_example.o" -I../../JSC_1_BSP/microblaze_0/include -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/xemaclite_intr_example.d" -MT"src/xemaclite_intr_example.d" -o "src/xemaclite_intr_example.o" "../src/xemaclite_intr_example.c"
+../src/xemaclite_intr_example.c: In function 'EmacLiteSendHandler':
+../src/xemaclite_intr_example.c:539:13: warning: variable 'XEmacInstancePtr' set but not used [-Wunused-but-set-variable]
+  XEmacLite *XEmacInstancePtr;
+             ^
+'Finished building: ../src/xemaclite_intr_example.c'
+' '
+'Building file: ../src/xemaclite_polled_example.c'
+'Invoking: MicroBlaze gcc compiler'
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/xemaclite_polled_example.o" -I../../JSC_1_BSP/microblaze_0/include -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/xemaclite_polled_example.d" -MT"src/xemaclite_polled_example.d" -o "src/xemaclite_polled_example.o" "../src/xemaclite_polled_example.c"
+'Finished building: ../src/xemaclite_polled_example.c'
+' '
+'Building file: ../src/xintc_tapp_example.c'
+'Invoking: MicroBlaze gcc compiler'
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/xintc_tapp_example.o" -I../../JSC_1_BSP/microblaze_0/include -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/xintc_tapp_example.d" -MT"src/xintc_tapp_example.d" -o "src/xintc_tapp_example.o" "../src/xintc_tapp_example.c"
+'Finished building: ../src/xintc_tapp_example.c'
+' '
+'Building file: ../src/xtmrctr_intr_example.c'
+'Invoking: MicroBlaze gcc compiler'
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/xtmrctr_intr_example.o" -I../../JSC_1_BSP/microblaze_0/include -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/xtmrctr_intr_example.d" -MT"src/xtmrctr_intr_example.d" -o "src/xtmrctr_intr_example.o" "../src/xtmrctr_intr_example.c"
+'Finished building: ../src/xtmrctr_intr_example.c'
+' '
+'Building file: ../src/xtmrctr_selftest_example.c'
+'Invoking: MicroBlaze gcc compiler'
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/xtmrctr_selftest_example.o" -I../../JSC_1_BSP/microblaze_0/include -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/xtmrctr_selftest_example.d" -MT"src/xtmrctr_selftest_example.d" -o "src/xtmrctr_selftest_example.o" "../src/xtmrctr_selftest_example.c"
+'Finished building: ../src/xtmrctr_selftest_example.c'
+' '
+'Building target: JSC_2_APP_3_AfaPretest.elf'
+'Invoking: MicroBlaze gcc linker'
+mb-gcc -Wl,-T -Wl,../src/lscript.ld -L../../JSC_1_BSP/microblaze_0/lib -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -o "JSC_2_APP_3_AfaPretest.elf"  ./src/afa_main.o ./src/interrupts.o ./src/main.o ./src/xemaclite_example_util.o ./src/xemaclite_intr_example.o ./src/xemaclite_polled_example.o ./src/xintc_tapp_example.o ./src/xtmrctr_intr_example.o ./src/xtmrctr_selftest_example.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group -Wl,--start-group,-lxil,-llwip4,-lgcc,-lc,--end-group
+'Finished building target: JSC_2_APP_3_AfaPretest.elf'
+' '
+'Invoking: MicroBlaze Print Size'
+mb-size JSC_2_APP_3_AfaPretest.elf  |tee "JSC_2_APP_3_AfaPretest.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+  34565	    424	   6552	  41541	   a245	JSC_2_APP_3_AfaPretest.elf
+'Finished building: JSC_2_APP_3_AfaPretest.elf.size'
+' '
+
+12:32:26 Build Finished (took 1s.625ms)
+

@@ -1,0 +1,14 @@
+#-----------------------------------------------------------
+# Vivado v2015.4 (64-bit)
+# SW Build 1412921 on Wed Nov 18 09:43:45 MST 2015
+# IP Build 1412160 on Tue Nov 17 13:47:24 MST 2015
+# Start of session at: Thu May 05 12:45:00 2016
+# Process ID: 4000
+# Current directory: F:/ARTY
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent10664 F:\ARTY\SD.xpr
+# Log file: F:/ARTY/vivado.log
+# Journal file: F:/ARTY\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project F:/ARTY/SD.xpr
+reset_run synth_1

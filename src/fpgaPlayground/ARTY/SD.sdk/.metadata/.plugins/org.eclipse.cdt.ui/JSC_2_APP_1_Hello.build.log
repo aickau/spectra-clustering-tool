@@ -1,0 +1,21 @@
+12:32:23 **** Auto Build of configuration Debug for project JSC_2_APP_1_Hello ****
+make all 
+'Building file: ../src/platform.c'
+'Invoking: MicroBlaze gcc compiler'
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/platform.o" -I../../JSC_1_BSP/microblaze_0/include -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/platform.d" -MT"src/platform.d" -o "src/platform.o" "../src/platform.c"
+'Finished building: ../src/platform.c'
+' '
+'Building target: JSC_2_APP_1_Hello.elf'
+'Invoking: MicroBlaze gcc linker'
+mb-gcc -Wl,-T -Wl,../src/lscript.ld -L../../JSC_1_BSP/microblaze_0/lib -mlittle-endian -mcpu=v9.5 -mxl-soft-mul -Wl,--no-relax -o "JSC_2_APP_1_Hello.elf"  ./src/helloworld.o ./src/platform.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group -Wl,--start-group,-lxil,-llwip4,-lgcc,-lc,--end-group
+'Finished building target: JSC_2_APP_1_Hello.elf'
+' '
+'Invoking: MicroBlaze Print Size'
+mb-size JSC_2_APP_1_Hello.elf  |tee "JSC_2_APP_1_Hello.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+   8408	    344	   3248	  12000	   2ee0	JSC_2_APP_1_Hello.elf
+'Finished building: JSC_2_APP_1_Hello.elf.size'
+' '
+
+12:32:23 Build Finished (took 372ms)
+

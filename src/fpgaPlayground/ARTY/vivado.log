@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2015.4 (64-bit)
+# SW Build 1412921 on Wed Nov 18 09:43:45 MST 2015
+# IP Build 1412160 on Tue Nov 17 13:47:24 MST 2015
+# Start of session at: Thu May 05 12:45:00 2016
+# Process ID: 4000
+# Current directory: F:/ARTY
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent10664 F:\ARTY\SD.xpr
+# Log file: F:/ARTY/vivado.log
+# Journal file: F:/ARTY\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project F:/ARTY/SD.xpr
+INFO: [Project 1-313] Project file moved from 'D:/Arty/SD' since last save.
+Scanning sources...
+Finished scanning sources
+INFO: [filemgmt 56-1] IP Repository Path: Directory not found as 'F:/../HWRepo/AFAProcess/ARTY'; using path 'D:/HWRepo/AFAProcess/ARTY' instead.
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'd:/HWRepo/AFAProcess/ARTY'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'C:/Xilinx/Vivado/2015.4/data/ip'.
+open_project: Time (s): cpu = 00:00:29 ; elapsed = 00:00:16 . Memory (MB): peak = 1034.574 ; gain = 334.703
+reset_run synth_1
+exit
+INFO: [Common 17-206] Exiting Vivado at Thu May 05 12:47:34 2016...
