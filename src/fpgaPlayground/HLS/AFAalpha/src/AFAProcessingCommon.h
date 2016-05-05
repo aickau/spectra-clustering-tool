@@ -27,15 +27,16 @@ enum
     AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_LOW,
     AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_HIGH,
     AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW,
-    AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH
+    AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH,
+    AFA_PARAM_INDICES_LED1_OUTPUT
 };
 
-typedef struct  
+typedef struct
 {
     char        name[ AFA_WORKING_DATA_NAME_LENGTH ];   // name of data
     uint64_t    size;                                   // really needed size
     uint64_t    sizeAllocated;                          // size which can be larger because of alignment
-    uint64_t    offsetToBaseAddress;                    // offset to base address of memory block     
+    uint64_t    offsetToBaseAddress;                    // offset to base address of memory block
     void        *address;                               // absolute physical address in memory
 } AFAProcessingWorkData_t;
 
@@ -44,11 +45,11 @@ typedef struct
 typedef struct
 {
     // training data
-    AFASpectra_SW	*spectraDataInput;
+    AFASpectra_SW   *spectraDataInput;
     uint32_t      *spectraDataInputHW;
 
     // code book spectra
-    AFASpectra_SW	*spectraDataWorkingSet;
+    AFASpectra_SW   *spectraDataWorkingSet;
     uint32_t      *spectraDataWorkingSetHW;
 
     // determine processing order. must be randomized every learning step
@@ -65,23 +66,23 @@ typedef struct
     uint32_t      m_numSpectra;
 
     // current learning step
-    uint32_t		currentStep;
-    AFAParameters	m_params;
+    uint32_t        currentStep;
+    AFAParameters   m_params;
 
     // grid size in cells of the map
-    uint32_t	   m_gridSize;
+    uint32_t       m_gridSize;
     // squared grid size, number of neurons
-    uint32_t	   m_gridSizeSqr;
+    uint32_t       m_gridSizeSqr;
 
     //// random
-    //unsigned long m_mt[ RANDOM_N ]; // the array for the state vector 
+    //unsigned long m_mt[ RANDOM_N ]; // the array for the state vector
     //int m_mti;
 
     //int m_pStart;
     //int m_pEnd;
 
     // memory needs
-    AFAProcessingWorkData_t workData[ 6 ];
+    AFAProcessingWorkData_t workData[ 10 ];
     uint64_t memoryBlockSizeAllocated;
     void *memoryBlockBaseAddressAllocated;
     uint64_t memoryBlockSizeNeeded;
@@ -91,10 +92,10 @@ typedef struct
 typedef struct
 {
     // code book spectra
-//    volatile AFASpectra	*spectraDataWorkingSet;
+//    volatile AFASpectra   *spectraDataWorkingSet;
 
     // training data
-    //volatile AFASpectra	*g_spectraDataInput;
+    //volatile AFASpectra   *g_spectraDataInput;
 
     //volatile AFASpectra **m_localSearchSpectraVec;
     //volatile int *m_localSearchIndexVec;
@@ -107,20 +108,26 @@ typedef struct
     // number of source spectra
     uint32_t        m_numSpectra;
 
-    AFAParameters	m_params;
+    AFAParameters   m_params;
 
     // grid size in cells of the map
-    uint32_t	    m_gridSize;
+    uint32_t        m_gridSize;
     // squared grid size, number of neurons
-    uint32_t	    m_gridSizeSqr;
+    uint32_t        m_gridSizeSqr;
 
 } AFAProcessingParamHW_t;
 
 // one learning step
 // returns true if learning is finished and maximum number of learning steps are reached.
 bool_t
+AFAProcess_HWWrapper(
+    uint32_t param[ 256 ],              // whole block ram used
+    volatile uint32_t *baseAddr
+    );
+
+uint32_t
 AFAProcess_HW(
-    uint32_t param[ 256 ],				// whole block ram used
+    uint32_t param[ 256 ],              // whole block ram used
     volatile uint32_t *baseAddr
     );
 

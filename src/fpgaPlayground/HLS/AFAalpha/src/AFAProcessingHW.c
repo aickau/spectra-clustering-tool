@@ -9,6 +9,7 @@
 #include <math.h>
 #include <string.h>
 
+#if 1
 void
 searchBestMatchComplete_HW(
     volatile uint32_t *baseAddr, 		// default starting address in memory
@@ -80,7 +81,9 @@ searchBestMatchComplete_HW(
 
     *outbm = bestMatch;
 }
+#endif
 
+#if 1
 void
 adaptNetwork_HW_integrated(
     volatile uint32_t *baseAddr, 		// default starting address in memory
@@ -146,8 +149,9 @@ adaptNetwork_HW_integrated(
         }
     }
 }
+#endif
 
-bool_t
+uint32_t
 AFAProcess_HW(
     uint32_t param[ 256 ],              // whole block ram used
     volatile uint32_t *baseAddr 		// default starting address in memory
@@ -168,6 +172,7 @@ AFAProcess_HW(
     const float32_t AFAConstantM1F = -1.0f;
     const uint32_t AFAConstant0  = 0;
 #endif
+	uint64_t bmuSpectrumIndex;
 
     // define the offsets to access external memory through arrays
     uint64_t spectraDataInputHWIndexToMem;
@@ -191,7 +196,6 @@ AFAProcess_HW(
     const uint32_t searchRadius = param[ AFA_PARAM_INDICES_SEARCH_RADIUS ];
 #endif
 
-
     // get offsets to different memory locations as 2 32-bit words combining them to 64bit offsets
     spectraDataInputHWIndexToMem      = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW   ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] << 32 ));
     spectraDataWorkingSetHWIndexToMem = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_HIGH      ] << 32 ));
@@ -205,12 +209,14 @@ AFAProcess_HW(
     // for each training spectra..
     for ( i = 0; i < m_numSpectra; i++ )
     {
+		param[ AFA_PARAM_INDICES_LED1_OUTPUT ] = i;
+		
         // initialize best match batch
         bmu.error = FLT_MAX;
         bmu.index = 0;
 
         spectraIndex = baseAddr[ spectraIndexListIndexToMem + i ];
-
+#if 1
         // retrieve best match neuron for a source spectra
         if ( bFullSearch )
         {
@@ -228,6 +234,8 @@ AFAProcess_HW(
             searchBestMatchLocal_HW( currentSourceSpectrum, searchRadius, &bmu );
 #endif
         }
+#endif
+
         // mark best match neuron
 
         // set BMU in the map and source spectrum
@@ -236,15 +244,14 @@ AFAProcess_HW(
         // _bestMatchSpectrum source/input spectrum
         // _bestMatchIndex index to input spectrum [0..numspectra-1]
         // set best matching related info.
-        {
-            uint64_t bmuSpectrumIndex = spectraDataWorkingSetHWIndexToMem + bmu.index * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
-            baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] = baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ];
-            baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ];
-            baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_INDEX ] = spectraIndex;
 
-            // remember best match position to NW for faster search
-            baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_INDEX ] = bmu.index;
-        }
+		bmuSpectrumIndex = spectraDataWorkingSetHWIndexToMem + bmu.index * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
+		baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] = baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ];
+		baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ];
+		baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_INDEX ] = spectraIndex;
+
+		// remember best match position to NW for faster search
+		baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_INDEX ] = bmu.index;
 
         // adapt neighborhood
         // hint: this takes long.
@@ -261,5 +268,18 @@ AFAProcess_HW(
     }
 
     // clustering not yet finished, need another learning step
-    return FALSE;
+	return 0xd00fe5e1;
+
+#if 0
+	uint32_t a;
+	uint32_t ii;
+
+	a = param[ 0 ] / sizeof( uint32_t );
+	for ( ii = 0; ii < 256; ii++ )
+	{
+		param[ ii ] = baseAddr[ a++ ];
+	}
+
+	return 0x12345678;
+#endif
 }

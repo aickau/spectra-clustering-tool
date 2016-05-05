@@ -421,7 +421,7 @@ int main(int argc, char* argv[])
             // ==================================================
 
             printf( "." );fflush(stdout);    // print out a dot
-            rc = AFAProcess_HW(
+            rc = AFAProcess_HWWrapper(
                 param,								// whole block ram used
                 baseAddr
                 );
