@@ -165,6 +165,7 @@ void generateSineTestSpectra( uint32_t numTestSpectra, AFASpectra_SW *outSpectra
 }
 
 
+
 // translates sw spectra to hw spectra. Can be used for input spectra as well as network spectra.
 // spectraArraySw incoming sw spectra
 // outHWAddr allocated hardware memory where we write AFA_SPECTRA_INDEX_SIZE_IN_BYTES*numSpectra bytes
@@ -230,6 +231,39 @@ hwSpectraToSwSpectra(
    }
 }
 
+bool_t readDumpFileToHWSpectra( const char *filename, uint32_t numSpectra, uint32_t *outHWAddr )
+{
+	uint32_t i;
+	uint64_t retVal, offset = 0;
+	FILE *f = 0;
+	AFASpectra_SW tempSp;
+
+	f = fopen( filename, "rb" );
+
+	if (f == NULL )
+	{
+		return FALSE;
+	}
+
+	for ( i=0;i<numSpectra;i++ )
+	{
+		retVal = fread( &tempSp, sizeof(AFASpectra_SW), 1, f );
+
+		if ( retVal != 1 )
+		{
+			fclose(f);
+			return FALSE;
+		}
+
+		swSpectraToHwSpectra( &tempSp, &outHWAddr[offset], 1 );
+		offset += AFA_SPECTRA_INDEX_SIZE_IN_UINT32; 
+	}
+
+	fclose(f);
+	return TRUE;
+}
+
+
 uint32_t
 AFAGetSpectraIndexNew(
     uint32_t xp,
@@ -246,7 +280,250 @@ AFAGetSpectraIndexNew(
 
 
 
+uint64_t getFileSize(const char *filename)
+{
+	FILE *f = 0;
+	uint64_t fileSize = 0;
+
+	if ( filename == NULL)
+		return 0;
+
+	f = fopen( filename, "rb" );
+
+	if (f == NULL )
+	{
+		return 0;
+	}
+
+	_fseeki64( f, 0, SEEK_END );
+	fileSize = _ftelli64( f );
+	fclose( f );
+
+	return fileSize;
+}
+
+
+
+
+
 uint32_t param[ 256 ];
+
+int main(int argc, char* argv[])
+{
+	char dumpFilename[] = "TESTforFPGAclasses.bin";
+
+	uint64_t dumpFileSize = getFileSize(dumpFilename);
+
+	AFASpectra_SW *spectraDataInput;
+	uint32_t *spectraDataInputHW;
+	AFASpectra_SW *spectraDataWorkingSet;
+	uint32_t *spectraDataWorkingSetHW;
+	uint32_t *baseAddr = NULL;	// that's a dummy address pointing to the start of work area of HW in memory
+	uint32_t numSpectra = (uint32_t)(dumpFileSize/sizeof(AFASpectra_SW));  
+	uint32_t remainder = (uint32_t)(dumpFileSize%sizeof(AFASpectra_SW));  
+	uint32_t xp, yp, gridSize, gridSizeSqr;
+	sint32_t idx;
+	int rv = 0;
+	bool_t rc;
+
+	uint64_t spectraDataInputHW_OffsetToBaseAddress;
+	uint64_t spectraDataWorkingSetHW_OffsetToBaseAddress;
+	uint64_t pSpectraIndexList_OffsetToBaseAddress;
+
+	printf( "Starting main() ...\n" );
+	if ( !AFATypesOK())
+	{
+		printf( "Error with AFATypes.h\n" );
+		exit( 1 );
+	}
+
+	if (numSpectra == 0 || remainder != 0 )
+	{
+		printf( "Dump file not found or wrong file size.\n" );
+		exit( 1 );
+	}
+
+	AFASetDefaultParameters( &AFAPP_sw.m_params );
+#ifdef JSCDBG_ITER_SPECIAL
+	AFAPP_sw.m_params.numSteps = 1;
+#else
+	AFAPP_sw.m_params.numSteps = 200;
+#endif
+	AFAPP_sw.m_params.searchMode = AFANET_SETTINGS_SEARCHMODE_global;
+
+	AFAHelperStructures_PrepareDataStructure(
+		numSpectra );
+	AFAHelperStructures_MemAllocate();
+	AFAHelperStructures_UpdateAddressData();
+	spectraDataInput = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf(
+		"example data" );
+	spectraDataInputHW = ( uint32_t * ) AFAHelperStructures_GetAddressOf(
+		"example data reduced" );
+
+
+	spectraDataWorkingSet = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf(
+		"m_pNet / SOM" );
+	spectraDataWorkingSetHW = ( uint32_t * ) AFAHelperStructures_GetAddressOf(
+		"m_pNet / SOM reduced" );
+	gridSize = AFAPP_sw.m_gridSize;
+	gridSizeSqr = AFAPP_sw.m_gridSizeSqr;
+
+	if ( readDumpFileToHWSpectra( dumpFilename, numSpectra, spectraDataInputHW ) == FALSE )
+	{
+		printf( "Error reading dump file.\n" );
+		exit( 1 );
+
+	}
+
+
+	AFAInitProcessingNew(
+		FALSE );
+
+
+	swSpectraToHwSpectra(
+		spectraDataWorkingSet,
+		spectraDataWorkingSetHW,
+		gridSizeSqr );
+
+
+	// here we convert pointer differences to byte offsets (baseAddr is NULL)
+	spectraDataInputHW_OffsetToBaseAddress      = ( char * ) AFAPP_sw.spectraDataInputHW      - (( char * ) baseAddr );
+	spectraDataWorkingSetHW_OffsetToBaseAddress = ( char * ) AFAPP_sw.spectraDataWorkingSetHW - (( char * ) baseAddr );
+	pSpectraIndexList_OffsetToBaseAddress       = ( char * ) AFAPP_sw.m_pSpectraIndexList     - (( char * ) baseAddr );
+
+	do
+	{
+		if ( currentStep > AFAPP_sw.m_params.numSteps )
+		{
+			//Clustering finished (success).
+			rc = TRUE;
+		}
+		else
+		{
+			float32_t lPercent = ( float32_t )( currentStep ) / ( float32_t )( AFAPP_sw.m_params.numSteps );
+			float32_t lRate = ( float32_t ) ( AFAPP_sw.m_params.lRateBegin * powf( AFAPP_sw.m_params.lRateEnd / AFAPP_sw.m_params.lRateBegin, lPercent ));
+			float32_t adaptionThreshold = AFAPP_sw.m_params.lRateEnd * 0.01f;
+			float32_t sigma = ( float32_t ) ( AFAPP_sw.m_params.radiusBegin * powf( AFAPP_sw.m_params.radiusEnd / AFAPP_sw.m_params.radiusBegin, lPercent));
+			float32_t sigmaSqr = sigma*sigma;
+			uint32_t i;
+			bool_t bFullSearch = TRUE;
+			uint32_t searchRadius = 1;
+
+			// determine search strategy for BMUs for the current learning step
+			if ( AFAPP_sw.m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_localfast )
+			{
+				// always use a constant search radius, never do a global search
+				bFullSearch = ( currentStep < 1 );
+				searchRadius = 2;
+			}
+			else if ( AFAPP_sw.m_params.searchMode == AFANET_SETTINGS_SEARCHMODE_local )
+			{
+				// global search for the first 5 steps, decreasing search radius for increasing number of learning steps
+				bFullSearch = ( currentStep < 5 );
+				searchRadius = ( unsigned int )((( 1.f - lPercent ) * 0.5f * ( float )( AFAPP_sw.m_gridSize ))) + 2;
+			}
+			else // SOFMNET_SETTINGS_SEARCHMODE_global
+			{
+				// always use global search, never go local.
+				// slow but guarantees optimal results in every case
+				bFullSearch = TRUE;
+			}
+
+			// ==================================================
+			//
+			// prepare HW data structures (swizzle indices, etc.)
+			//
+			// ==================================================
+
+			// store all indices in a list
+			for ( i = 0; i < numSpectra; i++ )
+			{
+				AFAPP_sw.m_pSpectraIndexList[ i ] = i;
+			}
+
+			// shake well
+			for ( i = 0; i < numSpectra * 2; i++ )
+			{
+				uint32_t ind0 = AFARandomIntRange( numSpectra - 1 );
+				uint32_t ind1 = AFARandomIntRange( numSpectra - 1 );
+
+				// switch indices
+				sint32_t tmp = AFAPP_sw.m_pSpectraIndexList[ ind0 ];
+				AFAPP_sw.m_pSpectraIndexList[ ind0 ] = AFAPP_sw.m_pSpectraIndexList[ ind1 ];
+				AFAPP_sw.m_pSpectraIndexList[ ind1 ] = tmp;
+			}
+
+			// clear names
+			for ( i = 0; i < gridSizeSqr * AFA_SPECTRA_INDEX_SIZE_IN_UINT32; i += AFA_SPECTRA_INDEX_SIZE_IN_UINT32 )
+			{
+				AFAPP_sw.spectraDataWorkingSetHW[ i + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW  ] = 0;
+				AFAPP_sw.spectraDataWorkingSetHW[ i + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = 0;
+				AFAPP_sw.spectraDataWorkingSetHW[ i + AFA_SPECTRA_INDEX_INDEX            ] = ( uint32_t ) ( -1 );
+			}
+
+			// ==================================================
+			//
+			// prepare parameter block
+			//
+			// ==================================================
+
+			param[ AFA_PARAM_INDICES_FULL_SEARCH                       ] = bFullSearch;
+			param[ AFA_PARAM_INDICES_SEARCH_RADIUS                     ] = searchRadius;
+			param[ AFA_PARAM_INDICES_ADAPTION_THRESHOLD                ] = *(( uint32_t * ) &adaptionThreshold );
+			param[ AFA_PARAM_INDICES_SIGMA_SQR                         ] = *(( uint32_t * ) &sigmaSqr          );
+			param[ AFA_PARAM_INDICES_LRATE                             ] = *(( uint32_t * ) &lRate             );
+			param[ AFA_PARAM_INDICES_GRID_SIZE                         ] = gridSize;
+			param[ AFA_PARAM_INDICES_GRID_SIZE_SQR                     ] = gridSizeSqr;
+			param[ AFA_PARAM_INDICES_NUM_SPECTRA                       ] = numSpectra;
+			param[ AFA_PARAM_INDICES_RNG_MTI                           ] = m_mti;
+			param[ AFA_PARAM_INDICES_PIXEL_START                       ] = 0;
+			param[ AFA_PARAM_INDICES_PIXEL_END                         ] = 0;
+			param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW    ] = ( uint32_t )((             spectraDataInputHW_OffsetToBaseAddress      )       );
+			param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] = ( uint32_t )((( uint64_t ) spectraDataInputHW_OffsetToBaseAddress      ) >> 32 );
+			param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_LOW       ] = ( uint32_t )((             spectraDataWorkingSetHW_OffsetToBaseAddress )       );
+			param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_HIGH      ] = ( uint32_t )((( uint64_t ) spectraDataWorkingSetHW_OffsetToBaseAddress ) >> 32 );
+			param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW  ] = ( uint32_t )((             pSpectraIndexList_OffsetToBaseAddress       )       );
+			param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] = ( uint32_t )((( uint64_t ) pSpectraIndexList_OffsetToBaseAddress       ) >> 32 );
+
+			// ==================================================
+			//
+			// call HW calculation
+			//
+			// ==================================================
+
+			printf( "." );fflush(stdout);    // print out a dot
+	
+ 			rc = AFAProcess_HWWrapper(
+ 				param,								// whole block ram used
+ 				baseAddr
+ 				);
+
+			if ( !rc )
+			{
+				currentStep++;
+			}
+		}
+	} while ( !rc );
+
+
+	AFAHelperStructures_MemFree();
+
+	if ( rv > 0 )
+	{
+		printf( "ERROR!!!: %d\n", rv - 1000000 );
+	}
+	else
+	{
+		printf( "==> Error free !!!\n" );
+#ifdef JSCDBG_ACCEPT_LITTLE_INACCURACIES
+		printf( "    ==> Remember we accept little inaccuracies !!!\n" );
+#endif
+	}
+
+	return rv;
+}
+
+/*
 
 int main(int argc, char* argv[])
 {
@@ -523,3 +800,4 @@ int main(int argc, char* argv[])
     return rv;
 }
 
+*/
