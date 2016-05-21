@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">&#x0A;<refactoring comment="Delete resource &apos;JSC_2_APP_4_LEDs&apos;" deleteContents="true" description="Delete resource &apos;JSC_2_APP_4_LEDs&apos;" element1="/JSC_2_APP_4_LEDs" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1462132377503"/>&#x0A;<refactoring comment="Delete resource &apos;SBD_wrapper_hw_platform_0&apos;" deleteContents="true" description="Delete resource &apos;SBD_wrapper_hw_platform_0&apos;" element1="/SBD_wrapper_hw_platform_0" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1462142464085"/>
-</session>

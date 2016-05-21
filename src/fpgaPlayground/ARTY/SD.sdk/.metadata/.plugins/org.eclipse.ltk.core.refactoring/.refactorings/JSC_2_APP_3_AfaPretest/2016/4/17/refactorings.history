@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;JSC_2_APP_3_Afa/src/testperiph.c&apos; to &apos;main.c&apos;" description="Rename resource &apos;testperiph.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/testperiph.c" name="main.c" stamp="1461611085911" updateReferences="true"/>&#x0A;<refactoring comment="Rename resource &apos;JSC_2_APP_3_Afa/src/sal_types.h&apos; to &apos;afa_types.h&apos;" description="Rename resource &apos;sal_types.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/sal_types.h" name="afa_types.h" stamp="1461677951602" updateReferences="true"/>
-</session>

@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="SrcHardware">
+      <UniqueIdentifier>{afe68a6a-6c80-48e2-9da3-d54b564328d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SrcTestBench">
+      <UniqueIdentifier>{697235c6-293f-47f9-bc2f-de8743780840}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SrcHeaderShared">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="SrcTestData">
+      <UniqueIdentifier>{08bdca69-0996-4afe-afd5-00f5bba8a193}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\AFAProcessingHW.c">
+      <Filter>SrcHardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFANetworkSettings.c">
+      <Filter>SrcTestBench</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFAProcessing.c">
+      <Filter>SrcTestBench</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFARandom.c">
+      <Filter>SrcTestBench</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFASpectra.c">
+      <Filter>SrcTestBench</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATypes.c">
+      <Filter>SrcTestBench</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\main.c">
+      <Filter>SrcTestBench</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataGoldenResult.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra00.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra01.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra02.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra03.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra04.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra05.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra06.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra07.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra08.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra09.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra10.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra11.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra12.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectra13.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AFAProcessingHWWrapper.c">
+      <Filter>SrcTestBench</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\AFADefines.h">
+      <Filter>SrcHeaderShared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFANetworkSettingsCommon.h">
+      <Filter>SrcHeaderShared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFAProcessing.h">
+      <Filter>SrcHeaderShared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFAProcessingCommon.h">
+      <Filter>SrcHeaderShared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFARandom.h">
+      <Filter>SrcHeaderShared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFARandomCommon.h">
+      <Filter>SrcHeaderShared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFASpectra.h">
+      <Filter>SrcHeaderShared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFASpectraCommon.h">
+      <Filter>SrcHeaderShared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFATypes.h">
+      <Filter>SrcHeaderShared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFANetworkSettings.h">
+      <Filter>SrcTestBench</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFAProcessingHW.h">
+      <Filter>SrcHardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFANetworkSettingsHW.h">
+      <Filter>SrcHardware</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
