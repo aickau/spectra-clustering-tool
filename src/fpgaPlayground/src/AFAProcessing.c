@@ -10,6 +10,8 @@
 #include "AFADefines.h"
 #include "AFATypes.h"
 
+#include "BoardIO.h"
+
 AFAProcessingParamSW_t	        AFAPP_sw;
 
 // local variables to this file
@@ -129,7 +131,7 @@ AFAHelperStructures_MemAllocate()
     //
     // Jesko Schwarzer 2016-03-20, afa@schwarzers.de
     // ===========================================================
-    tmpAddrCalc = ( uint64_t )(( uint8_t * )AFAPP_sw.memoryBlockBaseAddressAllocated );
+    tmpAddrCalc = ( uint64_t )(( addr_t )(( uint8_t * )AFAPP_sw.memoryBlockBaseAddressAllocated ));
     tmpAddrCalc = (( tmpAddrCalc + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ));
     AFAPP_sw.memoryBlockBaseAddressAligned = ( void * ) tmpAddrCalc;
 }
@@ -322,14 +324,18 @@ AFAInitProcessingNew(
     // little below because of 0.001 in function AFASpectraNormalizeByFlux()
 	if ( AFAPP_sw.m_params.normaliziationType == SN_FLUX )
 	{
+	    LEDRGBSet( 0, EVAL_BOARD_LEDRGB_CYAN );		// normalization state
 		for ( i = 0; i < AFAPP_sw.m_numSpectra; i++ )
 		{
+	    	LEDBinaryShow( i );
+
 			a = &AFAPP_sw.spectraDataInput[ i ];
 			AFASpectraNormalizeByFlux( a );
 		}
 	}
 
     // calculates the min and max of the complete INPUT spectra grid and give back values
+	LEDRGBSet( 0, EVAL_BOARD_LEDRGB_BLUE );		// min/max state
     calcMinMaxSp(
         AFAPP_sw.spectraDataInput,
         AFAPP_sw.m_numSpectra,
@@ -363,8 +369,12 @@ AFAInitProcessingNew(
         // 3.) now select randomly for each network cell an input one, this improves the convergence times.
 		//     it does not matter if some spectra are inserted multiple times or other may missing since this is just for initialization purposes.
         // -------------------------------------------------------------------------------
+	    LEDRGBSet( 0, EVAL_BOARD_LEDRGB_VIOLETT );		// random state
+
         for ( i = 0; i < AFAPP_sw.m_gridSizeSqr; i++ )
         {
+        	LEDBinaryShow( i );
+
             xp = i % AFAPP_sw.m_gridSize;
             yp = i / AFAPP_sw.m_gridSize;
             inset = 0;

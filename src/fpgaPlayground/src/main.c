@@ -1,16 +1,29 @@
+#include "AFAConfig.h"
+#include "AFADefines.h"
+#include "AFATypes.h"
+#include "AFASpectra.h"
+#include "AFAProcessing.h"
+#include "AFATime.h"
+
+#ifdef AFA_RUN_ON_XILINX_SDK
+// BSP Includes
+#include "xparameters.h"
+#include "xil_cache.h"
+#include "xtmrctr.h"
+
+// Driver includes
+#include "DriverInterrupt.h"
+#endif
+
+#include "BoardIO.h"
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <time.h>
 
-#include "AFADefines.h"
-#include "AFATypes.h"
-#include "AFASpectra.h"
-#include "AFAProcessing.h"
-
-// #define JSCDBG_ITER_SPECIAL
+#define JSCDBG_ITER_SPECIAL
 // #define JSCDBG_PRINTOUT_GOLDEN_SAMPLE_ONLY
 
 extern AFAProcessingParamSW_t       AFAPP_sw;
@@ -111,10 +124,13 @@ void generateSineTestSpectra( uint32_t numTestSpectra, AFASpectra_SW *outSpectra
     float freqMax = 0.05f;
     float freqStepSize = (freqMax-freqMin)/(float)numTestSpectra;
     float freq = freqMin;
+    AFASpectra_SW *sp;
 
+    LEDRGBSet( 0, EVAL_BOARD_LEDRGB_YELLOW );		// sine state
     for (i=0;i<numTestSpectra;i++)
     {
-        AFASpectra_SW *sp =  &outSpectraArray[i];
+    	LEDBinaryShow( i );
+        sp =  &outSpectraArray[i];
         AFASpectraSetSine( sp, freq, 0.0f, 1.0f, 0.0f );
         freq += freqStepSize;
     }
@@ -222,6 +238,7 @@ bool_t readSpectraFileToHWSpectra(
     return TRUE;
 }
 
+#if 0
 typedef struct
 {
     const unsigned char *spectraDataPtr;
@@ -272,7 +289,6 @@ ReadFromArrayDataRead(
     void *dest,
     uint64_t size )
 {
-    uint32_t i;
     uint64_t chunkSize = 0;
     uint32_t diff;
     uint8_t *p;
@@ -338,6 +354,7 @@ getSpectraArraySize()
     }
     return size;
 }
+#endif
 
 uint32_t
 AFAGetSpectraIndexNew(
@@ -381,17 +398,28 @@ uint64_t getFileSize(
     return fileSize;
 }
 
+#ifdef AFA_RUN_ON_XILINX_SDK
+void AssertCallback(
+	const char8 *File,
+	s32 Line )
+{
+	LEDRGBSet( 0, EVAL_BOARD_LEDRGB_RED );		// min/max state
 
+	printf( "ASSERTION: File=%s, Line=%ld\n", File, Line );
+}
+#endif
 
-
-
+#ifdef AFA_RUN_PROCESSHW_HW
+uint32_t *param = ( uint32_t * ) 0xc0000000;
+#else
 uint32_t param[ 256 ];
+#endif
 
 int main(
     int argc,
     char* argv[])
 {
-    uint32_t srcDataSelector = 1;
+    uint32_t srcDataSelector = 0;
     AFASpectra_SW *spectraDataInput;
     uint32_t *spectraDataInputHW;
     AFASpectra_SW *spectraDataWorkingSet;
@@ -416,7 +444,23 @@ int main(
     clock_t timeIterationStart;
     clock_t timeIterationEnd;
 
-    printf( "Starting main() ...\n" );
+    // processor and other HW preparations --- start ------------------------------------------------------
+
+#ifdef AFA_RUN_ON_XILINX_SDK
+    Xil_ICacheEnable();
+	Xil_DCacheEnable();
+
+    Xil_AssertSetCallback( AssertCallback );
+
+    InterruptInit();
+	XAfaprocess_hw_Init();
+	InterruptEnable();
+	LEDInit();
+#endif
+    // processor and other HW preparations --- end --------------------------------------------------------
+
+	printf( "Starting main() ...\n" );
+    LEDRGBSet( 0, EVAL_BOARD_LEDRGB_GREEN );		// power on
     if ( !AFATypesOK())
     {
         printf( "Error with AFATypes.h\n" );
@@ -428,12 +472,15 @@ int main(
         default:
         case 0: // simple sine spectra
         {
+            printf( "* Get number of spectra from sine calculation\n" );
+
             numSpectra = 100;  // do we have more than 4bn spectra ... ? not in THESE times
             break;
         }
         case 1: // load from array
         {
-            dumpFileSize = getSpectraArraySize();
+            printf( "* Get number of spectra from array\n" );
+//            dumpFileSize = getSpectraArraySize();
             numSpectra   = ( uint32_t )( dumpFileSize / sizeof( AFASpectra_SW ));
             remainder    = ( uint32_t )( dumpFileSize % sizeof( AFASpectra_SW ));
             if ( numSpectra == 0 || remainder != 0 )
@@ -445,6 +492,7 @@ int main(
         }
         case 2: // load from file
         {
+            printf( "* Get number of spectra from file\n" );
             dumpFileSize = getFileSize( dumpFilename );
             numSpectra   = ( uint32_t )( dumpFileSize / sizeof( AFASpectra_SW ));
             remainder    = ( uint32_t )( dumpFileSize % sizeof( AFASpectra_SW ));
@@ -456,7 +504,8 @@ int main(
             break;
         }
     }
-#ifndef JSCDBG_PRINTOUT_GOLDEN_SAMPLE_ONLY
+
+    printf( "* Set default parameters\n" );
     AFASetDefaultParameters( &AFAPP_sw.m_params );
 #ifdef JSCDBG_ITER_SPECIAL
     AFAPP_sw.m_params.numSteps = 1;
@@ -465,16 +514,17 @@ int main(
 #endif
     AFAPP_sw.m_params.searchMode = AFANET_SETTINGS_SEARCHMODE_global;
 
+    printf( "* Prepare data structures\n" );
     AFAHelperStructures_PrepareDataStructure(
         numSpectra );
+    printf( "* Allocate memory\n" );
     AFAHelperStructures_MemAllocate();
+    printf( "* Update address data\n" );
     AFAHelperStructures_UpdateAddressData();
     spectraDataInput = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf(
         "example data" );
     spectraDataInputHW = ( uint32_t * ) AFAHelperStructures_GetAddressOf(
         "example data reduced" );
-
-
     spectraDataWorkingSet = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf(
         "m_pNet / SOM" );
     spectraDataWorkingSetHW = ( uint32_t * ) AFAHelperStructures_GetAddressOf(
@@ -487,10 +537,12 @@ int main(
         default:
         case 0: // simple sine spectra
         {
+            printf( "* Generate sine test spectra\n" );
             generateSineTestSpectra(
                 numSpectra,
                 spectraDataInput );
 
+            printf( "* Convert spectra records: input data\n" );
             // convert sine data
             swSpectraToHwSpectra(
                 spectraDataInput,
@@ -500,7 +552,8 @@ int main(
         }
         case 1: // load from array
         {
-            if ( readSpectraArrayToHWSpectra( numSpectra, spectraDataInputHW ) == FALSE )
+            printf( "* Read spectra array\n" );
+//            if ( readSpectraArrayToHWSpectra( numSpectra, spectraDataInputHW ) == FALSE )
             {
                 printf( "Error processing TestDataArray.\n" );
                 exit( 3 );
@@ -509,6 +562,7 @@ int main(
         }
         case 2: // load from file
         {
+            printf( "* Load spectra from file\n" );
             if ( readSpectraFileToHWSpectra( dumpFilename, numSpectra, spectraDataInputHW ) == FALSE )
             {
                 printf( "Error reading dump file.\n" );
@@ -518,9 +572,11 @@ int main(
         }
     }
 
+    printf( "* Init processing (new)\n" );
     AFAInitProcessingNew(
         FALSE );
 
+    printf( "* Convert spectra records: working set data\n" );
     swSpectraToHwSpectra(
         spectraDataWorkingSet,
         spectraDataWorkingSetHW,
@@ -532,7 +588,7 @@ int main(
     spectraDataWorkingSetHW_OffsetToBaseAddress = ( char * ) AFAPP_sw.spectraDataWorkingSetHW - (( char * ) baseAddr );
     pSpectraIndexList_OffsetToBaseAddress       = ( char * ) AFAPP_sw.m_pSpectraIndexList     - (( char * ) baseAddr );
 
-    printf( "processing is starting now ...\n" );
+    printf( "* Iterate over working set data\n" );
     timeGlobalStart = clock();
     do
     {
@@ -640,12 +696,12 @@ int main(
                 baseAddr
                 );
             timeIterationEnd = clock();
-            printf( "[%3ld/%3d = %3ld%] IterTime: %ld [%7.2fsec.]\n",
+            printf( "[%3ld/%3d = %3ld%%] IterTime: %ld [%7.2fsec.]\n",
                 currentStep,
                 AFAPP_sw.m_params.numSteps,
                 ( currentStep * 100 ) / AFAPP_sw.m_params.numSteps,
                 timeIterationEnd - timeIterationStart,
-                (( double )( timeIterationEnd - timeIterationStart )) / (( double ) CLOCKS_PER_SEC ));
+                (( float64_t )( timeIterationEnd - timeIterationStart )) / (( float64_t ) CLOCKS_PER_SEC ));
             if ( !rc )
             {
                 currentStep++;
@@ -668,13 +724,13 @@ int main(
 			// print results
 			gridSize = AFACalcGridSize(numSpectra);
 
-			printf("\nFinal result !\n");
-			for ( yp=0;yp<gridSize;yp++ )
+			printf( "\nFinal result !\n" );
+			for ( yp = 0; yp < gridSize; yp++ )
 			{
-				printf("\t{");
-				for ( xp=0;xp<gridSize;xp++ )
+				printf( "\t{" );
+				for ( xp = 0; xp < gridSize; xp++ )
 				{
-					idx = AFAGetSpectraIndexNew( xp,yp );
+					idx = AFAGetSpectraIndexNew( xp, yp );
 					idx = ( idx < 0 ) ? -1 : idx;
 					idx_golden = golden_data[ yp ][ xp ];
 					if ( idx != idx_golden )
@@ -682,21 +738,21 @@ int main(
 						rv = 1000000 + xp + yp * gridSize;
 
 						if ( idx < 0 )
-							printf("* -1* ");
+							printf( "*  -1* " );
 						else
-							printf("*%3ld* ", idx);
+							printf( "*%4ld* ", idx );
 					}
 					else
 					{
 						if ( idx < 0 )
-							printf("  -1, ");
+							printf( "   -1, " );
 						else
-							printf(" %3ld, ", idx);
+							printf( " %4ld, ", idx );
 					}
 				}
-				printf("},\n");
+				printf( "},\n" );
 			}
-			printf("\n");
+			printf( "\n" );
             break;
         }
         case 1: // load from array
@@ -709,13 +765,13 @@ int main(
 			// print results
 			gridSize = AFACalcGridSize(numSpectra);
 
-			printf("\nFinal result !\n");
-			for ( yp=0;yp<gridSize;yp++ )
+			printf( "\nFinal result !\n" );
+			for ( yp = 0; yp < gridSize; yp++ )
 			{
-				printf("\t{");
-				for ( xp=0;xp<gridSize;xp++ )
+				printf( "\t{" );
+				for ( xp = 0; xp < gridSize; xp++ )
 				{
-					idx = AFAGetSpectraIndexNew( xp,yp );
+					idx = AFAGetSpectraIndexNew( xp, yp );
 					idx = ( idx < 0 ) ? -1 : idx;
 					idx_golden = p[ yp * gridSize + xp ];
 					if ( idx != idx_golden )
@@ -723,54 +779,51 @@ int main(
 						rv = 1000000 + xp + yp * gridSize;
 
 						if ( idx < 0 )
-							printf("* -1* ");
+							printf( "* -1* " );
 						else
-							printf("*%4ld* ", idx);
+							printf( "*%4ld* ", idx );
 					}
 					else
 					{
 						if ( idx < 0 )
-							printf("   -1, ");
+							printf( "   -1, " );
 						else
-							printf(" %4ld, ", idx);
+							printf( " %4ld, ", idx );
 					}
 				}
-				printf("},\n");
+				printf( "},\n" );
 			}
-			printf("\n");
+			printf( "\n" );
+
+		    {
+		        uint32_t *p = ( uint32_t * )afaTestDataGoldenResult_data; // beware of the endianess
+
+		        sint32_t idx_golden;
+
+		        printf( "Correct solution:\n" );
+
+		        // print results
+		        gridSize = AFACalcGridSize(numSpectra);
+		        for ( yp = 0; yp < gridSize; yp++ )
+		        {
+		            printf( "\t{" );
+		            for ( xp = 0; xp < gridSize; xp++ )
+		            {
+		                idx_golden = p[ yp * gridSize + xp ];
+		                if ( idx_golden < 0 )
+		                    printf( "   -1, " );
+		                else
+		                    printf( " %4ld, ", idx_golden );
+		            }
+		            printf( "},\n" );
+		        }
+		        printf( "\n" );
+		    }
 
             break;
         }
     }
     AFAHelperStructures_MemFree();
-#endif
-    {
-        uint32_t *p = ( uint32_t * )afaTestDataGoldenResult_data; // beware of the endianess
-
-        sint32_t idx_golden;
-
-        printf( "Correct solution:\n" );
-
-        // print results
-        gridSize = AFACalcGridSize(numSpectra);
-
-        printf("\nFinal result !\n");
-        for ( yp=0;yp<gridSize;yp++ )
-        {
-            printf("\t{");
-            for ( xp=0;xp<gridSize;xp++ )
-            {
-                idx_golden = p[ yp * gridSize + xp ];
-                if ( idx_golden < 0 )
-                    printf("   -1, ");
-                else
-                    printf(" %4ld, ", idx_golden );
-            }
-            printf("},\n");
-        }
-        printf("\n");
-
-    }
 
     if ( rv > 0 )
     {
@@ -783,6 +836,5 @@ int main(
         printf( "    ==> Remember we accept little inaccuracies !!!\n" );
 #endif
     }
-
     return rv;
 }

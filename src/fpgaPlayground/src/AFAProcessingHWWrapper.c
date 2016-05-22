@@ -1,6 +1,6 @@
-#//define AFA_RUN_ON_HARDWARE
+#include "AFAConfig.h"
 
-#ifdef AFA_RUN_ON_HARDWARE
+#ifdef AFA_RUN_ON_XILINX_SDK
 // Xilinx includes
 #include "xafaprocess_hw.h"
 #include "xparameters.h"
@@ -21,7 +21,7 @@
 //#define AFA_PARAMBLOCK_STARTADDRESS         ( 0xc0000000 )
 //#define AFA_PARAMBLOCK_SIZE                 ( 4 * 256 )
 
-#ifdef AFA_RUN_ON_HARDWARE
+#ifdef AFA_RUN_ON_XILINX_SDK
 XAfaprocess_hw gXAfaprocess_hwInstancePtr;
 #endif
 
@@ -36,7 +36,7 @@ AFAProcess_HWWrapper(
 
 //    printf( "AFAProcess_HWWrapper() - Start\r\n" );
 
-#ifdef AFA_RUN_ON_HARDWARE
+#ifdef AFA_RUN_PROCESSHW_HW
     LEDRGBSet( 0, EVAL_BOARD_LEDRGB_WHITE );        // processing state
 
     XAfaprocess_hw_Set_baseAddr( &gXAfaprocess_hwInstancePtr, 0x00000000 );
