@@ -14,6 +14,9 @@
     <Filter Include="SrcTestData">
       <UniqueIdentifier>{08bdca69-0996-4afe-afd5-00f5bba8a193}</UniqueIdentifier>
     </Filter>
+    <Filter Include="BoardFiles">
+      <UniqueIdentifier>{0e101164-fa85-4371-b13b-76e7a9f604f8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\AFAProcessingHW.c">
@@ -85,6 +88,9 @@
     <ClCompile Include="..\src\AFAProcessingHWWrapper.c">
       <Filter>SrcTestBench</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\BoardIO.c">
+      <Filter>BoardFiles</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\AFADefines.h">
@@ -122,6 +128,12 @@
     </ClInclude>
     <ClInclude Include="..\src\AFANetworkSettingsHW.h">
       <Filter>SrcHardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\AFAConfig.h">
+      <Filter>SrcHeaderShared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\BoardIO.h">
+      <Filter>BoardFiles</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

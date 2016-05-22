@@ -159,9 +159,11 @@
     <ClCompile Include="..\src\AFATestDataSpectra12.c" />
     <ClCompile Include="..\src\AFATestDataSpectra13.c" />
     <ClCompile Include="..\src\AFATypes.c" />
+    <ClCompile Include="..\src\BoardIO.c" />
     <ClCompile Include="..\src\main.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\AFAConfig.h" />
     <ClInclude Include="..\src\AFADefines.h" />
     <ClInclude Include="..\src\AFANetworkSettings.h" />
     <ClInclude Include="..\src\AFANetworkSettingsCommon.h" />
@@ -174,6 +176,7 @@
     <ClInclude Include="..\src\AFASpectra.h" />
     <ClInclude Include="..\src\AFASpectraCommon.h" />
     <ClInclude Include="..\src\AFATypes.h" />
+    <ClInclude Include="..\src\BoardIO.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
