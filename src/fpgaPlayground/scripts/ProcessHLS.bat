@@ -9,8 +9,8 @@ path %path%;C:\Xilinx\Vivado\2015.4\bin;C:\Xilinx\Vivado_HLS\2015.4\bin
 :label
 
 echo VIVADO_HLS start ...
-rem vivado_hls -f ProcessHLSarty.tcl
+vivado_hls -f ProcessHLSarty.tcl
 
 echo VIVADO start ...
-vivado -mode batch -source ProcessVIVArty.tcl -tempDir ../_tmp
+rem vivado -mode batch -source ProcessVIVArty.tcl -tempDir ../_tmp
 pause
