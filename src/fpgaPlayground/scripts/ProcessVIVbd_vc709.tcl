@@ -89,17 +89,24 @@ if { $nRet != 0 } {
 
 startgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:mig_7series:2.4 mig_7series_0
-apply_board_connection -board_interface "ddr3_sdram_socket_j1_j3" -ip_intf "mig_7series_0/mig_ddr_interface" -diagram "design_1" 
+apply_board_connection -board_interface "ddr3_sdram_socket_j1_j3" -ip_intf "mig_7series_0/mig_ddr_interface" -diagram $design_name
 endgroup
 delete_bd_objs [get_bd_intf_nets sys_diff_clock_0_1] [get_bd_intf_ports sys_diff_clock_0]
 delete_bd_objs [get_bd_intf_nets sys_diff_clock_1]
 delete_bd_objs [get_bd_intf_ports sys_diff_clock]
 startgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:5.2 clk_wiz_0
-apply_board_connection -board_interface "sys_diff_clock" -ip_intf "clk_wiz_0/CLK_IN1_D" -diagram "design_1" 
+apply_board_connection -board_interface "sys_diff_clock" -ip_intf "clk_wiz_0/CLK_IN1_D" -diagram $design_name
 endgroup
 delete_bd_objs [get_bd_intf_nets sys_diff_clock_1] [get_bd_cells clk_wiz_0]
 connect_bd_intf_net [get_bd_intf_ports sys_diff_clock] [get_bd_intf_pins mig_7series_0/C0_SYS_CLK]
+
+##set_property -name {CONFIG.XML_INPUT_FILE} -value  {mig_a.prj} -objects [get_bd_cells mig_7series_0]
+#set_property -name {CONFIG.XML_INPUT_FILE} -value  {$resource_files/vc709_mig.prj} -objects [get_bd_cells mig_7series_0]
+#set_property -name {CONFIG.RESET_BOARD_INTERFACE} -value  {reset} -objects [get_bd_cells mig_7series_0]
+#set_property -name {CONFIG.MIG_DONT_TOUCH_PARAM} -value  {Custom} -objects [get_bd_cells mig_7series_0]
+#set_property -name {CONFIG.BOARD_MIG_PARAM} -value  {ddr3_sdram_socket_j1_j3} -objects [get_bd_cells mig_7series_0]
+
 
 ## reset ######################################################################
 
@@ -151,26 +158,16 @@ endgroup
 
 ## Peripheral - Buttons and switches ##########################################
 
-
-
-regenerate_bd_layout -routing
-regenerate_bd_layout
-save_bd_design
-validate_bd_design
-exit
-
 startgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_1
-apply_board_connection -board_interface "push_buttons_4bits" -ip_intf "axi_gpio_1/GPIO" -diagram $design_name
+apply_board_connection -board_interface "dip_switches_8bits" -ip_intf "axi_gpio_1/GPIO" -diagram $design_name
 endgroup
-apply_board_connection -board_interface "dip_switches_4bits" -ip_intf "axi_gpio_1/GPIO2" -diagram $design_name
+apply_board_connection -board_interface "push_buttons_5bits" -ip_intf "axi_gpio_1/GPIO2" -diagram $design_name
 
 ## Peripheral - Connections ###################################################
 
 startgroup
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Cached)" Clk "Auto" }  [get_bd_intf_pins mig_7series_0/S_AXI]
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Periph)" Clk "Auto" }  [get_bd_intf_pins axi_uartlite_0/S_AXI]
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Periph)" Clk "Auto" }  [get_bd_intf_pins axi_ethernetlite_0/S_AXI]
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Periph)" Clk "Auto" }  [get_bd_intf_pins axi_timer_0/S_AXI]
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Periph)" Clk "Auto" }  [get_bd_intf_pins axi_gpio_0/S_AXI]
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Periph)" Clk "Auto" }  [get_bd_intf_pins axi_gpio_1/S_AXI]
@@ -179,21 +176,28 @@ endgroup
 ## Interrupt - Connections ####################################################
 
 connect_bd_net [get_bd_pins axi_timer_0/interrupt] [get_bd_pins microblaze_0_xlconcat/In0]
-connect_bd_net [get_bd_pins axi_ethernetlite_0/ip2intc_irpt] [get_bd_pins microblaze_0_xlconcat/In1]
+#connect_bd_net [get_bd_pins axi_ethernetlite_0/ip2intc_irpt] [get_bd_pins microblaze_0_xlconcat/In1]
 
 ## Ethernet reference clock ###################################################
 
-create_bd_port -dir O -type clk eth_ref_clk
-connect_bd_net [get_bd_ports eth_ref_clk] [get_bd_pins clk_wiz_0/clk_out3]
+#create_bd_port -dir O -type clk eth_ref_clk
+#connect_bd_net [get_bd_ports eth_ref_clk] [get_bd_pins clk_wiz_0/clk_out3]
 
 ## Address map settings #######################################################
 
 set_property offset 0x10000000 [get_bd_addr_segs {microblaze_0/Data/SEG_microblaze_0_axi_intc_Reg}]
 set_property offset 0x11000000 [get_bd_addr_segs {microblaze_0/Data/SEG_axi_timer_0_Reg}]
 set_property offset 0x12000000 [get_bd_addr_segs {microblaze_0/Data/SEG_axi_uartlite_0_Reg}]
-set_property offset 0x13000000 [get_bd_addr_segs {microblaze_0/Data/SEG_axi_ethernetlite_0_Reg}]
+#set_property offset 0x13000000 [get_bd_addr_segs {microblaze_0/Data/SEG_axi_ethernetlite_0_Reg}]
 set_property offset 0x14000000 [get_bd_addr_segs {microblaze_0/Data/SEG_axi_gpio_0_Reg}]
 set_property offset 0x14100000 [get_bd_addr_segs {microblaze_0/Data/SEG_axi_gpio_1_Reg}]
+
+regenerate_bd_layout -routing
+regenerate_bd_layout
+save_bd_design
+validate_bd_design
+exit
+
 
 ## Insert custom IP ###########################################################
 

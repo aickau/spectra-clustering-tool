@@ -29,7 +29,7 @@ set all_solution [list ARTY_32Bit_100MHz                    ]
 set all_part     [list xc7a35ticsg324-1L                    ]
 set all_clocks   [list 5ns                                  ]
 set all_axi_addr [list "-m_axi_offset off -register_io off" ]
-set all_repo_dir [list "$repo_dir/$proj_dir/ARTY"           ]
+set all_repo_dir [list "$repo_dir/$proj_dir/arty"           ]
 #set all_repo_dir [list "../repoHW/$proj_dir/ARTY"           ]
 
 #set all_solution [list AFAProcessing_64Bit_250MHz-2 AFAProcessing_32Bit_100MHz-1 ]

@@ -12,7 +12,7 @@ set enableCustomDesign yes
 # Set the directory path for the new project
 set design_dir "/prj/AFA/viv"
 set design_version v1_0
-set proj_name "SD"
+set proj_name "arty"
 set bd_design_name "design_1"
 
 # Set the reference directory for source file relative paths (by default the value is script directory path)

@@ -108,7 +108,6 @@ connect_bd_net [get_bd_pins clk_wiz_0/clk_out2] [get_bd_pins mig_7series_0/clk_r
 
 apply_bd_automation -rule xilinx.com:bd_rule:board -config {Board_Interface "reset ( System Reset ) " }  [get_bd_pins mig_7series_0/sys_rst]
 connect_bd_net [get_bd_pins clk_wiz_0/resetn] [get_bd_pins mig_7series_0/sys_rst]
-apply_bd_automation -rule xilinx.com:bd_rule:board -config {Board_Interface "reset ( System Reset ) " }  [get_bd_pins rst_clk_wiz_0_100M/ext_reset_in]
 
 ## Microblaze #################################################################
 

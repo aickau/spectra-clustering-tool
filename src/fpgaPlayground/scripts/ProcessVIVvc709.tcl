@@ -12,11 +12,12 @@ set enableCustomDesign yes
 # Set the directory path for the new project
 set design_dir "/prj/AFA/viv"
 set design_version v1_0
-set proj_name "709"
+set proj_name "vc709"
 set bd_design_name "design_1"
+set resource_files "../resources"
 
 # Set the reference directory for source file relative paths (by default the value is script directory path)
-set repoHW "/prj/AFA/viv/repoHW"
+set repoHW "$design_dir/repoHW/vc709"
 
 # experimental -----
 set proj_resources_dir "res"
@@ -51,12 +52,6 @@ if { $target_board == "arty" } {
 } elseif { $target_board == "vc709" } {
 	set target_part xc7vx690tffg1761-2
 	set board_property xilinx.com:vc709:part0:1.7
-} elseif { $target_board == "zedboard" } {
-	set target_part xc7z020clg484-1
-	set board_property em.avnet.com:zed:part0:1.3
-} elseif { $target_board == "zc702" } {
-	set target_part xc7z020clg484-1
-	set board_property xilinx.com:zc702:part0:1.2
 } else {
 	puts "ERROR! Selected board '$target_board' is not supported."
 	exit
