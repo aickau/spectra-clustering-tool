@@ -14,15 +14,14 @@ set design_dir "/prj/AFA/viv"
 set design_version v1_0
 set proj_name "vc709"
 set bd_design_name "design_1"
-set resource_files "../resources"
+set resource_files "res"
 
 # Set the reference directory for source file relative paths (by default the value is script directory path)
-set repoHW "$design_dir/repoHW/vc709"
+set repoHW "$design_dir/repoHW/AFAProcessHW/vc709"
 
 # experimental -----
-set proj_resources_dir "res"
-#set proj_board "xilinx.com:vc709:part0:1.7"
-#set proj_device "xc7vx690tffg1761-2"
+set proj_resources_dir [pwd]
+set proj_resources_dir $proj_resources_dir/$resource_files
 
 # ===============================================================================
 # do not modify below this line ...
@@ -51,7 +50,7 @@ if { $target_board == "arty" } {
 	set board_property digilentinc.com:arty:part0:1.1
 } elseif { $target_board == "vc709" } {
 	set target_part xc7vx690tffg1761-2
-	set board_property xilinx.com:vc709:part0:1.7
+	set board_property xilinx.com:vc709:part0:1.8
 } else {
 	puts "ERROR! Selected board '$target_board' is not supported."
 	exit
@@ -71,7 +70,6 @@ update_ip_catalog -rebuild
 #-----------------------------------------------------------
 puts "Creating block diagram..."
 source "./ProcessVIVbd_$target_board.tcl"
-exit
 
 #-----------------------------------------------------------
 # Create wrapper code
@@ -88,6 +86,8 @@ update_compile_order -fileset sim_1
 # Create constraints file
 #-----------------------------------------------------------
 
+if { $target_board == "arty" } {
+
 set constraintCode {set_property -dict { PACKAGE_PIN G18    IOSTANDARD LVCMOS33 } [get_ports { eth_ref_clk }]; #         Sch=eth_ref_clk}
 file mkdir $design_dir/$design_name_full/$design_name_full\.srcs/constrs_1
 file mkdir $design_dir/$design_name_full/$design_name_full\.srcs/constrs_1/new
@@ -95,6 +95,10 @@ set fileID [ open $design_dir/$design_name_full/$design_name_full\.srcs/constrs_
 puts $fileID $constraintCode
 close $fileID
 add_files -fileset constrs_1 $design_dir/$design_name_full/$design_name_full\.srcs/constrs_1/new/eth_ref_clk.xdc
+
+} elseif { $target_board == "vc709" } {
+
+}
 
 #-----------------------------------------------------------
 # Generate bitstream

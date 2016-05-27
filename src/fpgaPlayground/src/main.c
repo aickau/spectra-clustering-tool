@@ -403,14 +403,13 @@ void AssertCallback(
 	const char8 *File,
 	s32 Line )
 {
-	LEDRGBSet( 0, EVAL_BOARD_LEDRGB_RED );		// min/max state
-
 	printf( "ASSERTION: File=%s, Line=%ld\n", File, Line );
+	LEDRGBSet( 0, EVAL_BOARD_LEDRGB_RED );		// min/max state
 }
 #endif
 
 #ifdef AFA_RUN_PROCESSHW_HW
-uint32_t *param = ( uint32_t * ) 0xc0000000;
+uint32_t *param = ( uint32_t * ) XPAR_AXI_BRAM_CTRL_0_S_AXI_BASEADDR;
 #else
 uint32_t param[ 256 ];
 #endif

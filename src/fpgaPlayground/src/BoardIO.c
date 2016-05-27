@@ -39,12 +39,12 @@ LEDInit()
 	* Set the direction for all signals to be outputs
 	*/
 	XGpio_SetDataDirection( &GpioOutput, GPIO_CHANNEL_LED_MONO, 0x00000000 );
-	XGpio_SetDataDirection( &GpioOutput, GPIO_CHANNEL_LED, 0x00000000 );
+//	XGpio_SetDataDirection( &GpioOutput, GPIO_CHANNEL_LED, 0x00000000 );
 	
 	gMonoLEDState = 0x00000000;
 	gRGBLEDState = 0x00000000;
 	XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED_MONO, gMonoLEDState );
-	XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED, gRGBLEDState );
+//	XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED, gRGBLEDState );
 	
 	return TRUE;
 }
@@ -72,7 +72,7 @@ LEDRGBSet(
 {
 	gRGBLEDState &= ~( 7 << ( idx * 3 ));
 	gRGBLEDState |= (( uint32_t ) col ) << ( idx * 3 );
-	XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED, gRGBLEDState );
+//	XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED, gRGBLEDState );
 }
 
 #else
@@ -116,6 +116,10 @@ LEDBinaryShow(
 	number & 0x00000002 ? LEDSet( 1 ) : LEDReset( 1 );
 	number & 0x00000004 ? LEDSet( 2 ) : LEDReset( 2 );
 	number & 0x00000008 ? LEDSet( 3 ) : LEDReset( 3 );
+	number & 0x00000010 ? LEDSet( 4 ) : LEDReset( 4 );
+	number & 0x00000020 ? LEDSet( 5 ) : LEDReset( 5 );
+	number & 0x00000040 ? LEDSet( 6 ) : LEDReset( 6 );
+	number & 0x00000080 ? LEDSet( 7 ) : LEDReset( 7 );
 }
 
 void
