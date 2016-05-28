@@ -74,15 +74,9 @@ typedef struct
     // squared grid size, number of neurons
     uint32_t       m_gridSizeSqr;
 
-    //// random
-    //unsigned long m_mt[ RANDOM_N ]; // the array for the state vector
-    //int m_mti;
-
-    //int m_pStart;
-    //int m_pEnd;
-
     // memory needs
     AFAProcessingWorkData_t workData[ 10 ];
+    uint32_t workDataNumRecords;
     uint64_t memoryBlockSizeAllocated;
     void *memoryBlockBaseAddressAllocated;
     uint64_t memoryBlockSizeNeeded;

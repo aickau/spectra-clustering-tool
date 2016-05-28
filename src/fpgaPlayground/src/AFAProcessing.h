@@ -19,7 +19,7 @@ AFAProcessSetParamBlockParameters();
 uint32_t
 AFACalcGridSize( uint32_t numSpectra );
 
-void
+bool_t
 AFAHelperStructures_MemAllocate();
 void
 AFAHelperStructures_MemFree();

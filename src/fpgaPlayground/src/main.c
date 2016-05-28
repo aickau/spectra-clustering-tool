@@ -418,7 +418,7 @@ int main(
     int argc,
     char* argv[])
 {
-    uint32_t srcDataSelector = 0;
+    uint32_t srcDataSelector = 1;
     AFASpectra_SW *spectraDataInput;
     uint32_t *spectraDataInputHW;
     AFASpectra_SW *spectraDataWorkingSet;
@@ -476,7 +476,14 @@ int main(
             numSpectra = 100;  // do we have more than 4bn spectra ... ? not in THESE times
             break;
         }
-        case 1: // load from array
+        case 1: // 100 Spectra from Philipp
+        {
+            printf( "* Get number of spectra from Philipp\n" );
+
+            numSpectra = 100;  // do we have more than 4bn spectra ... ? not in THESE times
+            break;
+        }
+        case 2: // load from array
         {
             printf( "* Get number of spectra from array\n" );
 //            dumpFileSize = getSpectraArraySize();
@@ -489,7 +496,7 @@ int main(
             }
             break;
         }
-        case 2: // load from file
+        case 3: // load from file
         {
             printf( "* Get number of spectra from file\n" );
             dumpFileSize = getFileSize( dumpFilename );
@@ -507,7 +514,7 @@ int main(
     printf( "* Set default parameters\n" );
     AFASetDefaultParameters( &AFAPP_sw.m_params );
 #ifdef JSCDBG_ITER_SPECIAL
-    AFAPP_sw.m_params.numSteps = 1;
+    AFAPP_sw.m_params.numSteps = 0;
 #else
     AFAPP_sw.m_params.numSteps = 200;
 #endif
@@ -549,7 +556,20 @@ int main(
                 numSpectra );
             break;
         }
-        case 1: // load from array
+        case 1:	// spectra uploaded to 0x90000000
+        {
+            printf( "* Copy Philipps test spectra\n" );
+            memcpy( spectraDataInput, ( void * ) 0x90000000, numSpectra * sizeof( AFASpectra_SW )); // single spectrum about 2400 bytes
+
+            printf( "* Convert spectra records: input data\n" );
+            // convert sine data
+            swSpectraToHwSpectra(
+                spectraDataInput,
+                spectraDataInputHW,
+                numSpectra );
+            break;
+        }
+        case 2: // load from array
         {
             printf( "* Read spectra array\n" );
 //            if ( readSpectraArrayToHWSpectra( numSpectra, spectraDataInputHW ) == FALSE )
@@ -559,7 +579,7 @@ int main(
             }
             break;
         }
-        case 2: // load from file
+        case 3: // load from file
         {
             printf( "* Load spectra from file\n" );
             if ( readSpectraFileToHWSpectra( dumpFilename, numSpectra, spectraDataInputHW ) == FALSE )
@@ -754,8 +774,8 @@ int main(
 			printf( "\n" );
             break;
         }
-        case 1: // load from array
-        case 2: // load from file
+        case 2: // load from array
+        case 3: // load from file
         {
 			uint32_t *p = ( uint32_t * )afaTestDataGoldenResult_data; // beware of the endianess
 

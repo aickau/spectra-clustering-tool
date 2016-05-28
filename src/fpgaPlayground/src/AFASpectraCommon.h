@@ -63,7 +63,7 @@ enum
     AFA_SPECTRA_INDEX_SIZE_IN_BYTES = AFA_SPECTRA_INDEX_SIZE_IN_UINT32 * 4  //< size of data-record in bytes
 };
 
-
+#if 0 // old without "enough" padding
 typedef struct AFASpectra_
 {
     float32_t m_Amplitude[ AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW ];		// amplitude in 10^(-17) erg/cm/s^2/Ang
@@ -89,6 +89,34 @@ typedef struct AFASpectra_
     char pad[3];						// for padding to multiple of 16 byte boundaries
 
 } AFASpectra_SW;
+#else
+typedef struct AFASpectra_
+{
+    float32_t m_Amplitude[ AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW ];        // amplitude in 10^(-17) erg/cm/s^2/Ang
+    float32_t m_Min;
+    float32_t m_Max;
+    sint32_t m_Index;                    // index to source spectrum [0..num src spectra-1], -1 = no src spectrum
+    uint16_t m_SamplesRead;
+    uint16_t m_pad;
+    uint64_t m_SpecObjID;                // spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
+    uint32_t m_Type;                        // bits 0..2 SpectraClass
+    uint32_t m_version;                    //< SP_VERSION_INVALID=0,            invalid version or spectra
+                                        //< SP_ARTIFICIAL,                    artificial spectra, not loaded from any source.
+                                        //< SP_CSV,                            from comma separated values
+                                        //< SP_VERSION_DR7,                    Spectra DR1..DR7
+                                        //< SP_VERSION_DR8,                    DR8, DR9
+                                        //< SP_VERSION_BOSS,                BOSS spectra from DR9/DR10, new spectrograph, different wavelenght range
+                                        //< SP_VERSION_APOGEE,                Infrared Apogee spectrom from SDSS III
+                                        //< SP_LIGHTCURVE_SDSS,                Lightcurve with associated SDSS info (plate id, MJD fiber id)
+                                        //< SP_LIGHTCURVE_RADEC,            Lightcurve with associated ra/dec
+                                        //< SP_LIGHTCURVE_PLAIN,            Lightcurve without any associated information
+    float64_t m_Z;
+    float32_t m_flux;
+    char m_status;                        // 0=ok, 1=bad pixels
+    char pad[7];                        // for padding to multiple of 16 byte boundaries
+
+} AFASpectra_SW;
+#endif
 
 typedef float32_t
     AFASpectra_t;
