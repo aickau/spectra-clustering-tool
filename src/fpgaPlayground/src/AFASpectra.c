@@ -20,7 +20,7 @@ AFASpectraClear(
     sp->m_SpecObjID = 0;
     sp->m_flux = 0.0f;
 
-    for ( i = AFA_PROCESS_PIXEL_START; i <= AFA_PROCESS_PIXEL_END; i++ )
+    for ( i = AFA_PROCESS_PIXEL_START; i < AFA_PROCESS_PIXEL_END; i++ )
     {
         sp->m_Amplitude[ i ] = 0.0f;
     }
@@ -62,7 +62,7 @@ AFASpectraCalcMinMax(
     uint32_t i;
     sp->m_Min = FLT_MAX;
     sp->m_Max = -FLT_MAX;
-    for ( i = AFA_PROCESS_PIXEL_START; i <= AFA_PROCESS_PIXEL_END; i++ )
+    for ( i = AFA_PROCESS_PIXEL_START; i < AFA_PROCESS_PIXEL_END; i++ )
     {
         if ( sp->m_Min > sp->m_Amplitude[ i ])
             sp->m_Min = sp->m_Amplitude[ i ];
@@ -91,7 +91,7 @@ AFASpectraRandomize(
 
     d = maxrange-minrange;
 
-    for ( i = AFA_PROCESS_PIXEL_START; i <= AFA_PROCESS_PIXEL_END; i++ )
+    for ( i = AFA_PROCESS_PIXEL_START; i < AFA_PROCESS_PIXEL_END; i++ )
     {
         sp->m_Amplitude[ i ] = AFARandomFloat() * d + minrange;
     }
@@ -111,7 +111,7 @@ AFASpectraSet(
     dst->m_SpecObjID		= src->m_SpecObjID;
     dst->m_flux				= src->m_flux;
 
-    for ( i = AFA_PROCESS_PIXEL_START; i <= AFA_PROCESS_PIXEL_END; i++ )
+    for ( i = AFA_PROCESS_PIXEL_START; i < AFA_PROCESS_PIXEL_END; i++ )
     {
         dst->m_Amplitude[ i ] = src->m_Amplitude[ i ];
     }
@@ -125,7 +125,7 @@ void AFASpectraCalculateFlux(
     unsigned int i;
     double flux = 0.0;
     float offset = ( sp->m_Min < 0.0f ) ? -sp->m_Min : 0.0f; //< the offset in negative cases leads to wrong normalization
-    for ( i = AFA_PROCESS_PIXEL_START; i <= AFA_PROCESS_PIXEL_END; i++ )
+    for ( i = AFA_PROCESS_PIXEL_START; i < AFA_PROCESS_PIXEL_END; i++ )
     {
         flux += ( double )( sp->m_Amplitude[ i ] + offset );
     }
@@ -145,7 +145,7 @@ AFASpectraNormalizeByFlux(
     if ( sp->m_flux <= 0.0f )   
         return;
     // here the amplitudes are normalized. In the end they together should sum up to one.
-    for ( i = AFA_PROCESS_PIXEL_START; i <= AFA_PROCESS_PIXEL_END; i++ )
+    for ( i = AFA_PROCESS_PIXEL_START; i < AFA_PROCESS_PIXEL_END; i++ )
     {	
         sp->m_Amplitude[ i ] /= ( sp->m_flux * 0.001f );  //< JSC: is this 0.001 to escape from far too small flux values?
     }

@@ -35,7 +35,7 @@
 // select SDSS or BOSS here: end ...
 // =============================================
 
-#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW      ( AFA_PROCESS_PIXEL_END - AFA_PROCESS_PIXEL_START + 1 )
+#define AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW      ( AFA_PROCESS_PIXEL_END - AFA_PROCESS_PIXEL_START )
 
 
 //

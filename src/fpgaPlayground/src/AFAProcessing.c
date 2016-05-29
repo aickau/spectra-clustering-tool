@@ -426,7 +426,7 @@ AFAInitProcessingNew(
                 b = &AFAPP_sw.spectraDataInput[ spectraIndex ];
 
                 AFASpectraSet( a, b );
-                a->m_pad2 = i;
+                a->m_pad2 = spectraIndex;
             }
         }
     }
