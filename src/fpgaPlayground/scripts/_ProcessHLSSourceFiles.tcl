@@ -12,6 +12,7 @@ add_files     $cur_dir/$src_dir/AFATypes.h
 # Testbench files
 add_files -tb $cur_dir/$src_dir/main.c
 # -cflags "-D_FILE_OFFSET_BITS=64"
+add_files -tb $cur_dir/$src_dir/AFAConfig.h
 add_files -tb $cur_dir/$src_dir/AFADefines.h
 add_files -tb $cur_dir/$src_dir/AFANetworkSettings.c
 add_files -tb $cur_dir/$src_dir/AFANetworkSettings.h
