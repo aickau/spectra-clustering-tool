@@ -237,9 +237,6 @@ bool_t readSpectraFileToHWSpectra(
             fclose(f);
             return FALSE;
         }
-
-        swSpectraToHwSpectra( &tempSp, &outHWAddr[offset], 1 );
-        offset += AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
     }
 
     fclose( f );
@@ -344,9 +341,6 @@ bool_t readSpectraArrayToHWSpectra(
         {
             return FALSE;
         }
-
-        swSpectraToHwSpectra( &tempSp, &outHWAddr[offset], 1 );
-        offset += AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
     }
 
     return TRUE;
@@ -368,9 +362,6 @@ bool_t readSpectraArrayToHWSpectra(
     uint32_t numSpectra,
     uint32_t *outHWAddr )
 {
-
-    swSpectraToHwSpectra( testAFAshort_data, outHWAddr, numSpectra );
-
     return TRUE;
 }
 uint64_t
@@ -544,7 +535,7 @@ int main(
     printf( "* Set default parameters\n" );
     AFASetDefaultParameters( &AFAPP_sw.m_params );
 #ifdef JSCDBG_ITER_SPECIAL
-    AFAPP_sw.m_params.numSteps = 0;
+    AFAPP_sw.m_params.numSteps = 1;
 #else
     AFAPP_sw.m_params.numSteps = 200;
 #endif
@@ -593,11 +584,6 @@ int main(
             memcpy( spectraDataInput, ( void * ) 0x90000000, numSpectra * sizeof( AFASpectra_SW )); // single spectrum about 2400 bytes
 
             printf( "* Convert spectra records: input data\n" );
-            // convert sine data
-            swSpectraToHwSpectra(
-                spectraDataInput,
-                spectraDataInputHW,
-                numSpectra );
             break;
 #endif
         }
