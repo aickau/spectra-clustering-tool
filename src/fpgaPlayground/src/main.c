@@ -205,7 +205,8 @@ hwSpectraToSwSpectra(
       }
 
       outSp->m_Index = spectraArrayHw[ spectraAdress + AFA_SPECTRA_INDEX_INDEX ];
-      outSp->m_SpecObjID = (uint64_t)spectraArrayHw[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] | ((uint64_t)spectraArrayHw[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] << 32);
+      outSp->m_SpecObjID = ( uint64_t )spectraArrayHw[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW  ] |
+                          (( uint64_t )spectraArrayHw[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] << 32);
    }
 }
 
@@ -366,16 +367,8 @@ bool_t readSpectraArrayToHWSpectra(
     uint32_t numSpectra,
     uint32_t *outHWAddr )
 {
-    uint32_t i;
-    uint64_t offset = 0;
 
-    for ( i = 0; i < numSpectra; i++ )
-    {
-        AFASpectra_SW *tempSp = ( AFASpectra_SW * ) &testAFAshort_data[ i ];
-
-        swSpectraToHwSpectra( tempSp, &outHWAddr[ offset ], 1 );
-        offset += AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
-    }
+    swSpectraToHwSpectra( testAFAshort_data, outHWAddr, numSpectra );
 
     return TRUE;
 }
@@ -508,9 +501,8 @@ int main(
         }
         case 1: // 100 Spectra from Philipp
         {
-            AFASpectra_SW *tempSp = ( AFASpectra_SW * ) &testAFAshort_data[ 0 ];
             printf( "* Get number of spectra from array (Philipp)\n" );
-            dumpFileSize = getSpectraArraySize();
+            dumpFileSize = testAFAshort_size;
             numSpectra   = ( uint32_t )( dumpFileSize / sizeof( AFASpectra_SW ));
             remainder    = ( uint32_t )( dumpFileSize % sizeof( AFASpectra_SW ));
             if ( numSpectra == 0 || remainder != 0 )
@@ -595,12 +587,15 @@ int main(
         }
         case 1:	// spectra uploaded to 0x90000000
         {
-            printf( "* Read spectra array\n" );
-            if ( readSpectraArrayToHWSpectra( numSpectra, spectraDataInputHW ) == FALSE )
-            {
-                printf( "Error processing TestDataArray.\n" );
-                exit( 3 );
-            }
+            printf( "* Read spectra array (Philipp)\n" );
+            // copy test data to correct memory location
+            memcpy( spectraDataInput, testAFAshort_data, testAFAshort_size );
+
+            // convert data to new layout
+            swSpectraToHwSpectra(
+                ( AFASpectra_SW * )testAFAshort_data,
+                spectraDataInputHW,
+                numSpectra );
             break;
 #if 0
             printf( "* Copy Philipps test spectra\n" );
@@ -764,7 +759,7 @@ int main(
             printf( "[%3ld/%3d = %3ld%%] IterTime: %ld [%7.2fsec.]\n",
                 currentStep,
                 AFAPP_sw.m_params.numSteps,
-                ( currentStep * 100 ) / AFAPP_sw.m_params.numSteps,
+                ( currentStep * 100 ) / ( AFAPP_sw.m_params.numSteps + 1 ),
                 timeIterationEnd - timeIterationStart,
                 (( float64_t )( timeIterationEnd - timeIterationStart )) / (( float64_t ) CLOCKS_PER_SEC ));
             if ( !rc )
