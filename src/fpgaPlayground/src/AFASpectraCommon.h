@@ -7,16 +7,16 @@
 
 #define AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR    ( 8 )             // reduce number of pixel by a factor of 8 (use only values of 2^n)
 
-#define AFA_SPECTRA_NUM_SAMPLES_SDSS			   (  3900 )         // number of samples in SDSS spectra
+#define AFA_SPECTRA_NUM_SAMPLES_SDSS			(  3900 )         // number of samples in SDSS spectra
 #define AFA_WAVE_LEN_START_SDSS		            (  3800 )		   // wavelength coverage (in Angström) for SDSS spectra (EDR..DR8)
-#define AFA_WAVE_LEN_END_SDSS			            (  9200 )
+#define AFA_WAVE_LEN_END_SDSS			        (  9200 )
 #define AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_SW ( AFA_SPECTRA_NUM_SAMPLES_SDSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra for our processing
 #define AFA_SDSS_SPECTRA_START                  (     0 )
 #define AFA_SDSS_SPECTRA_END                    ( AFA_SPECTRA_NUM_SAMPLES_PROCESS_SDSS_SW - 1 )
 
-#define AFA_SPECTRA_NUM_SAMPLES_BOSS			   (  4700 )			// number of samples in BOSS spectra
+#define AFA_SPECTRA_NUM_SAMPLES_BOSS			(  4700 )			// number of samples in BOSS spectra
 #define AFA_WAVE_LEN_START_BOSS		            (  3650 )			// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
-#define AFA_WAVE_LEN_END_BOSS			            ( 10400 )						
+#define AFA_WAVE_LEN_END_BOSS			        ( 10400 )						
 #define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS_SW ( AFA_SPECTRA_NUM_SAMPLES_BOSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra
 #define AFA_BOSS_WAVELEN_PER_PIXEL              (( float32_t )AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR * ( float32_t )( AFA_WAVE_LEN_END_BOSS - AFA_WAVE_LEN_START_BOSS ) / ( float32_t )AFA_SPECTRA_NUM_SAMPLES_BOSS )
 #define AFA_BOSS_SPECTRA_START                  (( uint32_t )(( float32_t )( AFA_WAVE_LEN_START_SDSS - AFA_WAVE_LEN_START_BOSS ) / AFA_BOSS_WAVELEN_PER_PIXEL ))
@@ -101,6 +101,7 @@ typedef struct AFASpectra_
     sint32_t m_Index;                    // index to source spectrum [0..num src spectra-1], -1 = no src spectrum
     uint16_t m_SamplesRead;
     uint16_t m_pad;
+    uint32_t m_pad2;
     uint64_t m_SpecObjID;                // spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
     uint32_t m_Type;                        // bits 0..2 SpectraClass
     uint32_t m_version;                    //< SP_VERSION_INVALID=0,            invalid version or spectra
@@ -116,7 +117,7 @@ typedef struct AFASpectra_
     float64_t m_Z;
     float32_t m_flux;
     char m_status;                        // 0=ok, 1=bad pixels
-    char pad[7];                        // for padding to multiple of 16 byte boundaries
+    char pad[3];                        // for padding to multiple of 16 byte boundaries
 
 } AFASpectra_SW;
 #pragma pack(pop)

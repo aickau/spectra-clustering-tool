@@ -482,6 +482,7 @@ int main(
     // processor and other HW preparations --- end --------------------------------------------------------
 
 	printf( "Starting main() ...\n" );
+    printf( "%d\n", AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW );
     LEDRGBSet( 0, EVAL_BOARD_LEDRGB_GREEN );		// power on
     if ( !AFATypesOK())
     {
