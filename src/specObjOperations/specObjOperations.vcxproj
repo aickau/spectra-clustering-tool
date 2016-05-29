@@ -169,7 +169,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;IL$(Platform).lib;ILU$(Platform).lib;fits$(Platform).lib;tinyxmld_STL$(Platform).lib;libtiff$(Platform).lib;zlib$(Platform)$(Configuration).lib;sdsslib$(Platform)$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;IL$(Platform).lib;ILU$(Platform).lib;fits$(Platform).lib;tinyxml_STL$(Platform).lib;libtiff$(Platform).lib;zlib$(Platform)$(Configuration).lib;sdsslib$(Platform)$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)../$(ProjectName)$(Platform)$(Configuration).exe</OutputFile>
       <AdditionalLibraryDirectories>../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../3rdparty/api/libtiff/lib;../3rdparty/api/zlib/lib;../sdsslib/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -201,7 +201,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;IL$(Platform).lib;ILU$(Platform).lib;fits$(Platform).lib;tinyxmld_STL$(Platform).lib;libtiff$(Platform).lib;zlib$(Platform)$(Configuration).lib;sdsslib$(Platform)$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;IL$(Platform).lib;ILU$(Platform).lib;fits$(Platform).lib;tinyxml_STL$(Platform).lib;libtiff$(Platform).lib;zlib$(Platform)$(Configuration).lib;sdsslib$(Platform)$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)../$(ProjectName)$(Platform)$(Configuration).exe</OutputFile>
       <AdditionalLibraryDirectories>../3rdparty/api/devil/lib;../3rdparty/api/cfitsio;../3rdparty/api/tinyxml;../3rdparty/api/libtiff/lib;../3rdparty/api/zlib/lib;../sdsslib/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
