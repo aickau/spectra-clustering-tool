@@ -91,6 +91,7 @@ typedef struct AFASpectra_
 } AFASpectra_SW;
 #else
 
+#pragma pack(push)
 #pragma pack ( 1 )
 typedef struct AFASpectra_
 {
@@ -118,6 +119,7 @@ typedef struct AFASpectra_
     char pad[7];                        // for padding to multiple of 16 byte boundaries
 
 } AFASpectra_SW;
+#pragma pack(pop)
 #endif
 
 typedef float32_t

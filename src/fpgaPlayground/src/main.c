@@ -61,6 +61,9 @@ extern unsigned char afaTestDataGoldenResult_data[];
 // philipp short
 extern const unsigned long testAFAshort_size;
 extern unsigned char testAFAshort_data[];
+extern const unsigned long testAFAshortIndex0000_size;
+extern const unsigned char testAFAshortIndex0000_data[];
+
 
 // current learning step
 sint32_t currentStep;
@@ -815,6 +818,45 @@ int main(
 				printf( "},\n" );
 			}
 			printf( "\n" );
+            break;
+        }
+        case 1: // simple sine spectra
+        {
+            sint32_t idx_golden;
+            uint32_t *p = ( uint32_t * )testAFAshortIndex0000_data; // beware of the endianess
+
+            // print results
+            gridSize = AFACalcGridSize(numSpectra);
+
+            printf( "\nFinal result !\n" );
+            for ( yp = 0; yp < gridSize; yp++ )
+            {
+                printf( "\t{" );
+                for ( xp = 0; xp < gridSize; xp++ )
+                {
+                    idx = AFAGetSpectraIndexNew( xp, yp );
+                    idx = ( idx < 0 ) ? -1 : idx;
+					idx_golden = p[ yp * gridSize + xp ];
+                    if ( idx != idx_golden )
+                    {
+                        rv = 1000000 + xp + yp * gridSize;
+
+                        if ( idx < 0 )
+                            printf( "*  -1* " );
+                        else
+                            printf( "*%4ld* ", idx );
+                    }
+                    else
+                    {
+                        if ( idx < 0 )
+                            printf( "   -1, " );
+                        else
+                            printf( " %4ld, ", idx );
+                    }
+                }
+                printf( "},\n" );
+            }
+            printf( "\n" );
             break;
         }
         case 2: // load from array
