@@ -160,7 +160,6 @@ swSpectraToHwSpectra(
    for ( i = 0; i < numSpectra; i++ )
    {
       sp = &spectraArraySw[ i ];
-
       spectraAdress =  i * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
 
       for ( j = 0; j < AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW; j++ )
@@ -171,6 +170,8 @@ swSpectraToHwSpectra(
       }
 
       outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_INDEX            ] = sp->m_Index;
+outHWAddr[ spectraAdress + AFA_DEBUG_MAGIC ] = 0x12345678;
+outHWAddr[ spectraAdress + AFA_DEBUG_JSC ] = sp->m_pad2;
       outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW  ] = ( uint32_t )( sp->m_SpecObjID & 0x0ffffffff );
       outHWAddr[ spectraAdress + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = ( uint32_t )( sp->m_SpecObjID >> 32 );
    }
@@ -482,7 +483,6 @@ int main(
     // processor and other HW preparations --- end --------------------------------------------------------
 
 	printf( "Starting main() ...\n" );
-    printf( "%d\n", AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW );
     LEDRGBSet( 0, EVAL_BOARD_LEDRGB_GREEN );		// power on
     if ( !AFATypesOK())
     {
@@ -642,6 +642,9 @@ int main(
         spectraDataWorkingSet,
         spectraDataWorkingSetHW,
         gridSizeSqr );
+
+    AFARandomInitRandom(
+        AFAPP_sw.m_params.randomSeed );
 
 
     // here we convert pointer differences to byte offsets (baseAddr is NULL)

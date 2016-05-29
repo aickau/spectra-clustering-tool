@@ -19,7 +19,7 @@
 #define AFA_WAVE_LEN_END_BOSS			        ( 10400 )						
 #define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS_SW ( AFA_SPECTRA_NUM_SAMPLES_BOSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra
 #define AFA_BOSS_WAVELEN_PER_PIXEL              (( float32_t )AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR * ( float32_t )( AFA_WAVE_LEN_END_BOSS - AFA_WAVE_LEN_START_BOSS ) / ( float32_t )AFA_SPECTRA_NUM_SAMPLES_BOSS )
-#define AFA_BOSS_SPECTRA_START                  (( uint32_t )(( float32_t )( AFA_WAVE_LEN_START_SDSS - AFA_WAVE_LEN_START_BOSS ) / AFA_BOSS_WAVELEN_PER_PIXEL ))
+#define AFA_BOSS_SPECTRA_START                  (( uint32_t )(( float32_t )( AFA_WAVE_LEN_START_SDSS - AFA_WAVE_LEN_START_BOSS ) / AFA_BOSS_WAVELEN_PER_PIXEL ) - 1 )
 #define AFA_BOSS_SPECTRA_END                    (( uint32_t )(( float32_t )( AFA_WAVE_LEN_END_SDSS   - AFA_WAVE_LEN_START_SDSS ) / AFA_BOSS_WAVELEN_PER_PIXEL ))
 
 // =============================================
@@ -55,11 +55,13 @@ enum
     // indices describe index in float array describing the spectrum
     AFA_SPECTRA_INDEX_AMPLITUDE = 0,                                //< index 0: amplitude 0
                                                                     //< index n-1: amplitude n-1 (indices 0 .. n-1 are amplitudes)
-    AFA_SPECTRA_INDEX_INDEX = AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW,   //< index n: index-value
+    AFA_DEBUG_MAGIC = AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW,
+    AFA_SPECTRA_INDEX_INDEX = AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW + 1,   //< index n: index-value
     AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW,                              //< index n+1: ObjID - lower 32 bit part of object id
     AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH,						        //< index n+2: ObjID - higher 32 bit part of object id
+    AFA_DEBUG_JSC,
 
-    AFA_SPECTRA_INDEX_SIZE_IN_UINT32,                               //< size of data-record := n+3 elements (with n:=AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW)
+    AFA_SPECTRA_INDEX_SIZE_IN_UINT32 = 512,                         //< size of data-record := n+3 elements (with n:=AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW)
     AFA_SPECTRA_INDEX_SIZE_IN_BYTES = AFA_SPECTRA_INDEX_SIZE_IN_UINT32 * 4  //< size of data-record in bytes
 };
 

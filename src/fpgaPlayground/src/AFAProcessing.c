@@ -117,7 +117,7 @@ AFAHelperStructures_MemAllocate()
 {
     uint64_t memoryNeeds = AFAPP_sw.memoryBlockSizeNeeded;
     uint64_t tmpAddrCalc;
-    uint8_t clearVal = 0x76;
+    uint8_t clearVal = 0xf9;
     bool_t rv = FALSE;
 
     // increase potential memory needs to get space to shift the base address to an aligned place
@@ -174,6 +174,11 @@ AFAHelperStructures_PrepareDataStructure(
 
     printf( "Spectra record size (SW): %d [0x%8.8x]\n", sizeof( AFASpectra_SW ), sizeof( AFASpectra_SW ));
     printf( "Spectra record size (HW): %d [0x%8.8x]\n", AFA_SPECTRA_INDEX_SIZE_IN_BYTES, AFA_SPECTRA_INDEX_SIZE_IN_BYTES );
+    printf( "Spectra num samples (SW): %d\n", AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW );
+    printf( "Spectra num samples (HW): %d\n", AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW );
+    printf( "Spectra samples start   : %d\n", AFA_PROCESS_PIXEL_START );
+    printf( "Spectra samples end     : %d\n", AFA_PROCESS_PIXEL_END );
+
     printf( "\n" );
     printf( "%32s: %10s %11s %10s\n", "--------------------------------","----------","------------","----------" );
     printf( "%32s: %10s %11s %10s\n", "Section name                    ","  memory  ","mem. padded ","  offset  " );
@@ -421,6 +426,7 @@ AFAInitProcessingNew(
                 b = &AFAPP_sw.spectraDataInput[ spectraIndex ];
 
                 AFASpectraSet( a, b );
+                a->m_pad2 = i;
             }
         }
     }
