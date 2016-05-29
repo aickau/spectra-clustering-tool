@@ -91,6 +91,9 @@
     <ClCompile Include="..\src\BoardIO.c">
       <Filter>BoardFiles</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectraShort.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\AFADefines.h">

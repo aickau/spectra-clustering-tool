@@ -1,7 +1,7 @@
 set libraryname 	AFAProcessingLib
 set vendor      	SystemberatungSchwarzer
 set versionH     	0
-set versionL     	611
+set versionL     	1000
 set proj_dir		AFAProcessHW
 set display_name	AFAProcessHW
 set src_dir     	../src

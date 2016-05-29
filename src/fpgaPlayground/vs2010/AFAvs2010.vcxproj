@@ -158,6 +158,7 @@
     <ClCompile Include="..\src\AFATestDataSpectra11.c" />
     <ClCompile Include="..\src\AFATestDataSpectra12.c" />
     <ClCompile Include="..\src\AFATestDataSpectra13.c" />
+    <ClCompile Include="..\src\AFATestDataSpectraShort.c" />
     <ClCompile Include="..\src\AFATypes.c" />
     <ClCompile Include="..\src\BoardIO.c" />
     <ClCompile Include="..\src\main.c" />

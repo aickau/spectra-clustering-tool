@@ -58,6 +58,9 @@ extern unsigned char afaTestDataSpectra_data12_data[];
 extern unsigned char afaTestDataSpectra_data13_data[];
 extern unsigned long afaTestDataGoldenResult_size;
 extern unsigned char afaTestDataGoldenResult_data[];
+// philipp short
+extern const unsigned long testAFAshort_size;
+extern unsigned char testAFAshort_data[];
 
 // current learning step
 sint32_t currentStep;
@@ -354,6 +357,30 @@ getSpectraArraySize()
     }
     return size;
 }
+#else
+	// short Philipp
+bool_t readSpectraArrayToHWSpectra(
+    uint32_t numSpectra,
+    uint32_t *outHWAddr )
+{
+    uint32_t i;
+    uint64_t offset = 0;
+
+    for ( i = 0; i < numSpectra; i++ )
+    {
+        AFASpectra_SW *tempSp = ( AFASpectra_SW * ) &testAFAshort_data[ i ];
+
+        swSpectraToHwSpectra( tempSp, &outHWAddr[ offset ], 1 );
+        offset += AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
+    }
+
+    return TRUE;
+}
+uint64_t
+getSpectraArraySize()
+{
+    return testAFAshort_size;
+}
 #endif
 
 uint32_t
@@ -478,9 +505,16 @@ int main(
         }
         case 1: // 100 Spectra from Philipp
         {
-            printf( "* Get number of spectra from Philipp\n" );
-
-            numSpectra = 100;  // do we have more than 4bn spectra ... ? not in THESE times
+            AFASpectra_SW *tempSp = ( AFASpectra_SW * ) &testAFAshort_data[ 0 ];
+            printf( "* Get number of spectra from array (Philipp)\n" );
+            dumpFileSize = getSpectraArraySize();
+            numSpectra   = ( uint32_t )( dumpFileSize / sizeof( AFASpectra_SW ));
+            remainder    = ( uint32_t )( dumpFileSize % sizeof( AFASpectra_SW ));
+            if ( numSpectra == 0 || remainder != 0 )
+            {
+                printf( "SpectraArray wrong size.\n" );
+                exit( 1 );
+            }
             break;
         }
         case 2: // load from array
@@ -558,6 +592,14 @@ int main(
         }
         case 1:	// spectra uploaded to 0x90000000
         {
+            printf( "* Read spectra array\n" );
+            if ( readSpectraArrayToHWSpectra( numSpectra, spectraDataInputHW ) == FALSE )
+            {
+                printf( "Error processing TestDataArray.\n" );
+                exit( 3 );
+            }
+            break;
+#if 0
             printf( "* Copy Philipps test spectra\n" );
             memcpy( spectraDataInput, ( void * ) 0x90000000, numSpectra * sizeof( AFASpectra_SW )); // single spectrum about 2400 bytes
 
@@ -568,6 +610,7 @@ int main(
                 spectraDataInputHW,
                 numSpectra );
             break;
+#endif
         }
         case 2: // load from array
         {

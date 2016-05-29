@@ -25,7 +25,7 @@ goto end
 :vc709
 rem vc709 section -----------------------------------------
 echo VIVADO_HLS start ...
-vivado_hls -f ProcessHLSvc709.tcl
+rem vivado_hls -f ProcessHLSvc709.tcl
 echo VIVADO start ...
 vivado -mode batch -source ProcessVIVvc709.tcl -tempDir ../_tmp
 goto end

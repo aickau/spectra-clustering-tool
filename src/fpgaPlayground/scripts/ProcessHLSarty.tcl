@@ -1,7 +1,7 @@
 set libraryname 	AFAProcessingLib
 set vendor      	SystemberatungSchwarzer
 set versionH     	0
-set versionL     	611
+set versionL     	1000
 set proj_dir		AFAProcessHW
 set display_name	AFAProcessHW
 set src_dir     	../src
@@ -27,7 +27,7 @@ open_project $proj_dir
 
 set all_solution [list ARTY_32Bit_100MHz                    ]
 set all_part     [list xc7a35ticsg324-1L                    ]
-set all_clocks   [list 5ns                                  ]
+set all_clocks   [list 10ns                                 ]
 set all_axi_addr [list "-m_axi_offset off -register_io off" ]
 set all_repo_dir [list "$repo_dir/$proj_dir/arty"           ]
 #set all_repo_dir [list "../repoHW/$proj_dir/ARTY"           ]

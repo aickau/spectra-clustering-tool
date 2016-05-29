@@ -90,6 +90,8 @@ typedef struct AFASpectra_
 
 } AFASpectra_SW;
 #else
+
+#pragma pack ( 1 )
 typedef struct AFASpectra_
 {
     float32_t m_Amplitude[ AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW ];        // amplitude in 10^(-17) erg/cm/s^2/Ang
