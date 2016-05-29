@@ -167,6 +167,8 @@ adaptNetwork_HW(
 #endif  // 1st opt
 #else
 // unoptimized
+uint32_t *pDst = &baseAddr[ spectraDataWorkingSetIndex + spectraAdress ];
+uint32_t *pSrc = &baseAddr[ currentSourceSpectrumIndex ];
                 for ( i = AFA_SPECTRA_INDEX_AMPLITUDE; i < AFA_SPECTRA_INDEX_AMPLITUDE + AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW; i++ )
                 {
                     const uint32_t aTmp = baseAddr[ spectraDataWorkingSetIndex + spectraAdress + i ];

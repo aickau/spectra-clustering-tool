@@ -535,7 +535,7 @@ int main(
     printf( "* Set default parameters\n" );
     AFASetDefaultParameters( &AFAPP_sw.m_params );
 #ifdef JSCDBG_ITER_SPECIAL
-    AFAPP_sw.m_params.numSteps = 1;
+    AFAPP_sw.m_params.numSteps = 200;
 #else
     AFAPP_sw.m_params.numSteps = 200;
 #endif
