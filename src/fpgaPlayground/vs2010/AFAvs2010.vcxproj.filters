@@ -97,6 +97,9 @@
     <ClCompile Include="..\src\AFATestDataSpectraShortIndex0000.c">
       <Filter>SrcTestData</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\AFATestDataSpectraShortIndex0200.c">
+      <Filter>SrcTestData</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\AFADefines.h">

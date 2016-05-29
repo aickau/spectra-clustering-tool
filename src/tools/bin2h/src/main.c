@@ -46,7 +46,7 @@ DataWriteHeader(
 	numLines = dataSize / options->valuesPerLine;
 	p = ( unsigned char * )dataPtr;
 	
-	for ( i = 0; i < numLines - 1; ++i )
+	for ( i = 0; i < numLines; i++ )
 	{
 		if ( options->flagAddressOutput )
 		{
@@ -63,31 +63,15 @@ DataWriteHeader(
 		}
 		fprintf( fileOutput, "0x%2.2x,\n", *p++ );
 	}
+    fflush( fileOutput );
 
 	valuesPerLine = dataSize - numLines * options->valuesPerLine;
 	if ( valuesPerLine > 0 )
 	{
-		// write last FULL + PARTIAL line
-		if ( options->flagAddressOutput )
-		{
-			fprintf( fileOutput, "/* 0x%8.8x */ ", i * options->valuesPerLine );
-		}
-		else
-		{
-			fprintf( fileOutput, "    " );
-		}
-
-		for ( j = 0; j < options->valuesPerLine - 1; ++j )
-		{
-			fprintf( fileOutput, "0x%2.2x,", *p++ );
-		}
-		// problem was last comma
-		fprintf( fileOutput, "0x%2.2x,\n", *p++ );
-
 		// write PARTIAL line
 		if ( options->flagAddressOutput )
 		{
-			fprintf( fileOutput, "/* 0x%8.8x */ ", i * options->valuesPerLine );
+			fprintf( fileOutput, "/* 0x%8.8x */ ", i * options->valuesPerLine + options->addressOffset );
 		}
 		else
 		{
@@ -100,25 +84,7 @@ DataWriteHeader(
 		}
 		fprintf( fileOutput, "0x%2.2x\n", *p++ );
 	}
-	else
-	{
-		// write only last FULL line
-		if ( options->flagAddressOutput )
-		{
-			fprintf( fileOutput, "/* 0x%8.8x */ ", i * options->valuesPerLine );
-		}
-		else
-		{
-			fprintf( fileOutput, "    " );
-		}
 
-		for ( j = 0; j < options->valuesPerLine - 1; ++j )
-		{
-			fprintf( fileOutput, "0x%2.2x,", *p++ );
-		}
-		// problem was last comma
-		fprintf( fileOutput, "0x%2.2x\n", *p++ );
-	}
 	fprintf( fileOutput, "};\n" );
 }
 

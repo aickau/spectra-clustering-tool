@@ -25,6 +25,7 @@
 
 #define JSCDBG_ITER_SPECIAL
 // #define JSCDBG_PRINTOUT_GOLDEN_SAMPLE_ONLY
+//#define AFA_TEST_SHORT_ITERATION_0000
 
 extern AFAProcessingParamSW_t       AFAPP_sw;
 extern int m_mti; 
@@ -63,6 +64,8 @@ extern const unsigned long testAFAshort_size;
 extern unsigned char testAFAshort_data[];
 extern const unsigned long testAFAshortIndex0000_size;
 extern const unsigned char testAFAshortIndex0000_data[];
+extern const unsigned long testAFAshortIndex0200_size;
+extern const unsigned char testAFAshortIndex0200_data[];
 
 
 // current learning step
@@ -433,7 +436,6 @@ int main(
     int argc,
     char* argv[])
 {
-    uint32_t srcDataSelector = 1;
     AFASpectra_SW *spectraDataInput;
     uint32_t *spectraDataInputHW;
     AFASpectra_SW *spectraDataWorkingSet;
@@ -450,9 +452,12 @@ int main(
 
     uint32_t numSpectra;        // do we have more than 4bn spectra ... ? not in THESE times
     uint32_t remainder = 0;     // must kept zero, otherwise wrong
+    uint32_t srcDataSelector = 1;
 
     char dumpFilename[] = "TESTforFPGAclasses.bin";
     uint64_t dumpFileSize;
+
+    uint32_t breakAfterNumCyles;
     clock_t timeGlobalStart;
     clock_t timeGlobalEnd;
     clock_t timeIterationStart;
@@ -627,11 +632,17 @@ int main(
     AFARandomInitRandom(
         AFAPP_sw.m_params.randomSeed );
 
-
     // here we convert pointer differences to byte offsets (baseAddr is NULL)
     spectraDataInputHW_OffsetToBaseAddress      = ( char * ) AFAPP_sw.spectraDataInputHW      - (( char * ) baseAddr );
     spectraDataWorkingSetHW_OffsetToBaseAddress = ( char * ) AFAPP_sw.spectraDataWorkingSetHW - (( char * ) baseAddr );
     pSpectraIndexList_OffsetToBaseAddress       = ( char * ) AFAPP_sw.m_pSpectraIndexList     - (( char * ) baseAddr );
+
+    // define here after how many iterations we want to see a result
+#ifdef AFA_TEST_SHORT_ITERATION_0000
+    breakAfterNumCyles = 1;
+#else
+    breakAfterNumCyles = 0xffffffff;
+#endif
 
     printf( "* Iterate over working set data\n" );
     timeGlobalStart = clock();
@@ -752,7 +763,7 @@ int main(
                 currentStep++;
             }
         }
-    } while ( !rc );
+    } while (( !rc ) && ( --breakAfterNumCyles ));
     timeGlobalEnd = clock();
     printf( "GlobalTime: %ld [%7.2fsec.]\n",
 		timeGlobalEnd - timeGlobalStart,
@@ -803,8 +814,11 @@ int main(
         case 1: // simple sine spectra
         {
             sint32_t idx_golden;
+#ifdef AFA_TEST_SHORT_ITERATION_0000
             uint32_t *p = ( uint32_t * )testAFAshortIndex0000_data; // beware of the endianess
-
+#else
+            uint32_t *p = ( uint32_t * )testAFAshortIndex0200_data; // beware of the endianess
+#endif
             // print results
             gridSize = AFACalcGridSize(numSpectra);
 
