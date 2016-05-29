@@ -579,11 +579,6 @@ int main(
                 spectraDataInput );
 
             printf( "* Convert spectra records: input data\n" );
-            // convert sine data
-            swSpectraToHwSpectra(
-                spectraDataInput,
-                spectraDataInputHW,
-                numSpectra );
             break;
         }
         case 1:	// spectra uploaded to 0x90000000
@@ -592,11 +587,6 @@ int main(
             // copy test data to correct memory location
             memcpy( spectraDataInput, testAFAshort_data, testAFAshort_size );
 
-            // convert data to new layout
-            swSpectraToHwSpectra(
-                ( AFASpectra_SW * )testAFAshort_data,
-                spectraDataInputHW,
-                numSpectra );
             break;
 #if 0
             printf( "* Copy Philipps test spectra\n" );
@@ -637,6 +627,11 @@ int main(
     AFAInitProcessingNew(
         FALSE );
 
+    // convert data to new layout
+    swSpectraToHwSpectra(
+        spectraDataInput,
+        spectraDataInputHW,
+        numSpectra );
     printf( "* Convert spectra records: working set data\n" );
     swSpectraToHwSpectra(
         spectraDataWorkingSet,
