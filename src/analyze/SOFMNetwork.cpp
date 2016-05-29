@@ -223,7 +223,7 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 	const size_t memUsageBytes = m_numSpectra*sizeof(Spectra)+m_gridSizeSqr*sizeof(Spectra);
 	const double memUsageGB = static_cast<double>(memUsageBytes)/(1024.0*1024.0*1024.0);
 	Helpers::print( std::string("We need ") + Helpers::numberToString( static_cast<float>(memUsageGB)) + std::string(" GB of main memory for clustering.\n"), m_pLogStream );
-	Helpers::print( std::string("Each spectrum uses ")+Helpers::numberToString(sizeof(Spectra)) + std::string(" bytes.\n"), m_pLogStream );
+	Helpers::print( std::string("Each spectrum uses ")+Helpers::numberToString(sizeof(Spectra)) + std::string(" bytes and has "+ Helpers::numberToString(Spectra::numSamples) + " pixels.\n"), m_pLogStream );
 
 // 	Helpers::print( std::string("Spectra VFS cache line size ") + Helpers::numberToString( SpectraVFS::CACHELINESIZE ) + " spectra.\n", m_pLogStream );
 // 	Helpers::print( std::string("Spectra VFS number of cache lines ") + Helpers::numberToString( SpectraVFS::CACHELINES ) + ".\n", m_pLogStream );
@@ -836,6 +836,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 
 bool SOFMNetwork::process()
 {
+	// TODO: correct that we make the correct number of steps. Due to compatibility we leave this
 	if ( m_currentStep > m_params.numSteps )
 	{
 		Helpers::print( std::string("Clustering finished (success).\n"), m_pLogStream );
