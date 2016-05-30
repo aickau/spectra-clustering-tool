@@ -44,5 +44,8 @@ add_files -tb $cur_dir/$src_dir/AFATestDataSpectra11.c
 add_files -tb $cur_dir/$src_dir/AFATestDataSpectra12.c
 add_files -tb $cur_dir/$src_dir/AFATestDataSpectra13.c
 add_files -tb $cur_dir/$src_dir/AFATestDataGoldenResult.c
+add_files -tb $cur_dir/$src_dir/AFATestDataSpectraShort.c
+add_files -tb $cur_dir/$src_dir/AFATestDataSpectraShortIndex0000.c
+add_files -tb $cur_dir/$src_dir/AFATestDataSpectraShortIndex0200.c
 add_files -tb $cur_dir/$src_dir/BoardIO.c
 add_files -tb $cur_dir/$src_dir/BoardIO.h

@@ -207,7 +207,7 @@ connect_bd_net [get_bd_pins axi_timer_0/interrupt] [get_bd_pins microblaze_0_xlc
 if { $enableCustomDesign == "yes" } {
 	# add custom design from repo
 	startgroup
-		create_bd_cell -type ip -vlnv SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.611 AFAProcess_HW_0
+		create_bd_cell -type ip -vlnv SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.1000 AFAProcess_HW_0
 	endgroup
 
 	# connect it

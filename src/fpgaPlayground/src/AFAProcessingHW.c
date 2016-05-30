@@ -41,11 +41,6 @@ searchBestMatchComplete_HW(
         // hint this can run in parallel
         for ( i = 0; i < jInc; i++ )
         {
-uint32_t *pSrc = &baseAddr[ spectraDataInputHW_IndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + 0 ];
-uint32_t *pDst = &baseAddr[ spectraDataWorkingSetHW_IndexToMem + ( j + i ) * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + 0 ];
-float32_t tmpVal1Float;
-float32_t tmpVal2Float;
-float32_t d;
             float32_t error = 0.0f;
 
             uint32_t objIDLow  = baseAddr[ spectraDataWorkingSetHW_IndexToMem + ( j + i ) * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW  ];
@@ -57,9 +52,9 @@ float32_t d;
                 {
                     uint32_t tmpVal1 = baseAddr[ spectraDataInputHW_IndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + k ];
                     uint32_t tmpVal2 = baseAddr[ spectraDataWorkingSetHW_IndexToMem + ( j + i ) * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + k ];
-                    tmpVal1Float = *(( float32_t * ) &tmpVal1 );
-                    tmpVal2Float = *(( float32_t * ) &tmpVal2 );
-                    d = ( tmpVal2Float - tmpVal1Float );
+                    float32_t tmpVal1Float = *(( float32_t * ) &tmpVal1 );
+                    float32_t tmpVal2Float = *(( float32_t * ) &tmpVal2 );
+                    float32_t d = ( tmpVal2Float - tmpVal1Float );
                     error += d * d;
                 }
                 err[ i ] = error;
@@ -167,8 +162,6 @@ adaptNetwork_HW(
 #endif  // 1st opt
 #else
 // unoptimized
-uint32_t *pDst = &baseAddr[ spectraDataWorkingSetIndex + spectraAdress ];
-uint32_t *pSrc = &baseAddr[ currentSourceSpectrumIndex ];
                 for ( i = AFA_SPECTRA_INDEX_AMPLITUDE; i < AFA_SPECTRA_INDEX_AMPLITUDE + AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW; i++ )
                 {
                     const uint32_t aTmp = baseAddr[ spectraDataWorkingSetIndex + spectraAdress + i ];

@@ -1,7 +1,7 @@
 ################################################################
 # Check if script is running in correct Vivado version.
 ################################################################
-set scripts_vivado_version 2015.4
+set scripts_vivado_version 2016.1
 set current_vivado_version [version -short]
 
 if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
@@ -88,7 +88,7 @@ if { $nRet != 0 } {
 ## sysclock ###################################################################
 
 startgroup
-create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:5.2 clk_wiz_0
+create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:5.3 clk_wiz_0
 apply_board_connection -board_interface "sys_clock" -ip_intf "clk_wiz_0/clock_CLK_IN1" -diagram $design_name
 set_property -dict [list CONFIG.CLKOUT2_USED {true} CONFIG.CLKOUT3_USED {true} CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {166.666666666} CONFIG.CLKOUT2_REQUESTED_OUT_FREQ {200.000} CONFIG.CLKOUT3_REQUESTED_OUT_FREQ {25.000} CONFIG.RESET_TYPE {ACTIVE_LOW} CONFIG.MMCM_DIVCLK_DIVIDE {1} CONFIG.MMCM_CLKOUT0_DIVIDE_F {6.000} CONFIG.MMCM_CLKOUT1_DIVIDE {5} CONFIG.MMCM_CLKOUT2_DIVIDE {40} CONFIG.NUM_OUT_CLKS {3} CONFIG.RESET_PORT {resetn} CONFIG.CLKOUT1_JITTER {118.758} CONFIG.CLKOUT2_JITTER {114.829} CONFIG.CLKOUT2_PHASE_ERROR {98.575} CONFIG.CLKOUT3_JITTER {175.402} CONFIG.CLKOUT3_PHASE_ERROR {98.575}] [get_bd_cells clk_wiz_0]
 endgroup
@@ -96,7 +96,7 @@ endgroup
 ## DDR3 #######################################################################
 
 startgroup
-create_bd_cell -type ip -vlnv xilinx.com:ip:mig_7series:2.4 mig_7series_0
+create_bd_cell -type ip -vlnv xilinx.com:ip:mig_7series:3.0 mig_7series_0
 apply_board_connection -board_interface "ddr3_sdram" -ip_intf "mig_7series_0/mig_ddr_interface" -diagram $design_name
 endgroup
 delete_bd_objs [get_bd_nets clk_ref_i_1] [get_bd_ports clk_ref_i]
@@ -112,7 +112,7 @@ connect_bd_net [get_bd_pins clk_wiz_0/resetn] [get_bd_pins mig_7series_0/sys_rst
 ## Microblaze #################################################################
 
 startgroup
-create_bd_cell -type ip -vlnv xilinx.com:ip:microblaze:9.5 microblaze_0
+create_bd_cell -type ip -vlnv xilinx.com:ip:microblaze:9.6 microblaze_0
 endgroup
 apply_bd_automation -rule xilinx.com:bd_rule:microblaze -config {local_mem "4KB" ecc "None" cache "8KB" debug_module "Debug Only" axi_periph "Enabled" axi_intc "1" clk "/mig_7series_0/ui_clk (83 MHz)" }  [get_bd_cells microblaze_0]
 
@@ -191,7 +191,7 @@ set_property offset 0x14100000 [get_bd_addr_segs {microblaze_0/Data/SEG_axi_gpio
 if { $enableCustomDesign == "yes" } {
 	# add custom design from repo
 	startgroup
-		create_bd_cell -type ip -vlnv SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.611 AFAProcess_HW_0
+		create_bd_cell -type ip -vlnv SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.1000 AFAProcess_HW_0
 	endgroup
 	# connect it
 	startgroup

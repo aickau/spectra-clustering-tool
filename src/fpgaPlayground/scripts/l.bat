@@ -8,8 +8,8 @@ echo Extend the path ...
 path %path%;C:\Xilinx\Vivado\2016.1\bin;C:\Xilinx\Vivado_HLS\2016.1\bin
 :label
 
-goto vc709
-rem goto arty
+rem goto vc709
+goto arty
 
 echo please select board!
 goto end
