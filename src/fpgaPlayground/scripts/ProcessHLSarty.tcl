@@ -1,14 +1,17 @@
-## == Provide important informations ===========================
-set libraryname 	AFAProcessingLib
-set vendor      	SystemberatungSchwarzer
-set versionH     	0
-set versionL     	1001
-set proj_name		AFAProcessHW
-set display_name	AFAProcessHW
-set platform_name	arty
-set src_dir     	../src
-set design_dir		"/AFA"
-set repo_dir        "/AFA/repoHW"
+## == Provide important information ============================
+set proj_name             AFAProcessHW
+set platform_name         arty
+set src_dir               ../src
+set design_dir            "/AFA"
+set repo_dir              "/AFA/repoHW"
+
+set libraryname           AFAProcessingLib
+set vendor                SystemberatungSchwarzer
+set design_version_HLS_H  0
+set design_version_HLS_L  1000
+set display_name          $proj_name
+
+# do not modify below this line ...
 ## =============================================================
 
 ## == Prepare directory variables ==============================
@@ -42,6 +45,6 @@ set all_solution [list ARTY_32Bit_100MHz                                       ]
 set all_part     [list xc7a35ticsg324-1L                                       ]
 set all_clocks   [list 3.333333ns                                              ]
 set all_axi_addr [list "-m_axi_offset off -register_io off"                    ]
-set all_repo_dir [list [file normalize "$repo_dir/$proj_name/$platform_name" ] ]
+set all_repo_dir [list [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] ]
 
 source $prj_dir_scripts/_ProcessHLSCore.tcl

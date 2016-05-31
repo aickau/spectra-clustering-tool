@@ -188,11 +188,15 @@ set_property offset 0x14100000 [get_bd_addr_segs {microblaze_0/Data/SEG_axi_gpio
 
 ## Insert custom IP ###########################################################
 
-if { $enableCustomDesign == "yes" } {
+if { $CustomIPEnable == "yes" } {
+	# store design up to this point
+	save_bd_design
+
 	# add custom design from repo
 	startgroup
 		create_bd_cell -type ip -vlnv SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.1000 AFAProcess_HW_0
 	endgroup
+
 	# connect it
 	startgroup
 		apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Periph)" Clk "Auto" }  [get_bd_intf_pins AFAProcess_HW_0/s_axi_INTERFACE_AXILITE_SLAVE]
