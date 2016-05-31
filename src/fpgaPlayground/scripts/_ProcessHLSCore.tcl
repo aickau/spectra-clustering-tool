@@ -1,4 +1,4 @@
-source $cur_dir/_ProcessHLSSourceFiles.tcl
+source $prj_dir_scripts/_ProcessHLSSourceFiles.tcl
 
 foreach solution $all_solution part $all_part clock $all_clocks axi_addr $all_axi_addr repo_dir_new $all_repo_dir {
 	puts "axi_addr=$axi_addr"
@@ -25,6 +25,6 @@ foreach solution $all_solution part $all_part clock $all_clocks axi_addr $all_ax
 
 	#copy result to repo
 	file mkdir $repo_dir_new
-	file copy $proj_dir/$solution/impl/ip/$vendor\_$libraryname\_$top_function\_$versionH\_$versionL\.zip $repo_dir_new
+	file copy $prj_dir_hls/$proj_name/$solution/impl/ip/$vendor\_$libraryname\_$top_function\_$versionH\_$versionL\.zip $repo_dir_new
 }
 exit

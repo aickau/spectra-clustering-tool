@@ -1,48 +1,47 @@
+## == Provide important informations ===========================
 set libraryname 	AFAProcessingLib
 set vendor      	SystemberatungSchwarzer
 set versionH     	0
-set versionL     	1000
-set proj_dir		AFAProcessHW
+set versionL     	1001
+set proj_name		AFAProcessHW
 set display_name	AFAProcessHW
+set platform_name	arty
 set src_dir     	../src
-set design_dir		"/prj/AFA/viv"
-set repo_dir        "/prj/AFA/viv/repoHW"
-# ============================================
+set design_dir		"/AFA"
+set repo_dir        "/AFA/repoHW"
+## =============================================================
 
+## == Prepare directory variables ==============================
 set cur_dir [pwd]
-#puts CurDir=$cur_dir
-#file mkdir $design_dir/hls
-#cd $design_dir/hls
-#set new_dir [pwd]
-#puts NewDir=$new_dir
-#cd $cur_dir
-#set final_dir [pwd]
-#puts FinalDir=$final_dir
-#exit 1
 
-file mkdir $design_dir
-file mkdir $design_dir/hls
-cd $design_dir/hls
-open_project $proj_dir
+set prj_dir_src_code "[file normalize "$cur_dir/$src_dir"]"
+set prj_dir_scripts  "[file normalize "$cur_dir"]"
+set prj_dir_design   "[file normalize "$design_dir"]"
+set prj_dir_repo     "[file normalize "$repo_dir"]"
+set prj_dir_hls      "[file normalize "$design_dir/hls"]"
 
-set all_solution [list ARTY_32Bit_100MHz                    ]
-set all_part     [list xc7a35ticsg324-1L                    ]
-set all_clocks   [list 10ns                                 ]
-set all_axi_addr [list "-m_axi_offset off -register_io off" ]
-set all_repo_dir [list "$repo_dir/$proj_dir/arty"           ]
-#set all_repo_dir [list "../repoHW/$proj_dir/ARTY"           ]
+puts "SourceCode\: $prj_dir_src_code"
+puts "Scripts\:    $prj_dir_scripts"
+puts "Design\:     $prj_dir_design"
+puts "Repo\:       $prj_dir_repo"
+puts "HLS\:        $prj_dir_hls"
 
-#set all_solution [list AFAProcessing_64Bit_250MHz-2 AFAProcessing_32Bit_100MHz-1 ]
-#set all_part     [list xc7vx690tffg1761-2           xc7a35ticsg324-1L            ]
-#set all_clocks   [list 4ns                          10ns                         ]
-#set all_axi_addr [list "-m_axi_addr64 -m_axi_offset off -register_io off"              " "                          ]
+## == Prepare project start ====================================
 
-#set all_solution [list AFAProcessing_64Bit_250MHz-2 AFAProcessing_64Bit_400MHz-2 ]
-#set all_part     [list xc7vx690tffg1761-2           xc7vx690tffg1761-2           ]
-#set all_clocks   [list 4ns                          2.5ns                        ]
+file mkdir $prj_dir_design
+file mkdir $prj_dir_hls
+cd $prj_dir_hls
 
-#set all_solution [list AFAProcessing_64Bit_250MHz-1 AFAProcessing_64Bit_250MHz-2 AFAProcessing_64Bit_333MHz-1 AFAProcessing_64Bit_333MHz-2 AFAProcessing_64Bit_400MHz-1 AFAProcessing_64Bit_400MHz-2]
-#set all_part     [list xc7vx690tffg1761-1           xc7vx690tffg1761-2           xc7vx690tffg1761-1           xc7vx690tffg1761-2           xc7vx690tffg1761-1           xc7vx690tffg1761-2          ]
-#set all_clocks   [list 4ns                          4ns                          3.333ns                      3.333ns                      2.5ns                        2.5ns                       ]
+## == Create project ===========================================
 
-source $cur_dir/_ProcessHLSCore.tcl
+open_project $proj_name
+
+## == Define variations for "HLS-Solutions" ====================
+
+set all_solution [list ARTY_32Bit_100MHz                                       ]
+set all_part     [list xc7a35ticsg324-1L                                       ]
+set all_clocks   [list 3.333333ns                                              ]
+set all_axi_addr [list "-m_axi_offset off -register_io off"                    ]
+set all_repo_dir [list [file normalize "$repo_dir/$proj_name/$platform_name" ] ]
+
+source $prj_dir_scripts/_ProcessHLSCore.tcl

@@ -172,12 +172,12 @@ AFAHelperStructures_PrepareDataStructure(
 
 	// TODO: put this into a function
 
-    printf( "Spectra record size (SW): %d [0x%8.8x]\n", sizeof( AFASpectra_SW ), sizeof( AFASpectra_SW ));
+    printf( "Spectra record size (SW): %lld [0x%8.8llx]\n", sizeof( AFASpectra_SW ), sizeof( AFASpectra_SW ));
     printf( "Spectra record size (HW): %d [0x%8.8x]\n", AFA_SPECTRA_INDEX_SIZE_IN_BYTES, AFA_SPECTRA_INDEX_SIZE_IN_BYTES );
     printf( "Spectra num samples (SW): %d\n", AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW );
-    printf( "Spectra num samples (HW): %d\n", AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW );
-    printf( "Spectra samples start   : %d\n", AFA_PROCESS_PIXEL_START );
-    printf( "Spectra samples end     : %d\n", AFA_PROCESS_PIXEL_END );
+    printf( "Spectra num samples (HW): %ld\n", AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW );
+    printf( "Spectra samples start   : %ld\n", AFA_PROCESS_PIXEL_START );
+    printf( "Spectra samples end     : %ld\n", AFA_PROCESS_PIXEL_END );
 
     printf( "\n" );
     printf( "%32s: %10s %11s %10s\n", "--------------------------------","----------","------------","----------" );
