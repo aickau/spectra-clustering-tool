@@ -1,5 +1,20 @@
+##################################################
+#
+# Jesko Schwarzer, 2016/04-05
+# email: hls@schwarzers.de
+# mobile: +49 163 8442071
+#
+# free for personal use, may the force be with you
+#
+##################################################
+
 # AFA - Create my project
 # =======================
+
+# =============================================
+# call this file with
+# vivado -mode batch -source ProcessVIVarty.tcl
+# =============================================
 
 # user modifyable area:
 # ---------------------
@@ -22,7 +37,7 @@ set design_version_VIV_L  0
 # do we want to generate the framework with our custom element or not ?
 set CustomIPEnable        yes
 set CustomIPName          AFAProcessHW
-
+set CustomIPNameFull      SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.1001
 # do not modify below this line ...
 ## =============================================================
 

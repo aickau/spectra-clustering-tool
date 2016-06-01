@@ -194,18 +194,20 @@ if { $CustomIPEnable == "yes" } {
 
 	# add custom design from repo
 	startgroup
-		create_bd_cell -type ip -vlnv SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.1000 AFAProcess_HW_0
+#		create_bd_cell -type ip -vlnv SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.1000 AFAProcess_HW_0
+		create_bd_cell -type ip -vlnv $CustomIPNameFull $CustomIPName
 	endgroup
 
 	# connect it
 	startgroup
-		apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Periph)" Clk "Auto" }  [get_bd_intf_pins AFAProcess_HW_0/s_axi_INTERFACE_AXILITE_SLAVE]
-		apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Slave "/mig_7series_0/S_AXI" Clk "Auto" }  [get_bd_intf_pins AFAProcess_HW_0/m_axi_gmem]
-		apply_bd_automation -rule xilinx.com:bd_rule:bram_cntlr -config {BRAM "New Blk_Mem_Gen" }  [get_bd_intf_pins AFAProcess_HW_0/param_PORTA]
+		apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Periph)" Clk "Auto" }  [get_bd_intf_pins $CustomIPName/s_axi_INTERFACE_AXILITE_SLAVE]
+		apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Slave "/mig_7series_0/S_AXI" Clk "Auto" }  [get_bd_intf_pins $CustomIPName/m_axi_gmem]
+		apply_bd_automation -rule xilinx.com:bd_rule:bram_cntlr -config {BRAM "New Blk_Mem_Gen" }  [get_bd_intf_pins $CustomIPName/param_PORTA]
 	endgroup
+
 	# add BRAM as needed by design
 	startgroup
-		set_property -dict [list CONFIG.Memory_Type {True_Dual_Port_RAM} CONFIG.Enable_B {Use_ENB_Pin} CONFIG.Use_RSTB_Pin {true} CONFIG.Port_B_Clock {100} CONFIG.Port_B_Write_Rate {50} CONFIG.Port_B_Enable_Rate {100}] [get_bd_cells AFAProcess_HW_0_bram]
+		set_property -dict [list CONFIG.Memory_Type {True_Dual_Port_RAM} CONFIG.Enable_B {Use_ENB_Pin} CONFIG.Use_RSTB_Pin {true} CONFIG.Port_B_Clock {100} CONFIG.Port_B_Write_Rate {50} CONFIG.Port_B_Enable_Rate {100}] [get_bd_cells $CustomIPName\_bram]
 	endgroup
 	# Adding AXI-BRAM-Controller
 	startgroup
@@ -213,21 +215,23 @@ if { $CustomIPEnable == "yes" } {
 	endgroup
 	# Reducing AXI-BRAM-Controller to single port
 	set_property -dict [list CONFIG.SINGLE_PORT_BRAM {1}] [get_bd_cells axi_bram_ctrl_0]
+
 	# Connecting AXI-BRAM-Controller
-	startgroup
-		apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Cached)" Clk "Auto" }  [get_bd_intf_pins axi_bram_ctrl_0/S_AXI]
-		apply_bd_automation -rule xilinx.com:bd_rule:bram_cntlr -config {BRAM "/AFAProcess_HW_0_bram" }  [get_bd_intf_pins axi_bram_ctrl_0/BRAM_PORTA]
-	endgroup
+	apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Cached)" Clk "Auto" }  [get_bd_intf_pins axi_bram_ctrl_0/S_AXI]
+	apply_bd_automation -rule xilinx.com:bd_rule:bram_cntlr -config "BRAM /$CustomIPName\_bram"  [get_bd_intf_pins axi_bram_ctrl_0/BRAM_PORTA]
+
 	# IRQ concentrator extension from 2 to 3 ports
 	startgroup
 		set_property -dict [list CONFIG.NUM_PORTS {3}] [get_bd_cells microblaze_0_xlconcat]
 	endgroup
 	# connect IRQ out from design to IRQ concentrator
-	connect_bd_net [get_bd_pins AFAProcess_HW_0/interrupt] [get_bd_pins microblaze_0_xlconcat/In2]
-	# set address of BRAM
-	set_property offset 0xC0000000 [get_bd_addr_segs {microblaze_0/Instruction/SEG_axi_bram_ctrl_0_Mem0}]
+	connect_bd_net [get_bd_pins $CustomIPName/interrupt] [get_bd_pins microblaze_0_xlconcat/In2]
+	
 	# set address of module
-	set_property offset 0x20000000 [get_bd_addr_segs {microblaze_0/Data/SEG_AFAProcess_HW_0_Reg}]
+	set_property offset 0x20000000 [get_bd_addr_segs "microblaze_0/Data/SEG_$CustomIPName\_Reg"]
+
+	# store design up to this point
+	save_bd_design
 }
 
 ## Beautify Layout ############################################################
@@ -242,4 +246,5 @@ validate_bd_design
 ## Store design ###############################################################
 save_bd_design
 
+puts "Block design constructed and ready to use ..."
 return 0
