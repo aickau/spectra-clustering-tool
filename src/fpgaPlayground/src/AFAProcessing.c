@@ -123,21 +123,24 @@ AFAHelperStructures_MemAllocate()
     // increase potential memory needs to get space to shift the base address to an aligned place
     memoryNeeds = ( memoryNeeds + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );
     AFAPP_sw.memoryBlockBaseAddressAllocated = malloc( memoryNeeds );
-    rv =     AFAPP_sw.memoryBlockBaseAddressAllocated ? TRUE : FALSE;
-    AFAPP_sw.memoryBlockSizeAllocated = memoryNeeds;
-    memset( AFAPP_sw.memoryBlockBaseAddressAllocated, clearVal, memoryNeeds );
+    rv = AFAPP_sw.memoryBlockBaseAddressAllocated ? TRUE : FALSE;
+    if ( rv )
+    {
+		AFAPP_sw.memoryBlockSizeAllocated = memoryNeeds;
+		memset( AFAPP_sw.memoryBlockBaseAddressAllocated, clearVal, memoryNeeds );
 
-    // ===========================================================
-    // attention: single point of failure - pointer calculation
-    // * pointer is converted to uint64_t
-    // * then the lower bits are masked out to get the alignment
-    // * then the address is stored back into a pointer
-    //
-    // Jesko Schwarzer 2016-03-20, afa@schwarzers.de
-    // ===========================================================
-    tmpAddrCalc = ( uint64_t )(( addr_t )(( uint8_t * )AFAPP_sw.memoryBlockBaseAddressAllocated ));
-    tmpAddrCalc = (( tmpAddrCalc + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ));
-    AFAPP_sw.memoryBlockBaseAddressAligned = ( void * ) tmpAddrCalc;
+		// ===========================================================
+		// attention: single point of failure - pointer calculation
+		// * pointer is converted to uint64_t
+		// * then the lower bits are masked out to get the alignment
+		// * then the address is stored back into a pointer
+		//
+		// Jesko Schwarzer 2016-03-20, afa@schwarzers.de
+		// ===========================================================
+		tmpAddrCalc = ( uint64_t )(( addr_t )(( uint8_t * )AFAPP_sw.memoryBlockBaseAddressAllocated ));
+		tmpAddrCalc = (( tmpAddrCalc + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ));
+		AFAPP_sw.memoryBlockBaseAddressAligned = ( void * )( addr_t ) tmpAddrCalc;
+    }
 
     printf( "  Bytes:                     %lld [0x%16.16llx]\n", memoryNeeds, memoryNeeds );
     printf( "  Clear with value:          %d [0x%2.2x]\n", clearVal, clearVal );
@@ -172,7 +175,7 @@ AFAHelperStructures_PrepareDataStructure(
 
 	// TODO: put this into a function
 
-    printf( "Spectra record size (SW): %lld [0x%8.8llx]\n", sizeof( AFASpectra_SW ), sizeof( AFASpectra_SW ));
+    printf( "Spectra record size (SW): %lld [0x%8.8llx]\n", ( uint64_t )sizeof( AFASpectra_SW ), ( uint64_t )sizeof( AFASpectra_SW ));
     printf( "Spectra record size (HW): %d [0x%8.8x]\n", AFA_SPECTRA_INDEX_SIZE_IN_BYTES, AFA_SPECTRA_INDEX_SIZE_IN_BYTES );
     printf( "Spectra num samples (SW): %d\n", AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW );
     printf( "Spectra num samples (HW): %ld\n", AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW );

@@ -56,13 +56,13 @@ void
 XAfaprocess_hw_Init()
 {
     int Status;
-    Status = XAfaprocess_hw_Initialize( &gXAfaprocess_hwInstancePtr, XPAR_AFAPROCESS_HW_0_DEVICE_ID );
+    Status = XAfaprocess_hw_Initialize( &gXAfaprocess_hwInstancePtr, XPAR_AFAPROCESSHW_DEVICE_ID );
 	if ( XST_SUCCESS != Status )
 	{
 		xil_printf( "XAfaprocess_hw(): Failed to initialize: XAfaprocess_hw_Initialize()!\r\n" );
 	}
 
-	Status = XIntc_Connect( &InterruptController, XPAR_MICROBLAZE_0_AXI_INTC_AFAPROCESS_HW_0_INTERRUPT_INTR, (XInterruptHandler)XAfaprocess_hw_InterruptServiceRoutine, ( void * )( 0x1234aabb ));
+	Status = XIntc_Connect( &InterruptController, XPAR_MICROBLAZE_0_AXI_INTC_AFAPROCESSHW_INTERRUPT_INTR, (XInterruptHandler)XAfaprocess_hw_InterruptServiceRoutine, ( void * )( 0x1234aabb ));
 	if ( XST_SUCCESS != Status )
 	{
 		xil_printf( "ExampleInit(): Failed to connect to IRQ!\r\n" );
@@ -87,7 +87,7 @@ InterruptEnable()
 	XAfaprocess_hw_InterruptEnable( &gXAfaprocess_hwInstancePtr, 0xFFFFFFFF );
 	XAfaprocess_hw_InterruptGlobalEnable( &gXAfaprocess_hwInstancePtr );
 
-	XIntc_Enable( &InterruptController, XPAR_MICROBLAZE_0_AXI_INTC_AFAPROCESS_HW_0_INTERRUPT_INTR );
+	XIntc_Enable( &InterruptController, XPAR_MICROBLAZE_0_AXI_INTC_AFAPROCESSHW_INTERRUPT_INTR );
 
 	// Start the interrupt controller such that interrupts are enabled for all devices that cause interrupts.
 	// QUESTION: Too early ???

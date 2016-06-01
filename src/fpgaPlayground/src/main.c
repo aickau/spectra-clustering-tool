@@ -550,7 +550,13 @@ int main(
     AFAHelperStructures_PrepareDataStructure(
         numSpectra );
     printf( "* Allocate memory\n" );
-    AFAHelperStructures_MemAllocate();
+    rc = AFAHelperStructures_MemAllocate();
+    if ( !rc )
+    {
+    	printf( "!!! Error: No memory \n" );
+    	exit( -1 );
+    }
+
     printf( "* Update address data\n" );
     AFAHelperStructures_UpdateAddressData();
     spectraDataInput = ( AFASpectra_SW * ) AFAHelperStructures_GetAddressOf(
