@@ -128,11 +128,12 @@ adaptNetwork_HW(
                 const uint64_t spectraAdress = ( y * gridSize + x ) * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
 #if 0   // optimization trials
 #if 1   // 2nd opt
+                uint32_t xxx = AFA_SPECTRA_INDEX_AMPLITUDE;
+                uint32_t yyy = AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW;
                 an_inner_loop: for ( i = AFA_SPECTRA_INDEX_AMPLITUDE; i < AFA_SPECTRA_INDEX_AMPLITUDE + AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW; i++ )
 
-#pragma HLS LOOP_TRIPCOUNT min=458 max=458 avg=458
                 {
-#pragma HLS PIPELINE II=5 rewind
+#pragma HLS PIPELINE
                     const uint32_t  aTmp = baseAddr[ spectraDataWorkingSetIndex + spectraAdress + i ];
                     const uint32_t cTmp = baseAddr[ currentSourceSpectrumIndex + i ];
                     const float32_t aTmpFloat = *(( float32_t * ) &aTmp );

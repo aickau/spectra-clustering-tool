@@ -162,7 +162,7 @@ AFAHelperStructures_MemFree()
 
 void
 AFAHelperStructures_PrepareDataStructure(
-    const uint32_t numSpectra )
+    uint32_t numSpectra )
 {
     uint64_t memoryOffsetInBlock = 0;
     uint64_t memoryBlockSize;
@@ -173,8 +173,7 @@ AFAHelperStructures_PrepareDataStructure(
     AFAPP_sw.m_numSpectra = numSpectra;
     AFAPP_sw.m_gridSizeSqr = AFAPP_sw.m_gridSize * AFAPP_sw.m_gridSize;
 
-	// TODO: put this into a function
-
+    printf( "NumSpectra              : %ld\n", numSpectra );
     printf( "Spectra record size (SW): %lld [0x%8.8llx]\n", ( uint64_t )sizeof( AFASpectra_SW ), ( uint64_t )sizeof( AFASpectra_SW ));
     printf( "Spectra record size (HW): %d [0x%8.8x]\n", AFA_SPECTRA_INDEX_SIZE_IN_BYTES, AFA_SPECTRA_INDEX_SIZE_IN_BYTES );
     printf( "Spectra num samples (SW): %d\n", AFA_SPECTRA_NUM_SAMPLES_PROCESS_SW );
@@ -186,6 +185,8 @@ AFAHelperStructures_PrepareDataStructure(
     printf( "%32s: %10s %11s %10s\n", "--------------------------------","----------","------------","----------" );
     printf( "%32s: %10s %11s %10s\n", "Section name                    ","  memory  ","mem. padded ","  offset  " );
     printf( "%32s: %10s %11s %10s\n", "--------------------------------","----------","------------","----------" );
+
+    // TODO: put this into a function
 
     // prepare memory control structure
     strncpy( AFAPP_sw.workData[ idx ].name, "example data", AFA_WORKING_DATA_NAME_LENGTH );

@@ -29,36 +29,7 @@
 
 extern AFAProcessingParamSW_t       AFAPP_sw;
 extern int m_mti; 
-extern const unsigned long afaTestDataSpectra_data00_size;
-extern const unsigned long afaTestDataSpectra_data01_size;
-extern const unsigned long afaTestDataSpectra_data02_size;
-extern const unsigned long afaTestDataSpectra_data03_size;
-extern const unsigned long afaTestDataSpectra_data04_size;
-extern const unsigned long afaTestDataSpectra_data05_size;
-extern const unsigned long afaTestDataSpectra_data06_size;
-extern const unsigned long afaTestDataSpectra_data07_size;
-extern const unsigned long afaTestDataSpectra_data08_size;
-extern const unsigned long afaTestDataSpectra_data09_size;
-extern const unsigned long afaTestDataSpectra_data10_size;
-extern const unsigned long afaTestDataSpectra_data11_size;
-extern const unsigned long afaTestDataSpectra_data12_size;
-extern const unsigned long afaTestDataSpectra_data13_size;
-extern unsigned char afaTestDataSpectra_data00_data[];
-extern unsigned char afaTestDataSpectra_data01_data[];
-extern unsigned char afaTestDataSpectra_data02_data[];
-extern unsigned char afaTestDataSpectra_data03_data[];
-extern unsigned char afaTestDataSpectra_data04_data[];
-extern unsigned char afaTestDataSpectra_data05_data[];
-extern unsigned char afaTestDataSpectra_data06_data[];
-extern unsigned char afaTestDataSpectra_data07_data[];
-extern unsigned char afaTestDataSpectra_data08_data[];
-extern unsigned char afaTestDataSpectra_data09_data[];
-extern unsigned char afaTestDataSpectra_data10_data[];
-extern unsigned char afaTestDataSpectra_data11_data[];
-extern unsigned char afaTestDataSpectra_data12_data[];
-extern unsigned char afaTestDataSpectra_data13_data[];
-extern unsigned long afaTestDataGoldenResult_size;
-extern unsigned char afaTestDataGoldenResult_data[];
+
 // philipp short
 extern const unsigned long testAFAshort_size;
 extern unsigned char testAFAshort_data[];
@@ -455,7 +426,7 @@ int main(
     uint32_t srcDataSelector = 1;
 
     char dumpFilename[] = "TESTforFPGAclasses.bin";
-    uint64_t dumpFileSize;
+    uint64_t dumpFileSize = 0;
 
     uint32_t breakAfterNumCyles;
     clock_t timeGlobalStart;
@@ -590,13 +561,6 @@ int main(
             memcpy( spectraDataInput, testAFAshort_data, testAFAshort_size );
 
             break;
-#if 0
-            printf( "* Copy Philipps test spectra\n" );
-            memcpy( spectraDataInput, ( void * ) 0x90000000, numSpectra * sizeof( AFASpectra_SW )); // single spectrum about 2400 bytes
-
-            printf( "* Convert spectra records: input data\n" );
-            break;
-#endif
         }
         case 2: // load from array
         {
@@ -862,6 +826,7 @@ int main(
         case 2: // load from array
         case 3: // load from file
         {
+#if 0
 			uint32_t *p = ( uint32_t * )afaTestDataGoldenResult_data; // beware of the endianess
 
 			sint32_t idx_golden;
@@ -923,7 +888,7 @@ int main(
 		        }
 		        printf( "\n" );
 		    }
-
+#endif
             break;
         }
     }

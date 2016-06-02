@@ -9,9 +9,9 @@
 // select one at a time
 //
 // 1) Runs in VisualStudio:
-//#define AFA_RUN_ON_VISUAL_STUDIO
+#define AFA_RUN_ON_VISUAL_STUDIO
 // 2) Runs in Vivado_hls - CSimulation:
-#define AFA_RUN_ON_VIVADO_HLS_CSIM
+//#define AFA_RUN_ON_VIVADO_HLS_CSIM
 // 3) Runs in Vivado_hls - CoSimulation:
 //#define AFA_RUN_ON_VIVADO_HLS_COSIM
 // 4) Runs in Xilinx SDK

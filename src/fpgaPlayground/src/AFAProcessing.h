@@ -27,7 +27,7 @@ AFAHelperStructures_MemFree();
 // calculate memory space to allocate in bytes needed for helper structures, including the SOM
 void
 AFAHelperStructures_PrepareDataStructure(
-    const uint32_t numSpectra );
+    uint32_t numSpectra );
 void
 AFAHelperStructures_UpdateAddressData();
 
