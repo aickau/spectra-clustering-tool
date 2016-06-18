@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Analyzer config file, ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I, Copyright (c) 2013 Version 0.20, Revision 403, Build date 2016/05/04 07:59:07 -->
+<SETTINGS>
+	<STEP current="200" total="200"/>
+	<GRIDSIZE value="12"/>
+	<RANDOMSEED value="15"/>
+	<LEARNRATE begin="0.25" end="0.01"/>
+	<RADIUS begin="1" end="0.125"/>
+	<SPECTRUM file="sofmnet.bin"/>
+	<EXPORT>
+		<SUBPAGES value="0"/>
+		<WAITFORUSER value="0"/>
+		<FULLEXPORT value="0"/>
+		<IMGBORDERSIZE value="6"/>
+		<ICONSIZE value="64"/>
+	</EXPORT>
+	<SEARCHMODE value="global"/><!-- localfast / local / global -->
+	<NORMALIZATION value="flux"/><!-- amplitude / flux / none -->
+	<WAVELENGTHRANGE value="boss"/><!-- sdss (3800..9200) / boss (3650..10400) -->
+</SETTINGS>
