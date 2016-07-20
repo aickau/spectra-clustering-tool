@@ -25,15 +25,15 @@
 namespace Memory
 {
 
-void **hash_table=0;
-size_t hash_size = 1024;
+static void **hash_table=0;
+static size_t hash_size = 1024;
 
 static
 void GrowHash()
 {
 	void **hash_table_new;
 	hash_size *= 2;
-	hash_table_new = (void**) calloc(hash_size,4);
+	hash_table_new = (void**) calloc(hash_size,8);
 	memcpy(hash_table_new, hash_table, hash_size*2);
 	free(hash_table);
 	hash_table = hash_table_new;
@@ -46,7 +46,7 @@ void *memAlignedAlloc(size_t size)
 	size_t		pt_offset, hash_index, hash_probe;
 
 	if(hash_table==NULL){
-		hash_table = (void**) (void**) calloc(hash_size,4);
+		hash_table = (void**) (void**) calloc(hash_size,8);
 	}
 
 	pt_unalign	= calloc(size+32,1);
