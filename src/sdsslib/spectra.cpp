@@ -1854,18 +1854,23 @@ std::string Spectra::getURL()const
 
 std::string Spectra::getImgURL() const
 {
-	//if ( m_SpecObjID == 0 ) {
+	if ( m_SpecObjID == 0 ) {
 		return "http://upload.wikimedia.org/wikipedia/en/d/d4/Mickey_Mouse.png";
-	//}
-	/*
+	}
 
-	TODO:
-	We have some problems with image links and ids:
-	what we get:
-	http://skyserver.sdss.org/dr12/en/get/SpecById.ashx?id=4565553074336625664
-	what it should be:
-	http://skyserver.sdss.org/dr12/en/get/SpecById.ashx?id=4565553074336886784
 
+
+// 	TODO:
+// 	We have some problems with image links and ids:
+// 	what we get:
+// 	http://skyserver.sdss.org/dr12/en/get/SpecById.ashx?id=4565553074336625664
+// 	what it should be:
+// 	http://skyserver.sdss.org/dr12/en/get/SpecById.ashx?id=4565553074336886784
+
+
+	//http://dr12.sdss3.org/sas/dr12/sdss/spectro/redux/images/v5_7_2/7339-56783/spec-image-7339-56783-0176.png
+
+	std::string sstrUrlDR12new("http://dr12.sdss3.org/sas/dr12/sdss/spectro/redux/images/");
 	std::string sstrUrlDR12("http://skyserver.sdss3.org/dr12/en/get/SpecById.ashx?id=");
 	std::string sstrUrlDR10("http://skyserver.sdss3.org/dr10/en/get/SpecById.ashx?id=");
 	std::string sstrUrlDR9("http://skyserver.sdss3.org/dr9/en/get/specById.asp?id=");
@@ -1873,12 +1878,56 @@ std::string Spectra::getImgURL() const
 	std::string sstrUrl(sstrUrlDR12);
 
   	if ( m_version == SP_VERSION_DR7 )
+	{
  		sstrUrl = sstrUrlDR7;
+		sstrUrl += Helpers::numberToString( m_SpecObjID );
+		return sstrUrl;
+	}
+
+	const int plateId = getPlate();
+	const int mjd = getMJD();
+	const int fiberId = getFiber();
+
+	std::string reduxPipelineVersion;
+
+	// here are some old versions
+// 	if ( plateId >=1960 && plateId <= 2912 )
+// 	{
+// 		reduxPipelineVersion = "103";
+// 	}
+// 	else if ( plateId >=2640 && plateId <= 3501 )
+// 	{
+// 		reduxPipelineVersion = "104";
+// 	}
+
+	if ( plateId >= 266 && plateId <= 3006 )
+	{
+		reduxPipelineVersion = "26";
+	}
+	else if ( plateId >=3520 && plateId <= 7457 )
+	{
+		reduxPipelineVersion = "v5_7_0";
+	}
+	else
+	{
+		// plateId 7339 ... 7565 
+		reduxPipelineVersion = "v5_7_2";
+	}
 
 
-	sstrUrl += Helpers::numberToString( m_SpecObjID );
+	sstrUrl = sstrUrlDR12new+reduxPipelineVersion+"/";
+	sstrUrl += Helpers::numberToString( plateId,4 );
+	sstrUrl += "-"; 
+	sstrUrl += Helpers::numberToString( mjd, 5);
+	sstrUrl += "/spec-image-"; 
+	sstrUrl += Helpers::numberToString( plateId,4 );
+	sstrUrl += "-"; 
+	sstrUrl += Helpers::numberToString( mjd, 5 );
+	sstrUrl += "-"; 
+	sstrUrl += Helpers::numberToString( fiberId, 4 );
+	sstrUrl += ".png"; 
+
 	return sstrUrl;
-	*/
 }
 
 
