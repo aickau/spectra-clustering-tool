@@ -73,7 +73,7 @@ void main(int argc, char* argv[])
 
 		std::string sstrExamples("examples:\n");
 		sstrExamples += std::string("search.exe -i allSpectra.bin -n\n");
-		sstrExamples += std::string("search.exe -i allSpectra.bin -f 255 -c 2 -v 0.1\n");
+		sstrExamples += std::string("search.exe -i allSpectra.bin -f 255 -l 10\n");
 
 		TCLAP::CmdLine cmd(sstrExamples, ' ', sstrSDSSVersionString);
 
@@ -167,9 +167,9 @@ void main(int argc, char* argv[])
 	sstrBaseInfo += " bytes.<br>\n\n";
 
 
-	SpectraVFS vfs(sstrDumpFile);
+	SpectraVFS *pVFSSource = new SpectraVFS(sstrDumpFile);
 
-	size_t numSpectra = vfs.getNumSpectra();
+	size_t numSpectra = pVFSSource->getNumSpectra();
 
 	if ( numSpectra == 0 )
 	{
@@ -228,7 +228,7 @@ void main(int argc, char* argv[])
 		// begin read for all src spectra
 		for ( int k=0;k<jInc;k++)
 		{
-			src[k] = vfs.beginRead(j+k);
+			src[k] = pVFSSource->beginRead(j+k);
 		}
  
 #pragma omp parallel for
@@ -267,7 +267,7 @@ void main(int argc, char* argv[])
 					comparisonMap[l].insert( std::pair<float, size_t>(err[l][k], j+k) );
 				}
 			}
-			vfs.endRead(j+k);
+			pVFSSource->endRead(j+k);
 		}
 
 
@@ -304,10 +304,10 @@ void main(int argc, char* argv[])
 			std::map<float,size_t>::iterator it( comparisonMap[j].begin() ); 
 			while ( it != comparisonMap[j].end() && c < outputListLength)
 			{
-				Spectra *sp = vfs.beginRead( it->second );
+				Spectra *sp = pVFSSource->beginRead( it->second );
 				SpectraHelpers::writeTableEntry( *sp, it->first, sstrTable );
 				writeTextTableEntry( *sp, it->first, sstrOutTextTable );
-				vfs.endRead( it->second );
+				pVFSSource->endRead( it->second );
 				it++;
 				c++;
 			}
@@ -317,10 +317,10 @@ void main(int argc, char* argv[])
 			std::map<float,size_t>::reverse_iterator it( comparisonMap[j].rbegin() ); 
 			while ( it != comparisonMap[j].rend() && c < outputListLength)
 			{
-				Spectra *sp = vfs.beginRead( it->second );
+				Spectra *sp = pVFSSource->beginRead( it->second );
 				SpectraHelpers::writeTableEntry( *sp, it->first, sstrTable );
 				writeTextTableEntry( *sp, it->first, sstrOutTextTable );
-				vfs.endRead( it->second );
+				pVFSSource->endRead( it->second );
 				it++;
 				c++;
 			}
@@ -359,6 +359,7 @@ void main(int argc, char* argv[])
 	}
 	Memory::memAlignedFree( compareSpectra );
 
+	delete pVFSSource;
 
 /*
 	std::multimap<float,__int64> comparisonMap;
@@ -366,13 +367,13 @@ void main(int argc, char* argv[])
 
 	for ( size_t i=0;i<numSpectra;i++ )
 	{
-		Spectra *a = vfs.beginRead(i);
+		Spectra *a = vfs->beginRead(i);
 		if ( a->m_Type & spectraFilter > 0 )
 		{
 			comparisonMap.insert( std::pair<float,int64_t>(a->m_Z, a->m_SpecObjID) );
 		}
 
-		vfs.endRead(i);
+		vfs->endRead(i);
 	}
 
 	std::string sstrOut;
