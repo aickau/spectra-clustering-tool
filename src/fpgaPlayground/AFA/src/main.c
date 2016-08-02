@@ -12,7 +12,9 @@
 #include "xtmrctr.h"
 
 // Driver includes
-#include "DriverInterrupt.h"
+#include "DriverInterruptController.h"
+#include "DriverTimer.h"
+#include "DriverAFAProcessing.h"
 #endif
 
 #include "BoardIO.h"
@@ -25,7 +27,7 @@
 
 #define JSCDBG_ITER_SPECIAL
 // #define JSCDBG_PRINTOUT_GOLDEN_SAMPLE_ONLY
-//#define AFA_TEST_SHORT_ITERATION_0000
+#define AFA_TEST_SHORT_ITERATION_0000
 
 extern AFAProcessingParamSW_t       AFAPP_sw;
 extern int m_mti; 
@@ -95,6 +97,46 @@ sint16_t golden_data[ 12 ][ 12 ]=
 #endif
 #endif
 };
+
+#ifdef AFA_RUN_ON_XILINX_SDK
+void
+TestClockFunction()
+{
+    clock_t timeIterationStart;
+    clock_t timeIterationEnd;
+    sint32_t numSecs = 3;
+
+    timeIterationStart = clock();
+    if ( timeIterationStart )
+    {
+		while( numSecs >= 0 )
+		{
+			timeIterationEnd = clock();
+			if (((( double )( timeIterationEnd - timeIterationStart )) / (( double ) CLOCKS_PER_SEC ) )>= 1.0 )
+			{
+				printf( "t=%ld\n", numSecs );
+				timeIterationStart = timeIterationEnd;
+				numSecs--;
+			}
+		}
+    }
+    else
+    {
+    	printf( "timer not working (not initialized?)\n" );
+    }
+}
+
+void AssertCallback(
+	const char8 *File,
+	s32 Line )
+{
+	printf( "ASSERTION: File=%s, Line=%ld\n", File, Line );
+	LEDRGBSet( 0, EVAL_BOARD_LEDRGB_RED );		// ERROR
+	LEDRGBSet( 0, EVAL_BOARD_LEDRGB_BLUE );		// ASSERT
+	LEDRGBSet( 0, EVAL_BOARD_LEDRGB_BLUE );		// ASSERT
+	LEDRGBSet( 0, EVAL_BOARD_LEDRGB_BLUE );		// ASSERT
+}
+#endif
 
 
 void generateSineTestSpectra( uint32_t numTestSpectra, AFASpectra_SW *outSpectraArray )
@@ -387,15 +429,7 @@ uint64_t getFileSize(
     return fileSize;
 }
 
-#ifdef AFA_RUN_ON_XILINX_SDK
-void AssertCallback(
-	const char8 *File,
-	s32 Line )
-{
-	printf( "ASSERTION: File=%s, Line=%ld\n", File, Line );
-	LEDRGBSet( 0, EVAL_BOARD_LEDRGB_RED );		// min/max state
-}
-#endif
+
 
 #ifdef AFA_RUN_PROCESSHW_HW
 uint32_t *param = ( uint32_t * ) XPAR_AXI_BRAM_CTRL_0_S_AXI_BASEADDR;
@@ -434,6 +468,8 @@ int main(
     clock_t timeIterationStart;
     clock_t timeIterationEnd;
 
+	printf( "Starting main() ...\n" );
+
     // processor and other HW preparations --- start ------------------------------------------------------
 
 #ifdef AFA_RUN_ON_XILINX_SDK
@@ -442,18 +478,26 @@ int main(
 
     Xil_AssertSetCallback( AssertCallback );
 
-    InterruptInit();
-	XAfaprocess_hw_Init();
-	InterruptEnable();
+    DriverInterruptControllerInit();
+    DriverTimerInit();
+    DriverAFAProcessingInit();
+    DriverInterruptControllerEnable();
 	LEDInit();
+
+	TestClockFunction();
 #endif
+
     // processor and other HW preparations --- end --------------------------------------------------------
 
-	printf( "Starting main() ...\n" );
     LEDRGBSet( 0, EVAL_BOARD_LEDRGB_GREEN );		// power on
     if ( !AFATypesOK())
     {
         printf( "Error with AFATypes.h\n" );
+		LEDRGBSet( 0, EVAL_BOARD_LEDRGB_RED );		// error
+		LEDRGBSet( 0, EVAL_BOARD_LEDRGB_YELLOW );	// ASSERT
+		LEDRGBSet( 0, EVAL_BOARD_LEDRGB_YELLOW );	// ASSERT
+		LEDRGBSet( 0, EVAL_BOARD_LEDRGB_YELLOW );	// ASSERT
+
         exit( 1 );
     }
 

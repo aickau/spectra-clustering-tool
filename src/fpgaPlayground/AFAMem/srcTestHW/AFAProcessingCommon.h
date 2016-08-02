@@ -32,15 +32,15 @@ typedef struct
 
 bool_t
 AFAProcess_HWWrapper(
-    volatile uint32_t param[ 256 ],              // whole block ram used
-    volatile uint32_t *baseAddr,
+    volatile uint32_t *baseAddr,						// default starting address in memory (normally 0x00000000)
+	const uint32_t paramIndex,
     uint32_t workMode
     );
 
 uint32_t
 AFAProcess_HW(
-    volatile uint32_t param[ 256 ],              // whole block ram used
-    volatile uint32_t *baseAddr
+    volatile uint32_t *baseAddr,						// default starting address in memory (normally 0x00000000)
+	const uint32_t paramIndex
     );
 
 #endif

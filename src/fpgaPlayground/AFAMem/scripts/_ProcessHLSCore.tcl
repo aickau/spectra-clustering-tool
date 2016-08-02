@@ -21,14 +21,14 @@ foreach solution $all_solution part $all_part clock $all_clocks axi_addr $all_ax
 	#pack and export design
 	set repo_dir_new [file normalize "$prj_dir_repo/$platform_name/$proj_name" ]
 
-	export_design -format ip_catalog -description $solution-$part-$clock -library $libraryname -vendor $vendor -version $design_version_HLS_H.$design_version_HLS_L -display_name $display_name
+	export_design -format ip_catalog -description $solution-$part-$clock -library $libraryname -vendor $vendor -version $design_version_HLS_H.$design_version_HLS_L -display_name $display_name-$clock
 	
 	## == copy result to repo
 	puts =======================================
 	puts "* Copying IP ($vendor\_$libraryname\_$top_function\_$design_version_HLS_H\_$design_version_HLS_L\.zip) to repository ($repo_dir_new-$clock)"
 	
 	file mkdir $repo_dir_new
-	file copy $prj_dir_hls/$proj_name/$solution/impl/ip/$vendor\_$libraryname\_$top_function\_$design_version_HLS_H\_$design_version_HLS_L\.zip $repo_dir_new/$vendor\_$libraryname\_$top_function\_$design_version_HLS_H\_$design_version_HLS_L-$clock\.zip
+	file copy -force $prj_dir_hls/$proj_name/$solution/impl/ip/$vendor\_$libraryname\_$top_function\_$design_version_HLS_H\_$design_version_HLS_L\.zip $repo_dir_new/$vendor\_$libraryname\_$top_function\_$design_version_HLS_H\_$design_version_HLS_L-$clock\.zip
 	puts "* please unpack for usage ($vendor\_$libraryname\_$top_function\_$design_version_HLS_H\_$design_version_HLS_L-$clock\.zip)"
 }
 exit

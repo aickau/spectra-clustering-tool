@@ -9,18 +9,18 @@
 
 #ifdef AFA_RUN_ON_XILINX_SDK
 #include "AFATypes.h"
-#include "DriverInterrupt.h"
+#include "DriverError.h"
+#include "DriverInterruptController.h"
 
 #include "xparameters.h"
 #include <xuartlite.h>
-#include <xintc.h>
 
 #include "xafaprocess_hw.h"
 
 XIntc DriverInterruptControllerHandle; // Instance of the Interrupt Controller
 
 bool_t
-DriverInterruptInit()
+DriverInterruptControllerInit()
 {
     int Status;
     bool_t rv = TRUE;
@@ -30,14 +30,14 @@ DriverInterruptInit()
 		XPAR_MICROBLAZE_0_AXI_INTC_DEVICE_ID );
 	if ( Status != XST_SUCCESS )
 	{
-		xil_printf( "InterruptInit(): failed\r\n" );
+		xil_printf( "DriverInterruptControllerInit(): failed\r\n" );
 		rv = FALSE;
 	}
 	return rv;
 }
 
 void
-DriverInterruptEnable()
+DriverInterruptControllerEnable()
 {
     int Status;
 
@@ -47,7 +47,7 @@ DriverInterruptEnable()
 		XIN_REAL_MODE );
 	if ( Status != XST_SUCCESS )
 	{
-		xil_printf( "InterruptEnable(): failed\r\n" );
+		xil_printf( "DriverInterruptControllerEnable(): failed\r\n" );
 	}
 
 	/*
@@ -56,6 +56,8 @@ DriverInterruptEnable()
 	XIntc_Enable(
 		&DriverInterruptControllerHandle,
 		XPAR_INTC_0_TMRCTR_0_VEC_ID);
+
+	//return;
 
 	// Initialize the exception table [nothing happens here with microblaze]
 	Xil_ExceptionInit();
@@ -71,4 +73,47 @@ DriverInterruptEnable()
 	Xil_ExceptionEnable();
 
 }
+
+void
+DriverInterruptControllerRegisteredEnable(
+	uint8_t Id )
+{
+	XIntc_Enable(
+		&DriverInterruptControllerHandle,
+		Id);
+}
+
+void
+DriverInterruptControllerRegisteredDisable(
+	uint8_t Id )
+{
+	XIntc_Disable(
+		&DriverInterruptControllerHandle,
+		Id);
+}
+
+uint32_t
+DriverInterruptControllerRegister(
+		uint8_t Id,
+		XInterruptHandler Handler,
+		void *CallBackRef )
+{
+    int Status;
+
+	Status = XIntc_Connect(
+		&DriverInterruptControllerHandle,
+		( u8 )Id,
+		Handler,
+		CallBackRef );
+
+	return ( XST_SUCCESS == Status ) ? EC_SUCCESS : EC_FAILURE_TOO_LAZY;
+}
+
+void
+DriverInterruptControllerDeRegister(
+		uint8_t Id )
+{
+	DriverInterruptControllerRegisteredDisable( Id );
+}
+
 #endif

@@ -2,12 +2,14 @@
 #include "AFATypes.h"
 #include "AFATime.h"
 
-#ifndef AFA_RUN_ON_VISUAL_STUDIO
+#include "DriverTimer.h"
+
+#ifdef AFA_RUN_ON_XILINX_SDK
 
 clock_t
 clock()
 {
-	uint32_t tc = 0;//DriverTimerReadCounter();
+	uint32_t tc = DriverTimerGetMSec();
 	return ( clock_t ) tc;
 }
 #endif

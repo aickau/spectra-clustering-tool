@@ -1,7 +1,7 @@
 ################################################################
 # Check if script is running in correct Vivado version.
 ################################################################
-set scripts_vivado_version 2016.1
+set scripts_vivado_version 2016.2
 set current_vivado_version [version -short]
 
 if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
@@ -96,7 +96,7 @@ endgroup
 ## DDR3 #######################################################################
 
 startgroup
-create_bd_cell -type ip -vlnv xilinx.com:ip:mig_7series:3.0 mig_7series_0
+create_bd_cell -type ip -vlnv xilinx.com:ip:mig_7series:4.0 mig_7series_0
 apply_board_connection -board_interface "ddr3_sdram" -ip_intf "mig_7series_0/mig_ddr_interface" -diagram $design_name
 endgroup
 delete_bd_objs [get_bd_nets clk_ref_i_1] [get_bd_ports clk_ref_i]

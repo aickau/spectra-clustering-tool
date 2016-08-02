@@ -11,7 +11,7 @@
 #include "xtmrctr.h"
 
 // Driver includes
-#include "DriverInterrupt.h"
+#include "DriverInterruptController.h"
 #include "DriverTimer.h"
 #include "DriverAFAProcessing.h"
 #endif
@@ -30,19 +30,26 @@ TestClockFunction()
 {
     clock_t timeIterationStart;
     clock_t timeIterationEnd;
-    sint32_t numSecs = 10;
+    sint32_t numSecs = 3;
 
     timeIterationStart = clock();
-	while( numSecs >= 0 )
-	{
-		timeIterationEnd = clock();
-		if (((( double )( timeIterationEnd - timeIterationStart )) / (( double ) CLOCKS_PER_SEC ) )>= 1.0 )
+    if ( timeIterationStart )
+    {
+		while( numSecs >= 0 )
 		{
-			printf( "t=%ld\n", numSecs );
-			timeIterationStart = timeIterationEnd;
-			numSecs--;
+			timeIterationEnd = clock();
+			if (((( double )( timeIterationEnd - timeIterationStart )) / (( double ) CLOCKS_PER_SEC ) )>= 1.0 )
+			{
+				printf( "t=%ld\n", numSecs );
+				timeIterationStart = timeIterationEnd;
+				numSecs--;
+			}
 		}
-	}
+    }
+    else
+    {
+    	printf( "timer not working (not initialized?)\n" );
+    }
 }
 
 void AssertCallback(
@@ -55,22 +62,22 @@ void AssertCallback(
 #endif
 
 #ifdef AFA_RUN_PROCESSHW_HW
-uint32_t *param = ( uint32_t * ) XPAR_AXI_BRAM_CTRL_0_S_AXI_BASEADDR;
 #else
-uint32_t param[ 256 ];
 #endif
 
-int main(
+int
+main(
     int argc,
     char* argv[])
 {
     uint32_t *baseAddr = NULL;  // that's a dummy address pointing to the start of work area of HW in memory
     int rv = 0;
-    bool_t rc;
+    uint32_t *param;
+    uint32_t paramIndexIntoMem = 0;
 
-    uint32_t testSize = 16 * 1024 * 1024;
-    uint64_t inputAddressHW_OffsetToBaseAddress  = (uint32_t)malloc( testSize );
-    uint64_t outputAddressHW_OffsetToBaseAddress = (uint32_t)malloc( testSize );
+    uint32_t testSize = 64 * 1024 * 1024;
+    uint64_t inputAddressHW_OffsetToBaseAddress;
+    uint64_t outputAddressHW_OffsetToBaseAddress;
 	uint32_t someSize = testSize / sizeof( uint32_t);;
 
 	void *outputAddressSW = ( void * )outputAddressHW_OffsetToBaseAddress;
@@ -80,18 +87,20 @@ int main(
     clock_t timeIterationStart;
     clock_t timeIterationEnd;
 
-    // processor and other HW preparations --- start ------------------------------------------------------
+	printf( "Starting main() ...\n" );
+
+	// processor and other HW preparations --- start ------------------------------------------------------
 
 #ifdef AFA_RUN_ON_XILINX_SDK
     Xil_ICacheEnable();
-//	Xil_DCacheEnable();
+	Xil_DCacheEnable();
 
     Xil_AssertSetCallback( AssertCallback );
 
-    DriverInterruptInit();
+    DriverInterruptControllerInit();
     DriverTimerInit();
     DriverAFAProcessingInit();
-	DriverInterruptEnable();
+    DriverInterruptControllerEnable();
 	LEDInit();
 
 	TestClockFunction();
@@ -99,7 +108,6 @@ int main(
 
 	// processor and other HW preparations --- end --------------------------------------------------------
 
-	printf( "Starting main() ...\n" );
     LEDRGBSet( 0, EVAL_BOARD_LEDRGB_GREEN );		// power on
     if ( !AFATypesOK())
     {
@@ -107,14 +115,29 @@ int main(
         exit( 1 );
     }
 
-//    memset( outputAddressSW, 0xdc, someSize * sizeof( uint32_t ));
+    inputAddressHW_OffsetToBaseAddress  = (uint32_t)malloc( testSize );
+    Xil_AssertVoid( NULL != inputAddressHW_OffsetToBaseAddress );
+    outputAddressHW_OffsetToBaseAddress = (uint32_t)malloc( testSize );
+    Xil_AssertVoid( NULL != outputAddressHW_OffsetToBaseAddress );
+
+    param = ( uint32_t * )malloc( 256 * sizeof( uint32_t ));
+
+    printf( "* Initialize memory block 'input'\n" );
+    memset( inputAddressHW_OffsetToBaseAddress,  0xdc, someSize * sizeof( uint32_t ));
+    printf( "* Initialize memory block 'output'\n" );
+    memset( outputAddressHW_OffsetToBaseAddress, 0x67, someSize * sizeof( uint32_t ));
+    printf( "* Initialize memory block 'param'\n" );
+    memset( param,                               0xe3, 256      * sizeof( uint32_t ));
 
 	// ==================================================
 	//
 	// prepare parameter block
 	//
 	// ==================================================
+    paramIndexIntoMem = ( uint32_t )param;
+    paramIndexIntoMem /= sizeof( uint32_t );
 
+//someSize=1*1024*1024;
 	param[ AFA_PARAM_INDICES_SIZE                 ] = someSize;
 	param[ AFA_PARAM_INDICES_INPUT_HW_ADDR_LOW    ] = ( uint32_t )((             inputAddressHW_OffsetToBaseAddress  )       );
 	param[ AFA_PARAM_INDICES_INPUT_HW_ADDR_HIGH   ] = ( uint32_t )((( uint64_t ) inputAddressHW_OffsetToBaseAddress  ) >> 32 );
@@ -130,13 +153,13 @@ int main(
 	printf( "* HW Test starts ...\n" );
 	timeGlobalStart = clock();
 	timeIterationStart = clock();
-	rc = AFAProcess_HWWrapper(
-		param,                              // whole block ram used
+	AFAProcess_HWWrapper(
 		baseAddr,
+		paramIndexIntoMem,
 		AFA_WRAPPER_WORK_MODE_HW
 		);
 	timeIterationEnd = clock();
-    printf( "InterationTime: %ld [%7.2fsec.]\n",
+    printf( "IterationTime: %ld [%7.2fsec.]\n",
     		timeIterationEnd - timeIterationStart,
 		(( double )( timeIterationEnd - timeIterationStart )) / (( double ) CLOCKS_PER_SEC ));
     timeGlobalEnd = clock();

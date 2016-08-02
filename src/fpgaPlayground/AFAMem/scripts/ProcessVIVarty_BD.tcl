@@ -1,7 +1,7 @@
 ################################################################
 # Check if script is running in correct Vivado version.
 ################################################################
-set scripts_vivado_version 2016.1
+set scripts_vivado_version 2016.2
 set current_vivado_version [version -short]
 
 if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
@@ -96,7 +96,7 @@ endgroup
 ## DDR3 #######################################################################
 
 startgroup
-create_bd_cell -type ip -vlnv xilinx.com:ip:mig_7series:3.0 mig_7series_0
+create_bd_cell -type ip -vlnv xilinx.com:ip:mig_7series:4.0 mig_7series_0
 apply_board_connection -board_interface "ddr3_sdram" -ip_intf "mig_7series_0/mig_ddr_interface" -diagram $design_name
 endgroup
 delete_bd_objs [get_bd_nets clk_ref_i_1] [get_bd_ports clk_ref_i]
@@ -114,7 +114,8 @@ connect_bd_net [get_bd_pins clk_wiz_0/resetn] [get_bd_pins mig_7series_0/sys_rst
 startgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:microblaze:9.6 microblaze_0
 endgroup
-apply_bd_automation -rule xilinx.com:bd_rule:microblaze -config {local_mem "4KB" ecc "None" cache "8KB" debug_module "Debug Only" axi_periph "Enabled" axi_intc "1" clk "/mig_7series_0/ui_clk (83 MHz)" }  [get_bd_cells microblaze_0]
+apply_bd_automation -rule xilinx.com:bd_rule:microblaze -config {local_mem "4KB" ecc "None" cache "4KB" debug_module "Debug Only" axi_periph "Enabled" axi_intc "1" clk "/mig_7series_0/ui_clk (83 MHz)" }  [get_bd_cells microblaze_0]
+#apply_bd_automation -rule xilinx.com:bd_rule:microblaze -config {local_mem "4KB" ecc "None" cache "8KB" debug_module "Debug Only" axi_periph "Enabled" axi_intc "1" clk "/mig_7series_0/ui_clk (83 MHz)" }  [get_bd_cells microblaze_0]
 
 ## Peripheral - UART ##########################################################
 
@@ -201,24 +202,7 @@ if { $CustomIPEnable == "yes" } {
 	startgroup
 		apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Periph)" Clk "Auto" }  [get_bd_intf_pins $CustomIPName/s_axi_INTERFACE_AXILITE_SLAVE]
 		apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Slave "/mig_7series_0/S_AXI" Clk "Auto" }  [get_bd_intf_pins $CustomIPName/m_axi_gmem]
-		apply_bd_automation -rule xilinx.com:bd_rule:bram_cntlr -config {BRAM "New Blk_Mem_Gen" }  [get_bd_intf_pins $CustomIPName/param_PORTA]
 	endgroup
-
-	# add BRAM as needed by design
-	startgroup
-		set_property -dict [list CONFIG.Memory_Type {True_Dual_Port_RAM} CONFIG.Enable_B {Use_ENB_Pin} CONFIG.Use_RSTB_Pin {true} CONFIG.Port_B_Clock {100} CONFIG.Port_B_Write_Rate {50} CONFIG.Port_B_Enable_Rate {100}] [get_bd_cells $CustomIPName\_bram]
-	endgroup
-
-	# Adding AXI-BRAM-Controller
-	startgroup
-		create_bd_cell -type ip -vlnv xilinx.com:ip:axi_bram_ctrl:4.0 axi_bram_ctrl_0
-	endgroup
-	# Reducing AXI-BRAM-Controller to single port
-	set_property -dict [list CONFIG.SINGLE_PORT_BRAM {1}] [get_bd_cells axi_bram_ctrl_0]
-
-	# Connecting AXI-BRAM-Controller
-	apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/microblaze_0 (Cached)" Clk "Auto" }  [get_bd_intf_pins axi_bram_ctrl_0/S_AXI]
-	apply_bd_automation -rule xilinx.com:bd_rule:bram_cntlr -config "BRAM /$CustomIPName\_bram"  [get_bd_intf_pins axi_bram_ctrl_0/BRAM_PORTA]
 
 	# IRQ concentrator extension from 2 to 3 ports
 	startgroup
@@ -232,6 +216,12 @@ if { $CustomIPEnable == "yes" } {
 
 	# store design up to this point
 	save_bd_design
+	
+##save_bd_design
+##regenerate_bd_layout -routing
+##regenerate_bd_layout
+##validate_bd_design
+##exit
 }
 
 ## Beautify Layout ############################################################

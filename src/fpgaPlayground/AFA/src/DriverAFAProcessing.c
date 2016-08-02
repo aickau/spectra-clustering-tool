@@ -43,14 +43,14 @@ DriverAFAProcessingInit()
     int Status;
     Status = XAfaprocess_hw_Initialize(
     	&gXAfaprocess_hwInstancePtr,
-		XPAR_AFATESTHW_DEVICE_ID );
+		XPAR_AFAPROCESSHW_DEVICE_ID );
 	if ( XST_SUCCESS != Status )
 	{
 		xil_printf( "XAfaprocess_hw(): Failed to initialize: XAfaprocess_hw_Initialize()!\r\n" );
 	}
 return;
 	Status = DriverInterruptControllerRegister(
-		XPAR_MICROBLAZE_0_AXI_INTC_AFATESTHW_INTERRUPT_INTR,
+		XPAR_MICROBLAZE_0_AXI_INTC_AFAPROCESSHW_INTERRUPT_INTR,
 		( XInterruptHandler )DriverAFAProcessingInterruptServiceRoutine,
 		( void * )( 0x1234aabb ));
 	if ( XST_SUCCESS != Status )
@@ -66,7 +66,7 @@ return;
 		&gXAfaprocess_hwInstancePtr );
 
 	DriverInterruptControllerRegisteredEnable(
-		XPAR_MICROBLAZE_0_AXI_INTC_AFATESTHW_INTERRUPT_INTR );
+		XPAR_MICROBLAZE_0_AXI_INTC_AFAPROCESSHW_INTERRUPT_INTR );
 }
 
 void
@@ -80,7 +80,7 @@ DriverAFAProcessingEnable()
 		&gXAfaprocess_hwInstancePtr );
 
 	DriverInterruptControllerRegisteredEnable(
-		XPAR_MICROBLAZE_0_AXI_INTC_AFATESTHW_INTERRUPT_INTR );
+		XPAR_MICROBLAZE_0_AXI_INTC_AFAPROCESSHW_INTERRUPT_INTR );
 }
 
 void
@@ -94,7 +94,7 @@ DriverAFAProcessingDisable()
 		&gXAfaprocess_hwInstancePtr );
 
 	DriverInterruptControllerRegisteredEnable(
-		XPAR_MICROBLAZE_0_AXI_INTC_AFATESTHW_INTERRUPT_INTR );
+		XPAR_MICROBLAZE_0_AXI_INTC_AFAPROCESSHW_INTERRUPT_INTR );
 }
 
 #endif

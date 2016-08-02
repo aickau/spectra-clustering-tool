@@ -12,10 +12,12 @@
 
 #include <xintc.h>
 
+#include "DriverInterruptController.h"
+
 #define TIMER_CNTR_0			0
 #define RESET_VALUE	 			JSC_INTERRUPT_PERIOD_1MS
 
-extern XIntc DriverInterruptControllerHandle; // Instance of the Interrupt Controller
+//extern XIntc DriverInterruptControllerHandle; // Instance of the Interrupt Controller
 XTmrCtr DriverTimerHandle; /* The instance of the timer counter */
 
 static uint32_t countMSecSinceStart = 0;
@@ -41,7 +43,8 @@ DriverTimerReadCounter()
 
 void
 DriverTimerInterruptHandlerDefault(
-	void *CallbackRef)
+	void *CallbackRef,
+	u8 TmrCtrNumber )
 {
 	countMSecSinceStart++;
 }
@@ -52,19 +55,27 @@ DriverTimerSet(
 	uint32_t timerCounter,
 	uint32_t resetValue )
 {
-	XTmrCtr_SetHandler(&DriverTimerHandle,DriverTimerInterruptHandlerDefault,&DriverTimerHandle);
-	XTmrCtr_SetOptions(&DriverTimerHandle, timerCounter, XTC_INT_MODE_OPTION|XTC_AUTO_RELOAD_OPTION);
-	XTmrCtr_SetResetValue(&DriverTimerHandle, timerCounter, resetValue);
-	XTmrCtr_Start(&DriverTimerHandle, timerCounter);
+	XTmrCtr_SetHandler(
+		&DriverTimerHandle,
+		DriverTimerInterruptHandlerDefault,
+		&DriverTimerHandle );
+	XTmrCtr_SetOptions(
+		&DriverTimerHandle,
+		timerCounter,
+		XTC_INT_MODE_OPTION | XTC_AUTO_RELOAD_OPTION );
+	XTmrCtr_SetResetValue(
+		&DriverTimerHandle,
+		timerCounter,
+		resetValue );
+	XTmrCtr_Start(
+		&DriverTimerHandle,
+		timerCounter);
 }
 
 uint32_t
 DriverTimerInit()
 {
 	int Status;
-	u32 TimerCount1 = 0;
-	u32 TimerCount2 = 0;
-	u16 Count = 0;
 	u8 TmrCtrNumber = 0;
 
 	/*
@@ -84,11 +95,11 @@ DriverTimerInit()
 		return XST_FAILURE;
 	}
 
-	Status = XIntc_Connect(
-		&DriverInterruptControllerHandle,
+	Status = DriverInterruptControllerRegister(
 		XPAR_INTC_0_TMRCTR_0_VEC_ID,
-		(XInterruptHandler)XTmrCtr_InterruptHandler,
-		(void *)&DriverTimerHandle);
+		( XInterruptHandler )XTmrCtr_InterruptHandler,
+		( void * ) &DriverTimerHandle );
+
 	if (Status != XST_SUCCESS) {
 		return XST_FAILURE;
 	}
@@ -106,7 +117,8 @@ DriverTimerDeInit()
 	/*
 	 * Disable the interrupt for the timer counter
 	 */
-	XIntc_Disable(&DriverInterruptControllerHandle, XPAR_INTC_0_TMRCTR_0_VEC_ID);
+	DriverInterruptControllerDeRegister(
+		XPAR_INTC_0_TMRCTR_0_VEC_ID );
 }
 
 #endif

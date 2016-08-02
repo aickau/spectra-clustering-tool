@@ -28,9 +28,9 @@ set proj_name_long        AFAFramework_Arty
 set proj_name_short       afw
 set platform_name         arty
 set bd_design_name        design_1
-set design_dir            "../../AFAMem/viv"
-set repo_dir              "../../AFAMem/repoHW"
-set scripts_dir           "../scripts"
+set design_dir            "../viv"
+set repo_dir              "../repoHW"
+set scripts_dir           "."
 set block_design          "./ProcessVIV$platform_name\_BD.tcl"
 
 set design_version_VIV_H  1
@@ -39,7 +39,7 @@ set design_version_VIV_L  0
 # do we want to generate the framework with our custom element or not ?
 set CustomIPEnable        yes
 set CustomIPName          AFATestHW
-set CustomIPNameFull      SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.1000
+set CustomIPNameFull      SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.4004
 # do not modify below this line ...
 ## =============================================================
 

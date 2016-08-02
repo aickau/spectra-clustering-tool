@@ -1,6 +1,6 @@
 ##################################################
 #
-# Jesko Schwarzer, 2016/04-05
+# Jesko Schwarzer, 2016/04-06
 # email: hls@schwarzers.de
 # mobile: +49 163 8442071
 #
@@ -23,13 +23,13 @@
 set proj_name             AFATestHW
 set platform_name         arty
 set src_dir               ../srcTestHW
-set design_dir            "../../AFAMem"
-set repo_dir              "../../AFAMem/repoHW"
+set design_dir            ".."
+set repo_dir              "../repoHW"
 
 set libraryname           AFAProcessingLib
 set vendor                SystemberatungSchwarzer
 set design_version_HLS_H  0
-set design_version_HLS_L  1000
+set design_version_HLS_L  4004
 set display_name          $proj_name
 
 # do not modify below this line ...
@@ -68,11 +68,17 @@ open_project $proj_name
 #set all_axi_addr [list "-m_axi_offset off -register_io off"                        "-m_axi_offset off -register_io off"                        "-m_axi_offset off -register_io off"                        "-m_axi_offset off -register_io off"                       ]
 #set all_repo_dir [list [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] [file normalize "$prj_dir_repo/$platform_name/$proj_name" ]]
 
-set all_solution [list ARTY_32Bit_100MHz                                           ARTY_32Bit_333MHz                                           ARTY_32Bit_400MHz                                           ]
-set all_part     [list xc7a35ticsg324-1L                                           xc7a35ticsg324-1L                                           xc7a35ticsg324-1L                                           ]
-set all_clocks   [list 10ns                                                        3.33ns                                                 2.5ns                                                       ]
-set all_axi_addr [list "-m_axi_offset off -register_io off"                        "-m_axi_offset off -register_io off"                        "-m_axi_offset off -register_io off"                        ]
-set all_repo_dir [list [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] ]
+#set all_solution [list ARTY_32Bit_100MHz                                           ARTY_32Bit_333MHz                                           ARTY_32Bit_400MHz                                           ]
+#set all_part     [list xc7a35ticsg324-1L                                           xc7a35ticsg324-1L                                           xc7a35ticsg324-1L                                           ]
+#set all_clocks   [list 10ns                                                        3.33ns                                                      2.5ns                                                       ]
+#set all_axi_addr [list "-m_axi_offset off -register_io off"                        "-m_axi_offset off -register_io off"                        "-m_axi_offset off -register_io off"                        ]
+#set all_repo_dir [list [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] ]
+
+set all_solution [list ARTY_32Bit_400MHz                                           ]
+set all_part     [list xc7a35ticsg324-1L                                           ]
+set all_clocks   [list 2.5ns                                                       ]
+set all_axi_addr [list "-m_axi_offset off -register_io off"                        ]
+set all_repo_dir [list [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] ]
 
 source $prj_dir_scripts/_ProcessHLSSourceFiles_TestHW.tcl
 source $prj_dir_scripts/_ProcessHLSCore.tcl

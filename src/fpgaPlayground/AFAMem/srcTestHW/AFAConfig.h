@@ -24,4 +24,6 @@
 //#define AFA_RUN_ON_VC709
 // ===============================================================
 
+#define AFA_BOARDIO_LED_TESTS_ENABLE
+
 #endif

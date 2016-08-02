@@ -49,6 +49,22 @@ LEDInit()
 #ifdef AFA_RUN_ON_ARTY
 	XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED, gRGBLEDState );
 #endif
+
+#ifdef AFA_BOARDIO_LED_TESTS_ENABLE
+	{
+		uint32_t i = 1000000;
+		XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED_MONO, 0xffffffff );
+#ifdef AFA_RUN_ON_ARTY
+		XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED, 0xffffffff );
+#endif
+		while( i-- );
+		XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED_MONO, gMonoLEDState );
+#ifdef AFA_RUN_ON_ARTY
+		XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED, gRGBLEDState );
+#endif
+	}
+#endif
+
 	return TRUE;
 }
 
