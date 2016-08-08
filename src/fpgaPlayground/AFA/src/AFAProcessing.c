@@ -269,6 +269,16 @@ AFAHelperStructures_PrepareDataStructure(
     memoryOffsetInBlock += memoryBlockSize;
     idx++;
 
+    strncpy( AFAPP_sw.workData[ idx ].name, "readBackData", AFA_WORKING_DATA_NAME_LENGTH );
+    AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
+    memoryBlockSize = AFA_MAX( 256 * sizeof( uint32_t ), sizeof( AFAReadBackData_t ));
+    AFAPP_sw.workData[ idx ].size = memoryBlockSize;
+    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
+    AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
+    printf( "%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated, memoryOffsetInBlock );
+    memoryOffsetInBlock += memoryBlockSize;
+    idx++;
+
     AFAPP_sw.workDataNumRecords = idx;
     printf( "%32s: %10s %11s %10s\n", "--------------------------------","----------","------------","----------" );
     printf( "\n" );
@@ -288,6 +298,22 @@ AFAHelperStructures_GetAddressOf(
         if ( 0 == strncmp( AFAPP_sw.workData[ i ].name, dataName, sizeof( AFAPP_sw.workData[ i ].name )))
         {
             return ( void * )AFAPP_sw.workData[ i ].address;
+        }
+    }
+    return NULL;
+}
+
+uint64_t
+AFAHelperStructures_GetSizeOf(
+    const char *dataName )
+{
+    uint32_t i;
+
+    for ( i = 0; i < sizeof( AFAPP_sw.workData ) / sizeof( AFAPP_sw.workData[ 0 ]); i++ )
+    {
+        if ( 0 == strncmp( AFAPP_sw.workData[ i ].name, dataName, sizeof( AFAPP_sw.workData[ i ].name )))
+        {
+            return ( void * )AFAPP_sw.workData[ i ].size;
         }
     }
     return NULL;

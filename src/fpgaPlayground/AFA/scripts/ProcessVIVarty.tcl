@@ -37,7 +37,7 @@ set design_version_VIV_L  0
 # do we want to generate the framework with our custom element or not ?
 set CustomIPEnable        yes
 set CustomIPName          AFAProcessHW
-set CustomIPNameFull      SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.2001
+set CustomIPNameFull      SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.3004
 # do not modify below this line ...
 ## =============================================================
 

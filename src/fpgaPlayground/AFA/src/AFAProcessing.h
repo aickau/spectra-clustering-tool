@@ -36,6 +36,10 @@ AFAHelperStructures_GetAddressOf(
     const char *dataName );
 
 uint64_t
+AFAHelperStructures_GetSizeOf(
+    const char *dataName );
+
+uint64_t
 AFAHelperStructures_GetOffsetToBaseAddress(
     const char *dataName );
 

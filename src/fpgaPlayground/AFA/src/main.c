@@ -445,6 +445,7 @@ int main(
     uint32_t *spectraDataInputHW;
     AFASpectra_SW *spectraDataWorkingSet;
     uint32_t *spectraDataWorkingSetHW;
+    AFAReadBackData_t *readBackData;
     uint32_t *baseAddr = NULL;  // that's a dummy address pointing to the start of work area of HW in memory
     uint32_t xp, yp, gridSize, gridSizeSqr;
     sint32_t idx;
@@ -454,6 +455,7 @@ int main(
     uint64_t spectraDataInputHW_OffsetToBaseAddress;
     uint64_t spectraDataWorkingSetHW_OffsetToBaseAddress;
     uint64_t pSpectraIndexList_OffsetToBaseAddress;
+    uint64_t readBackData_OffsetToBaseAddress;
 
     uint32_t numSpectra;        // do we have more than 4bn spectra ... ? not in THESE times
     uint32_t remainder = 0;     // must kept zero, otherwise wrong
@@ -582,6 +584,9 @@ int main(
         "m_pNet / SOM" );
     spectraDataWorkingSetHW = ( uint32_t * ) AFAHelperStructures_GetAddressOf(
         "m_pNet / SOM reduced" );
+    readBackData = ( AFAReadBackData_t * ) AFAHelperStructures_GetAddressOf(
+    	"readBackData" );
+
     gridSize = AFAPP_sw.m_gridSize;
     gridSizeSqr = AFAPP_sw.m_gridSizeSqr;
 
@@ -650,6 +655,10 @@ int main(
     spectraDataInputHW_OffsetToBaseAddress      = ( char * ) AFAPP_sw.spectraDataInputHW      - (( char * ) baseAddr );
     spectraDataWorkingSetHW_OffsetToBaseAddress = ( char * ) AFAPP_sw.spectraDataWorkingSetHW - (( char * ) baseAddr );
     pSpectraIndexList_OffsetToBaseAddress       = ( char * ) AFAPP_sw.m_pSpectraIndexList     - (( char * ) baseAddr );
+    readBackData_OffsetToBaseAddress			= ( char * ) readBackData                     - (( char * ) baseAddr );
+
+    // initialize readBackData
+    memset(( void * ) readBackData, 0x00, sizeof( AFAReadBackData_t ));
 
     // define here after how many iterations we want to see a result
 #ifdef AFA_TEST_SHORT_ITERATION_0000
@@ -753,6 +762,8 @@ int main(
             param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_HIGH      ] = ( uint32_t )((( uint64_t ) spectraDataWorkingSetHW_OffsetToBaseAddress ) >> 32 );
             param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW  ] = ( uint32_t )((             pSpectraIndexList_OffsetToBaseAddress       )       );
             param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] = ( uint32_t )((( uint64_t ) pSpectraIndexList_OffsetToBaseAddress       ) >> 32 );
+            param[ AFA_PARAM_INDICES_READ_BACK_DATA_ADDR_LOW           ] = ( uint32_t )((             readBackData_OffsetToBaseAddress            )       );
+            param[ AFA_PARAM_INDICES_READ_BACK_DATA_ADDR_HIGH          ] = ( uint32_t )((( uint64_t ) readBackData_OffsetToBaseAddress            ) >> 32 );
 
             // ==================================================
             //
@@ -936,6 +947,15 @@ int main(
             break;
         }
     }
+
+    // statistics
+    printf( "Mem-Statistics:\n" );
+    printf( "memAccess_AFAProcess_HW               : %llu\n", readBackData->stats.memAccess_AFAProcess_HW );
+    printf( "memAccess_adaptNetwork_HW_read        : %llu\n", readBackData->stats.memAccess_adaptNetwork_HW_read );
+    printf( "memAccess_adaptNetwork_HW_write       : %llu\n", readBackData->stats.memAccess_adaptNetwork_HW_write );
+    printf( "memAccess_searchBestMatchComplete_HW  : %llu\n", readBackData->stats.memAccess_searchBestMatchComplete_HW );
+    printf( "\n" );
+
     AFAHelperStructures_MemFree();
 
     if ( rv > 0 )

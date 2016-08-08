@@ -28,6 +28,8 @@ enum
     AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_HIGH,
     AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW,
     AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH,
+    AFA_PARAM_INDICES_READ_BACK_DATA_ADDR_LOW,
+    AFA_PARAM_INDICES_READ_BACK_DATA_ADDR_HIGH,
     AFA_PARAM_INDICES_LED1_OUTPUT
 };
 
@@ -45,42 +47,42 @@ typedef struct
 typedef struct
 {
     // training data
-    AFASpectra_SW   *spectraDataInput;
-    uint32_t      *spectraDataInputHW;
+    AFASpectra_SW           *spectraDataInput;
+    uint32_t                *spectraDataInputHW;
 
     // code book spectra
-    AFASpectra_SW   *spectraDataWorkingSet;
-    uint32_t      *spectraDataWorkingSetHW;
+    AFASpectra_SW           *spectraDataWorkingSet;
+    uint32_t                *spectraDataWorkingSetHW;
 
     // determine processing order. must be randomized every learning step
     // contains m_gridSize * m_gridSize  elements
-    sint32_t      *m_pSpectraIndexList;
+    sint32_t                *m_pSpectraIndexList;
 
 
-    AFASpectra_SW **m_localSearchSpectraVec;
-    sint32_t      *m_localSearchIndexVec;
-    float32_t     *m_localSearchErrorVec;
+    AFASpectra_SW           **m_localSearchSpectraVec;
+    sint32_t                *m_localSearchIndexVec;
+    float32_t               *m_localSearchErrorVec;
 
 
     // number of source spectra
-    uint32_t      m_numSpectra;
+    uint32_t                m_numSpectra;
 
     // current learning step
-    uint32_t        currentStep;
-    AFAParameters   m_params;
+    uint32_t                currentStep;
+    AFAParameters           m_params;
 
     // grid size in cells of the map
-    uint32_t       m_gridSize;
+    uint32_t                m_gridSize;
     // squared grid size, number of neurons
-    uint32_t       m_gridSizeSqr;
+    uint32_t                m_gridSizeSqr;
 
     // memory needs
-    AFAProcessingWorkData_t workData[ 10 ];
-    uint32_t workDataNumRecords;
-    uint64_t memoryBlockSizeAllocated;
-    void *memoryBlockBaseAddressAllocated;
-    uint64_t memoryBlockSizeNeeded;
-    void *memoryBlockBaseAddressAligned;
+    AFAProcessingWorkData_t workData[ 16 ];
+    uint32_t                workDataNumRecords;
+    uint64_t                memoryBlockSizeAllocated;
+    void                    *memoryBlockBaseAddressAllocated;
+    uint64_t                memoryBlockSizeNeeded;
+    void                    *memoryBlockBaseAddressAligned;
 } AFAProcessingParamSW_t;
 
 typedef struct
@@ -97,6 +99,21 @@ typedef struct
     uint32_t        m_gridSizeSqr;
 
 } AFAProcessingParamHW_t;
+
+typedef struct	// packing is essential here: see readout in AFAProcess_HW
+{
+	uint64_t	memAccess_AFAProcess_HW;
+	uint64_t	memAccess_adaptNetwork_HW_read;
+	uint64_t	memAccess_adaptNetwork_HW_write;
+	uint64_t	memAccess_searchBestMatchComplete_HW;
+} AFAStatistics_t;
+
+typedef struct	// packing is essential here: see readout in AFAProcess_HW
+{
+	AFAStatistics_t	stats;
+} AFAReadBackData_t;
+
+
 
 // one learning step
 // returns true if learning is finished and maximum number of learning steps are reached.

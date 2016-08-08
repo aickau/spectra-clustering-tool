@@ -11,6 +11,8 @@
 #define AFA_CONST_EULER			( 2.718281828f )
 #endif 
 
+#define AFA_MAX( a, b )		(( a ) > ( b ) ? ( a ) : ( b ))
+
 #ifndef NULL
 #define NULL			( 0 )
 #endif 
