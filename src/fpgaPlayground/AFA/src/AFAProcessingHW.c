@@ -41,9 +41,6 @@ searchBestMatchComplete_HW(
         const uint32_t jInc = AFAMIN( AFA_COMPARE_BATCH_HW, ( AFAMIN( m_gridSizeSqr, j + AFA_COMPARE_BATCH_HW ) - j ));
 
         // calculate euclidean distances for spectrum _src and a batch of network spectra starting at m_pNet[j] .. m_pNet[j+jInc-1]
-        //a = &AFAPP_HW.m_pNet[j];
-        //a = &spectraDataWorkingSet[ j * AFA_SPECTRA_INDEX_SIZE_IN_FLOAT32 ];
-
         // hint this can run in parallel
         for ( i = 0; i < jInc; i++ )
         {
@@ -59,6 +56,7 @@ searchBestMatchComplete_HW(
 
                 for ( k = AFA_SPECTRA_INDEX_AMPLITUDE; k < AFA_SPECTRA_INDEX_AMPLITUDE + AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW; k++ )
                 {
+#pragma HLS PIPELINE
                     uint32_t tmpVal1 = bufferSource[ k ];
                     uint32_t tmpVal2 = bufferWork[ k ];
                     float32_t tmpVal1Float = *(( float32_t * ) &tmpVal1 );
@@ -180,6 +178,7 @@ adaptNetwork_HW(
 
                 for ( i = AFA_SPECTRA_INDEX_AMPLITUDE; i < AFA_SPECTRA_INDEX_AMPLITUDE + AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW; i++ )
                 {
+#pragma HLS PIPELINE
                     const uint32_t aTmp = bufferWork[ i ];
                     const uint32_t cTmp = bufferSource[ i ];
                     const float32_t aTmpFloat = *(( float32_t * ) &aTmp );
