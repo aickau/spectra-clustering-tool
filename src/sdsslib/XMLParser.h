@@ -20,7 +20,7 @@
 #define __XMLPARSER_H__
 
 #include <string>
-#include "XMLPARSERAPI.h"
+#include "XMLParserAPI.h"
 
 class XMLParserImpl;
 
