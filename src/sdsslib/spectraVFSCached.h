@@ -19,7 +19,9 @@
 #ifndef _SPECTRAVFSCACHED_H
 #define _SPECTRAVFSCACHED_H
 
+#ifdef _WIN32
 #include <Windows.h>
+#endif
 #include <string>
 #include <fstream>
 #include <map>

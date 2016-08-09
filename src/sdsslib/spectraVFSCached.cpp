@@ -28,7 +28,9 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include <conio.h>
+#ifdef WIN32
+  #include <conio.h>
+#endif
 #include <assert.h>
 
 #ifdef WIN32
