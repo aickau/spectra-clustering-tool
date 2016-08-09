@@ -64,6 +64,8 @@ public:
 
 	// flush all open write commits
 	void flush();
+	void flush(size_t _SpectraIndexBegin, size_t _numSpectra);
+
 
     //export data pointer
     void *exportData() const;

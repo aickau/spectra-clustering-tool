@@ -43,7 +43,8 @@ SpectraVFSMemOnly::SpectraVFSMemOnly( const std::string &_sstrFilename, std::ofs
 	const size_t fileSize = FileHelpers::getFileSize( _sstrFilename );
 	const size_t fileCount = fileSize / SPECTRASIZE;
 	const size_t remainder = fileSize % SPECTRASIZE;
-		
+	
+
 	if (fileSize == 0 )
 	{
 		// file not found
@@ -122,6 +123,19 @@ void SpectraVFSMemOnly::flush()
 	}
 }
 
+void SpectraVFSMemOnly::flush(size_t _SpectraIndexBegin, size_t _numSpectra) {
+
+  
+
+	if ( _numSpectra > 0 && !m_bReadOnly )
+
+	{
+
+		Write( _SpectraIndexBegin, _numSpectra, m_pSpectaPool );
+
+	}
+
+}
 
 
 void SpectraVFSMemOnly::Read( size_t _nSpectraIndex, size_t _numSpectra, Spectra *_pDestination )
@@ -164,7 +178,8 @@ void SpectraVFSMemOnly::Write(  size_t _nSpectraIndex, size_t _numSpectra, Spect
 	Helpers::print("disk.write.\n");
 	assert( _pSource != NULL );
 
-	FILE *f = fopen( m_sstrFilename.c_str(), "wb" );
+	//FILE *f = fopen( m_sstrFilename.c_str(), "wb" );
+	FILE *f = fopen( m_sstrFilename.c_str(), "r+b" );
 
 	if ( f == NULL ) 
 	{
