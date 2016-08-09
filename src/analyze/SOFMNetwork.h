@@ -99,6 +99,12 @@ protected:
 		float error;	//< euclidean distance
 	};
 
+	struct MPIBestMatch
+	{
+		size_t index;	//< index in the map
+		float error;	//< euclidean distance
+	};
+	
 	// calculate min/max values for a given SpectraVFS
 	void calcMinMax( SpectraVFS &_vfs, float &_outMin, float &_outMax );
 
