@@ -24,14 +24,24 @@
 #include "sdsslib/Timer.h"
 #include "sdsslib/spectraVFS.h"
 #include "sdsslib/spectraBaseHelpers.h"
-#include "sdsslib/spectraHelpers.h"
+#ifdef WIN32
+  #include "sdsslib/spectraHelpers.h"
+#endif
 #include "sdsslib/mathhelpers.h"
 #include "sdsslib/XMLExport.h"
 #include "sdsslib/XMLParser.h"
 #include "sdsslib/HTMLExport.h"
-#include "sdsslib/sdssSoftwareVersion.h"
+  #include "sdsslib/sdssSoftwareVersion.h"
+#ifdef _WIN32
+  #include <conio.h>
+#endif
 
-#include <conio.h>
+#ifdef __linux__
+ #include <sys/stat.h>
+ #include <sys/types.h>
+#endif
+
+
 #include <math.h>
 #include <float.h>
 #include <assert.h>
@@ -40,6 +50,12 @@
 #include <iostream>
 #include <map>
 #include <omp.h>
+
+#include "mpi.h"
+
+
+#include <fstream>
+
 
 //#define SDSS_SINETEST
 
@@ -158,8 +174,21 @@ SOFMNetwork::SOFMNetwork( SpectraVFS *_pSourceVFS, bool bContinueComputation, st
 			            std::string(" spectra. Grid size is ")+Helpers::numberToString(m_gridSize)+std::string(".\n"), m_pLogStream );
 
 		// generate random filled cluster and load it.
-		SpectraVFS::write( m_gridSize, m_Min, m_Max*0.01f, sstrSOFMFileName );
-		m_pNet = new SpectraVFS( sstrSOFMFileName, false );
+#ifdef OPEN_MPI
+		//only one of the nodes is supposed to write the sofmnet.bin
+		int cluster_myrank;
+		int cluster_size;
+		MPI_Comm_rank(MPI_COMM_WORLD, &cluster_myrank); 
+		MPI_Comm_size(MPI_COMM_WORLD, &cluster_size);
+		if ( cluster_myrank == 0) {
+		  SpectraVFS::write( m_gridSize, m_Min, m_Max*0.01f, sstrSOFMFileName );
+		}
+		MPI_Barrier(MPI_COMM_WORLD);
+#else
+		SpectraVFS::write( m_gridSize, m_Min, m_Max*0.01f, sstrSOFMFileName );
+
+#endif
+		m_pNet = new SpectraVFS( sstrSOFMFileName, false );		
 		reset(m_params);
 
 		renderIcons();
@@ -358,7 +387,8 @@ bool SOFMNetwork::readSettings( const std::string &_sstrFileName, std::string &_
 	//	<NORMALIZATION value="flux">	<!-- none, amplitude, flux -->
 	if (!p.loadXMLFromFile( _sstrFileName ))
 	{
-		return false;
+		
+	    return false;
 	}
 
 	bool bSuccess = true;
@@ -547,10 +577,11 @@ void SOFMNetwork::exportHistograms( const std::string &_sstrExportDirectory )
 
 	const size_t width = 800;
 	const size_t height = 533;
-
+#ifdef _WIN32
 	SpectraHelpers::renderDiagramToDisk(&energymap[0], energymap.size(), 1, 4, 0, width, height, sstrDir+std::string("energymap.png") );
 	SpectraHelpers::renderDiagramToDisk(&peakmap[0], peakmap.size(), 1, 4, 0, width, height, sstrDir+std::string("peakmap.png") );
 	SpectraHelpers::renderDiagramToDisk(&zmap[0], zmap.size(), 1, 4, 0, width, height, sstrDir+std::string("zmap.png") );
+#endif
 	exportNeighbourHoodFunction( sstrDir+std::string("neighborhoodfunc.png") );
 }
 
@@ -575,7 +606,13 @@ void SOFMNetwork::renderIcons()
 		if ( plate != plateOld )
 		{
 			plateOld = plate;
+#ifdef _WIN32
 			CreateDirectory( sstrDir.c_str(), NULL );
+#endif
+			
+#ifdef __linux__
+			mkdir(sstrDir.c_str(), 0777);
+#endif			
 		}
 		std::string sstrFilename(sstrDir);
 		sstrFilename += a->getFileName();
@@ -590,7 +627,9 @@ void SOFMNetwork::renderIcons()
 #ifdef SDSS_SINETEST
 		redness = (float)i*2.f/(float)m_numSpectra;
 #endif // SDSS_SINETEST
+#ifdef _WIN32
 		SpectraHelpers::renderSpectraIconToDisk(*a, sstrFilename, m_params.iconSize, m_params.iconSize, redness );
+#endif
 
 		m_pSourceVFS->endRead( i );
 	}
@@ -669,8 +708,9 @@ void SOFMNetwork::exportNeighbourHoodFunction( const std::string &_sstrFilenName
 
 	const size_t width = 800;
 	const size_t height = 533;
-
+#ifdef WIN32
 	SpectraHelpers::renderDiagramToDisk(&nbFunction[0], m_gridSize, 5, 4, 0, width, height, _sstrFilenName );
+#endif
 }
 
 
@@ -684,10 +724,26 @@ void SOFMNetwork::adaptNetwork( const Spectra &_srcSpectrum, size_t _bestMatchIn
 
 	const int gridSize = static_cast<int>(m_gridSize);
 
+#ifdef OPEN_MPI
+	// wenn in MPI-Mode behandle nur jede Zeile, die ein vielfaches des Cluster Rangs ist
+	int cluster_myrank;
+	int cluster_size;
+//	MPI_Comm comm;
+	MPI_Comm_rank(MPI_COMM_WORLD, &cluster_myrank); 
+	MPI_Comm_size(MPI_COMM_WORLD, &cluster_size); 
+	
 
+#endif
+	
+	
+	
 	// adjust weights of the whole network
 #pragma omp parallel for schedule (dynamic)
+#ifdef OPEN_MPI
+	for ( int y=cluster_myrank; y<gridSize; y+=cluster_size)
+#else
 	for ( int y=0;y<gridSize;y++)
+#endif
 	{
 		const float distY1 = static_cast<float>(y)-static_cast<float>(ypBestMatch);
 		//const float distY2 = (static_cast<float>(gridSize)-static_cast<float>(y))-static_cast<float>(ypBestMatch);
@@ -720,6 +776,9 @@ void SOFMNetwork::adaptNetwork( const Spectra &_srcSpectrum, size_t _bestMatchIn
 			}
 		}
 	}
+#ifdef OPEN_MPI
+	  MPI_Barrier(MPI_COMM_WORLD);
+#endif
 }
 
 
@@ -730,6 +789,95 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchComplete( const Spectra &_src
 	BestMatch bestMatch;
 	bestMatch.reset();
 
+#ifdef OPEN_MPI
+	// wenn in MPI-Mode, behandle nur jede Linie, die ein vielfaches des Cluster Rangs ist
+	int cluster_myrank;
+	int cluster_size;
+	MPI_Comm_rank(MPI_COMM_WORLD, &cluster_myrank);
+	MPI_Comm_size(MPI_COMM_WORLD, &cluster_size);
+
+
+	size_t numSpectraToSearch = 0;
+	for (int y=cluster_myrank; y<m_gridSize; y+=cluster_size) {
+	    numSpectraToSearch += m_gridSize;
+	}
+
+	// setup arrays
+	std::vector<Spectra*> searchSpectraVec;
+	std::vector<size_t> indexVec;
+	std::vector<float> errorVec;
+	if (numSpectraToSearch > 0) {
+	    searchSpectraVec.resize( numSpectraToSearch );
+	    indexVec.resize( numSpectraToSearch );
+	    errorVec.resize( numSpectraToSearch );
+	}
+
+	// read spectra from vfs
+	size_t c=0;
+	for ( int y=cluster_myrank;y<m_gridSize;y+=cluster_size )
+	{
+		for ( int x=0;x<m_gridSize;x++ )
+		{
+			const size_t spectraIndex = getIndex( x, y );
+			indexVec[c] = spectraIndex;
+			searchSpectraVec[c] = m_pNet->beginRead( spectraIndex );
+			c++;
+		}
+	}
+	if (numSpectraToSearch > 0) {
+		// calculate errors/distances
+		SpectraBaseHelpers::compareSpectra( _src, searchSpectraVec, &errorVec[0] );
+		//end read, find bmu from error list
+	}
+
+	for ( size_t i=0;i<numSpectraToSearch;i++ )
+	{
+		const size_t spectraIndex = indexVec[i];
+		const float err = errorVec[i];
+
+		if (err < bestMatch.error )
+		{
+			bestMatch.error = err;
+			bestMatch.index = spectraIndex;
+		}
+		m_pNet->endRead(spectraIndex);
+	}
+
+	MPIBestMatch MPIbmuLocal, MPIbmuGlobal;
+	MPIbmuLocal.error = bestMatch.error;
+	MPIbmuLocal.index = bestMatch.index;
+	
+	MPI_Datatype MPI_BestMatch, oldtypes[2]; 
+	int          blockcounts[2];
+	/* MPI_Aint type used to be consistent with syntax of */
+	/* MPI_Type_extent routine */
+	MPI_Aint    offsets[2], extent;
+	oldtypes[0] = MPI_UNSIGNED_LONG;
+	oldtypes[1] = MPI_FLOAT;
+	blockcounts[0] = 1;
+	blockcounts[1] = 1;
+	MPI_Type_extent(MPI_UNSIGNED_LONG, &extent);
+	offsets[0] = 0;
+	offsets[1] = 1 * extent;
+	MPI_Type_struct(2, blockcounts, offsets, oldtypes, &MPI_BestMatch);
+	MPI_Type_commit(&MPI_BestMatch);
+	MPIBestMatch MPIbmusLocal[cluster_size];
+	MPI_Gather(&MPIbmuLocal, 1, MPI_BestMatch, &MPIbmusLocal, 1, MPI_BestMatch, 0, MPI_COMM_WORLD);
+	if (cluster_myrank == 0) {
+	  MPIbmuGlobal = MPIbmusLocal[0];
+	  for (int k = 0; k < cluster_size; k++) {
+	      if (MPIbmusLocal[k].error < MPIbmuGlobal.error) {
+		MPIbmuGlobal = MPIbmusLocal[k];
+	      }
+	  }
+	}
+	MPI_Bcast(&MPIbmuGlobal, 1, MPI_BestMatch, 0, MPI_COMM_WORLD);
+	MPI_Type_free(&MPI_BestMatch);
+	bestMatch.error = MPIbmuGlobal.error;
+	bestMatch.index = MPIbmuGlobal.index;
+
+#else
+	
 	size_t j=0;
 	while (j<m_gridSizeSqr)
 	{
@@ -751,6 +899,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchComplete( const Spectra &_src
 		j += jInc;
 	}
 
+#endif
 	return bestMatch;
 }
 
@@ -763,6 +912,17 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	bestMatch.reset();
 
 	bool bFound = false;
+	
+	
+#ifdef OPEN_MPI
+	int intbFound = 0;
+	// wenn in MPI-Mode, behandle nur jede Zeile, die ein vielfaches des Cluster Rangs ist
+	int cluster_myrank;
+	int cluster_size;
+//	MPI_Comm comm;
+	MPI_Comm_rank(MPI_COMM_WORLD, &cluster_myrank);
+	MPI_Comm_size(MPI_COMM_WORLD, &cluster_size);
+#endif
 
 	if ( _src.m_Index < 0 )
 	{
@@ -780,7 +940,16 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	const int xMax = MIN( xpBestMatchOld+_searchRadius+1, m_gridSize );
 	const int yMax = MIN( ypBestMatchOld+_searchRadius+1, m_gridSize );
 
-	const size_t numSpectraToSearch( (xMax-xMin)*(yMax-yMin) );
+#ifdef OPEN_MPI
+	size_t numSpectraToSearch = 0;
+	for (int y=yMin; y<yMax; y++) {
+	  if ( (y - cluster_myrank) % cluster_size == 0) {
+	    numSpectraToSearch += (xMax-xMin);
+	  }
+	}
+#else
+	const size_t numSpectraToSearch( (xMax-xMin)*(yMax-yMin) );
+#endif
 
 	// setup arrays
 	std::vector<Spectra*> searchSpectraVec;
@@ -794,19 +963,42 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 	size_t c=0;
 	for ( int y=yMin;y<yMax;y++ )
 	{
-		for ( int x=xMin;x<xMax;x++ )
-		{
-			const size_t spectraIndex = getIndex( x, y );
-			indexVec[c] = spectraIndex;
-			searchSpectraVec[c] = m_pNet->beginRead( spectraIndex );
-			c++;
-		}
+#ifdef OPEN_MPI
+	// wenn in MPI-Mode, behandle nur jede Linie, die ein vielfaches des Cluster Rangs ist
+	  if ( (y - cluster_myrank) % cluster_size == 0) {
+		for ( int x=xMin;x<xMax;x++ )
+		{
+//		printf("%d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n", x, y, xMin, yMin, xMax, yMax, cluster_myrank, xpBestMatchOld, ypBestMatchOld, _searchRadius);
+			const size_t spectraIndex = getIndex( x, y );
+			indexVec[c] = spectraIndex;
+			searchSpectraVec[c] = m_pNet->beginRead( spectraIndex );
+			c++;
+		}
+	  }
+#else
+		for ( int x=xMin;x<xMax;x++ )
+		{
+			const size_t spectraIndex = getIndex( x, y );
+			indexVec[c] = spectraIndex;
+			searchSpectraVec[c] = m_pNet->beginRead( spectraIndex );
+			c++;
+		}
+
+#endif
 	}
 
-	// calculate errors/distances
-	SpectraBaseHelpers::compareSpectra( _src, searchSpectraVec, &errorVec[0] );
-
+#ifdef OPEN_MPI
+    if (numSpectraToSearch > 0) {
+	  // calculate errors/distances
+          SpectraBaseHelpers::compareSpectra( _src, searchSpectraVec, &errorVec[0] );
+          //end read, find bmu from error list
+    }
+#else
+    	// calculate errors/distances
+        SpectraBaseHelpers::compareSpectra( _src, searchSpectraVec, &errorVec[0] );
 	//end read, find bmu from error list
+#endif  
+
 	for ( size_t i=0;i<numSpectraToSearch;i++ )
 	{
 		const size_t spectraIndex = indexVec[i];
@@ -817,11 +1009,60 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 			bestMatch.error = err;
 			bestMatch.index = spectraIndex;
 			bFound = true;
+#ifdef OPEN_MPI
+			intbFound = 1;
+#endif
 		}
 
 		m_pNet->endRead(spectraIndex);
 	}
-
+	
+#ifdef OPEN_MPI
+		bool MPI_bFounds[cluster_size];
+// 		MPI_Gather(&bFound, 1, MPI_C_BOOL, &MPI_bFounds, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
+		MPI_Allreduce(&intbFound, &intbFound, 1, MPI_INT, MPI_LOR, MPI_COMM_WORLD);
+
+		if (intbFound) {
+		  bFound = true;
+		  MPIBestMatch MPIbmuLocal, MPIbmuGlobal;
+		  MPIbmuLocal.error = bestMatch.error;
+		  MPIbmuLocal.index = bestMatch.index;
+		  
+		  MPI_Datatype MPI_BestMatch, oldtypes[2]; 
+		  int          blockcounts[2];
+		  /* MPI_Aint type used to be consistent with syntax of */
+		  /* MPI_Type_extent routine */
+		  MPI_Aint    offsets[2], extent;
+		  oldtypes[0] = MPI_UNSIGNED_LONG;
+		  oldtypes[1] = MPI_FLOAT;
+		  blockcounts[0] = 1;
+		  blockcounts[1] = 1;
+		  MPI_Type_extent(MPI_UNSIGNED_LONG, &extent);
+		  offsets[0] = 0;
+		  offsets[1] = 1 * extent;
+		  MPI_Type_struct(2, blockcounts, offsets, oldtypes, &MPI_BestMatch);
+		  MPI_Type_commit(&MPI_BestMatch);
+		  MPIBestMatch MPIbmusLocal[cluster_size];
+		  MPI_Gather(&MPIbmuLocal, 1, MPI_BestMatch, &MPIbmusLocal, 1, MPI_BestMatch, 0, MPI_COMM_WORLD);
+		  if (cluster_myrank == 0) {
+		    MPIbmuGlobal = MPIbmusLocal[0];
+		    for (int k = 0; k < cluster_size; k++) {
+			if (MPIbmusLocal[k].error < MPIbmuGlobal.error) {
+			  MPIbmuGlobal = MPIbmusLocal[k];
+			}
+		    }
+		  }
+		  MPI_Bcast(&MPIbmuGlobal, 1, MPI_BestMatch, 0, MPI_COMM_WORLD);
+		  MPI_Type_free(&MPI_BestMatch);
+		  bestMatch.error = MPIbmuGlobal.error;
+		  bestMatch.index = MPIbmuGlobal.index;
+		}
+		else {
+//		      printf("No local bmu. Searching globally. Node: %d\n", cluster_myrank);
+		      bestMatch = searchBestMatchComplete( _src );
+		}
+		MPI_Barrier(MPI_COMM_WORLD);
+#else
 
 	if ( !bFound )
 	{
@@ -829,6 +1070,7 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 		//Helpers::print(".",NULL,false);
 		bestMatch = searchBestMatchComplete( _src );
 	}
+#endif
 
 	return bestMatch;
 }
@@ -836,6 +1078,23 @@ SOFMNetwork::BestMatch SOFMNetwork::searchBestMatchLocal( const Spectra &_src, c
 
 bool SOFMNetwork::process()
 {
+  
+#ifdef OPEN_MPI
+
+	int cluster_myrank;
+	int cluster_size;
+	MPI_Comm_rank(MPI_COMM_WORLD, &cluster_myrank);    // Zeile D
+	MPI_Comm_size(MPI_COMM_WORLD, &cluster_size);      // Zeile E
+	
+	printf("Hello World. I'm process %d of %d processes.\n", cluster_myrank+1, cluster_size);
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	if (m_currentStep < 0 || m_currentStep > 501 ) {
+	  m_currentStep = 0;
+	}
+#endif //OPEN_MPI
+
+	
 	// TODO: correct that we make the correct number of steps. Due to compatibility we leave this
 	if ( m_currentStep > m_params.numSteps )
 	{
@@ -846,9 +1105,31 @@ bool SOFMNetwork::process()
 
 	if ( m_currentStep > 1 )
 	{
-		m_pNet->dumpToFile(m_pNet->getFileName()+"old");
+#ifdef OPEN_MPI
+        if (cluster_myrank == 0) {
+    //            m_pNet->dumpToFile(m_pNet->getFileName()+"old");
+    //	    ostringstream convert;
+    //	    convert << m_currentStep;
+    //    	    m_pNet->dumpToFile(m_pNet->getFileName()+ static_cast<std::ostringstream*>( &(std::ostringstream() << m_currentStep) )->str() );
+		std::string m_currentStepString = m_pNet->getFileName() + static_cast<std::ostringstream*>( &(std::ostringstream() << m_currentStep) )->str();
+		char const *m_currentStepChar = m_currentStepString.c_str();
+		std::ifstream src("sofmnet.bin", std::ios::binary);
+		std::ofstream dst(m_currentStepChar,   std::ios::binary);
+		dst << src.rdbuf();
+        }
+	
+#else
+	  
+		m_pNet->dumpToFile(m_pNet->getFileName()+static_cast<std::ostringstream*>( &(std::ostringstream() << m_currentStep) )->str());
+#endif
 	}
-	if ( m_currentStep > 0 )
+	
+#ifdef OPEN_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+	if ( m_currentStep > 0 && cluster_myrank == 0)
+#else
+	if (m_currentStep > 0)
+#endif
 	{
 		if ( m_currentStep == m_params.numSteps )
 		{
@@ -880,7 +1161,14 @@ bool SOFMNetwork::process()
 
 	std::string sstrLog("Calculating step ");
 	sstrLog += Helpers::numberToString( m_currentStep ) + " / " + Helpers::numberToString( m_params.numSteps ) + "\n";
+#ifdef OPEN_MPI
+	if (cluster_myrank == 0) 
+	{
+	  Helpers::print( sstrLog, m_pLogStream );
+	}
+#else
 	Helpers::print( sstrLog, m_pLogStream );
+#endif
 
 	const float lPercent = static_cast<float>(m_currentStep)/static_cast<float>(m_params.numSteps);
 	const float lRate = m_params.lRateBegin*pow(m_params.lRateEnd/m_params.lRateBegin,lPercent);
@@ -930,16 +1218,24 @@ bool SOFMNetwork::process()
 	}
 
 	// shake well
-	for ( size_t i=0;i<m_numSpectra*2;i++)
-	{
-		size_t ind0 = m_Random.randomInt(m_numSpectra-1);
-		size_t ind1 = m_Random.randomInt(m_numSpectra-1);
+	
+#ifdef OPEN_MPI
+	if (cluster_myrank == 0) {
+#endif	  
+	    for ( size_t i=0;i<m_numSpectra*2;i++)
+	    {
+		    size_t ind0 = m_Random.randomInt(m_numSpectra-1);
+		    size_t ind1 = m_Random.randomInt(m_numSpectra-1);
 
-		size_t hui = spectraIndexList[ind0];
-		spectraIndexList[ind0] = spectraIndexList[ind1];
-		spectraIndexList[ind1] = hui;
+		    size_t hui = spectraIndexList[ind0];
+		    spectraIndexList[ind0] = spectraIndexList[ind1];
+		    spectraIndexList[ind1] = hui;
+	    }
+#ifdef OPEN_MPI
 	}
-
+	// see: https://www.open-mpi.org/community/lists/users/2009/07/9830.php
+	MPI_Bcast(&spectraIndexList[0], spectraIndexList.size(), MPI_UNSIGNED_LONG, 0, MPI_COMM_WORLD);
+#endif
 	// clear names
 	for ( size_t i = 0;i < m_gridSizeSqr;i++)
 	{
@@ -997,8 +1293,28 @@ bool SOFMNetwork::process()
 
 
 	Helpers::print( "writing network to disk.\n", m_pLogStream );
+#ifdef OPEN_MPI
+	size_t SpectraIndexBegin, NumberOfSpectra;
+	size_t lowerLimit = cluster_myrank;
+	size_t upperLimit = m_gridSize;
+	int step = cluster_size;
+//	for ( int i = 0 ; i< cluster_size; i++) {
+//	  if (i == cluster_myrank ) {
+	    for ( int y = lowerLimit; y < upperLimit ;y+=step) {
+	      SpectraIndexBegin = y * m_gridSize;
+	      NumberOfSpectra = m_gridSize;
+//	      printf("spectraindexbegin %d, numberofspectra %d \n", SpectraIndexBegin, NumberOfSpectra);
+	      m_pNet->flush(SpectraIndexBegin, NumberOfSpectra);
+//	    }
+//	  }
+//	  MPI_Barrier(MPI_COMM_WORLD);
+
+	}
+#else
 	m_pNet->flush();
 	writeIndicesFromNetwork();
+#endif
+
 	Helpers::print( "finished writing network to disk.\n", m_pLogStream );
 	m_currentStep++;
 
@@ -1084,7 +1400,13 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 		if ( plate != plateOld )
 		{
 			plateOld = plate;
+#ifdef _WIN32
 			CreateDirectory( sstrDir.c_str(), NULL );
+#endif
+			
+#ifdef __linux__
+			mkdir(sstrDir.c_str(), 0777);
+#endif	
 		}
 
 		// filename for HTML page
@@ -1111,7 +1433,9 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 				else
 				{
 					const float scale = log10f(pErrMap[c]+1.f)/fMaxErrLog10;
+#ifdef _WIN32					
 					SpectraHelpers::intensityToRGB( scale,  &pRGBMap[c*3] );
+#endif
 				}
 			}
 		}
@@ -1126,7 +1450,9 @@ void SOFMNetwork::generateHTMLInfoPages( const std::string &_sstrMapBaseName )
 				}
 			}
 		}
+#ifdef _WIN32
 		SpectraHelpers::saveIntensityMap( pRGBMap, m_gridSize, m_gridSize, sstrComprarisonMapFilename );
+#endif
 
 
 		sstrMainHTMLDoc = sstrHTMLDocTemplate;
@@ -1310,6 +1636,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	const std::string sstrObjectClassMap = "objectClassMap" + sstrStep;
 	const std::string sstrObjectGalaxyAndQSOSubClassMap = "objectGalaxyAndQSOSubClassMap" + sstrStep;
 	const std::string sstrObjectStarSubClassMap = "objectStarSubClassMap" + sstrStep;
+#ifdef _WIN32
 	SpectraHelpers::calcUMatrix( *m_pNet, sstrDirectory+sstrUMatrix, true, true, false, _fullExport, s_outputPlanSize );
 	SpectraHelpers::calcDifferenceMap( *m_pSourceVFS, *m_pNet, sstrDirectory+sstrDifferenceMap, true, false, true, _fullExport, s_outputPlanSize);
 	SpectraHelpers::calcZMap( *m_pSourceVFS, *m_pNet, sstrDirectory+sstrZMap, true, _fullExport, s_outputPlanSize );
@@ -1323,7 +1650,7 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 
 	const std::string sstrTableFilename = sstrDirectory + "spectraTbl_" + sstrZMap + ".csv";
 	SpectraHelpers::writeSpectraInfoToTable( *m_pSourceVFS, *m_pNet, sstrTableFilename, m_pLogStream);
-
+#endif
 
 	sstrInfo += std::string("creation date: ")+Helpers::getCurentDateTimeStampString()+HTMLExport::lineBreak();
 	sstrInfo += std::string("step: ")+Helpers::numberToString( m_currentStep )+std::string(" / ")+Helpers::numberToString( m_params.numSteps )+HTMLExport::lineBreak();
@@ -1552,7 +1879,12 @@ void SOFMNetwork::exportToHTML( const std::string &_sstrFilename, bool _fullExpo
 	if ( m_params.waitForUser )
 	{
 		Helpers::print( std::string("export finished. waiting for user input.\n"), m_pLogStream );
+#ifdef _WIN32
 		_getch();
+#elif __linux__
+		system("read");
+#endif
+	
 	}
 }
 
