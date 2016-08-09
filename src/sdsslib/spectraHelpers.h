@@ -19,8 +19,9 @@
 #ifndef _SPECTRAHELPERS_H
 #define _SPECTRAHELPERS_H
 
-
-#include <windows.h>
+#ifdef WIN32
+  #include <windows.h>
+#endif
 
 #include <string>
 #include <set>
@@ -39,10 +40,10 @@ namespace SpectraHelpers
 	//@{
 	static int s_FontID = -1;
 	static int s_largeFontID = -1;
-
+#ifdef _WIN32
 	// init system (for rendering of diagrams etc)
 	void init( HDC _hDC );
-
+#endif
 	// get GL default font ID
 	int getDefaultFontID();
 

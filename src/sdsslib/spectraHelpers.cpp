@@ -25,15 +25,20 @@
 #include "helpers.h"
 #include "mathhelpers.h"
 #include "fileHelpers.h"
-#include "glhelper.h"
-#include "HTMLexport.h"
+
+#ifdef WIN32
+  #include "glhelper.h"
+#endif
+#include "HTMLExport.h"
 #include "Timer.h"
 #include "CSVExport.h"
 #include "spectraBaseHelpers.h"
 
-#include "devil/include/il/il.h"
-#include "devil/include/il/ilu.h"
-
+#ifdef WIN32
+  #include "devil/include/il/il.h"
+  #include "devil/include/il/ilu.h"
+#endif
+  
 #include <assert.h>
 #include <fstream>
 #include <set>
@@ -48,6 +53,7 @@ namespace SpectraHelpers
 
 static bool s_IsInitialized = false;
 
+#ifdef _WIN32
 
 size_t getFBWidth()
 {
@@ -88,7 +94,7 @@ void init( HDC _hDC )
 	ilInit();
 	s_IsInitialized = true;
 }
-
+	
 
 int getDefaultFontID()
 {
@@ -455,7 +461,7 @@ void combineSpectra( std::string &_sstrDumpFilename, const std::string &_sstrFil
 	renderSpectraIconToDisk(accumSpectra, _sstrFilename, scrWidth, scrHeight, 1.f );
 
 }
-
+#endif
 
 void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstrOutTable )
 {
