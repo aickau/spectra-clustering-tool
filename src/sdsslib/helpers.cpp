@@ -28,13 +28,14 @@
 #include <ctime>
 
 #ifdef _WIN32
-#include <io.h>
-#include <conio.h>
-#include <windows.h>
-#include <shellapi.h>
-#include <DbgHelp.h>
+  #include <io.h>
+  #include <conio.h>
+  #include <windows.h>
+  #include <shellapi.h>
+  #include <DbgHelp.h>
 #endif
 
+#include "mpi.h"
 
 
 bool Helpers::insertString( const std::string &sstrTag, const std::string &sstrInsertValue, std::string &sstrValue )
@@ -70,7 +71,18 @@ void Helpers::print( const std::string &_sstrText, std::ofstream *_logStream, bo
 	std::string sstrPrefix;
 	if ( _bPrintPrefix )
 	{
-		sstrPrefix = Helpers::getCurentDateTimeStampString();
+		sstrPrefix = "";
+#ifdef OPEN_MPI
+
+		int cluster_myrank;
+		int cluster_size;
+		MPI_Comm_rank(MPI_COMM_WORLD, &cluster_myrank);    // Zeile D
+		MPI_Comm_size(MPI_COMM_WORLD, &cluster_size);      // Zeile E
+		sstrPrefix += "Cluster Node ";
+		sstrPrefix += Helpers::numberToString( cluster_myrank );
+		sstrPrefix += " ";
+#endif
+		sstrPrefix += Helpers::getCurentDateTimeStampString();
 		sstrPrefix += "> ";
 
 #ifdef _WIN32
@@ -165,8 +177,8 @@ uint64_t Helpers::hash( const char *p, size_t size )
 	return hash;
 }
 
-#ifdef _WIN32 
 
+#ifdef _WIN32 
 char **Helpers::getCommandLineFromString( const std::string &_sstrCommandLineString, int &_outArgC )
 {
 	_outArgC=0;
@@ -188,6 +200,7 @@ char **Helpers::getCommandLineFromString( const std::string &_sstrCommandLineStr
 
 	return argv;
 }
+
 
 typedef BOOL (WINAPI * MINIDUMP_WRITE_DUMP)(
     IN HANDLE           hProcess,
