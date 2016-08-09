@@ -88,6 +88,8 @@ public:
 
 	// flush all open write commits
 	void flush();
+	void flush(size_t _SpectraIndexBegin, size_t _numSpectra);
+
 
 	// dump existing VFS to another file
 	void dumpToFile( const std::string _sstrFilename );

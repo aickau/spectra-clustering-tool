@@ -108,6 +108,10 @@ void SpectraVFS::flush()
 	m_pSpectraVFS->flush();
 }
 
+void SpectraVFS::flush(size_t _SpectraIndexBegin, size_t _numSpectra) {
+	m_pSpectraVFS->flush(_SpectraIndexBegin, _numSpectra);
+}
+
  void SpectraVFS::dumpToFile( const std::string _sstrFilename )
  {
 	 const size_t numSpectra( m_pSpectraVFS->getNumSpectra() );
