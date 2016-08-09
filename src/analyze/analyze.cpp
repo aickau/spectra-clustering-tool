@@ -16,7 +16,9 @@
 //! \file  analyze.cpp
 
 #include "sdsslib/spectra.h"
-#include "sdsslib/glhelper.h"
+#ifdef _WIN32
+  #include "sdsslib/glhelper.h"
+#endif
 #include "sdsslib/defines.h"
 #include "sdsslib/random.h"
 #include "sdsslib/spectraVFS.h"
@@ -25,30 +27,45 @@
 #include "sdsslib/spectraBaseHelpers.h"
 #include "sdsslib/helpers.h"
 #include "sdsslib/sdssSoftwareVersion.h"
-#include "sdsslib/gltexture.h"
-#include "sdsslib/glshaderprogram.h"
+
+#include <stdlib.h>
+
+#ifdef _WIN32
+
+  #include "sdsslib/gltexture.h"
+  #include "sdsslib/glshaderprogram.h"
+#endif
+
 #include "sdsslib/fileHelpers.h"
 
 #include "framework.h"	
 #include "SOFMNetwork.h"
 
-#include "devil/include/il/il.h"
-#include "devil/include/il/ilu.h"
-
-#include "tclap/CmdLine.h"
+#ifdef _WIN32
+  #include "devil/include/il/il.h"
+  #include "devil/include/il/ilu.h"
+  #include "tclap/CmdLine.h"
+#endif
 
 #include <assert.h>
-#include <Windows.h>
-#include <conio.h>
 
+#ifdef _WIN32
+  #include <Windows.h>
+  #include <conio.h>
+#endif
+  
 #include <string>
 
+#ifdef _WIN32
+  extern HWND	fr_hWnd;
+  extern HDC fr_hDC;		
+  int left,right,up,down;
+  int scr_width, scr_height;
+#endif
+  
+#include "mpi.h"
 
-extern HWND	fr_hWnd;
-extern HDC fr_hDC;		
-int left,right,up,down;
-int scr_width, scr_height;
-
+ 
 SOFMNetwork *g_pSOFM=NULL;
 
 std::ofstream logFile("sofm_log.txt");
@@ -64,6 +81,8 @@ SpectraVFS *g_pVFSSource = NULL;
 
 int InitGL()		
 {
+
+#ifdef _WIN32
 	Helpers::createConsole();
 	GLExtensions::loadGLExtensions(false);
 
@@ -85,19 +104,21 @@ int InitGL()
 	int argc;
 	std::string sstrCmdLine(GetCommandLine());
 	char **argv = Helpers::getCommandLineFromString( sstrCmdLine, argc );
-
+#endif
+	
 	Helpers::print("Welcome to ASPECT "+sstrSDSSVersionString+" !\n\n\n", &logFile);
 
 	std::string sstrSourceSpectraFilename("allSpectra.bin");
 	std::string sstrSelectionListFilename("");
 	bool bContinue = false;
-
+#ifdef _WIN32
 	try {  
 
 		std::string sstrExamples("examples:\n");
 		sstrExamples += std::string("example: analyze.exe -i allSpectra.bin\n");
 		sstrExamples += std::string("analyze.exe -i allSpectra.bin -s selection.txt\n");
 		sstrExamples += std::string("analyze.exe -c\n");
+
 
 		TCLAP::CmdLine cmd(sstrExamples, ' ', sstrSDSSVersionString);
 
@@ -117,14 +138,26 @@ int InitGL()
 		sstrSelectionListFilename = selectionListFilenameArg.getValue();
 		bContinue = continueArg.getValue();
 		g_DisableOutput = visualizeOffArg.getValue();
+
 	}
 	catch (TCLAP::ArgException &e)  
 	{ 
 		Helpers::print( "Error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
 	}
-
 	delete[] argv;
+#else
 
+	std::string sstrExamples("examples:\n");
+	sstrExamples += std::string("example: analyze.exe -i allSpectra.bin\n");
+	sstrExamples += std::string("analyze.exe -i allSpectra.bin -s selection.txt\n");
+	sstrExamples += std::string("analyze.exe -c\n");
+	
+// 	sstrSourceSpectraFilename = "";
+// 	sstrSelectionListFilename = "";
+//	bContinue = false;
+	
+
+#endif
 
 	Helpers::print( "Reading dump file "+sstrSourceSpectraFilename+ "\n", &logFile );
 
@@ -150,7 +183,11 @@ int InitGL()
 
 		Helpers::print("Reading "+sstrSelectionListFilename+".\n", &logFile);
 
+#ifdef _WIN32
 		bool bSuccess = SpectraHelpers::readSelectionList(sstrSelectionListFilename, FITSFilenameSet);
+#else		
+		bool bSuccess = false;
+#endif
 
 		if ( bSuccess && !FITSFilenameSet.empty() )
 		{
@@ -213,14 +250,19 @@ int InitGL()
 		Helpers::print( Helpers::numberToString<double>(mioSpectraComparePerSecond) +std::string(" million spectra compares per second.\n"), &logFile );
 		Helpers::print( Helpers::numberToString<double>(mioSpectraAdaptionPerSecond) +std::string(" million spectra adaption per second.\n"), &logFile );
 	}
-
+#ifdef _WIN32
 	return TRUE;
+#else
+	return true;
+#endif
 }
 
 
 
 void UpdateGLView(int width, int height)	
 {
+  
+#ifdef _WIN32
 	if (height == 0)										
 	{
 		height = 1;										
@@ -236,6 +278,7 @@ void UpdateGLView(int width, int height)
 	glOrtho(0,width, height, 0, 1, 100);
 	glMatrixMode(GL_MODELVIEW);							
 	glLoadIdentity();			
+#endif
 }	
 
 
@@ -243,6 +286,8 @@ void UpdateGLView(int width, int height)
 
 void DrawNetwork( SOFMNetwork &network )
 {
+  
+#ifdef _WIN32
 	if (g_DisableOutput)
 	{
 		ShowWindow( fr_hWnd, SW_HIDE );
@@ -396,12 +441,16 @@ void DrawNetwork( SOFMNetwork &network )
 		}
 	}
 */
+
+#endif
 }
 
 
 
 void ShowTrainData()
 {
+  
+#ifdef _WIN32
 	if (g_numSpectra==0)
 		return;
 
@@ -428,6 +477,7 @@ void ShowTrainData()
 	right = 0;
 	up = 0;
 	down = 0;
+#endif
 }
 
 bool finished=false;
@@ -447,15 +497,18 @@ void SOFM()
 	if ( bFirst )
 	{
 		bFirst = false;
+#ifdef _WIN32
 		SwapBuffers(fr_hDC);
 		SwapBuffers(fr_hDC);
+#endif
 	}
 
 }
 
 void DrawGLScene()
 {
-	std::string sstrTitle("ASPECT: A spectra clustering tool for exploration of large spectral surveys. Step ");
+#ifdef _WIN32
+        std::string sstrTitle("ASPECT: A spectra clustering tool for exploration of large spectral surveys. Step ");
 
 	sstrTitle += Helpers::numberToString( g_pSOFM->m_currentStep ) + " / "+  Helpers::numberToString( g_pSOFM->m_params.numSteps );
 
@@ -485,6 +538,7 @@ void DrawGLScene()
 	
 
 	Sleep(100);
+#endif
 }
 
 
@@ -511,6 +565,7 @@ void DisableOutput()
 	}
 }
 
+#ifdef _WIN32
 void ArrowLeft()
 {
 	left = 1;
@@ -544,3 +599,36 @@ void KeyOne()
 void KeyTwo()
 {
 }
+#endif
+
+#ifdef __linux__
+int main(int argc, char* argv[]) {
+#ifdef OPEN_MPI
+    MPI_Init(&argc, &argv);
+    int cluster_myrank;
+    int cluster_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &cluster_myrank);
+    MPI_Comm_size(MPI_COMM_WORLD, &cluster_size);
+#endif
+ InitGL(); 
+
+  bool finished=false;
+  bool bFirst = true;
+  
+  
+  while (finished == false ) {
+      finished = g_pSOFM->process();
+      if ( finished )
+      {
+#ifdef OPEN_MPI	
+	MPI_Finalize();
+#endif
+	  exit(0);
+      }
+  }
+#ifdef OPEN_MPI
+   MPI_Finalize();
+#endif
+  exit(0);
+}
+#endif //linux
