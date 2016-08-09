@@ -15,11 +15,13 @@
 //!
 //! \file  framework.h
 
-#include <windows.h>		
 #include <math.h>
-#include <gl\gl.h>			
-#include <gl\glu.h>			
-
+#ifdef _WIN32
+  #include <windows.h>		
+  #include <gl\gl.h>			
+  #include <gl\glu.h>			
+#endif
+  
 #define		FR_NAME				"ASPECT"
 								
 #define		FR_WIDTH			800
