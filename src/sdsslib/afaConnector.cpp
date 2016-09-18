@@ -163,7 +163,7 @@ void AfaConnector::openConnection()
 				m_sstrErrorMsg = "AfaConnector open device error: No more file descriptors are available (too many files are open).";		
 				break;
 			case ENOENT:
-				m_sstrErrorMsg = "AfaConnector open device error: File or path not found.";
+				m_sstrErrorMsg = "AfaConnector open device error: File or path not found at "+m_sstrPath+".";
 				break;
 			default:
 				m_sstrErrorMsg = "AfaConnector open device error: Error no: "+Helpers::numberToString<int>(errorCode);

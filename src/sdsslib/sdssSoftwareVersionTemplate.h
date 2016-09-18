@@ -16,7 +16,7 @@
 //! \file  sdssSoftwareVersionTemplate.h
 //! \brief holds the version string
 
-const std::string sstrVersion("0.20");
+const std::string sstrVersion("0.21");
 const std::string sstrSubversionRev("$WCREV$");
 const std::string sstrBuildDate("$WCNOW$");
 const std::string sstrSDSSVersionString("Version "+sstrVersion+", Revision "+sstrSubversionRev+", Build date "+sstrBuildDate);

@@ -63,9 +63,11 @@ void main(int argc, char* argv[])
 
 
 	Helpers::print("Welcome to SDSS Dump "+sstrSDSSVersionString+" !\n\n\n", &logFile);
-	Helpers::print("Reads SDSS spectra as fits files from a given directory (and subdirectories) and dumps the data to a binary file.\n", &logFile);
-	Helpers::print("DR12 spectra can be downloaded here: http://data.sdss3.org/sas/dr12/sdss/spectro/redux/26/spectra\n", &logFile);
-	Helpers::print("Reads binary dump files and extracts text tables out of it.\n\n", &logFile);
+	Helpers::print("Dump can do the following:\n", &logFile);
+	Helpers::print("(1) Read SDSS spectra as FITS files from a given directory (and subdirectories) and dumps the data to a single binary file.\n", &logFile);
+	Helpers::print("    DR12 spectra can be downloaded here: http://data.sdss3.org/sas/dr12/sdss/spectro/redux/26/spectra \n\n", &logFile);
+	Helpers::print("(2) Reads binary dump files and extracts text tables out of it.\n\n", &logFile);
+	Helpers::print("(3) Uploads spectra from binary dump files to ASPECT-FPGA-Accelerator (AFA).\n\n", &logFile);
 
 	std::string sstrDataDir = FileHelpers::getCurrentDirectory()+DATADIR;
 	std::string sstrDumpFile = DUMPFILE;
