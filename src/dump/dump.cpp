@@ -17,8 +17,6 @@
 //! \brief program to generate binary dumps from a directory of FITS files.
 
 
-#include <Windows.h>
-#include <conio.h>
 
 #include "tclap/CmdLine.h"
 
@@ -32,7 +30,6 @@
 #include "sdsslib/afaConnector.h"
 
 
-typedef char _TCHAR;
 
 #define DATADIR std::string("./data/dr12/*")
 //#define DATADIR std::string("G:/SDSS_ANALYZE/fits/spectro/data/*")
