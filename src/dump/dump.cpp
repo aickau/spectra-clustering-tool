@@ -29,6 +29,7 @@
 #include "sdsslib/SpectraHelpers.h"
 #include "sdsslib/sdssSoftwareVersion.h"
 #include "sdsslib/spectraDB.h"
+#include "sdsslib/afaConnector.h"
 
 
 typedef char _TCHAR;
@@ -70,6 +71,7 @@ void main(int argc, char* argv[])
 	std::string sstrDumpFile = DUMPFILE;
 	unsigned int spectraFilter = SPT_DEFAULTFILTER;
 	std::string sstrInputDumpFile("");
+	std::string sstrAfaDumpFile("");
 	std::string sstrSelectionListFilename("");
 
 
@@ -77,8 +79,9 @@ void main(int argc, char* argv[])
 	try {  
 
 		std::string sstrExamples("examples:\n");
-		sstrExamples += std::string("dump.exe -d F:/SDSS_ANALYZE/fits/spectro/data/* -o allSpectra.bin -f 25 -s selectionlist.txt\n");
-		sstrExamples += std::string("dump.exe -i sofmnet.bin\n");
+		sstrExamples += std::string("Write FITS files to binary dump file: \n    dump.exe -d F:/SDSS_ANALYZE/fits/spectro/data/* -o allSpectra.bin -f 25 -s selectionlist.txt\n");
+		sstrExamples += std::string("Outputs a linear list of the network: \n    dump.exe -i sofmnet.bin\n");
+		sstrExamples += std::string("Uploads spectra dump to ASPECT-FPGA-Accelerator (AFA) \n    dump.exe -a allSpectra.bin\n");
 
 
 		TCLAP::CmdLine cmd(sstrExamples, ' ', sstrSDSSVersionString);
@@ -93,21 +96,24 @@ void main(int argc, char* argv[])
 		TCLAP::ValueArg<std::string> dataDirArg("d", "datadir", "example: F:/SDSS_ANALYZE/fits/spectro/data/*", false, sstrDataDir, "datadir/*");
 		TCLAP::ValueArg<std::string> outputFilenameArg("o", "outputdumpfile", "example: allSpectra.bin", false, sstrDumpFile, "outputfilename.bin");
 		TCLAP::ValueArg<unsigned int> filterArg("f", "filter", sstrFilterDesc, false, spectraFilter, "Dump only FITS files with the given filter type.");
-		TCLAP::ValueArg<std::string> inputFilenameArg("i", "inputdumpfile", "example: sofmnet.bin. If inputdumpfile is specified, then all other arguments are ignored. Outputs a linear list of the network.", false, sstrInputDumpFile, "Dumpfile for reverse reads.");
+		TCLAP::ValueArg<std::string> inputFilenameArg("i", "inputdumpfile", "example: sofmnet.bin. If input dump file is specified, then all other arguments are ignored. Outputs a linear list of the network.", false, sstrInputDumpFile, "Dumpfile for reverse reads.");
 		TCLAP::ValueArg<std::string> selectionListFilenameArg("s", "selection", "Optional selection list of FITS files to dump a small subset of input spectra. File should contain plate-mjd-fiber pairs, e.g. 3586 55181 0001. First line in the file is the header and is ignored.", false, sstrSelectionListFilename, "selectionlist.txt");
+		TCLAP::ValueArg<std::string> afaFilenameArg("a", "afadumpfile", "example: allSpectra.bin. If afa dump file is specified, then upload spectra dump to ASPECT-FPGA-Accelerator (AFA). All other arguments are ignored.", false, sstrAfaDumpFile, "Dumpfile for AFA upload.");
 
 		cmd.add( dataDirArg );
 		cmd.add( outputFilenameArg );
 		cmd.add( filterArg );
 		cmd.add( inputFilenameArg );
 		cmd.add( selectionListFilenameArg );
- 
+		cmd.add( afaFilenameArg );
+
 		cmd.parse( argc, argv );
 
 		sstrDataDir = dataDirArg.getValue();
 		sstrDumpFile = outputFilenameArg.getValue();
 		spectraFilter = filterArg.getValue();
 		sstrInputDumpFile = inputFilenameArg.getValue();
+		sstrAfaDumpFile = afaFilenameArg.getValue();
 		sstrSelectionListFilename = selectionListFilenameArg.getValue();
 	}
 	catch (TCLAP::ArgException &e)  
@@ -115,11 +121,80 @@ void main(int argc, char* argv[])
 		Helpers::print( "error: "+e.error()+" for argument "+e.argId()+"\n", &logFile );
 	}
 
-	bool bExtractFilenames = !sstrInputDumpFile.empty();
+	const bool bExtractFilenames = !sstrInputDumpFile.empty();
+	const bool bAfaUpload = !sstrAfaDumpFile.empty();
 
-	if ( !bExtractFilenames )
+	if ( bExtractFilenames )
+	{
+		// extract FITS filenames from a given binary dump.
+		///////////////////////////////////////////////////////////////////////////////////
+		Helpers::print( "Filename extraction from dumpfile with following parameters:\n", &logFile);
+		Helpers::print( "dumpfile: "+sstrInputDumpFile+"\n", &logFile );
+
+		SpectraVFS vfs(sstrInputDumpFile, true);
+
+		size_t numSpectra( vfs.getNumSpectra() );
+
+		if ( numSpectra == 0)
+		{
+			return;
+		}
+
+		std::string sstrOutFileName(FileHelpers::getFileNameMinusExtension(sstrDumpFile));
+		sstrOutFileName += ".txt";
+
+		std::ofstream fon(sstrOutFileName.c_str());
+
+
+		for (size_t i=0;i<numSpectra;i++)
+		{
+			Spectra *a = vfs.beginRead(i);
+			fon << a->getFileName() + std::string("\n");			
+			vfs.endRead(i);
+		}
+	
+	}
+	else if ( bAfaUpload )
+	{
+		// upload spectra dump file to AFA 
+		///////////////////////////////////////////////////////////////////////////////////
+
+		Helpers::print( "Uploading spectra to ASPECT-FPGA-Accelerator (AFA) with following parameters:\n", &logFile);
+		Helpers::print( "dumpfile: "+sstrAfaDumpFile+"\n", &logFile );
+
+		SpectraVFS vfs(sstrAfaDumpFile, true);
+		size_t numSpectra( vfs.getNumSpectra() );
+
+		if ( numSpectra == 0)
+		{
+			return;
+		}
+
+
+		AfaConnector afaConnector;
+
+		if ( !afaConnector.isAFADeviceAvailable() )
+		{
+			Helpers::print( "Could not find ASPECT-FPGA-Accelerator:\n", &logFile );
+			Helpers::print( afaConnector.getErrorMsg(), &logFile );
+			return;
+		}
+
+
+		if ( !afaConnector.writeSpectra(vfs) )
+		{
+			Helpers::print( "Error transferring data to ASPECT-FPGA-Accelerator:\n", &logFile );
+			Helpers::print( afaConnector.getErrorMsg(), &logFile );
+			return;
+		}
+		Helpers::print( "Finished transfer of "+ Helpers::numberToString<int>(numSpectra) +" spectra to ASPECT-FPGA-Accelerator.\n", &logFile );
+		return;
+	}
+	else
 	{
 		// load spectra and pack all necessary information into a single binary file.
+		///////////////////////////////////////////////////////////////////////////////////
+
 		Helpers::print( "Creating binary dump with following parameters:\n", &logFile);
 		Helpers::print( "datadir: "+sstrDataDir+"\n", &logFile );
 		Helpers::print( "dumpfile: "+sstrDumpFile+"\n", &logFile );
@@ -142,27 +217,5 @@ void main(int argc, char* argv[])
 		Helpers::print( "starting dump...\n", &logFile );
 		size_t writtenSpectra = SpectraVFS::write( sstrDataDir, sstrDumpFile, spectraFilter, &logFile, &FITSFilenameSet );
 		Helpers::print( "...finished writing "+ Helpers::numberToString<size_t>(writtenSpectra) +" spectra.\n", &logFile );
-	}
-	else
-	{
-		// extract FITS filenames from a given binary dump.
-		Helpers::print( "Filename extraction from dumpfile with following parameters:\n", &logFile);
-		Helpers::print( "dumpfile: "+sstrInputDumpFile+"\n", &logFile );
-
-		SpectraVFS vfs(sstrInputDumpFile, true);
-
-		std::string sstrOutFileName(FileHelpers::getFileNameMinusExtension(sstrDumpFile));
-		sstrOutFileName += ".txt";
-
-		std::ofstream fon(sstrOutFileName.c_str());
-
-
-		size_t numSpectra( vfs.getNumSpectra() );
-		for (size_t i=0;i<numSpectra;i++)
-		{
-			Spectra *a = vfs.beginRead(i);
-			fon << a->getFileName() + std::string("\n");			
-			vfs.endRead(i);
-		}
 	}
 }

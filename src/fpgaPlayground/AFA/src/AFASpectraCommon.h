@@ -60,6 +60,7 @@ enum
     AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW,                              //< index n+1: ObjID - lower 32 bit part of object id
     AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH,						        //< index n+2: ObjID - higher 32 bit part of object id
     AFA_DEBUG_JSC,
+	AFA_LAST_ELM,													//< last element
 
     AFA_SPECTRA_INDEX_SIZE_IN_UINT32 = 512,                         //< size of data-record := n+3 elements (with n:=AFA_SPECTRA_NUM_SAMPLES_PROCESS_HW)
     AFA_SPECTRA_INDEX_SIZE_IN_BYTES = AFA_SPECTRA_INDEX_SIZE_IN_UINT32 * 4  //< size of data-record in bytes

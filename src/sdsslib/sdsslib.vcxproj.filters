@@ -91,6 +91,7 @@
     <ClCompile Include="BigTiff.cpp" />
     <ClCompile Include="spectraDB.cpp" />
     <ClCompile Include="spectraBaseHelpers.cpp" />
+    <ClCompile Include="afaConnector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="XMLExport.h">
@@ -234,6 +235,7 @@
     </ClInclude>
     <ClInclude Include="spectraDB.h" />
     <ClInclude Include="spectraBaseHelpers.h" />
+    <ClInclude Include="afaConnector.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="comparep.glsl">

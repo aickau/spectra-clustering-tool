@@ -165,6 +165,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="afaConnector.cpp" />
     <ClCompile Include="BigTiff.cpp" />
     <ClCompile Include="spectraBaseHelpers.cpp" />
     <ClCompile Include="spectraDB.cpp" />
@@ -202,6 +203,7 @@
     <ClInclude Include="..\3rdparty\api\libtiff\include\tiffconf.h" />
     <ClInclude Include="..\3rdparty\api\libtiff\include\tiffio.hxx" />
     <ClInclude Include="..\3rdparty\api\libtiff\include\tif_config.h" />
+    <ClInclude Include="afaConnector.h" />
     <ClInclude Include="BigTiff.h" />
     <ClInclude Include="spectraBaseHelpers.h" />
     <ClInclude Include="spectraDB.h" />
