@@ -3,7 +3,6 @@
 
 #include "AFATypes.h"
 
-#define SPT_DEFAULTFILTER                       ( 0x0ffffffff )
 
 #define AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR    ( 8 )             // reduce number of pixel by a factor of 8 (use only values of 2^n)
 

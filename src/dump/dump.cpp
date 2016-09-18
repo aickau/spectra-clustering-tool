@@ -17,7 +17,7 @@
 //! \brief program to generate binary dumps from a directory of FITS files.
 
 
-
+#include <cstdio>
 #include "tclap/CmdLine.h"
 
 #include "sdsslib/spectraVFS.h"
@@ -36,7 +36,7 @@
 #define DUMPFILE std::string("allSpectra.bin")
  
 
-void main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
  
 	// outputs sine test spectra.
@@ -136,7 +136,7 @@ void main(int argc, char* argv[])
 
 		if ( numSpectra == 0)
 		{
-			return;
+			return 1;
 		}
 
 		std::string sstrOutFileName(FileHelpers::getFileNameMinusExtension(sstrDumpFile));
@@ -151,7 +151,8 @@ void main(int argc, char* argv[])
 			fon << a->getFileName() + std::string("\n");			
 			vfs.endRead(i);
 		}
-	
+		
+		return 0;
 	}
 	else if ( bAfaUpload )
 	{
@@ -166,7 +167,7 @@ void main(int argc, char* argv[])
 
 		if ( numSpectra == 0)
 		{
-			return;
+			return 1;
 		}
 
 
@@ -175,8 +176,8 @@ void main(int argc, char* argv[])
 		if ( !afaConnector.isAFADeviceAvailable() )
 		{
 			Helpers::print( "Could not find ASPECT-FPGA-Accelerator:\n", &logFile );
-			Helpers::print( afaConnector.getErrorMsg(), &logFile );
-			return;
+			Helpers::print( afaConnector.getErrorMsg()+"\n", &logFile );
+			return 1;
 		}
 
 
@@ -184,10 +185,10 @@ void main(int argc, char* argv[])
 		{
 			Helpers::print( "Error transferring data to ASPECT-FPGA-Accelerator:\n", &logFile );
 			Helpers::print( afaConnector.getErrorMsg(), &logFile );
-			return;
+			return 1;
 		}
 		Helpers::print( "Finished transfer of "+ Helpers::numberToString<int>(numSpectra) +" spectra to ASPECT-FPGA-Accelerator.\n", &logFile );
-		return;
+		return 0;
 	}
 	else
 	{
@@ -217,4 +218,6 @@ void main(int argc, char* argv[])
 		size_t writtenSpectra = SpectraVFS::write( sstrDataDir, sstrDumpFile, spectraFilter, &logFile, &FITSFilenameSet );
 		Helpers::print( "...finished writing "+ Helpers::numberToString<size_t>(writtenSpectra) +" spectra.\n", &logFile );
 	}
+
+	return 0;
 }

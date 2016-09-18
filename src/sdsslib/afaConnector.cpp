@@ -24,14 +24,26 @@
 
 #include "../fpgaPlayground/AFA/src/AFASpectraCommon.h"
 
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <io.h>
 #include <fcntl.h>
 #include <errno.h>
+
+
+#ifdef _WIN32
+#include <io.h>
+#endif
+
+#ifdef __linux
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#define _open open 
+#define _close close 
+#define _read read 
+#define _write write 
+#endif
 
 
 

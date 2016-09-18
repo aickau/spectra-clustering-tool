@@ -19,9 +19,16 @@
 #include "XMLParserImpl.h"
 #include <sstream>
 
+#ifdef __linux
+#define DISABLE_XML_PARSER
+#endif
+
+#ifndef DISABLE_XML_PARSER
+
 #define TIXML_USE_STL
 #include "tinyxml/tinyxml.h"
 
+#endif // DISABLE_XML_PARSER
 
 
 XMLParserImpl::XMLParserImpl()
@@ -38,6 +45,9 @@ XMLParserImpl::~XMLParserImpl()
 
 bool XMLParserImpl::loadXMLFromMemory( const std::string &sstrXML )
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else
 	m_pCurrentDocument = new TiXmlDocument( std::string("fromMemory") );
 	m_pCurrentDocument->Parse( sstrXML.c_str() );
 
@@ -45,13 +55,16 @@ bool XMLParserImpl::loadXMLFromMemory( const std::string &sstrXML )
 	m_pCurrentNode = m_pCurrentDocument->RootElement();
 
 	return !m_pCurrentDocument->Error();
+#endif
 }
 
 
 
 bool XMLParserImpl::loadXMLFromFile( const std::string &sstrFilename )
 {
-	m_sstrParseErrLog="";
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	m_sstrParseErrLog="";
 
 	if ( m_pCurrentDocument != NULL )
 	{
@@ -65,6 +78,7 @@ bool XMLParserImpl::loadXMLFromFile( const std::string &sstrFilename )
 	m_pCurrentNode = m_pCurrentDocument->RootElement();
 
 	return !m_pCurrentDocument->Error();
+#endif
 }
 
 std::string XMLParserImpl::getParserErrorLog()
@@ -77,6 +91,9 @@ std::string XMLParserImpl::getParserErrorLog()
 
 bool XMLParserImpl::gotoChild()
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "gotoChild(): No current node available.\n";
@@ -93,11 +110,15 @@ bool XMLParserImpl::gotoChild()
 	}
 	
 	return false;
+#endif
 }
 
 
 bool XMLParserImpl::gotoParent()
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "gotoChild(): No current node available.\n";
@@ -114,11 +135,15 @@ bool XMLParserImpl::gotoParent()
 		}
 	}
 	return false;
+#endif
 }
 
 
 bool XMLParserImpl::gotoSibling()
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "gotoSibling(): No current node available.\n";
@@ -133,12 +158,16 @@ bool XMLParserImpl::gotoSibling()
 	}
 
 	return false;
+#endif
 }
 
 
 
 std::string XMLParserImpl::getCurrentTag()
 {
+#ifdef DISABLE_XML_PARSER
+	return std::string("");
+#else		
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "getCurrentTag():  No current node available.\n";
@@ -146,12 +175,16 @@ std::string XMLParserImpl::getCurrentTag()
 	}
 
 	return m_pCurrentNode->Value();
+#endif
 }
 
 
 
 bool XMLParserImpl::getContent( std::string &sstrOutContent )
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "getContent(): No current node available.\n";
@@ -162,11 +195,15 @@ bool XMLParserImpl::getContent( std::string &sstrOutContent )
 	sstrOutContent = m_pCurrentNode->GetText();
 	
 	return true;
+#endif
 }
 
 
 bool XMLParserImpl::getChildContent( const std::string &sstrTag, std::string &sstrOutContent )
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "getChildContent(): No current node available.\n";
@@ -186,12 +223,16 @@ bool XMLParserImpl::getChildContent( const std::string &sstrTag, std::string &ss
 	sstrOutContent = pChild->GetText();
 
 	return true;
+#endif
 }
 
 
 
 bool XMLParserImpl::getValue( const std::string &sstrAttribute, std::string &sstrOutValue )
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "getValue(): No current node available.\n";
@@ -206,11 +247,15 @@ bool XMLParserImpl::getValue( const std::string &sstrAttribute, std::string &sst
 	}
 
 	return false;
+#endif
 }
 
 
 bool XMLParserImpl::getValue( const std::string &sstrAttribute, int &nOutValue )
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "getValue(): No current node available.\n";
@@ -226,11 +271,15 @@ bool XMLParserImpl::getValue( const std::string &sstrAttribute, int &nOutValue )
 	}
 
 	return false;
+#endif
 }
 
 
 bool XMLParserImpl::getValue( const std::string &sstrAttribute, float &fOutValue )
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "getValue(): No current node available.\n";
@@ -246,6 +295,7 @@ bool XMLParserImpl::getValue( const std::string &sstrAttribute, float &fOutValue
 	}
 
 	return false;
+#endif
 }
 
 
@@ -253,6 +303,9 @@ bool XMLParserImpl::getChildValue( const std::string &sstrTag,
 			                         const std::string &sstrAttribute,
 		                             std::string &sstrOutValue )
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "getValue(): No current node available.\n";
@@ -275,6 +328,7 @@ bool XMLParserImpl::getChildValue( const std::string &sstrTag,
 	}
 
 	return false;
+#endif
 }
 
 
@@ -282,6 +336,9 @@ bool XMLParserImpl::getChildValue( const std::string &sstrTag,
                                      const std::string &sstrAttribute,
                                      size_t &nOutValue )
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "getValue(): No current node available.\n";
@@ -305,6 +362,7 @@ bool XMLParserImpl::getChildValue( const std::string &sstrTag,
 	}
 
 	return false;
+#endif
 }
 
 
@@ -312,6 +370,9 @@ bool XMLParserImpl::getChildValue( const std::string &sstrTag,
                                      const std::string &sstrAttribute,
                                      float &fOutValue )
 {
+#ifdef DISABLE_XML_PARSER
+	return false;
+#else	
 	if ( m_pCurrentNode == NULL )
 	{
 		m_sstrParseErrLog += "getValue(): No current node available.\n";
@@ -336,6 +397,7 @@ bool XMLParserImpl::getChildValue( const std::string &sstrTag,
 	}
 
 	return false;
+#endif
 }
 
 

@@ -20,12 +20,17 @@
 #define _SPECTRAHELPERS_H
 
 
-#include <windows.h>
-
 #include <string>
 #include <set>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif 
+
+#ifdef __linux
+#define HDC int
+#endif 
 
 class Spectra;
 class SpectraVFS;

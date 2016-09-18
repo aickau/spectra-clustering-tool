@@ -25,14 +25,20 @@
 #include "helpers.h"
 #include "mathhelpers.h"
 #include "fileHelpers.h"
-#include "glhelper.h"
-#include "HTMLexport.h"
-#include "Timer.h"
-#include "CSVExport.h"
 #include "spectraBaseHelpers.h"
+#include "CSVExport.h"
+#include "Timer.h"
+#include "HTMLexport.h"
+
+// TODO: port to linux
+#ifndef __linux
+
+#include "glhelper.h"
 
 #include "devil/include/il/il.h"
 #include "devil/include/il/ilu.h"
+
+#endif
 
 #include <assert.h>
 #include <fstream>
@@ -47,6 +53,86 @@ namespace SpectraHelpers
 
 
 static bool s_IsInitialized = false;
+
+
+
+
+struct TspecObj 
+{
+	int plate;
+	int mjd;
+	int fiberID;
+};
+
+
+
+bool readSelectionList( const std::string &_sstrSelectionListFilename, std::set<std::string> &_outFITSFilenameSet )
+{
+	if ( _sstrSelectionListFilename.empty() )
+	{
+		// no filename
+		return false;
+	}
+
+	std::ifstream fin(_sstrSelectionListFilename.c_str());
+
+	if( !fin ) 
+	{
+		// could not open file
+		return false;
+	}
+
+	std::string sstrLine;
+	getline(fin,sstrLine);
+
+	while( fin && !fin.fail() && !fin.eof()) 
+	{	
+		std::string sstrPlate, sstrMJD ,sstrFiberID;
+
+		TspecObj specObj;
+		fin >> sstrPlate;
+		fin >> sstrMJD;
+		fin >> sstrFiberID;
+
+		specObj.fiberID = Helpers::stringToNumber<int>(sstrFiberID);
+		specObj.plate = Helpers::stringToNumber<int>(sstrPlate);
+		specObj.mjd = Helpers::stringToNumber<int>(sstrMJD);
+
+		// generate both filename variants for dr7 (and below) and dr8 (and above).
+		std::string sstrFileName = Spectra::getSpecObjFileName( specObj.plate, specObj.mjd, specObj.fiberID, false);
+		_outFITSFilenameSet.insert(sstrFileName);
+		sstrFileName = Spectra::getSpecObjFileName( specObj.plate, specObj.mjd, specObj.fiberID, true);
+		_outFITSFilenameSet.insert(sstrFileName);
+	}
+/*
+	// read selection list
+	std::string sstrLine;
+	while( getline(fin,sstrLine) ) 
+	{
+		std::string sstrFITSFilename;
+		std::string sstrSeperator;
+		float multiplier=1.f;
+
+		std::istringstream sstrStream(sstrLine);
+		if (sstrStream) 
+		{
+			sstrStream >> sstrFITSFilename;	
+		}
+		if (sstrStream) 
+		{
+			sstrStream >> sstrSeperator;	
+		}
+		if (sstrStream) 
+		{
+			sstrStream >> multiplier;	
+		}
+		_outFITSFilenameSet.insert(std::make_pair<std::string,float>(sstrFITSFilename,multiplier));
+	}
+*/
+	return true;
+}
+
+#ifndef __linux
 
 
 size_t getFBWidth()
@@ -485,80 +571,7 @@ void writeTableEntry( const Spectra &_spectrum, float _error, std::string &_sstr
 	_sstrOutTable += HTMLExport::endTableRow();
 }
 
-struct TspecObj 
-{
-	int plate;
-	int mjd;
-	int fiberID;
-};
 
-
-
-bool readSelectionList( const std::string &_sstrSelectionListFilename, std::set<std::string> &_outFITSFilenameSet )
-{
-	if ( _sstrSelectionListFilename.empty() )
-	{
-		// no filename
-		return false;
-	}
-
-	std::ifstream fin(_sstrSelectionListFilename.c_str());
-
-	if( !fin ) 
-	{
-		// could not open file
-		return false;
-	}
-
-	std::string sstrLine;
-	getline(fin,sstrLine);
-
-	while( fin && !fin.fail() && !fin.eof()) 
-	{	
-		std::string sstrPlate, sstrMJD ,sstrFiberID;
-
-		TspecObj specObj;
-		fin >> sstrPlate;
-		fin >> sstrMJD;
-		fin >> sstrFiberID;
-
-		specObj.fiberID = Helpers::stringToNumber<int>(sstrFiberID);
-		specObj.plate = Helpers::stringToNumber<int>(sstrPlate);
-		specObj.mjd = Helpers::stringToNumber<int>(sstrMJD);
-
-		// generate both filename variants for dr7 (and below) and dr8 (and above).
-		std::string sstrFileName = Spectra::getSpecObjFileName( specObj.plate, specObj.mjd, specObj.fiberID, false);
-		_outFITSFilenameSet.insert(sstrFileName);
-		sstrFileName = Spectra::getSpecObjFileName( specObj.plate, specObj.mjd, specObj.fiberID, true);
-		_outFITSFilenameSet.insert(sstrFileName);
-	}
-/*
-	// read selection list
-	std::string sstrLine;
-	while( getline(fin,sstrLine) ) 
-	{
-		std::string sstrFITSFilename;
-		std::string sstrSeperator;
-		float multiplier=1.f;
-
-		std::istringstream sstrStream(sstrLine);
-		if (sstrStream) 
-		{
-			sstrStream >> sstrFITSFilename;	
-		}
-		if (sstrStream) 
-		{
-			sstrStream >> sstrSeperator;	
-		}
-		if (sstrStream) 
-		{
-			sstrStream >> multiplier;	
-		}
-		_outFITSFilenameSet.insert(std::make_pair<std::string,float>(sstrFITSFilename,multiplier));
-	}
-*/
-	return true;
-}
 
 bool calcVectorField( SpectraVFS &_map1, SpectraVFS &_map2, std::vector<float>& _outVectorField )
 {
@@ -1591,6 +1604,7 @@ void writeSpectraStarSubclass( SpectraVFS &_sourceSpectra, SpectraVFS &_network,
 	delete[] pRGBMap;
 }
 
-
+#endif // _linux
 
 }
+
