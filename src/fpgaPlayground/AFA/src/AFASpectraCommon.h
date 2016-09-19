@@ -17,9 +17,13 @@
 #define AFA_WAVE_LEN_START_BOSS		            (  3650 )			// wavelength coverage (in Angström) for BOSS spectra (DR9 and upcoming)
 #define AFA_WAVE_LEN_END_BOSS			        ( 10400 )						
 #define AFA_SPECTRA_NUM_SAMPLES_PROCESS_BOSS_SW ( AFA_SPECTRA_NUM_SAMPLES_BOSS / AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR )	// number of samples in reduced spectra
-#define AFA_BOSS_WAVELEN_PER_PIXEL              (( float32_t )AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR * ( float32_t )( AFA_WAVE_LEN_END_BOSS - AFA_WAVE_LEN_START_BOSS ) / ( float32_t )AFA_SPECTRA_NUM_SAMPLES_BOSS )
-#define AFA_BOSS_SPECTRA_START                  (( uint32_t )(( float32_t )( AFA_WAVE_LEN_START_SDSS - AFA_WAVE_LEN_START_BOSS ) / AFA_BOSS_WAVELEN_PER_PIXEL ) - 1 )
-#define AFA_BOSS_SPECTRA_END                    (( uint32_t )(( float32_t )( AFA_WAVE_LEN_END_SDSS   - AFA_WAVE_LEN_START_SDSS ) / AFA_BOSS_WAVELEN_PER_PIXEL ))
+#define AFA_BOSS_WAVELEN_PER_PIXEL              ((double)AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR * ( AFA_WAVE_LEN_END_BOSS - AFA_WAVE_LEN_START_BOSS ) / AFA_SPECTRA_NUM_SAMPLES_BOSS )
+// here we used some fixed point arithmetics (i.e. multiplies by 1000) to get correct results without needing to calculate in float
+// Conversion to floats resulted in gcc 4.6 in an error: a cast to a type other than an integral or enumeration type cannot appear in a constant-expression 
+// Even when the final result was casted to integral types again.
+#define AFA_BOSS_WAVELEN_PER_PIXEL_FP           (AFA_SPECTRA_SAMPLES_REDUCTION_FACTOR * ( AFA_WAVE_LEN_END_BOSS - AFA_WAVE_LEN_START_BOSS )*1000 / AFA_SPECTRA_NUM_SAMPLES_BOSS )
+#define AFA_BOSS_SPECTRA_START                  ((( AFA_WAVE_LEN_START_SDSS - AFA_WAVE_LEN_START_BOSS )*1000 / AFA_BOSS_WAVELEN_PER_PIXEL_FP ) - 1 )
+#define AFA_BOSS_SPECTRA_END                    ((( AFA_WAVE_LEN_END_SDSS   - AFA_WAVE_LEN_START_SDSS )*1000 / AFA_BOSS_WAVELEN_PER_PIXEL_FP ))
 
 // =============================================
 // select SDSS or BOSS here: start ...
