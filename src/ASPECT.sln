@@ -17,8 +17,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "specObjOperations", "specOb
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spectraMapper", "spectramapper\spectraMapper.vcxproj", "{50E8AA2B-E4B8-4BD7-9141-ACB28F85E0A8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AFAvs2010", "fpgaPlayground\vs2010\AFAvs2010.vcxproj", "{ADCF4C38-8819-4172-99D0-6E7EC656D6ED}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -81,14 +79,6 @@ Global
 		{50E8AA2B-E4B8-4BD7-9141-ACB28F85E0A8}.Release|Win32.Build.0 = Release|Win32
 		{50E8AA2B-E4B8-4BD7-9141-ACB28F85E0A8}.Release|x64.ActiveCfg = Release|x64
 		{50E8AA2B-E4B8-4BD7-9141-ACB28F85E0A8}.Release|x64.Build.0 = Release|x64
-		{ADCF4C38-8819-4172-99D0-6E7EC656D6ED}.Debug|Win32.ActiveCfg = Debug|Win32
-		{ADCF4C38-8819-4172-99D0-6E7EC656D6ED}.Debug|Win32.Build.0 = Debug|Win32
-		{ADCF4C38-8819-4172-99D0-6E7EC656D6ED}.Debug|x64.ActiveCfg = Debug|x64
-		{ADCF4C38-8819-4172-99D0-6E7EC656D6ED}.Debug|x64.Build.0 = Debug|x64
-		{ADCF4C38-8819-4172-99D0-6E7EC656D6ED}.Release|Win32.ActiveCfg = Release|Win32
-		{ADCF4C38-8819-4172-99D0-6E7EC656D6ED}.Release|Win32.Build.0 = Release|Win32
-		{ADCF4C38-8819-4172-99D0-6E7EC656D6ED}.Release|x64.ActiveCfg = Release|x64
-		{ADCF4C38-8819-4172-99D0-6E7EC656D6ED}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
