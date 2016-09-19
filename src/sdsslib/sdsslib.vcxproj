@@ -192,7 +192,6 @@
     <ClCompile Include="spectra.cpp" />
     <ClCompile Include="spectraHelpers.cpp" />
     <ClCompile Include="spectraVFS.cpp" />
-    <ClCompile Include="spectraVFSCached.cpp" />
     <ClCompile Include="spectraVFSMemOnly.cpp" />
     <ClCompile Include="spectraWrite.cpp" />
     <ClCompile Include="Timer.cpp" />
@@ -266,7 +265,6 @@
     <ClInclude Include="spectra.h" />
     <ClInclude Include="spectraHelpers.h" />
     <ClInclude Include="spectraVFS.h" />
-    <ClInclude Include="spectraVFSCached.h" />
     <ClInclude Include="spectraVFSMemOnly.h" />
     <ClInclude Include="spectraWrite.h" />
     <ClInclude Include="Timer.h" />

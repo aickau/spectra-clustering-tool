@@ -38,6 +38,7 @@
 #ifdef __linux
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/mman.h>
 
 #define _open open 
 #define _close close 
@@ -224,10 +225,27 @@ bool AfaConnector::writeData( void *buffer, unsigned int size )
 	if ( !isAFADeviceAvailable() )
 		return false;
 
+	// memory mapping is a lot faster than the write option
+	// currently we support this only for linux
+#ifdef __linux
+	void *deviceBuffer = mmap( 0, size, PROT_WRITE, MAP_SHARED, m_deviceHandle, 0 );
+	if ( deviceBuffer != MAP_FAILED )
+	{
+		// write to device
+		memcpy( deviceBuffer, buffer, size );
+		return true;
+	}
+	else
+#endif
 
-	// ~16 MB/s
-	const int wc = _write( m_deviceHandle, buffer, size );
-	const bool retVal = (wc == size); 
+	{
+		// Fallback if memory mapping fails or we are not under linux 
 
-	return retVal;
+		// ~16 MB/s
+		const int wc = _write( m_deviceHandle, buffer, size );
+		const bool retVal = (wc == size); 
+		return retVal;
+	}
+
+	return false;
 }

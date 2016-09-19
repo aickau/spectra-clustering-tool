@@ -38,12 +38,6 @@
 
 int main(int argc, char* argv[])
 {
- 
-	// outputs sine test spectra.
-//  SpectraVFS::write( 10000, 0.0f, "allSpectra.bin" );
-//  return;
-
-
 	std::ofstream logFile("dump_log.txt");
 
 /*
@@ -61,24 +55,27 @@ int main(int argc, char* argv[])
 
 	Helpers::print("Welcome to SDSS Dump "+sstrSDSSVersionString+" !\n\n\n", &logFile);
 	Helpers::print("Dump can do the following:\n", &logFile);
-	Helpers::print("(1) Read SDSS spectra as FITS files from a given directory (and subdirectories) and dumps the data to a single binary file.\n", &logFile);
+	Helpers::print("(1) Read SDSS spectra as FITS files from a given directory (and subdirectories) and dumps the data to a single binary file. Use -d\n", &logFile);
 	Helpers::print("    DR12 spectra can be downloaded here: http://data.sdss3.org/sas/dr12/sdss/spectro/redux/26/spectra \n\n", &logFile);
-	Helpers::print("(2) Reads binary dump files and extracts text tables out of it.\n\n", &logFile);
-	Helpers::print("(3) Uploads spectra from binary dump files to ASPECT-FPGA-Accelerator (AFA).\n\n", &logFile);
+	Helpers::print("(2) Generation of n sine test spectra with increasing frequency. Use -t\n\n", &logFile);
+	Helpers::print("(3) Reads binary dump files and extracts text tables out of it. Use -i\n\n", &logFile);
+	Helpers::print("(4) Uploads spectra from binary dump files to ASPECT-FPGA-Accelerator (AFA). Use -a\n\n", &logFile);
 
 	std::string sstrDataDir = FileHelpers::getCurrentDirectory()+DATADIR;
 	std::string sstrDumpFile = DUMPFILE;
+	int sineTestSpectra = 0;
 	unsigned int spectraFilter = SPT_DEFAULTFILTER;
 	std::string sstrInputDumpFile("");
 	std::string sstrAfaDumpFile("");
 	std::string sstrSelectionListFilename("");
-
+	
 
 
 	try {  
 
 		std::string sstrExamples("examples:\n");
 		sstrExamples += std::string("Write FITS files to binary dump file: \n    dump.exe -d F:/SDSS_ANALYZE/fits/spectro/data/* -o allSpectra.bin -f 25 -s selectionlist.txt\n");
+		sstrExamples += std::string("Write 1000 sine test spectra: \n    dump.exe -t 1000 -o allSpectra.bin\n");
 		sstrExamples += std::string("Outputs a linear list of the network: \n    dump.exe -i sofmnet.bin\n");
 		sstrExamples += std::string("Uploads spectra dump to ASPECT-FPGA-Accelerator (AFA) \n    dump.exe -a allSpectra.bin\n");
 
@@ -93,14 +90,16 @@ int main(int argc, char* argv[])
 	
 
 		TCLAP::ValueArg<std::string> dataDirArg("d", "datadir", "example: F:/SDSS_ANALYZE/fits/spectro/data/*", false, sstrDataDir, "datadir/*");
+		TCLAP::ValueArg<unsigned int> sineTestArg("t", "sinetest", "generate n sine test spectra", false, 0, "Number of sine test spectra.");
 		TCLAP::ValueArg<std::string> outputFilenameArg("o", "outputdumpfile", "example: allSpectra.bin", false, sstrDumpFile, "outputfilename.bin");
 		TCLAP::ValueArg<unsigned int> filterArg("f", "filter", sstrFilterDesc, false, spectraFilter, "Dump only FITS files with the given filter type.");
 		TCLAP::ValueArg<std::string> inputFilenameArg("i", "inputdumpfile", "example: sofmnet.bin. If input dump file is specified, then all other arguments are ignored. Outputs a linear list of the network.", false, sstrInputDumpFile, "Dumpfile for reverse reads.");
 		TCLAP::ValueArg<std::string> selectionListFilenameArg("s", "selection", "Optional selection list of FITS files to dump a small subset of input spectra. File should contain plate-mjd-fiber pairs, e.g. 3586 55181 0001. First line in the file is the header and is ignored.", false, sstrSelectionListFilename, "selectionlist.txt");
-		TCLAP::ValueArg<std::string> afaFilenameArg("a", "afadumpfile", "example: allSpectra.bin. If afa dump file is specified, then upload spectra dump to ASPECT-FPGA-Accelerator (AFA). All other arguments are ignored.", false, sstrAfaDumpFile, "Dumpfile for AFA upload.");
+		TCLAP::ValueArg<std::string> afaFilenameArg("a", "afaupload", "example: allSpectra.bin. If afa upload is specified, then upload spectra dump to ASPECT-FPGA-Accelerator (AFA). All other arguments are ignored.", false, sstrAfaDumpFile, "Dumpfile for AFA upload.");
 
 		cmd.add( dataDirArg );
 		cmd.add( outputFilenameArg );
+		cmd.add( sineTestArg );
 		cmd.add( filterArg );
 		cmd.add( inputFilenameArg );
 		cmd.add( selectionListFilenameArg );
@@ -108,12 +107,13 @@ int main(int argc, char* argv[])
 
 		cmd.parse( argc, argv );
 
-		sstrDataDir = dataDirArg.getValue();
-		sstrDumpFile = outputFilenameArg.getValue();
-		spectraFilter = filterArg.getValue();
-		sstrInputDumpFile = inputFilenameArg.getValue();
-		sstrAfaDumpFile = afaFilenameArg.getValue();
-		sstrSelectionListFilename = selectionListFilenameArg.getValue();
+		sstrDataDir					= dataDirArg.getValue();
+		sstrDumpFile				= outputFilenameArg.getValue();
+		sineTestSpectra				= sineTestArg.getValue();
+		spectraFilter				= filterArg.getValue();
+		sstrInputDumpFile			= inputFilenameArg.getValue();
+		sstrAfaDumpFile				= afaFilenameArg.getValue();
+		sstrSelectionListFilename	= selectionListFilenameArg.getValue();
 	}
 	catch (TCLAP::ArgException &e)  
 	{ 
@@ -123,7 +123,17 @@ int main(int argc, char* argv[])
 	const bool bExtractFilenames = !sstrInputDumpFile.empty();
 	const bool bAfaUpload = !sstrAfaDumpFile.empty();
 
-	if ( bExtractFilenames )
+	if ( sineTestSpectra > 0 )
+	{
+		// generate sine test spectra.
+		///////////////////////////////////////////////////////////////////////////////////
+		Helpers::print( "Generating : "+Helpers::numberToString<int>(sineTestSpectra)+" sine test spectra.\n", &logFile );
+		Helpers::print( "dumpfile: "+sstrInputDumpFile+"\n", &logFile );
+		SpectraVFS::write( sineTestSpectra, 0.0f, sstrDumpFile );
+		Helpers::print( "fin.\n", &logFile );
+		return 0;
+	}
+	else if ( bExtractFilenames )
 	{
 		// extract FITS filenames from a given binary dump.
 		///////////////////////////////////////////////////////////////////////////////////
@@ -151,7 +161,8 @@ int main(int argc, char* argv[])
 			fon << a->getFileName() + std::string("\n");			
 			vfs.endRead(i);
 		}
-		
+		Helpers::print( "fin.\n", &logFile );
+	
 		return 0;
 	}
 	else if ( bAfaUpload )

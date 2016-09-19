@@ -11,13 +11,12 @@ typedef unsigned short      uint16_t;
 typedef unsigned int        uint32_t;
 typedef unsigned long int   uint64_t;
 
+#endif
+
 typedef signed char         sint8_t;
 typedef signed short        sint16_t;
 typedef signed int          sint32_t;
 typedef signed long int     sint64_t;
-
-#endif
-
 
 //typedef long unsigned int   size_t;
 
