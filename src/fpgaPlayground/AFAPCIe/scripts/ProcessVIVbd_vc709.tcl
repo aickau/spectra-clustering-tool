@@ -90,7 +90,11 @@ startgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:axi_pcie3:3.0 axi_pcie3_0
 endgroup
 startgroup
-set_property -dict [list CONFIG.pl_link_cap_max_link_width {X8} CONFIG.pl_link_cap_max_link_speed {8.0_GT/s} CONFIG.axi_addr_width {64} CONFIG.pf0_bar0_scale {Gigabytes} CONFIG.pf0_bar0_64bit {true} CONFIG.pf0_bar2_enabled {true} CONFIG.pf0_bar2_size {1} CONFIG.pf0_bar2_scale {Gigabytes} CONFIG.pf0_bar2_64bit {true} CONFIG.pf0_bar4_enabled {true} CONFIG.pf0_bar4_size {16} CONFIG.pf0_bar4_scale {Megabytes} CONFIG.pf0_bar4_64bit {true} CONFIG.pciebar2axibar_2 {0x0000000100000000} CONFIG.pciebar2axibar_4 {0x0000000F00000000} CONFIG.axi_data_width {256_bit} CONFIG.plltype {QPLL1} CONFIG.axisten_freq {250} CONFIG.pf0_device_id {7038} CONFIG.pf0_bar0_size {1} CONFIG.pf0_msix_cap_table_bir {BAR_1:0} CONFIG.pf0_msix_cap_pba_bir {BAR_1:0}] [get_bd_cells axi_pcie3_0]
+#set_property -dict [list CONFIG.pl_link_cap_max_link_width {X8} CONFIG.pl_link_cap_max_link_speed {8.0_GT/s} CONFIG.axi_addr_width {64} CONFIG.pf0_bar0_scale {Gigabytes} CONFIG.pf0_bar0_64bit {true} CONFIG.pf0_bar2_enabled {true} CONFIG.pf0_bar2_size {1} CONFIG.pf0_bar2_scale {Gigabytes} CONFIG.pf0_bar2_64bit {true} CONFIG.pf0_bar4_enabled {true} CONFIG.pf0_bar4_size {16} CONFIG.pf0_bar4_scale {Megabytes} CONFIG.pf0_bar4_64bit {true} CONFIG.pciebar2axibar_2 {0x0000000100000000} CONFIG.pciebar2axibar_4 {0x0000000F00000000} CONFIG.axi_data_width {256_bit} CONFIG.plltype {QPLL1} CONFIG.axisten_freq {250} CONFIG.pf0_device_id {7038} CONFIG.pf0_bar0_size {1} CONFIG.pf0_msix_cap_table_bir {BAR_1:0} CONFIG.pf0_msix_cap_pba_bir {BAR_1:0}] [get_bd_cells axi_pcie3_0]
+set_property -dict [list CONFIG.pl_link_cap_max_link_width {X8} CONFIG.pl_link_cap_max_link_speed {8.0_GT/s} CONFIG.en_axi_slave_if {false} CONFIG.pf0_bar0_size {128} CONFIG.pf0_bar0_scale {Megabytes} CONFIG.pf0_bar1_enabled {true} CONFIG.pf0_bar1_size {128} CONFIG.pf0_bar1_scale {Megabytes} CONFIG.pciebar2axibar_1 {0x0000000080000000} CONFIG.PCIE_BOARD_INTERFACE {pci_express_x8} CONFIG.axi_data_width {256_bit} CONFIG.plltype {QPLL1} CONFIG.axisten_freq {250} CONFIG.pf0_device_id {7038}] [get_bd_cells axi_pcie3_0]
+
+#force AXI interconnect to use 64-bit address width
+set_property -dict [list CONFIG.axi_addr_width {64}] [get_bd_cells axi_pcie3_0]
 endgroup
 
 ## DDR3 & Clock ###############################################################
@@ -119,10 +123,6 @@ set_property -dict [list CONFIG.FREQ_HZ {200000000}] [get_bd_intf_ports sys_diff
 
 save_bd_design
 
-#config PCIe
-
-save_bd_design
-
 #connection automation
 startgroup
 apply_bd_automation -rule xilinx.com:bd_rule:board -config {Board_Interface "pci_express_x8 ( PCI Express ) " }  [get_bd_intf_pins axi_pcie3_0/pcie_7x_mgt]
@@ -132,23 +132,13 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/axi_pcie3_0/
 apply_bd_automation -rule xilinx.com:bd_rule:board -config {Board_Interface "reset ( FPGA Reset ) " }  [get_bd_pins mig_7series_0/sys_rst]
 endgroup
 
-
-
-##correct connection automation
-#startgroup
-#set_property -dict [list CONFIG.pl_link_cap_max_link_width {X8} CONFIG.pf0_device_id {8018} CONFIG.PCIE_BOARD_INTERFACE {pci_express_x8} CONFIG.axi_data_width {256_bit} CONFIG.axisten_freq {250}] [get_bd_cells axi_pcie3_0]
-#endgroup
-#delete_bd_objs [get_bd_intf_nets axi_pcie3_0_pcie_7x_mgt]
-#delete_bd_objs [get_bd_intf_ports pci_express_x1]
-#apply_bd_automation -rule xilinx.com:bd_rule:board -config {Board_Interface "pci_express_x8 ( PCI Express ) " }  [get_bd_intf_pins axi_pcie3_0/pcie_7x_mgt]
-
 save_bd_design
 
 #refclock for pcie with utility buffer and constant interrupt
 startgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:util_ds_buf:2.1 util_ds_buf_0
 endgroup
-set_property location {1 147 -589} [get_bd_cells util_ds_buf_0]
+#set_property location {1 147 -589} [get_bd_cells util_ds_buf_0]
 startgroup
 set_property -dict [list CONFIG.C_BUF_TYPE {IBUFDSGTE} CONFIG.DIFF_CLK_IN_BOARD_INTERFACE {pcie_refclk}] [get_bd_cells util_ds_buf_0]
 endgroup
@@ -221,7 +211,6 @@ save_bd_design
 ## Validate design ############################################################
 
 validate_bd_design
-
 return 0
 
 

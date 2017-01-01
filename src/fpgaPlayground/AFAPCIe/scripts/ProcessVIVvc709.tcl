@@ -28,8 +28,8 @@ set proj_name_long          pciePIO				;# directory
 set proj_name_short         axi_pcie_pio		;# prefix
 set platform_name           vc709
 set bd_design_name          axi_pcie_mig
-set design_dir              "c:/AFAPCIe/viv"
-set repo_dir                "c:/AFAPCIe/repoHW"
+set design_dir              "d:/AFAPCIe/viv"
+set repo_dir                "d:/AFAPCIe/repoHW"
 set resource_files          "res"
 set scripts_vivado_version  2016.3
 
@@ -124,7 +124,7 @@ source "./ProcessVIVconstraints_$target_board.tcl"
 ##-----------------------------------------------------------
 #source "./ProcessVIVdebug_$target_board.tcl"
 #
-
+exit
 #-----------------------------------------------------------
 # Generate bitstream
 #-----------------------------------------------------------
