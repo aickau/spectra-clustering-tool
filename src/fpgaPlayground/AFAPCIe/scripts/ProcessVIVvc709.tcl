@@ -25,13 +25,13 @@
 
 # Set the directory path for the new project
 set proj_name_long          pciePIO				;# directory
-set proj_name_short         axi_pcie_pio		;# prefix
+set proj_name_short         afa					;# prefix
 set platform_name           vc709
 set bd_design_name          axi_pcie_mig
-set design_dir              "d:/AFAPCIe/viv"
-set repo_dir                "d:/AFAPCIe/repoHW"
+set design_dir              "\~/work/AFAPCIe/viv2016.4"
+set repo_dir                "\~/work/AFAPCIe/repoHW"
 set resource_files          "res"
-set scripts_vivado_version  2016.3
+set scripts_vivado_version  2016.4
 
 set design_version_VIV_H    1
 set design_version_VIV_L    0
@@ -45,10 +45,19 @@ set CustomIPNameFull        SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_
 
 ## == Prepare directory variables ==============================
 set cur_dir                 [pwd]
-set prj_dir_repo            "[file normalize "$repo_dir/$platform_name"]"
-set proj_resources_dir		"[file normalize "$cur_dir/$resource_files/$scripts_vivado_version"]"
-
+set prj_dir_repo            [file normalize "$repo_dir/$platform_name"]
+set proj_resources_dir      [file normalize "$cur_dir/$resource_files/$scripts_vivado_version"]
 set target_board            $platform_name
+
+set design_dir              [file normalize "$design_dir"]
+
+#
+##set data [exec cat $design_dir/$proj_name_long/$proj_name_short\.srcs/sources_1/bd/$bd_design_name/hdl/$bd_design_name\_wrapper.v]
+#set data [exec cat $design_dir/$proj_name_long/$proj_name_short\.srcs/sources_1/bd/$bd_design_name/hdl/$bd_design_name\_wrapper.v]
+#puts $data
+#after 5000
+#exit
+
 
 ##-----------------------------------------------------------
 ## Archive existing design if it already exists
@@ -102,7 +111,28 @@ save_bd_design
 
 puts $design_dir/$proj_name_long
 make_wrapper -files [get_files $design_dir/$proj_name_long/$proj_name_short\.srcs/sources_1/bd/$bd_design_name/$bd_design_name\.bd] -top
-add_files -norecurse $design_dir/$proj_name_long/$proj_name_short\.srcs/sources_1/bd/$bd_design_name/hdl/$bd_design_name\_wrapper.v
+#
+#set i 0
+#set rv 0
+#while {$i < 10} {
+##    puts "inside the loop: $i"
+#    incr i
+##    puts "I after incr: $i"
+#    set rv [ file exists "$design_dir/$proj_name_long/$proj_name_short\.srcs/sources_1/bd/$bd_design_name/hdl/$bd_design_name\_wrapper.v" ]
+#    if {$rv == 0} {
+#        after 1000
+#    } else {
+#        puts "File found!"
+#        break
+#    }
+#}
+##set data [ exec cat "$design_dir/$proj_name_long/$proj_name_short\.srcs/sources_1/bd/$bd_design_name/hdl/$bd_design_name\_wrapper.v" ]
+##puts $data
+#
+#puts "File there? then go ..."
+
+add_files -norecurse -verbose $design_dir/$proj_name_long/$proj_name_short\.srcs/sources_1/bd/$bd_design_name/hdl/$bd_design_name\_wrapper.v
+
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
 
@@ -124,7 +154,7 @@ source "./ProcessVIVconstraints_$target_board.tcl"
 ##-----------------------------------------------------------
 #source "./ProcessVIVdebug_$target_board.tcl"
 #
-exit
+
 #-----------------------------------------------------------
 # Generate bitstream
 #-----------------------------------------------------------
