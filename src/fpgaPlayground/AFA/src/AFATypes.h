@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 // prevent clashes with stdint.h, there  uint32_t = unsigned int
+#ifndef _STDINT_H
 #ifndef  _C_STD_BEGIN
 
 typedef unsigned char       uint8_t;
@@ -12,11 +13,13 @@ typedef unsigned int        uint32_t;
 typedef unsigned long int   uint64_t;
 
 #endif
+#endif
 
 typedef signed char         sint8_t;
 typedef signed short        sint16_t;
 typedef signed int          sint32_t;
 typedef signed long int     sint64_t;
+
 
 //typedef long unsigned int   size_t;
 

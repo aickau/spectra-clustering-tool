@@ -25,13 +25,13 @@
 set proj_name             AFAProcessHW
 set platform_name         arty
 set src_dir               ../src
-set design_dir            "/AFA"
-set repo_dir              "/AFA/repoHW"
+set design_dir            "d:/work/AFA"
+set repo_dir              "d:/work/AFA/repoHW"
 
 set libraryname           AFAProcessingLib
 set vendor                SystemberatungSchwarzer
 set design_version_HLS_H  0
-set design_version_HLS_L  3005
+set design_version_HLS_L  3006
 set display_name          $proj_name
 
 # do not modify below this line ...

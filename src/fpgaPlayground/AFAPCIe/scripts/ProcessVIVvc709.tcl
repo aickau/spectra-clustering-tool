@@ -28,8 +28,8 @@ set proj_name_long          pciePIO				;# directory
 set proj_name_short         afa					;# prefix
 set platform_name           vc709
 set bd_design_name          axi_pcie_mig
-set design_dir              "\~/work/AFAPCIe/viv2016.4"
-set repo_dir                "\~/work/AFAPCIe/repoHW"
+set design_dir              "d:/work/AFAPCIe/viv2016.4"
+set repo_dir                "d:/work/AFAPCIe/repoHW"
 set resource_files          "res"
 set scripts_vivado_version  2016.4
 

@@ -1,7 +1,7 @@
 ################################################################
 # Check if script is running in correct Vivado version.
 ################################################################
-set scripts_vivado_version 2016.2
+set scripts_vivado_version 2016.4
 set current_vivado_version [version -short]
 
 if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
@@ -112,7 +112,7 @@ connect_bd_net [get_bd_pins clk_wiz_0/resetn] [get_bd_pins mig_7series_0/sys_rst
 ## Microblaze #################################################################
 
 startgroup
-create_bd_cell -type ip -vlnv xilinx.com:ip:microblaze:9.6 microblaze_0
+create_bd_cell -type ip -vlnv xilinx.com:ip:microblaze:10.0 microblaze_0
 endgroup
 apply_bd_automation -rule xilinx.com:bd_rule:microblaze -config {local_mem "4KB" ecc "None" cache "8KB" debug_module "Debug Only" axi_periph "Enabled" axi_intc "1" clk "/mig_7series_0/ui_clk (83 MHz)" }  [get_bd_cells microblaze_0]
 
