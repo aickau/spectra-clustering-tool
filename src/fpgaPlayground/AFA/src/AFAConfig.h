@@ -19,6 +19,14 @@
 //
 // Option: Runs in Xilinx SDK - with AFA on real HW:
 #define AFA_RUN_PROCESSHW_HW
+// with option: AP interface (start/stop/ready/idle)
+//#define AFA_RUN_PROCESSHW_HW_INTERFACE_AP
+// with option: memory polling, AXI-Master only
+#define AFA_RUN_PROCESSHW_HW_INTERFACE_RAW
+
 // ===============================================================
+
+// this is an index into an array of type uint32_t starting at address 0x00000000
+#define PARAM_BLOCK_ADDRESS_INDEX	( 0x82000000 / sizeof( uint32_t ))
 
 #endif

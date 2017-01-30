@@ -2,15 +2,23 @@
 #define AFA_PROCESSING_COMMON_H__
 
 #include "AFATypes.h"
+#include "AFAConfig.h"
 #include "AFASpectraCommon.h"
 
 enum
 {
-    AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS    = 1 << 8,   // power of 2 needed: 256
+	AFA_PARAM_BLOCK_SIZE_IN_BYTES       	= 256,							// size in bytes of the parameter block
+	AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES     	= AFA_PARAM_BLOCK_SIZE_IN_BYTES / 2,	// size in bytes of working area within the parameter block
+	AFA_PARAM_BLOCK_WORK_SIZE_IN_WORDS32	= AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES / 4,
+	AFA_PARAM_BLOCK_ADDRESS_INDEX       	= PARAM_BLOCK_ADDRESS_INDEX,	// index (address) of the parameter block
+	AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW 	= PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_BLOCK_WORK_SIZE_IN_WORDS32,	// index (address) of the parameter block
+    AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS    	= 1 << 8,       // power of 2 needed: 256
 
-    AFA_WORKING_DATA_NAME_LENGTH        = 32,
+    AFA_WORKING_DATA_NAME_LENGTH        	= 32,
 
-    AFA_PARAM_INDICES_RESERVED          = 0,
+    AFA_PARAM_INDICES_STARTSTOP         	= 0,
+    AFA_PARAM_INDICES_STATUS,
+	AFA_PARAM_INDICES_RESERVED,
     AFA_PARAM_INDICES_SEARCH_RADIUS,
     AFA_PARAM_INDICES_FULL_SEARCH,
     AFA_PARAM_INDICES_ADAPTION_THRESHOLD,
@@ -113,20 +121,18 @@ typedef struct	// packing is essential here: see readout in AFAProcess_HW
 	AFAStatistics_t	stats;
 } AFAReadBackData_t;
 
-
-
 // one learning step
 // returns true if learning is finished and maximum number of learning steps are reached.
+
 bool_t
 AFAProcess_HWWrapper(
-    volatile uint32_t param[ 256 ],              // whole block ram used
-    volatile uint32_t *baseAddr
+	uint32_t param[ 256 ],
+	volatile uint32_t *baseAddr 		// default starting address in memory
     );
-
-uint32_t
+	
+void
 AFAProcess_HW(
-    volatile uint32_t param[ 256 ],              // whole block ram used
-    volatile uint32_t *baseAddr
+    volatile uint32_t *baseAddr 		// default starting address in memory
     );
 
 #endif

@@ -8,6 +8,9 @@
 #include "AFAConfig.h"
 
 #ifdef AFA_RUN_ON_XILINX_SDK
+
+#ifdef AFA_RUN_PROCESSHW_HW_INTERFACE_AP
+
 #include "AFATypes.h"
 #include "DriverInterruptController.h"
 #include "DriverAFAProcessing.h"
@@ -96,5 +99,10 @@ DriverAFAProcessingDisable()
 	DriverInterruptControllerRegisteredEnable(
 		XPAR_MICROBLAZE_0_AXI_INTC_AFAPROCESSHW_INTERRUPT_INTR );
 }
-
+#else  //AFA_RUN_PROCESSHW_HW_INTERFACE_AP
+void
+DriverAFAProcessingInit()
+{
+}
+#endif //AFA_RUN_PROCESSHW_HW_INTERFACE_AP
 #endif

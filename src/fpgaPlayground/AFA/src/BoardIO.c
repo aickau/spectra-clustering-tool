@@ -72,7 +72,7 @@ LEDRGBSet(
 {
 	gRGBLEDState &= ~( 7 << ( idx * 3 ));
 	gRGBLEDState |= (( uint32_t ) col ) << ( idx * 3 );
-//	XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED, gRGBLEDState );
+	XGpio_DiscreteWrite( &GpioOutput, GPIO_CHANNEL_LED, gRGBLEDState );
 }
 
 #else

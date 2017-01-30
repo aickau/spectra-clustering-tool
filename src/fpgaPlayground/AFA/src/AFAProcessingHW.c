@@ -9,6 +9,15 @@
 #include <math.h>
 #include <string.h>
 
+#define AFA_STORE_STATUS( success, processing, idle )	                        \
+	do													                        \
+	{													                        \
+		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STATUS ] =	\
+			  (( success    & 0x01 ) << 2 )				                     	\
+			| (( processing & 0x01 ) << 1 )				                     	\
+			| (( idle       & 0x01 ) << 0 );			                     	\
+	} while ( 0 )
+
 void
 searchBestMatchComplete_HW(
     volatile uint32_t *baseAddr, 		// default starting address in memory
@@ -211,17 +220,13 @@ adaptNetwork_HW(
     }
 }
 
-uint32_t
+void
 AFAProcess_HW(
-    volatile uint32_t param[ 256 ],     // whole block ram used
     volatile uint32_t *baseAddr 		// default starting address in memory
     )
 {
-#pragma HLS RESOURCE            variable=param             core=RAM_1P_BRAM
-#pragma HLS INTERFACE bram      port=param
+#pragma HLS INTERFACE ap_ctrl_none port=return
 #pragma HLS INTERFACE m_axi     port=baseAddr              depth=10000
-#pragma HLS INTERFACE s_axilite port=baseAddr                          bundle=INTERFACE_AXILITE_SLAVE
-#pragma HLS INTERFACE s_axilite port=return                            bundle=INTERFACE_AXILITE_SLAVE
 
     BestMatch bmu;
 	AFAReadBackData_t readBackData;
@@ -241,127 +246,204 @@ AFAProcess_HW(
     uint64_t spectraIndexListIndexToMem;
     uint64_t readBackDataIndexToMem;
 
-    // get data from param block
-    // =========================
-    bool_t bFullSearch = param[ AFA_PARAM_INDICES_FULL_SEARCH ];
-    uint32_t adaptionThreshold_temp = param[ AFA_PARAM_INDICES_ADAPTION_THRESHOLD ];
-    float32_t adaptionThreshold = *(( float32_t * )&adaptionThreshold_temp );
-    uint32_t sigmaSqr_temp = param[ AFA_PARAM_INDICES_SIGMA_SQR ];
-    float32_t sigmaSqr = *(( float32_t * )&sigmaSqr_temp );
-    uint32_t lRate_temp = param[ AFA_PARAM_INDICES_LRATE ];
-    float32_t lRate = *(( float32_t * )&lRate_temp );
-    uint32_t m_gridSize = param[ AFA_PARAM_INDICES_GRID_SIZE ];
-    uint32_t m_gridSizeSqr = param[ AFA_PARAM_INDICES_GRID_SIZE_SQR ];
-    uint32_t m_numSpectra = param[ AFA_PARAM_INDICES_NUM_SPECTRA ];
-#ifdef LOCAL_SEARCH_ENABLED
-    const uint32_t spectraCacheSize = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, ( AFAMIN( m_gridSizeSqr, AFA_COMPARE_BATCH_HW )));
-    const uint32_t searchRadius = param[ AFA_PARAM_INDICES_SEARCH_RADIUS ];
+	// block ram
+    volatile uint32_t param[ AFA_PARAM_BLOCK_WORK_SIZE_IN_WORDS32 ];
+
+	static bool_t statusSuccess = 0;
+	static bool_t statusIdle = 0;
+	static bool_t statusProcessing = 0;
+
+#if 0
+	uint32_t i = 0;
+	for (;;)
+	{
+		uint32_t ii = ( i << 16 ) / 4;
+		baseAddr[ ii ] = ( 0x1234 << 16 ) | i;
+		i += 0x0010;
+		i &= 0x0000ffff;
+	}
 #endif
+	// set the status' at module start
+	statusSuccess = 0;
+	statusProcessing = 0;
+	statusIdle = 1;
+	AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // non idle
 
-    // get offsets to different memory locations as 2 32-bit words combining them to 64bit offsets
-    spectraDataInputHWIndexToMem      = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW   ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] << 32 ));
-    spectraDataWorkingSetHWIndexToMem = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_HIGH      ] << 32 ));
-    spectraIndexListIndexToMem        = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] << 32 ));
-	readBackDataIndexToMem            = ( param[ AFA_PARAM_INDICES_READ_BACK_DATA_ADDR_LOW          ] | (( uint64_t ) param[ AFA_PARAM_INDICES_READ_BACK_DATA_ADDR_HIGH          ] << 32 ));
-	
-    // these offsets are used as array indices into an uint32_t array. So divide them up by the byte width
-    spectraDataInputHWIndexToMem      /= sizeof( uint32_t );
-    spectraDataWorkingSetHWIndexToMem /= sizeof( uint32_t );
-    spectraIndexListIndexToMem        /= sizeof( uint32_t );
-    readBackDataIndexToMem            /= sizeof( uint32_t );
-
-	// readBackData receive - fill structure
-	ii = 0;
-	readBackData.stats.memAccess_AFAProcess_HW              = baseAddr[ readBackDataIndexToMem + ( ii + 0 )] | (( uint64_t ) baseAddr[ readBackDataIndexToMem + ( ii + 1 )] << 32 );
-	ii += 2;
-	readBackData.stats.memAccess_adaptNetwork_HW_read       = baseAddr[ readBackDataIndexToMem + ( ii + 0 )] | (( uint64_t ) baseAddr[ readBackDataIndexToMem + ( ii + 1 )] << 32 );
-	ii += 2;
-	readBackData.stats.memAccess_adaptNetwork_HW_write      = baseAddr[ readBackDataIndexToMem + ( ii + 0 )] | (( uint64_t ) baseAddr[ readBackDataIndexToMem + ( ii + 1 )] << 32 );
-	ii += 2;
-	readBackData.stats.memAccess_searchBestMatchComplete_HW = baseAddr[ readBackDataIndexToMem + ( ii + 0 )] | (( uint64_t ) baseAddr[ readBackDataIndexToMem + ( ii + 1 )] << 32 );
-	
-    // for each training spectra..
-    for ( idx = 0; idx < m_numSpectra; idx++ )
-    {
-		param[ AFA_PARAM_INDICES_LED1_OUTPUT ] = idx;
+	for (;;)
+	{
+		// ==================================================================
+		// The following section is provided to allow a memory only control
+		// of the accelerator:
+		// At a defined address "PARAM_BLOCK_ADDRESS_INDEX / 4" there is
+		// a memory block located whose first entry is the on/off switch.
+		// if this memory location contains something different than ZERO
+		// the block starts running.
+		//
+		// The status ports show the actual state of the block.
+		// Normally idle, but if started, idle is off and processing on, until
+		// processing ends. Then processing is off and idle is back to on.
+		// Success is set on operation result.
+		//
+		// Simple and hopefully useful.
+		// ==================================================================
 		
-        // initialize best match batch
-        bmu.error = FLT_MAX;
-        bmu.index = 0;
+		// stop engine after start
+		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0xd00fd00f;
+		AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // idle
 
-        spectraIndex = baseAddr[ spectraIndexListIndexToMem + idx ];
+		do
+		{
+			if ( 0xd00fd00f != baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ])
+			{
+				baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0xd00fd00f;	// prevent restart
+				statusProcessing = 1;
+			}
+			AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // processing
+			baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 64 ]++;
+		} while ( 0 == statusProcessing );
+			
+		statusIdle = 0;
+		statusSuccess = 0;	// we find eventually success at the end ...
+		AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // non idle
+		
+		// ==================================================================
+		// End of start control block
+		// ==================================================================
 
-        // retrieve best match neuron for a source spectra
-        if ( bFullSearch )
-        {
-            searchBestMatchComplete_HW(
-                baseAddr, 		// default starting address in memory
-                spectraDataInputHWIndexToMem,
-                spectraDataWorkingSetHWIndexToMem,
+		// get data from param block
+		// =========================
+		memcpy(( void * ) &param[ 0 ], ( const void * )&baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX ], AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES );
+
+		bool_t bFullSearch = param[ AFA_PARAM_INDICES_FULL_SEARCH ];
+		uint32_t adaptionThreshold_temp = param[ AFA_PARAM_INDICES_ADAPTION_THRESHOLD ];
+		float32_t adaptionThreshold = *(( float32_t * )&adaptionThreshold_temp );
+		uint32_t sigmaSqr_temp = param[ AFA_PARAM_INDICES_SIGMA_SQR ];
+		float32_t sigmaSqr = *(( float32_t * )&sigmaSqr_temp );
+		uint32_t lRate_temp = param[ AFA_PARAM_INDICES_LRATE ];
+		float32_t lRate = *(( float32_t * )&lRate_temp );
+		uint32_t m_gridSize = param[ AFA_PARAM_INDICES_GRID_SIZE ];
+		uint32_t m_gridSizeSqr = param[ AFA_PARAM_INDICES_GRID_SIZE_SQR ];
+		uint32_t m_numSpectra = param[ AFA_PARAM_INDICES_NUM_SPECTRA ];
+	#ifdef LOCAL_SEARCH_ENABLED
+		const uint32_t spectraCacheSize = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, ( AFAMIN( m_gridSizeSqr, AFA_COMPARE_BATCH_HW )));
+		const uint32_t searchRadius = param[ AFA_PARAM_INDICES_SEARCH_RADIUS ];
+	#endif
+
+		// get offsets to different memory locations as 2 32-bit words combining them to 64bit offsets
+		spectraDataInputHWIndexToMem      = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW   ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] << 32 ));
+		spectraDataWorkingSetHWIndexToMem = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_LOW      ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_WS_HW_ADDR_HIGH      ] << 32 ));
+		spectraIndexListIndexToMem        = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_LOW ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INDEX_LIST_ADDR_HIGH ] << 32 ));
+		readBackDataIndexToMem            = ( param[ AFA_PARAM_INDICES_READ_BACK_DATA_ADDR_LOW          ] | (( uint64_t ) param[ AFA_PARAM_INDICES_READ_BACK_DATA_ADDR_HIGH          ] << 32 ));
+		
+		// these offsets are used as array indices into an uint32_t array. So divide them up by the byte width
+		spectraDataInputHWIndexToMem      /= sizeof( uint32_t );
+		spectraDataWorkingSetHWIndexToMem /= sizeof( uint32_t );
+		spectraIndexListIndexToMem        /= sizeof( uint32_t );
+		readBackDataIndexToMem            /= sizeof( uint32_t );
+#if 0
+		// readBackData receive - fill structure
+		ii = 0;
+		readBackData.stats.memAccess_AFAProcess_HW              = baseAddr[ readBackDataIndexToMem + ( ii + 0 )] | (( uint64_t ) baseAddr[ readBackDataIndexToMem + ( ii + 1 )] << 32 );
+		ii += 2;
+		readBackData.stats.memAccess_adaptNetwork_HW_read       = baseAddr[ readBackDataIndexToMem + ( ii + 0 )] | (( uint64_t ) baseAddr[ readBackDataIndexToMem + ( ii + 1 )] << 32 );
+		ii += 2;
+		readBackData.stats.memAccess_adaptNetwork_HW_write      = baseAddr[ readBackDataIndexToMem + ( ii + 0 )] | (( uint64_t ) baseAddr[ readBackDataIndexToMem + ( ii + 1 )] << 32 );
+		ii += 2;
+		readBackData.stats.memAccess_searchBestMatchComplete_HW = baseAddr[ readBackDataIndexToMem + ( ii + 0 )] | (( uint64_t ) baseAddr[ readBackDataIndexToMem + ( ii + 1 )] << 32 );
+		
+		// for each training spectra..
+		for ( idx = 0; idx < m_numSpectra; idx++ )
+		{
+			param[ AFA_PARAM_INDICES_LED1_OUTPUT ] = idx;
+			
+			// initialize best match batch
+			bmu.error = FLT_MAX;
+			bmu.index = 0;
+
+			spectraIndex = baseAddr[ spectraIndexListIndexToMem + idx ];
+
+			// retrieve best match neuron for a source spectra
+			if ( bFullSearch )
+			{
+				searchBestMatchComplete_HW(
+					baseAddr, 		// default starting address in memory
+					spectraDataInputHWIndexToMem,
+					spectraDataWorkingSetHWIndexToMem,
+					&readBackData,
+					&bmu,
+					m_gridSizeSqr,
+					spectraIndex );
+			}
+			else
+			{
+	#ifdef LOCAL_SEARCH_ENABLED
+				searchBestMatchLocal_HW( currentSourceSpectrum, searchRadius, &bmu );
+	#endif
+			}
+
+			// mark best match neuron
+
+			// set BMU in the map and source spectrum
+			// _networkSpectrum artificial spectrum in the map
+			// _networkIndex network index [0..gridsizesqr-1]
+			// _bestMatchSpectrum source/input spectrum
+			// _bestMatchIndex index to input spectrum [0..numspectra-1]
+			// set best matching related info.
+
+			bmuSpectrumIndex = spectraDataWorkingSetHWIndexToMem + bmu.index * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
+			baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] = baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ];
+			baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ];
+			baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_INDEX ] = spectraIndex;
+
+			// remember best match position to NW for faster search
+			baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_INDEX ] = bmu.index;
+
+			readBackData.stats.memAccess_AFAProcess_HW += ( 2 /* read */ + 4 /* write */ ) * sizeof( uint32_t );
+
+			// adapt neighborhood
+			// hint: this takes long.
+			adaptNetwork_HW(
+				baseAddr, 		// default starting address in memory
+				spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32, // this is the "currentSourceSpectrumIndex"
+				spectraDataWorkingSetHWIndexToMem, // this is the spectraDataWorkingSetHWIndexToMem
 				&readBackData,
-                &bmu,
-                m_gridSizeSqr,
-                spectraIndex );
-        }
-        else
-        {
-#ifdef LOCAL_SEARCH_ENABLED
-            searchBestMatchLocal_HW( currentSourceSpectrum, searchRadius, &bmu );
+				bmu.index,
+				adaptionThreshold,
+				sigmaSqr,
+				lRate,
+				m_gridSize,
+				m_gridSizeSqr );
+		}
+
+		// readBackData receive - fill structure
+		ii = 0;
+		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_AFAProcess_HW              >>  0 ) & 0x00000000ffffffff;
+		ii++;
+		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_AFAProcess_HW              >> 32 ) & 0x00000000ffffffff;
+		ii++;
+		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_read       >>  0 ) & 0x00000000ffffffff;
+		ii++;
+		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_read       >> 32 ) & 0x00000000ffffffff;
+		ii++;
+		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_write      >>  0 ) & 0x00000000ffffffff;
+		ii++;
+		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_write      >> 32 ) & 0x00000000ffffffff;
+		ii++;
+		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >>  0 ) & 0x00000000ffffffff;
+		ii++;
+		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >> 32 ) & 0x00000000ffffffff;
+#else
+		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 2 ] = ( uint32_t )spectraDataInputHWIndexToMem;
 #endif
-        }
+		// copy back data from param block
+		// ===============================
+		memcpy(( void * ) &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ], ( const void * )&param[ 0 ], AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES );
 
-        // mark best match neuron
-
-        // set BMU in the map and source spectrum
-        // _networkSpectrum artificial spectrum in the map
-        // _networkIndex network index [0..gridsizesqr-1]
-        // _bestMatchSpectrum source/input spectrum
-        // _bestMatchIndex index to input spectrum [0..numspectra-1]
-        // set best matching related info.
-
-		bmuSpectrumIndex = spectraDataWorkingSetHWIndexToMem + bmu.index * AFA_SPECTRA_INDEX_SIZE_IN_UINT32;
-		baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ] = baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_LOW ];
-		baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ] = baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_SPEC_OBJ_ID_HIGH ];
-		baseAddr[ bmuSpectrumIndex + AFA_SPECTRA_INDEX_INDEX ] = spectraIndex;
-
-		// remember best match position to NW for faster search
-		baseAddr[ spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32 + AFA_SPECTRA_INDEX_INDEX ] = bmu.index;
-
-		readBackData.stats.memAccess_AFAProcess_HW += ( 2 /* read */ + 4 /* write */ ) * sizeof( uint32_t );
-
-        // adapt neighborhood
-        // hint: this takes long.
-        adaptNetwork_HW(
-            baseAddr, 		// default starting address in memory
-            spectraDataInputHWIndexToMem + spectraIndex * AFA_SPECTRA_INDEX_SIZE_IN_UINT32, // this is the "currentSourceSpectrumIndex"
-            spectraDataWorkingSetHWIndexToMem, // this is the spectraDataWorkingSetHWIndexToMem
-			&readBackData,
-            bmu.index,
-            adaptionThreshold,
-            sigmaSqr,
-            lRate,
-            m_gridSize,
-            m_gridSizeSqr );
-    }
-
-	// readBackData receive - fill structure
-	ii = 0;
-	baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_AFAProcess_HW              >>  0 ) & 0x00000000ffffffff;
-	ii++;
-	baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_AFAProcess_HW              >> 32 ) & 0x00000000ffffffff;
-	ii++;
-	baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_read       >>  0 ) & 0x00000000ffffffff;
-	ii++;
-	baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_read       >> 32 ) & 0x00000000ffffffff;
-	ii++;
-	baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_write      >>  0 ) & 0x00000000ffffffff;
-	ii++;
-	baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_write      >> 32 ) & 0x00000000ffffffff;
-	ii++;
-	baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >>  0 ) & 0x00000000ffffffff;
-	ii++;
-	baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >> 32 ) & 0x00000000ffffffff;
-
-    // clustering not yet finished, need another learning step
-	return 0xd00fe5e1;
+		// set the status'
+		statusProcessing = 0;
+		statusIdle       = 1;
+		statusSuccess    = 1;    // clustering not yet finished, need another learning step
+		AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // finish, idle again
+	}	// loop forever
+	//	return ( statusSuccess << 2 ) | ( statusProcessing << 1 ) | ( statusIdle << 0 );
 }

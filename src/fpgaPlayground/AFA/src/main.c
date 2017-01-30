@@ -114,7 +114,7 @@ TestClockFunction()
 			timeIterationEnd = clock();
 			if (((( double )( timeIterationEnd - timeIterationStart )) / (( double ) CLOCKS_PER_SEC ) )>= 1.0 )
 			{
-				printf( "t=%ld\n", numSecs );
+				printf( "t=%d\n", numSecs );
 				timeIterationStart = timeIterationEnd;
 				numSecs--;
 			}
@@ -233,7 +233,7 @@ bool_t readSpectraFileToHWSpectra(
     uint32_t *outHWAddr )
 {
     uint32_t i;
-    uint64_t retVal, offset = 0;
+    uint64_t retVal;
     FILE *f = 0;
     AFASpectra_SW tempSp;
 
@@ -431,11 +431,7 @@ uint64_t getFileSize(
 
 
 
-#ifdef AFA_RUN_PROCESSHW_HW
-uint32_t *param = ( uint32_t * ) XPAR_AXI_BRAM_CTRL_0_S_AXI_BASEADDR;
-#else
-uint32_t param[ 256 ];
-#endif
+uint32_t param[ AFA_PARAM_BLOCK_SIZE_IN_BYTES / sizeof( uint32_t )];
 
 int main(
     int argc,
@@ -452,10 +448,10 @@ int main(
     int rv = 0;
     bool_t rc;
 
-    uint64_t spectraDataInputHW_OffsetToBaseAddress;
-    uint64_t spectraDataWorkingSetHW_OffsetToBaseAddress;
-    uint64_t pSpectraIndexList_OffsetToBaseAddress;
-    uint64_t readBackData_OffsetToBaseAddress;
+    uint64_t spectraDataInputHW_OffsetToBaseAddress = 0x0;
+    uint64_t spectraDataWorkingSetHW_OffsetToBaseAddress = 0x0;
+    uint64_t pSpectraIndexList_OffsetToBaseAddress = 0x0;
+    uint64_t readBackData_OffsetToBaseAddress = 0x0;
 
     uint32_t numSpectra;        // do we have more than 4bn spectra ... ? not in THESE times
     uint32_t remainder = 0;     // must kept zero, otherwise wrong
@@ -476,14 +472,14 @@ int main(
 
 #ifdef AFA_RUN_ON_XILINX_SDK
     Xil_ICacheEnable();
-	Xil_DCacheEnable();
+//	Xil_DCacheEnable();
 
     Xil_AssertSetCallback( AssertCallback );
 
     DriverInterruptControllerInit();
     DriverTimerInit();
     DriverAFAProcessingInit();
-    DriverInterruptControllerEnable();
+//    DriverInterruptControllerEnable();
 	LEDInit();
 
 	TestClockFunction();
@@ -502,6 +498,9 @@ int main(
 
         exit( 1 );
     }
+
+    // clear param
+    memset( param, 0x42, AFA_PARAM_BLOCK_SIZE_IN_BYTES );
 
     switch ( srcDataSelector )
     {
@@ -652,10 +651,10 @@ int main(
         AFAPP_sw.m_params.randomSeed );
 
     // here we convert pointer differences to byte offsets (baseAddr is NULL)
-    spectraDataInputHW_OffsetToBaseAddress      = ( char * ) AFAPP_sw.spectraDataInputHW      - (( char * ) baseAddr );
-    spectraDataWorkingSetHW_OffsetToBaseAddress = ( char * ) AFAPP_sw.spectraDataWorkingSetHW - (( char * ) baseAddr );
-    pSpectraIndexList_OffsetToBaseAddress       = ( char * ) AFAPP_sw.m_pSpectraIndexList     - (( char * ) baseAddr );
-    readBackData_OffsetToBaseAddress			= ( char * ) readBackData                     - (( char * ) baseAddr );
+    spectraDataInputHW_OffsetToBaseAddress      = (( uint64_t )( addr_t )( char * ) AFAPP_sw.spectraDataInputHW      ) - (( uint64_t )( addr_t )( char * ) baseAddr );
+    spectraDataWorkingSetHW_OffsetToBaseAddress = (( uint64_t )( addr_t )( char * ) AFAPP_sw.spectraDataWorkingSetHW ) - (( uint64_t )( addr_t )( char * ) baseAddr );
+    pSpectraIndexList_OffsetToBaseAddress       = (( uint64_t )( addr_t )( char * ) AFAPP_sw.m_pSpectraIndexList     ) - (( uint64_t )( addr_t )( char * ) baseAddr );
+    readBackData_OffsetToBaseAddress			= (( uint64_t )( addr_t )( char * ) readBackData                     ) - (( uint64_t )( addr_t )( char * ) baseAddr );
 
     // initialize readBackData
     memset(( void * ) readBackData, 0x00, sizeof( AFAReadBackData_t ));
@@ -777,7 +776,7 @@ int main(
                 baseAddr
                 );
             timeIterationEnd = clock();
-            printf( "[%3ld/%3d = %3ld%%] IterTime: %ld [%7.2fsec.]\n",
+            printf( "[%3d/%d = %3d%%] IterTime: %ld [%7.2fsec.]\n",
                 currentStep,
                 AFAPP_sw.m_params.numSteps,
                 ( currentStep * 100 ) / ( AFAPP_sw.m_params.numSteps + 1 ),
@@ -821,14 +820,14 @@ int main(
 						if ( idx < 0 )
 							printf( "*  -1* " );
 						else
-							printf( "*%4ld* ", idx );
+							printf( "*%4d* ", idx );
 					}
 					else
 					{
 						if ( idx < 0 )
 							printf( "   -1, " );
 						else
-							printf( " %4ld, ", idx );
+							printf( " %4d, ", idx );
 					}
 				}
 				printf( "},\n" );
@@ -863,14 +862,14 @@ int main(
                         if ( idx < 0 )
                             printf( "*  -1* " );
                         else
-                            printf( "*%4ld* ", idx );
+                            printf( "*%4d* ", idx );
                     }
                     else
                     {
                         if ( idx < 0 )
                             printf( "   -1, " );
                         else
-                            printf( " %4ld, ", idx );
+                            printf( " %4d, ", idx );
                     }
                 }
                 printf( "},\n" );

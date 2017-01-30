@@ -10,7 +10,7 @@
 typedef unsigned char       uint8_t;
 typedef unsigned short      uint16_t;
 typedef unsigned int        uint32_t;
-typedef unsigned long int   uint64_t;
+typedef unsigned long long  uint64_t;
 
 #endif
 #endif
@@ -18,7 +18,7 @@ typedef unsigned long int   uint64_t;
 typedef signed char         sint8_t;
 typedef signed short        sint16_t;
 typedef signed int          sint32_t;
-typedef signed long int     sint64_t;
+typedef signed long long    sint64_t;
 
 
 //typedef long unsigned int   size_t;
@@ -26,6 +26,10 @@ typedef signed long int     sint64_t;
 typedef float               float32_t;
 typedef double              float64_t;
 typedef uint32_t			bool_t;
+
+// this is OS-environment-dependent:
+// * if we have a 32-bit OS its uint32_t
+// * if we have a 64-bit OS its uint64_t
 typedef uint32_t			addr_t;
 
 
