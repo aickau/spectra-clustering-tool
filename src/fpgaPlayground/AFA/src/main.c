@@ -793,6 +793,12 @@ int main(
 		timeGlobalEnd - timeGlobalStart,
 		(( double )( timeGlobalEnd - timeGlobalStart )) / (( double ) CLOCKS_PER_SEC ));
 
+	printf( "\nStatistics:\n" );
+    printf( "* memAccess_AFAProcess_HW:              [%10llu]\n", readBackData->stats.memAccess_AFAProcess_HW );
+    printf( "* memAccess_adaptNetwork_HW_read:       [%10llu]\n", readBackData->stats.memAccess_adaptNetwork_HW_read );
+    printf( "* memAccess_adaptNetwork_HW_write:      [%10llu]\n", readBackData->stats.memAccess_adaptNetwork_HW_write );
+    printf( "* memAccess_searchBestMatchComplete_HW: [%10llu]\n", readBackData->stats.memAccess_searchBestMatchComplete_HW );
+
     rv = 0;
     switch ( srcDataSelector )
     {
@@ -947,12 +953,6 @@ int main(
         }
     }
 
-    // statistics
-    printf( "Mem-Statistics:\n" );
-    printf( "memAccess_AFAProcess_HW               : %llu\n", readBackData->stats.memAccess_AFAProcess_HW );
-    printf( "memAccess_adaptNetwork_HW_read        : %llu\n", readBackData->stats.memAccess_adaptNetwork_HW_read );
-    printf( "memAccess_adaptNetwork_HW_write       : %llu\n", readBackData->stats.memAccess_adaptNetwork_HW_write );
-    printf( "memAccess_searchBestMatchComplete_HW  : %llu\n", readBackData->stats.memAccess_searchBestMatchComplete_HW );
     printf( "\n" );
 
     AFAHelperStructures_MemFree();

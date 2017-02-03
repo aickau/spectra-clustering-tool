@@ -56,10 +56,11 @@ AFAProcess_HWWrapper(
 
 #ifdef AFA_RUN_PROCESSHW_HW_INTERFACE_RAW
     // set processing to STOP
-    baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0xd00fd00f;
-
+    baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0x00000000;
+    baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STATUS ] = 0x00000000;
     // prepare start, but stop module
-    param[ AFA_PARAM_INDICES_STARTSTOP ] = 0xd00fd00f;
+    param[ AFA_PARAM_INDICES_STARTSTOP ] = 0xffffffff;
+    param[ AFA_PARAM_INDICES_STATUS ]    = 0x00000000;
 
     // wait for design being IDLE
     do
@@ -70,10 +71,10 @@ AFAProcess_HWWrapper(
     // now it's IDLE and waiting to be started
 
     // copy configuration with STOP code in it to prevent running before all data is copied
-    memcpy(( void * ) ( &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 2 ]), &param[ 2 ], AFA_PARAM_BLOCK_SIZE_IN_BYTES - 2 * 4 );
+    memcpy(( void * ) ( &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 2 ]), &param[ 2 ], AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES - 2 * 4 );
 
-    // now we start the design by writing something different than 0xd00fd00f
-    baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0x12345678;
+    // now we start the design by writing 0xd00fd00f
+    baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0xd00fd00f;
 
     //> hardware calculation starts here and we wait for done (interrupt is also triggered, but at first we do busy waiting)
     do
@@ -83,7 +84,8 @@ AFAProcess_HWWrapper(
         LEDBinaryShow( status );
     } while ( 0x02 == ( status & 0x02 ));
 
-	memcpy( param, ( void * ) ( &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX ]), AFA_PARAM_BLOCK_SIZE_IN_BYTES );
+    // now processing is over
+	memcpy(( void * ) &param[ 2 ], ( void * ) ( &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 2 ]), AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES - 2 * 4 );
 	error = status & 0x02 ? 0x00000000 /* no error */ : 0xffffffff /* something went wrong */;
     xil_printf( "Test AXI Master Afaprocess_hw() result: %8.8lx [%ld]\r\n", error,error );
 #endif

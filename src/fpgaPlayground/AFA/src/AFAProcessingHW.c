@@ -263,11 +263,23 @@ AFAProcess_HW(
 		i &= 0x0000ffff;
 	}
 #endif
+#if 1
+	uint32_t clearStart = AFA_PARAM_BLOCK_ADDRESS_INDEX;
+	uint32_t clearSize = ( 0x80000000 - AFA_PARAM_BLOCK_ADDRESS_INDEX * sizeof( uint32_t )) >> 2;
+	while ( clearSize-- )
+	{
+		baseAddr[ clearStart++ ] = 0x7642e5e1;
+	}
+#endif
+
+	// at module start: stop engine after start
+	baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0xfefefefe;
+	baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STATUS ]    = 0xffeedd00;
+
 	// set the status' at module start
 	statusSuccess = 0;
 	statusProcessing = 0;
 	statusIdle = 1;
-	AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // non idle
 
 	for (;;)
 	{
@@ -276,7 +288,7 @@ AFAProcess_HW(
 		// of the accelerator:
 		// At a defined address "PARAM_BLOCK_ADDRESS_INDEX / 4" there is
 		// a memory block located whose first entry is the on/off switch.
-		// if this memory location contains something different than ZERO
+		// if this memory location contains 0xd00fd00f
 		// the block starts running.
 		//
 		// The status ports show the actual state of the block.
@@ -287,15 +299,13 @@ AFAProcess_HW(
 		// Simple and hopefully useful.
 		// ==================================================================
 		
-		// stop engine after start
-		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0xd00fd00f;
 		AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // idle
 
 		do
 		{
-			if ( 0xd00fd00f != baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ])
+			if ( 0xd00fd00f == baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ])
 			{
-				baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0xd00fd00f;	// prevent restart
+				baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0xeeffeeff;	// prevent restart
 				statusProcessing = 1;
 			}
 			AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // processing
@@ -312,7 +322,7 @@ AFAProcess_HW(
 
 		// get data from param block
 		// =========================
-		memcpy(( void * ) &param[ 0 ], ( const void * )&baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX ], AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES );
+		memcpy(( void * ) &param[ AFA_PARAM_INDICES_RESERVED ], ( const void * )&baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_RESERVED ], AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES - AFA_PARAM_INDICES_RESERVED * sizeof( uint32_t ));
 
 		bool_t bFullSearch = param[ AFA_PARAM_INDICES_FULL_SEARCH ];
 		uint32_t adaptionThreshold_temp = param[ AFA_PARAM_INDICES_ADAPTION_THRESHOLD ];
@@ -324,10 +334,10 @@ AFAProcess_HW(
 		uint32_t m_gridSize = param[ AFA_PARAM_INDICES_GRID_SIZE ];
 		uint32_t m_gridSizeSqr = param[ AFA_PARAM_INDICES_GRID_SIZE_SQR ];
 		uint32_t m_numSpectra = param[ AFA_PARAM_INDICES_NUM_SPECTRA ];
-	#ifdef LOCAL_SEARCH_ENABLED
+#ifdef LOCAL_SEARCH_ENABLED
 		const uint32_t spectraCacheSize = AFAMIN( AFA_SPECTRA_CACHE_NUMSPECTRA, ( AFAMIN( m_gridSizeSqr, AFA_COMPARE_BATCH_HW )));
 		const uint32_t searchRadius = param[ AFA_PARAM_INDICES_SEARCH_RADIUS ];
-	#endif
+#endif
 
 		// get offsets to different memory locations as 2 32-bit words combining them to 64bit offsets
 		spectraDataInputHWIndexToMem      = ( param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_LOW   ] | (( uint64_t ) param[ AFA_PARAM_INDICES_SPECTRA_DATA_INPUT_HW_ADDR_HIGH   ] << 32 ));
@@ -340,7 +350,7 @@ AFAProcess_HW(
 		spectraDataWorkingSetHWIndexToMem /= sizeof( uint32_t );
 		spectraIndexListIndexToMem        /= sizeof( uint32_t );
 		readBackDataIndexToMem            /= sizeof( uint32_t );
-#if 0
+#if 1
 		// readBackData receive - fill structure
 		ii = 0;
 		readBackData.stats.memAccess_AFAProcess_HW              = baseAddr[ readBackDataIndexToMem + ( ii + 0 )] | (( uint64_t ) baseAddr[ readBackDataIndexToMem + ( ii + 1 )] << 32 );
@@ -376,9 +386,9 @@ AFAProcess_HW(
 			}
 			else
 			{
-	#ifdef LOCAL_SEARCH_ENABLED
+#ifdef LOCAL_SEARCH_ENABLED
 				searchBestMatchLocal_HW( currentSourceSpectrum, searchRadius, &bmu );
-	#endif
+#endif
 			}
 
 			// mark best match neuron
@@ -432,9 +442,11 @@ AFAProcess_HW(
 		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >>  0 ) & 0x00000000ffffffff;
 		ii++;
 		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >> 32 ) & 0x00000000ffffffff;
-#else
-		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 2 ] = ( uint32_t )spectraDataInputHWIndexToMem;
 #endif
+
+		// JSCDBG: only debug
+		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 65 ] = ( uint32_t )adaptionThreshold_temp;
+
 		// copy back data from param block
 		// ===============================
 		memcpy(( void * ) &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ], ( const void * )&param[ 0 ], AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES );

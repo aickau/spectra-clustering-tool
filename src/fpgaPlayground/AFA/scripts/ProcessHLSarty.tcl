@@ -31,7 +31,7 @@ set repo_dir              "d:/work/AFA/repoHW"
 set libraryname           AFAProcessingLib
 set vendor                SystemberatungSchwarzer
 set design_version_HLS_H  0
-set design_version_HLS_L  4020
+set design_version_HLS_L  4101
 set display_name          $proj_name
 
 # do not modify below this line ...
