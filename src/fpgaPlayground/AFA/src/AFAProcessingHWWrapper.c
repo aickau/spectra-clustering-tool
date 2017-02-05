@@ -34,6 +34,8 @@ AFAProcess_HWWrapper(
     uint32_t error;
     bool_t rv;
     uint32_t status = 0;
+    uint32_t idx = 0;
+    uint32_t i, j;
 //    printf( "AFAProcess_HWWrapper() - Start\r\n" );
 
 #ifdef AFA_RUN_PROCESSHW_HW
@@ -73,6 +75,9 @@ AFAProcess_HWWrapper(
     // copy configuration with STOP code in it to prevent running before all data is copied
     memcpy(( void * ) ( &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 2 ]), &param[ 2 ], AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES - 2 * 4 );
 
+    // clear shadow area
+    memset( ( void * ) ( &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ]), 0xff, AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES );
+
     // now we start the design by writing 0xd00fd00f
     baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0xd00fd00f;
 
@@ -82,10 +87,21 @@ AFAProcess_HWWrapper(
         status = baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STATUS ];
         // busy waiting
         LEDBinaryShow( status );
+        for ( i = 0; i < 10000; ++i )
+        {
+        	j = i + i;
+        }
     } while ( 0x02 == ( status & 0x02 ));
 
+    idx = 0;
+    while ( 0x00000000 != baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ])
+    {
+    	idx++;
+    }
+    printf( ">>>>>>>>>>>>>>> %ld [%ld]\n", idx, j );
+
     // now processing is over
-	memcpy(( void * ) &param[ 2 ], ( void * ) ( &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 2 ]), AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES - 2 * 4 );
+//	memcpy(( void * ) &param[ 2 ], ( void * ) ( &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 2 ]), AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES - 2 * 4 );
 	error = status & 0x02 ? 0x00000000 /* no error */ : 0xffffffff /* something went wrong */;
     xil_printf( "Test AXI Master Afaprocess_hw() result: %8.8lx [%ld]\r\n", error,error );
 #endif

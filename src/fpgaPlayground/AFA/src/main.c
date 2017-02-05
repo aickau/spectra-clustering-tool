@@ -466,6 +466,8 @@ int main(
     clock_t timeIterationStart;
     clock_t timeIterationEnd;
 
+    uint64_t test;
+
 	printf( "Starting main() ...\n" );
 
     // processor and other HW preparations --- start ------------------------------------------------------
@@ -793,7 +795,13 @@ int main(
 		timeGlobalEnd - timeGlobalStart,
 		(( double )( timeGlobalEnd - timeGlobalStart )) / (( double ) CLOCKS_PER_SEC ));
 
-	printf( "\nStatistics:\n" );
+    idx = 0;
+    do
+    {
+    	test = readBackData->stats.memAccess_AFAProcess_HW;
+    	idx++;
+    } while ( 2400 != test );
+	printf( "\nStatistics [%d]:\n", idx );
     printf( "* memAccess_AFAProcess_HW:              [%10llu]\n", readBackData->stats.memAccess_AFAProcess_HW );
     printf( "* memAccess_adaptNetwork_HW_read:       [%10llu]\n", readBackData->stats.memAccess_adaptNetwork_HW_read );
     printf( "* memAccess_adaptNetwork_HW_write:      [%10llu]\n", readBackData->stats.memAccess_adaptNetwork_HW_write );

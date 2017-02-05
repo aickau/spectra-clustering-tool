@@ -132,7 +132,8 @@ AFAProcess_HWWrapper(
 	
 void
 AFAProcess_HW(
-    volatile uint32_t *baseAddr 		// default starting address in memory
+    volatile uint32_t *baseAddr, 		// default starting address in memory
+	volatile uint1_t *interrupt
     );
 
 #endif

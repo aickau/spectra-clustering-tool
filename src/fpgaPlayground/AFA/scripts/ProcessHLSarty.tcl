@@ -31,8 +31,8 @@ set repo_dir              "d:/work/AFA/repoHW"
 set libraryname           AFAProcessingLib
 set vendor                SystemberatungSchwarzer
 set design_version_HLS_H  0
-set design_version_HLS_L  4101
-set display_name          $proj_name
+set design_version_HLS_L  4109
+set display_name          "AXI ASPECT FPGA Accelerator"
 
 # do not modify below this line ...
 ## =============================================================

@@ -1,4 +1,5 @@
-#include "AFATypes.h"
+#include "AFAConfig.h"
+#include "AFATypesHW.h"
 #include "AFADefines.h"
 
 #include "AFANetworkSettingsHW.h"
@@ -222,11 +223,13 @@ adaptNetwork_HW(
 
 void
 AFAProcess_HW(
-    volatile uint32_t *baseAddr 		// default starting address in memory
+    volatile uint32_t *baseAddr, 		// default starting address in memory
+	volatile uint1_t *interrupt
     )
 {
 #pragma HLS INTERFACE ap_ctrl_none port=return
-#pragma HLS INTERFACE m_axi     port=baseAddr              depth=10000
+#pragma HLS INTERFACE ap_none      Port=interrupt
+#pragma HLS INTERFACE m_axi        port=baseAddr              depth=10000
 
     BestMatch bmu;
 	AFAReadBackData_t readBackData;
@@ -265,7 +268,7 @@ AFAProcess_HW(
 #endif
 #if 1
 	uint32_t clearStart = AFA_PARAM_BLOCK_ADDRESS_INDEX;
-	uint32_t clearSize = ( 0x80000000 - AFA_PARAM_BLOCK_ADDRESS_INDEX * sizeof( uint32_t )) >> 2;
+	uint32_t clearSize = ( 256 * 1024 * 1024 - ( AFA_PARAM_BLOCK_ADDRESS_INDEX * sizeof( uint32_t ) - 0x80000000 )) >> 2;
 	while ( clearSize-- )
 	{
 		baseAddr[ clearStart++ ] = 0x7642e5e1;
@@ -273,6 +276,7 @@ AFAProcess_HW(
 #endif
 
 	// at module start: stop engine after start
+	*interrupt = 0;
 	baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0xfefefefe;
 	baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STATUS ]    = 0xffeedd00;
 
@@ -301,6 +305,9 @@ AFAProcess_HW(
 		
 		AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // idle
 
+		// enable the memory fence in the end
+		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ] = 0xffffffff;
+		
 		do
 		{
 			if ( 0xd00fd00f == baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ])
@@ -426,22 +433,14 @@ AFAProcess_HW(
 		}
 
 		// readBackData receive - fill structure
-		ii = 0;
-		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_AFAProcess_HW              >>  0 ) & 0x00000000ffffffff;
-		ii++;
-		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_AFAProcess_HW              >> 32 ) & 0x00000000ffffffff;
-		ii++;
-		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_read       >>  0 ) & 0x00000000ffffffff;
-		ii++;
-		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_read       >> 32 ) & 0x00000000ffffffff;
-		ii++;
-		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_write      >>  0 ) & 0x00000000ffffffff;
-		ii++;
-		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_adaptNetwork_HW_write      >> 32 ) & 0x00000000ffffffff;
-		ii++;
-		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >>  0 ) & 0x00000000ffffffff;
-		ii++;
-		baseAddr[ readBackDataIndexToMem + ii ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >> 32 ) & 0x00000000ffffffff;
+		baseAddr[ readBackDataIndexToMem +  0 ] = ( readBackData.stats.memAccess_AFAProcess_HW              >>  0 ) & 0x00000000ffffffff;
+		baseAddr[ readBackDataIndexToMem +  1 ] = ( readBackData.stats.memAccess_AFAProcess_HW              >> 32 ) & 0x00000000ffffffff;
+		baseAddr[ readBackDataIndexToMem +  2 ] = ( readBackData.stats.memAccess_adaptNetwork_HW_read       >>  0 ) & 0x00000000ffffffff;
+		baseAddr[ readBackDataIndexToMem +  3 ] = ( readBackData.stats.memAccess_adaptNetwork_HW_read       >> 32 ) & 0x00000000ffffffff;
+		baseAddr[ readBackDataIndexToMem +  4 ] = ( readBackData.stats.memAccess_adaptNetwork_HW_write      >>  0 ) & 0x00000000ffffffff;
+		baseAddr[ readBackDataIndexToMem +  5 ] = ( readBackData.stats.memAccess_adaptNetwork_HW_write      >> 32 ) & 0x00000000ffffffff;
+		baseAddr[ readBackDataIndexToMem +  6 ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >>  0 ) & 0x00000000ffffffff;
+		baseAddr[ readBackDataIndexToMem +  7 ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >> 32 ) & 0x00000000ffffffff;
 #endif
 
 		// JSCDBG: only debug
@@ -451,11 +450,27 @@ AFAProcess_HW(
 		// ===============================
 		memcpy(( void * ) &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ], ( const void * )&param[ 0 ], AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES );
 
+#ifdef __SYNTHESIS__
+		// memory fence - start =============================================================================================================
+		// wait between memory accesses to not disturb burst writes from before
+		do
+		{
+			for ( ii = 0; ii < 10000; ++ii )
+			{
+				ap_wait();
+			}
+		} while ( 0x00000000 != baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ]);
+		// memory fence - end ===============================================================================================================
+#endif // #ifdef __SYNTHESIS__
+
 		// set the status'
 		statusProcessing = 0;
 		statusIdle       = 1;
 		statusSuccess    = 1;    // clustering not yet finished, need another learning step
 		AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // finish, idle again
+
+		*interrupt = 1;
+		*interrupt = 0;
 	}	// loop forever
 	//	return ( statusSuccess << 2 ) | ( statusProcessing << 1 ) | ( statusIdle << 0 );
 }
