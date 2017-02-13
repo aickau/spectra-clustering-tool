@@ -27,7 +27,7 @@
 
 #define JSCDBG_ITER_SPECIAL
 // #define JSCDBG_PRINTOUT_GOLDEN_SAMPLE_ONLY
-#define AFA_TEST_SHORT_ITERATION_0000
+//#define AFA_TEST_SHORT_ITERATION_0000
 
 extern AFAProcessingParamSW_t       AFAPP_sw;
 extern int m_mti; 
@@ -37,6 +37,8 @@ extern const unsigned long testAFAshort_size;
 extern unsigned char testAFAshort_data[];
 extern const unsigned long testAFAshortIndex0000_size;
 extern const unsigned char testAFAshortIndex0000_data[];
+extern const unsigned long testAFAshortIndex0001_size;
+extern const unsigned char testAFAshortIndex0001_data[];
 extern const unsigned long testAFAshortIndex0200_size;
 extern const unsigned char testAFAshortIndex0200_data[];
 
@@ -466,7 +468,7 @@ int main(
     clock_t timeIterationStart;
     clock_t timeIterationEnd;
 
-    uint64_t test;
+//    uint64_t test;
 
 	printf( "Starting main() ...\n" );
 
@@ -474,21 +476,30 @@ int main(
 
 #ifdef AFA_RUN_ON_XILINX_SDK
     Xil_ICacheEnable();
-//	Xil_DCacheEnable();
+	Xil_DCacheEnable();
 
     Xil_AssertSetCallback( AssertCallback );
 
     DriverInterruptControllerInit();
     DriverTimerInit();
     DriverAFAProcessingInit();
-//    DriverInterruptControllerEnable();
+    DriverInterruptControllerEnable();
 	LEDInit();
 
 	TestClockFunction();
 #endif
 
     // processor and other HW preparations --- end --------------------------------------------------------
-
+#if 0
+	for(;;)
+	{
+		static uint32_t n = 1000;
+	    LEDRGBSet( 0, EVAL_BOARD_LEDRGB_GREEN );		// power on
+	    sleep( n );
+	    LEDRGBSet( 0, EVAL_BOARD_LEDRGB_BLUE );			// power on
+	    sleep( n );
+	}
+#endif
     LEDRGBSet( 0, EVAL_BOARD_LEDRGB_GREEN );		// power on
     if ( !AFATypesOK())
     {
@@ -560,7 +571,7 @@ int main(
 #ifdef JSCDBG_ITER_SPECIAL
     AFAPP_sw.m_params.numSteps = 200;
 #else
-    AFAPP_sw.m_params.numSteps = 200;
+    AFAPP_sw.m_params.numSteps = 1;
 #endif
     AFAPP_sw.m_params.searchMode = AFANET_SETTINGS_SEARCHMODE_global;
 
@@ -663,7 +674,7 @@ int main(
 
     // define here after how many iterations we want to see a result
 #ifdef AFA_TEST_SHORT_ITERATION_0000
-    breakAfterNumCyles = 1;
+    breakAfterNumCyles = 2;
 #else
     breakAfterNumCyles = 0xffffffff;
 #endif
@@ -672,6 +683,11 @@ int main(
     timeGlobalStart = clock();
     do
     {
+
+#ifdef AFA_RUN_ON_XILINX_SDK
+	Xil_DCacheEnable();
+#endif
+
         if ( currentStep > AFAPP_sw.m_params.numSteps )
         {
             //Clustering finished (success).
@@ -789,18 +805,41 @@ int main(
                 currentStep++;
             }
         }
+        // =======================================================
+        // important:
+        // here we wait - in absense of a memory fence - for
+        // the memory write pipeline to be empty
+	    sleep( 1000 );
+        // =======================================================
+
     } while (( !rc ) && ( --breakAfterNumCyles ));
     timeGlobalEnd = clock();
     printf( "GlobalTime: %ld [%7.2fsec.]\n",
 		timeGlobalEnd - timeGlobalStart,
 		(( double )( timeGlobalEnd - timeGlobalStart )) / (( double ) CLOCKS_PER_SEC ));
 
+#ifdef AFA_RUN_ON_XILINX_SDK
+	Xil_DCacheDisable();
+#endif
+
+#if 0
+#if 1
+
+    idx = 0;
+	test = baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 64 ];
+	do
+    {
+    	idx++;
+    } while ( baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 64 ] == test );
+
+#else
     idx = 0;
     do
     {
-    	test = readBackData->stats.memAccess_AFAProcess_HW;
     	idx++;
-    } while ( 2400 != test );
+    } while ( idx < 5000000 );
+#endif
+#endif
 	printf( "\nStatistics [%d]:\n", idx );
     printf( "* memAccess_AFAProcess_HW:              [%10llu]\n", readBackData->stats.memAccess_AFAProcess_HW );
     printf( "* memAccess_adaptNetwork_HW_read:       [%10llu]\n", readBackData->stats.memAccess_adaptNetwork_HW_read );
@@ -853,7 +892,7 @@ int main(
         {
             sint32_t idx_golden;
 #ifdef AFA_TEST_SHORT_ITERATION_0000
-            uint32_t *p = ( uint32_t * )testAFAshortIndex0000_data; // beware of the endianess
+            uint32_t *p = ( uint32_t * )testAFAshortIndex0001_data; // beware of the endianess
 #else
             uint32_t *p = ( uint32_t * )testAFAshortIndex0200_data; // beware of the endianess
 #endif

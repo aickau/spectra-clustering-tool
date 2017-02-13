@@ -4,7 +4,7 @@
 // Xilinx includes
 //#include "xafaprocess_hw.h"
 #include "xparameters.h"
-
+#include "xil_cache.h"
 #include "BoardIO.h"
 #endif
 
@@ -57,6 +57,9 @@ AFAProcess_HWWrapper(
 #endif
 
 #ifdef AFA_RUN_PROCESSHW_HW_INTERFACE_RAW
+#ifdef AFA_RUN_ON_XILINX_SDK
+	Xil_DCacheDisable();
+#endif
     // set processing to STOP
     baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STARTSTOP ] = 0x00000000;
     baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STATUS ] = 0x00000000;
@@ -87,22 +90,27 @@ AFAProcess_HWWrapper(
         status = baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STATUS ];
         // busy waiting
         LEDBinaryShow( status );
-        for ( i = 0; i < 10000; ++i )
+        for ( i = 0; i < 1000; ++i )
         {
         	j = i + i;
         }
     } while ( 0x02 == ( status & 0x02 ));
 
+#if 0
     idx = 0;
-    while ( 0x00000000 != baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ])
+    while ( 0xffffffff != baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ])
     {
     	idx++;
     }
     printf( ">>>>>>>>>>>>>>> %ld [%ld]\n", idx, j );
+#endif
 
     // now processing is over
 //	memcpy(( void * ) &param[ 2 ], ( void * ) ( &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 2 ]), AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES - 2 * 4 );
 	error = status & 0x02 ? 0x00000000 /* no error */ : 0xffffffff /* something went wrong */;
+#ifdef AFA_RUN_ON_XILINX_SDK
+	Xil_DCacheEnable();
+#endif
     xil_printf( "Test AXI Master Afaprocess_hw() result: %8.8lx [%ld]\r\n", error,error );
 #endif
 

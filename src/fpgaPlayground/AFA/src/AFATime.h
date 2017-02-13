@@ -16,6 +16,7 @@ typedef uint32_t
 	clock_t;
 
 clock_t clock();
+void sleep(	uint32_t sleepTime );
 
 #define CLOCKS_PER_SEC						DRIVER_TIMER_IRQ_PER_SEC
 
