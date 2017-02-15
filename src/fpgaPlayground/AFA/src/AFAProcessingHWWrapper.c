@@ -86,14 +86,16 @@ AFAProcess_HWWrapper(
 
     //> hardware calculation starts here and we wait for done (interrupt is also triggered, but at first we do busy waiting)
     do
+	{
+    	status = baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW + AFA_PARAM_INDICES_STARTSTOP ];
+    } while ( 0xfefefefe != status );
+    baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW + AFA_PARAM_INDICES_STARTSTOP ] = 0xd00fd00f;
+
+    do
     {
         status = baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_STATUS ];
         // busy waiting
         LEDBinaryShow( status );
-        for ( i = 0; i < 1000; ++i )
-        {
-        	j = i + i;
-        }
     } while ( 0x02 == ( status & 0x02 ));
 
 #if 0

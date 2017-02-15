@@ -809,7 +809,7 @@ int main(
         // important:
         // here we wait - in absense of a memory fence - for
         // the memory write pipeline to be empty
-	    sleep( 1000 );
+	    //sleep( 1000 );
         // =======================================================
 
     } while (( !rc ) && ( --breakAfterNumCyles ));

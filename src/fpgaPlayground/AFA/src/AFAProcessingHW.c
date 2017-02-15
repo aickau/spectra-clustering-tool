@@ -484,6 +484,19 @@ AFAProcess_HW(
 #endif
 		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW + AFA_PARAM_INDICES_RESERVED ] = ii;
 #endif // #if 0
+
+		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW + AFA_PARAM_INDICES_STARTSTOP ] = 0xfefefefe;
+		do
+		{
+			if ( 0xd00fd00f == baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW + AFA_PARAM_INDICES_STARTSTOP ])
+			{
+				baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW + AFA_PARAM_INDICES_STARTSTOP ] = 0xeeffeeff;	// prevent restart
+				statusProcessing = 0;
+			}
+			AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // processing
+			baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW + AFA_PARAM_INDICES_STATUS ]++;
+		} while ( 1 == statusProcessing );
+
 		// memory fence - end ===============================================================================================================
 #endif // #ifdef __SYNTHESIS__
 
