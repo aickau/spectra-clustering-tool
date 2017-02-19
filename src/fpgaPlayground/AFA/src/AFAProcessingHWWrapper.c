@@ -98,18 +98,9 @@ AFAProcess_HWWrapper(
         LEDBinaryShow( status );
     } while ( 0x02 == ( status & 0x02 ));
 
-#if 0
-    idx = 0;
-    while ( 0xffffffff != baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ])
-    {
-    	idx++;
-    }
-    printf( ">>>>>>>>>>>>>>> %ld [%ld]\n", idx, j );
-#endif
-
     // now processing is over
-//	memcpy(( void * ) &param[ 2 ], ( void * ) ( &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 2 ]), AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES - 2 * 4 );
-	error = status & 0x02 ? 0x00000000 /* no error */ : 0xffffffff /* something went wrong */;
+	memcpy(( void * ) &param[ AFA_PARAM_INDICES_COPY_START ], ( void * ) ( &baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW + AFA_PARAM_INDICES_COPY_START ]), AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES - AFA_PARAM_INDICES_COPY_START * sizeof( uint32_t ));
+	error = param[ AFA_PARAM_INDICES_RETURN_VALUE ]; /* something went wrong ? */;
 #ifdef AFA_RUN_ON_XILINX_SDK
 	Xil_DCacheEnable();
 #endif

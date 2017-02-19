@@ -268,7 +268,8 @@ AFAProcess_HW(
 		i &= 0x0000ffff;
 	}
 #endif
-#if 1
+#if 0
+	// this clears at module start and will not disturb processing
 	uint32_t clearStart = AFA_PARAM_BLOCK_ADDRESS_INDEX;
 	uint32_t clearSize = ( 256 * 1024 * 1024 - ( AFA_PARAM_BLOCK_ADDRESS_INDEX * sizeof( uint32_t ) - 0x80000000 )) >> 2;
 	while ( clearSize-- )
@@ -332,7 +333,7 @@ AFAProcess_HW(
 
 		// get data from param block
 		// =========================
-		memcpy(( void * ) &param[ AFA_PARAM_INDICES_RESERVED ], ( const void * )&baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_RESERVED ], AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES - AFA_PARAM_INDICES_RESERVED * sizeof( uint32_t ));
+		memcpy(( void * ) &param[ AFA_PARAM_INDICES_COPY_START ], ( const void * )&baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_INDICES_COPY_START ], AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES - AFA_PARAM_INDICES_COPY_START * sizeof( uint32_t ));
 
 		bool_t bFullSearch = param[ AFA_PARAM_INDICES_FULL_SEARCH ];
 		uint32_t adaptionThreshold_temp = param[ AFA_PARAM_INDICES_ADAPTION_THRESHOLD ];
@@ -360,7 +361,7 @@ AFAProcess_HW(
 		spectraDataWorkingSetHWIndexToMem /= sizeof( uint32_t );
 		spectraIndexListIndexToMem        /= sizeof( uint32_t );
 		readBackDataIndexToMem            /= sizeof( uint32_t );
-#if 1
+
 		// readBackData receive - fill structure
 		readBackData.stats.memAccess_AFAProcess_HW              = baseAddr[ readBackDataIndexToMem + 0 ] | (( uint64_t ) baseAddr[ readBackDataIndexToMem + 1 ] << 32 );
 		readBackData.stats.memAccess_adaptNetwork_HW_read       = baseAddr[ readBackDataIndexToMem + 2 ] | (( uint64_t ) baseAddr[ readBackDataIndexToMem + 3 ] << 32 );
@@ -370,8 +371,6 @@ AFAProcess_HW(
 		// for each training spectra..
 		for ( idx = 0; idx < m_numSpectra; idx++ )
 		{
-			param[ AFA_PARAM_INDICES_LED1_OUTPUT ] = idx;
-			
 			// initialize best match batch
 			bmu.error = FLT_MAX;
 			bmu.index = 0;
@@ -440,14 +439,13 @@ AFAProcess_HW(
 		baseAddr[ readBackDataIndexToMem + 5 ] = ( readBackData.stats.memAccess_adaptNetwork_HW_write      >> 32 ) & 0x00000000ffffffff;
 		baseAddr[ readBackDataIndexToMem + 6 ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >>  0 ) & 0x00000000ffffffff;
 		baseAddr[ readBackDataIndexToMem + 7 ] = ( readBackData.stats.memAccess_searchBestMatchComplete_HW >> 32 ) & 0x00000000ffffffff;
-#endif
 
-		// JSCDBG: only debug
-		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 65 ] = ( uint32_t )adaptionThreshold_temp;
-
+		// process return value
+		param[ AFA_PARAM_INDICES_RETURN_VALUE ] = 0x12345678;
+		
 		// copy back data from param block
 		// ===============================
-#if 1
+#if 0
 		for ( ii = 0; ii < AFA_PARAM_BLOCK_WORK_SIZE_IN_WORDS32; ii++ )
 		{
 #pragma HLS PIPELINE II=1
@@ -459,31 +457,6 @@ AFAProcess_HW(
 
 #ifdef __SYNTHESIS__
 		// memory fence - start =============================================================================================================
-#if 0
-
-#if 0
-		// wait between memory accesses to not disturb burst writes from before
-		do
-		{
-			for ( ii = 0; ii < 10000; ++ii )
-			{
-				ap_wait();
-			}
-		} while ( 0x00000000 != baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ]);
-#endif
-		// param[ 0 ] contains 0xff0042ee, so we wait until the copy into memory is finished an value seen
-		ii = 0x00000000;
-		do
-		{
-			ii++;
-			baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW + AFA_PARAM_INDICES_DBG_COUNTER ] = ii;
-#if 0
-		} while ( 2400 != baseAddr[ readBackDataIndexToMem ]);
-#else
-		} while ( 0xff0042ee != baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ]);
-#endif
-		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW + AFA_PARAM_INDICES_RESERVED ] = ii;
-#endif // #if 0
 
 		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW + AFA_PARAM_INDICES_STARTSTOP ] = 0xfefefefe;
 		do
