@@ -36,14 +36,15 @@ set design_version_VIV_L  0
 
 # do we want to generate the framework with our custom element or not ?
 set CustomIPEnable        yes
-set CustomIPName          AFAProcessHW
-set CustomIPNameFull      SystemberatungSchwarzer:AFAProcessingLib:AFAProcess_HW:0.3006
+set CustomIPName          AFAProcess_HW_0
+set CustomIPNameFull      SystemberatungSchwarzer:AFAProcessingLib64:AFAProcess_HW:0.5002
 # do not modify below this line ...
 ## =============================================================
 
 ## == Prepare directory variables ==============================
 set cur_dir               [pwd]
-set prj_dir_repo          "[file normalize "$repo_dir/$platform_name"]"
+set prj_dir_repo_specific "[file normalize "$repo_dir/$platform_name"]"
+set prj_dir_repo_all      "[file normalize "$repo_dir/all"]"
 
 #set proj_name_full        "$proj_name_long\_$design_version_VIV_H\.$design_version_VIV_L"
 set target_board          $platform_name
@@ -84,7 +85,9 @@ set_property board $board_property [current_project]
 # Add HDL IP repositories
 #-----------------------------------------------------------
 #set_property ip_repo_paths "$prj_dir_repo" [current_fileset]
-set_property ip_repo_paths $prj_dir_repo [current_project]
+set property_cmd "set_property ip_repo_paths \{$prj_dir_repo_specific $prj_dir_repo_all\} \[current_project\]"
+eval $property_cmd
+#set_property ip_repo_paths  [$prj_dir_repo_specific $prj_dir_repo_all] [current_project]
 update_ip_catalog -rebuild
 
 #-----------------------------------------------------------
@@ -100,7 +103,6 @@ source "./ProcessVIVbd_$target_board.tcl"
 puts $design_dir/$proj_name_long
 make_wrapper -files [get_files $design_dir/$proj_name_long/$proj_name_short\.srcs/sources_1/bd/$bd_design_name/$bd_design_name\.bd] -top
 add_files -norecurse $design_dir/$proj_name_long/$proj_name_short\.srcs/sources_1/bd/$bd_design_name/hdl/$bd_design_name\_wrapper.v
-update_compile_order -fileset sources_1
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
 

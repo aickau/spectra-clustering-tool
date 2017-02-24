@@ -27,7 +27,7 @@
 
 #define JSCDBG_ITER_SPECIAL
 // #define JSCDBG_PRINTOUT_GOLDEN_SAMPLE_ONLY
-//#define AFA_TEST_SHORT_ITERATION_0000
+#define AFA_TEST_SHORT_ITERATION_0000
 
 extern AFAProcessingParamSW_t       AFAPP_sw;
 extern int m_mti; 
@@ -794,7 +794,7 @@ int main(
                 baseAddr
                 );
             timeIterationEnd = clock();
-            printf( "[%3d/%d = %3d%%] IterTime: %ld [%7.2fsec.]\n",
+            printf( "[%3d/%d = %3d%%] IterTime: %ldms [%7.2fsec.]\n",
                 currentStep,
                 AFAPP_sw.m_params.numSteps,
                 ( currentStep * 100 ) / ( AFAPP_sw.m_params.numSteps + 1 ),
@@ -814,7 +814,7 @@ int main(
 
     } while (( !rc ) && ( --breakAfterNumCyles ));
     timeGlobalEnd = clock();
-    printf( "GlobalTime: %ld [%7.2fsec.]\n",
+    printf( "GlobalTime: %ldms [%7.2fsec.]\n",
 		timeGlobalEnd - timeGlobalStart,
 		(( double )( timeGlobalEnd - timeGlobalStart )) / (( double ) CLOCKS_PER_SEC ));
 
