@@ -110,8 +110,11 @@ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_pcie3:3.0 axi_pcie3_0
 endgroup
 startgroup
 set_property -dict [list CONFIG.pl_link_cap_max_link_width {X8} CONFIG.pl_link_cap_max_link_speed {8.0_GT/s} CONFIG.axi_addr_width {64} CONFIG.en_axi_slave_if {false} CONFIG.pf0_bar0_size {128} CONFIG.pf0_bar0_scale {Megabytes} CONFIG.pf0_bar1_enabled {true} CONFIG.pf0_bar1_size {128} CONFIG.pf0_bar1_scale {Megabytes} CONFIG.pciebar2axibar_1 {0x0000000080000000} CONFIG.SYS_RST_N_BOARD_INTERFACE {pcie_perstn} CONFIG.PCIE_BOARD_INTERFACE {pci_express_x8} CONFIG.cfg_ext_if {false} CONFIG.pcie_blk_locn {X0Y1} CONFIG.axi_data_width {256_bit} CONFIG.plltype {QPLL1} CONFIG.axisten_freq {250} CONFIG.dedicate_perst {false} CONFIG.pf0_device_id {7038}] [get_bd_cells axi_pcie3_0]
+#>>> set_property -dict [list CONFIG.pf0_bar0_64bit {true} CONFIG.pf0_bar2_enabled {true} CONFIG.pf0_bar2_size {128} CONFIG.pf0_bar2_scale {Megabytes} CONFIG.pf0_bar2_64bit {true} CONFIG.pf0_bar1_enabled {false} CONFIG.pf0_msix_cap_table_bir {BAR_1:0} CONFIG.pf0_msix_cap_pba_bir {BAR_1:0}] [get_bd_cells axi_pcie3_0]
 endgroup
+
 set_property -dict [list CONFIG.FREQ_HZ {200000000}] [get_bd_intf_ports sys_diff_clock]
+
 startgroup
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/axi_pcie3_0/M_AXI" Clk "Auto" }  [get_bd_intf_pins mig_7series_0/S0_AXI]
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/axi_pcie3_0/M_AXI" Clk "Auto" }  [get_bd_intf_pins mig_7series_0/S1_AXI]
@@ -171,12 +174,6 @@ endgroup
 regenerate_bd_layout -routing
 regenerate_bd_layout
 validate_bd_design
-
-save_bd_design
-
-#startgroup
-#endgroup
-#apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Slave "/mig_7series_0/S0_AXI" Clk "Auto" }  [get_bd_intf_pins AFAProcess_HW_0/m_axi_baseAddr]
 
 ## Insert custom IP ###########################################################
 
