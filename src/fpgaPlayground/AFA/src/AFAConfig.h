@@ -27,6 +27,7 @@
 // ===============================================================
 
 // this is an index into an array of type uint32_t starting at address 0x00000000
-#define PARAM_BLOCK_ADDRESS_INDEX	( 0x82000000 / sizeof( uint32_t ))
+//#define PARAM_BLOCK_ADDRESS_INDEX	( 0x82000000 / sizeof( uint32_t ))
+#define PARAM_BLOCK_ADDRESS_INDEX	( 0x00000000 / sizeof( uint32_t ))
 
 #endif

@@ -29,7 +29,7 @@ set repo_dir              "d:/work/AFA/repoHW"
 set libraryname           AFAProcessingLib64
 set vendor                SystemberatungSchwarzer
 set design_version_HLS_H  0
-set design_version_HLS_L  6000
+set design_version_HLS_L  6003
 set display_name          "AXI ASPECT FPGA Accelerator"
 
 # do not modify below this line ...
@@ -85,7 +85,7 @@ open_project $proj_name
 set all_solution [list VC709_32Bit_250Mhz                                          ]
 set all_part     [list xc7vx690tffg1761-2                                          ]
 set all_clocks   [list 4ns                                                         ]
-set all_axi_addr [list "-m_axi_addr64 -m_axi_offset off -register_io off"          ]
+set all_axi_addr [list 64bit                                                       ]
 set all_repo_dir [list [file normalize "$prj_dir_repo/$platform_name/$proj_name" ] ]
 
 source $prj_dir_scripts/_ProcessHLSCore.tcl

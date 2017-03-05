@@ -1,12 +1,22 @@
 source $prj_dir_scripts/_ProcessHLSSourceFiles.tcl
 
 foreach solution $all_solution part $all_part clock $all_clocks axi_addr $all_axi_addr repo_dir_new $all_repo_dir {
-	puts "axi_addr=$axi_addr"
 	open_solution -reset $solution
 	set_part             $part
     create_clock -period $clock -name default
-	config_interface -m_axi_offset off -register_io off
-#	config_interface $axi_addr
+	
+	#puts "axi_addr=$axi_addr"
+	if { $axi_addr == "64bit" } {
+		puts "Generate a 64bit address bus ..."
+		config_interface -m_axi_offset off -register_io off -m_axi_addr64
+	} else {
+		puts "Generate a 32bit address bus ..."
+		config_interface -m_axi_offset off -register_io off
+	}
+
+#    set axi_addr "-m_axi_offset off -register_io off"
+#	puts                 "axi_addr=$axi_addr"
+#	config_interface "$axi_addr"
 
 	## == clean build
 	#csim_design -clean
