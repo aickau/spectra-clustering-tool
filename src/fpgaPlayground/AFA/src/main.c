@@ -27,7 +27,7 @@
 
 #define JSCDBG_ITER_SPECIAL
 // #define JSCDBG_PRINTOUT_GOLDEN_SAMPLE_ONLY
-#define AFA_TEST_SHORT_ITERATION_0000
+// #define AFA_TEST_SHORT_ITERATION_0000
 
 extern AFAProcessingParamSW_t       AFAPP_sw;
 extern int m_mti; 
