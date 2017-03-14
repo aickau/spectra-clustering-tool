@@ -30,6 +30,9 @@
 #include "CSVExport.h"
 #include "spectraDB.h"
 
+// disable SSE optimization (makes computations very slow)
+//#define SSE_DISABLED
+
 // temporary disable XML support under linux.
 #ifndef _WIN32
 #define _XMLIMPORT_DISABLED
@@ -1496,6 +1499,14 @@ void Spectra::adapt( const Spectra &_spectra, float _adaptionRate )
 	//	million adaption / sec
 	//	0,37  	c-version 
 	//	0,46	sse version 
+
+#ifdef SSE_DISABLED
+	// c-version (slow)
+	for ( size_t i=Spectra::pixelStart;i<Spectra::pixelEnd;i++ )
+	{
+		m_Amplitude[i] += _adaptionRate*(_spectra.m_Amplitude[i]-m_Amplitude[i]);
+	}
+#else //!SSE_DISABLED
 #ifdef _WIN32
 
 	const float *a0 = &m_Amplitude[Spectra::pixelStart];
@@ -1571,6 +1582,7 @@ loop1:
 	}
 #endif // X64
 #endif
+#endif //! SSE_DISABLED
 
 }
 
@@ -1580,6 +1592,14 @@ extern "C" void spectraCompareX64(const float *a0, const float *a1, float *errou
 
 float Spectra::compare(const Spectra &_spectra) const
 {
+#ifdef SSE_DISABLED
+	float error=0.0f;
+	for (size_t i=Spectra::pixelStart;i<Spectra::pixelEnd;i++)
+	{
+		float d = m_Amplitude[i]-_spectra.m_Amplitude[i];
+		error += d*d;
+	}
+#else // !SSE_DISABLED
 #ifdef _WIN32
 
 
@@ -1673,7 +1693,7 @@ loop1:
 #endif // X64
 
 #endif // !WIN32
-
+#endif // !SSE_DISABLED
 	
 	return error;
 }
