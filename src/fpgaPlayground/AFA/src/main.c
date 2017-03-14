@@ -446,7 +446,7 @@ int main(
     AFAReadBackData_t *readBackData;
     uint32_t *baseAddr = NULL;  // that's a dummy address pointing to the start of work area of HW in memory
     uint32_t xp, yp, gridSize, gridSizeSqr;
-    sint32_t idx;
+    sint32_t idx = 0;
     int rv = 0;
     bool_t rc;
 
@@ -585,6 +585,9 @@ int main(
     	printf( "!!! Error: No memory \n" );
     	exit( -1 );
     }
+    printf("* Set baseAddr\n");
+    baseAddr = AFAPP_sw.memoryBlockBaseAddressAligned;
+    printf("  - baseAddr = 0x%16.16llx\n", baseAddr );
 
     printf( "* Update address data\n" );
     AFAHelperStructures_UpdateAddressData();

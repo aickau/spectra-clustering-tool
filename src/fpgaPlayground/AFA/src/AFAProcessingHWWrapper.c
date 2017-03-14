@@ -109,10 +109,13 @@ AFAProcess_HWWrapper(
 
 
 #else
-    error = AFAProcess_HW(
-        param,              // whole block ram used
-        baseAddr            // default starting address in memory
+    uint8_t interrupt;
+    memcpy( &baseAddr[ PARAM_BLOCK_ADDRESS_INDEX ], param, AFA_PARAM_BLOCK_SIZE_IN_BYTES );
+    AFAProcess_HW(
+        baseAddr,            // default starting address in memory
+        &interrupt
         );
+    error = 0;
 #endif
     rv = FALSE;
 //    printf( "AFAProcess_HWWrapper() - End(0x%8.8lx)\r\n", error );

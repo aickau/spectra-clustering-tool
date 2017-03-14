@@ -15,7 +15,8 @@ enum
 	AFA_PARAM_BLOCK_WORK_SIZE_IN_WORDS32	= AFA_PARAM_BLOCK_WORK_SIZE_IN_BYTES / 4,
 	AFA_PARAM_BLOCK_ADDRESS_INDEX       	= PARAM_BLOCK_ADDRESS_INDEX,	// index (address) of the parameter block
 	AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW 	= PARAM_BLOCK_ADDRESS_INDEX + AFA_PARAM_BLOCK_WORK_SIZE_IN_WORDS32,	// index (address) of the parameter block
-    AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS    	= 1 << 8,       // power of 2 needed: 256
+    AFA_MEMORY_ALIGNMENT_BIG_BLOCKS         = 1 << 12,       // power of 2 needed: 4096
+    AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS        = 1 << 16,       // power of 2 needed: 65536
 
     AFA_WORKING_DATA_NAME_LENGTH        	= 32,
 

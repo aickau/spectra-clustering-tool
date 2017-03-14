@@ -289,8 +289,11 @@ AFAProcess_HW(
 	statusProcessing = 0;
 	statusIdle = 1;
 
-	for (;;)
-	{
+#ifdef __SYNTHESIS__
+    // no endless loop in PC-Simulation
+    for (;;)
+#endif // #ifdef __SYNTHESIS__
+    {
 		// ==================================================================
 		// The following section is provided to allow a memory only control
 		// of the accelerator:
@@ -309,6 +312,7 @@ AFAProcess_HW(
 		
 		AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // idle
 
+#ifdef __SYNTHESIS__
 		// enable the memory fence in the end
 		baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX_SHADOW ] = 0xffffffff;
 		
@@ -322,10 +326,14 @@ AFAProcess_HW(
 			AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // processing
 			baseAddr[ AFA_PARAM_BLOCK_ADDRESS_INDEX + 64 ]++;
 		} while ( 0 == statusProcessing );
-			
-		statusIdle = 0;
-		statusSuccess = 0;	// we find eventually success at the end ...
-		AFA_STORE_STATUS( statusSuccess, statusProcessing, statusIdle ); // non idle
+#else
+        statusProcessing = 1;
+#endif // #ifdef __SYNTHESIS__
+
+        statusIdle = 0;
+        statusSuccess = 0;	// we find eventually success at the end ...
+
+        AFA_STORE_STATUS(statusSuccess, statusProcessing, statusIdle); // non idle
 		
 		// ==================================================================
 		// End of start control block

@@ -189,21 +189,31 @@ AFAHelperStructures_PrepareDataStructure(
     // TODO: put this into a function
 
     // prepare memory control structure
-    strncpy( AFAPP_sw.workData[ idx ].name, "example data", AFA_WORKING_DATA_NAME_LENGTH );
-    AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
-    memoryBlockSize = numSpectra * sizeof( AFASpectra_SW );
-    AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
-    AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
-    printf( "%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated, memoryOffsetInBlock );
+    strncpy(AFAPP_sw.workData[idx].name, "param block", AFA_WORKING_DATA_NAME_LENGTH);
+    AFAPP_sw.workData[idx].offsetToBaseAddress = memoryOffsetInBlock;
+    memoryBlockSize = AFA_PARAM_BLOCK_SIZE_IN_BYTES;
+    AFAPP_sw.workData[idx].size = memoryBlockSize;
+    memoryBlockSize = (memoryBlockSize + AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1) & ~(AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1);   // padding at the end of memory block
+    AFAPP_sw.workData[idx].sizeAllocated = memoryBlockSize;
+    printf("%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[idx].name, AFAPP_sw.workData[idx].size, AFAPP_sw.workData[idx].sizeAllocated, memoryOffsetInBlock);
     memoryOffsetInBlock += memoryBlockSize;
     idx++;
 
-    strncpy( AFAPP_sw.workData[ idx ].name, "example data reduced", AFA_WORKING_DATA_NAME_LENGTH );
+    strncpy(AFAPP_sw.workData[idx].name, "example data", AFA_WORKING_DATA_NAME_LENGTH);
+    AFAPP_sw.workData[idx].offsetToBaseAddress = memoryOffsetInBlock;
+    memoryBlockSize = numSpectra * sizeof(AFASpectra_SW);
+    AFAPP_sw.workData[idx].size = memoryBlockSize;
+    memoryBlockSize = (memoryBlockSize + AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1) & ~(AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1);   // padding at the end of memory block
+    AFAPP_sw.workData[idx].sizeAllocated = memoryBlockSize;
+    printf("%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[idx].name, AFAPP_sw.workData[idx].size, AFAPP_sw.workData[idx].sizeAllocated, memoryOffsetInBlock);
+    memoryOffsetInBlock += memoryBlockSize;
+    idx++;
+
+    strncpy(AFAPP_sw.workData[idx].name, "example data reduced", AFA_WORKING_DATA_NAME_LENGTH);
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = numSpectra * AFA_SPECTRA_INDEX_SIZE_IN_BYTES;
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
+    memoryBlockSize = (memoryBlockSize + AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1) & ~(AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1);   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     printf( "%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated, memoryOffsetInBlock );
     memoryOffsetInBlock += memoryBlockSize;
@@ -213,7 +223,7 @@ AFAHelperStructures_PrepareDataStructure(
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * sizeof( AFASpectra_SW );
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
+    memoryBlockSize = (memoryBlockSize + AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1) & ~(AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1);   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     printf( "%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated, memoryOffsetInBlock );
     memoryOffsetInBlock += memoryBlockSize;
@@ -223,7 +233,7 @@ AFAHelperStructures_PrepareDataStructure(
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * AFA_SPECTRA_INDEX_SIZE_IN_BYTES;
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
+    memoryBlockSize = (memoryBlockSize + AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1) & ~(AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1);   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     printf( "%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated, memoryOffsetInBlock );
     memoryOffsetInBlock += memoryBlockSize;
@@ -233,7 +243,7 @@ AFAHelperStructures_PrepareDataStructure(
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * sizeof( sint32_t );
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
+    memoryBlockSize = (memoryBlockSize + AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1) & ~(AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1);   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     printf( "%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated, memoryOffsetInBlock );
     memoryOffsetInBlock += memoryBlockSize;
@@ -243,7 +253,7 @@ AFAHelperStructures_PrepareDataStructure(
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * sizeof( AFASpectra_SW * );
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
+    memoryBlockSize = (memoryBlockSize + AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1) & ~(AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1);   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     printf( "%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated, memoryOffsetInBlock );
     memoryOffsetInBlock += memoryBlockSize;
@@ -253,7 +263,7 @@ AFAHelperStructures_PrepareDataStructure(
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * sizeof( uint32_t );
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
+    memoryBlockSize = (memoryBlockSize + AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1) & ~(AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1);   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     printf( "%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated, memoryOffsetInBlock );
     memoryOffsetInBlock += memoryBlockSize;
@@ -263,7 +273,7 @@ AFAHelperStructures_PrepareDataStructure(
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFAPP_sw.m_gridSizeSqr * sizeof( float32_t );
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
+    memoryBlockSize = (memoryBlockSize + AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1) & ~(AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1);   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     printf( "%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated, memoryOffsetInBlock );
     memoryOffsetInBlock += memoryBlockSize;
@@ -273,7 +283,7 @@ AFAHelperStructures_PrepareDataStructure(
     AFAPP_sw.workData[ idx ].offsetToBaseAddress = memoryOffsetInBlock;
     memoryBlockSize = AFA_MAX( 256 * sizeof( uint32_t ), sizeof( AFAReadBackData_t ));
     AFAPP_sw.workData[ idx ].size = memoryBlockSize;
-    memoryBlockSize = ( memoryBlockSize + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 ) & ~( AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );   // padding at the end of memory block
+    memoryBlockSize = (memoryBlockSize + AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1) & ~(AFA_MEMORY_ALIGNMENT_BIG_BLOCKS - 1);   // padding at the end of memory block
     AFAPP_sw.workData[ idx ].sizeAllocated = memoryBlockSize;
     printf( "%32s: %10llu [%10llu] 0x%8.8llx\n", AFAPP_sw.workData[ idx ].name, AFAPP_sw.workData[ idx ].size, AFAPP_sw.workData[ idx ].sizeAllocated, memoryOffsetInBlock );
     memoryOffsetInBlock += memoryBlockSize;
