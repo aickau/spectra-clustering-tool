@@ -7,6 +7,7 @@
 
 #include "AFASpectra.h"
 #include "AFAProcessing.h"
+#include "AFAMem.h"
 #include "AFADefines.h"
 #include "AFATypes.h"
 
@@ -122,12 +123,12 @@ AFAHelperStructures_MemAllocate()
 
     // increase potential memory needs to get space to shift the base address to an aligned place
     memoryNeeds = ( memoryNeeds + AFA_MEMORY_ALIGNMENT_HUGE_BLOCKS - 1 );
-    AFAPP_sw.memoryBlockBaseAddressAllocated = malloc( memoryNeeds );
+    AFAPP_sw.memoryBlockBaseAddressAllocated = AFAmalloc( memoryNeeds );
     rv = AFAPP_sw.memoryBlockBaseAddressAllocated ? TRUE : FALSE;
     if ( rv )
     {
 		AFAPP_sw.memoryBlockSizeAllocated = memoryNeeds;
-		memset( AFAPP_sw.memoryBlockBaseAddressAllocated, clearVal, memoryNeeds );
+		AFAmemset( AFAPP_sw.memoryBlockBaseAddressAllocated, clearVal, memoryNeeds );
 
 		// ===========================================================
 		// attention: single point of failure - pointer calculation
@@ -326,7 +327,7 @@ AFAHelperStructures_GetSizeOf(
             return AFAPP_sw.workData[ i ].size;
         }
     }
-    return NULL;
+    return 0;
 }
 
 uint64_t

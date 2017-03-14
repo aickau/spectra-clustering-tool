@@ -1,0 +1,63 @@
+﻿Build started 3/14/2017 7:04:57 PM.
+     1>Project "D:\Projects\AFA\git\src\fpgaPlayground\AFA\vs2013\AFAvs2013.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W4 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TC /wd4996 /analyze- /errorReport:prompt ..\src\AFAMem.c ..\src\AFANetworkSettings.c ..\src\AFAProcessing.c ..\src\AFAProcessingHW.c ..\src\AFAProcessingHWWrapper.c ..\src\AFARandom.c ..\src\AFASpectra.c ..\src\AFATestDataSpectraShort.c ..\src\AFATestDataSpectraShortIndex0000.c ..\src\AFATestDataSpectraShortIndex0200.c ..\src\AFATypes.c ..\src\BoardIO.c ..\src\main.c
+         main.c
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\main.c(235): warning C4100: 'outHWAddr' : unreferenced formal parameter
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\main.c(381): warning C4100: 'outHWAddr' : unreferenced formal parameter
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\main.c(380): warning C4100: 'numSpectra' : unreferenced formal parameter
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\main.c(440): warning C4100: 'argv' : unreferenced formal parameter
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\main.c(439): warning C4100: 'argc' : unreferenced formal parameter
+         BoardIO.c
+         AFATypes.c
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afatypes.c(51): warning C4127: conditional expression is constant
+         AFATestDataSpectraShortIndex0200.c
+         AFATestDataSpectraShortIndex0000.c
+         AFATestDataSpectraShort.c
+         AFASpectra.c
+         AFARandom.c
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afarandom.c(51): warning C4057: '=' : 'unsigned long *' differs in indirection to slightly different base types from 'uint32_t *'
+         AFAProcessingHWWrapper.c
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghwwrapper.c(113): warning C4090: 'function' : different 'volatile' qualifiers
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghwwrapper.c(38): warning C4101: 'i' : unreferenced local variable
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghwwrapper.c(37): warning C4189: 'idx' : local variable is initialized but not referenced
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghwwrapper.c(36): warning C4189: 'status' : local variable is initialized but not referenced
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghwwrapper.c(38): warning C4101: 'j' : unreferenced local variable
+         AFAProcessingHW.c
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghw.c(69): warning C4068: unknown pragma
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghw.c(191): warning C4068: unknown pragma
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghw.c(230): warning C4068: unknown pragma
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghw.c(231): warning C4068: unknown pragma
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghw.c(232): warning C4068: unknown pragma
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghw.c(313): warning C4127: conditional expression is constant
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghw.c(336): warning C4127: conditional expression is constant
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghw.c(488): warning C4127: conditional expression is constant
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afaprocessinghw.c(242): warning C4101: 'ii' : unreferenced local variable
+         AFAProcessing.c
+         AFANetworkSettings.c
+         AFAMem.c
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afamem.c(9): warning C4013: 'malloc' undefined; assuming extern returning int
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afamem.c(9): warning C4047: 'return' : 'void *' differs in levels of indirection from 'int'
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afamem.c(30): warning C4013: 'memset' undefined; assuming extern returning int
+     1>d:\projects\afa\git\src\fpgaplayground\afa\src\afamem.c(30): warning C4098: 'AFAmemset' : 'void' function returning a value
+         Generating Code...
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\Projects\AFA\git\src\fpgaPlayground\AFA\vs2013\Debug\AFAvs2013.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\Projects\AFA\git\src\fpgaPlayground\AFA\vs2013\Debug\AFAvs2013.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\Projects\AFA\git\src\fpgaPlayground\AFA\vs2013\Debug\AFAvs2013.lib" /MACHINE:X86 Debug\AFAMem.obj
+         Debug\AFANetworkSettings.obj
+         Debug\AFAProcessing.obj
+         Debug\AFAProcessingHW.obj
+         Debug\AFAProcessingHWWrapper.obj
+         Debug\AFARandom.obj
+         Debug\AFASpectra.obj
+         Debug\AFATestDataSpectraShort.obj
+         Debug\AFATestDataSpectraShortIndex0000.obj
+         Debug\AFATestDataSpectraShortIndex0200.obj
+         Debug\AFATypes.obj
+         Debug\BoardIO.obj
+         Debug\main.obj
+         AFAvs2013.vcxproj -> D:\Projects\AFA\git\src\fpgaPlayground\AFA\vs2013\Debug\AFAvs2013.exe
+     1>Done Building Project "D:\Projects\AFA\git\src\fpgaPlayground\AFA\vs2013\AFAvs2013.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.02
