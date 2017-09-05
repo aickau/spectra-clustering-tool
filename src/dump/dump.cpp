@@ -31,7 +31,7 @@
 
 
 
-#define DATADIR std::string("./data/dr12/*")
+#define DATADIR std::string("./data/dr14/*")
 //#define DATADIR std::string("G:/SDSS_ANALYZE/fits/spectro/data/*")
 #define DUMPFILE std::string("allSpectra.bin")
  

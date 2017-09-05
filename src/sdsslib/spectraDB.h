@@ -49,7 +49,8 @@ public:
 	{
 		DR9,
 		DR10,
-		DR12
+		DR12,
+		DR14
 	};
 
 	// read FITs table and export map entries to write binary table 

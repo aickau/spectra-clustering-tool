@@ -56,6 +56,14 @@ bool SpectraDB::writeDB( DR _dataRelease )
 		zColumnNumber = 66;
 		classColumnNumber = 64;
 	}
+	else if ( _dataRelease == DR14 ) 
+	{
+		filename = "specObj-dr14.fits";
+		outDBFilename = "spectraParamDR14.bin";
+		zColumnNumber = 71;
+		classColumnNumber = 69;
+	}
+
 
 	// specObj FITS file Documentation:
 	// http://data.sdss3.org/datamodel/files/SPECTRO_REDUX/specObj.html
@@ -84,8 +92,8 @@ bool SpectraDB::writeDB( DR _dataRelease )
 	}
 
 
-	long tblrows = 0;	// should be large, i.e. 2.674.200 for DR9, 3.358.200 for DR10, 4.355.200 for DR12
-	int tblcols = 0;	// should be 127, 128 for DR12
+	long tblrows = 0;	// should be large, i.e. 2.674.200 for DR9, 3.358.200 for DR10, 4.355.200 for DR12, 4.851.200 for DR14
+	int tblcols = 0;	// should be 127, 128 for DR12, 127 for DR14
 	fits_get_num_rows( f, &tblrows, &status );
 	fits_get_num_cols( f, &tblcols, &status );
 
@@ -97,9 +105,7 @@ bool SpectraDB::writeDB( DR _dataRelease )
 
 	// map spectra class, subclass to count
 //	std::map<std::string,int>  spectraTypeDistribution;
-
-	
-
+	int lastPercentage =-1;
 	for ( int rowNum=1;rowNum<=tblrows;rowNum++ )
 	{
 		int64_t specObjID;
@@ -109,6 +115,14 @@ bool SpectraDB::writeDB( DR _dataRelease )
 		char val[4096];
 		arrVal[0] = &val[0];
 		arrVal[1] = NULL;
+
+		const int percentage = 100*rowNum/tblrows;
+		if ( percentage != lastPercentage )
+		{
+			printf("%i %%\n",percentage );
+			lastPercentage = percentage;
+		}
+
 
 		// spec obj id
 		fits_read_col( f, TSTRING, 22, rowNum, 1, 1, NULL, arrVal, NULL, &status );
@@ -243,9 +257,14 @@ bool SpectraDB::loadDB( DR _dataRelease )
 	if ( _dataRelease == DR10 )
 	{
 		dbFilename = "spectraParamDR10.bin";
-	} else 	if ( _dataRelease == DR12 )
+	} 
+	else 	if ( _dataRelease == DR12 )
 	{
 		dbFilename = "spectraParamDR12.bin";
+	} 
+	else 	if ( _dataRelease == DR14 )
+	{
+		dbFilename = "spectraParamDR14.bin";
 	}
 
 

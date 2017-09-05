@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Analyzer config file, ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I, Copyright (c) 2013 Version 0.20, Revision 403, Build date 2016/05/04 07:59:07 -->
+<!-- Analyzer config file, ASPECT: A spectra clustering tool for exploration of large spectral surveys - Stage I, Copyright (c) 2013 Version 0.21, Revision 465, Build date 2016/09/18 16:30:16 -->
 <SETTINGS>
-	<STEP current="1" total="200"/>
+	<STEP current="8" total="200"/>
 	<GRIDSIZE value="12"/>
 	<RANDOMSEED value="23"/>
 	<LEARNRATE begin="0.25" end="0.01"/>
