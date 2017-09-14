@@ -71,6 +71,7 @@ const float Spectra::waveEndDst		= 9200.f;
 int Spectra::pixelStart				= 0;		
 int Spectra::pixelEnd				= Spectra::numSamples;		
 
+SpectraDB g_spectraDBDR14;
 SpectraDB g_spectraDBDR12;
 SpectraDB g_spectraDBDR10;
 SpectraDB g_spectraDBDR9;
@@ -834,29 +835,38 @@ void Spectra::loadDataFromSpectraDB( std::ofstream *_logStream )
 {
 	SpectraDB::Info spectraInfo;
 	// load spectra DB the first time and retrieve add. spectra params
-	bool spectraInfoLoaded = g_spectraDBDR12.loadDB( SpectraDB::DR12 ) && g_spectraDBDR12.getInfo( m_SpecObjID, spectraInfo );
+	bool spectraInfoLoaded = g_spectraDBDR14.loadDB( SpectraDB::DR14 ) && g_spectraDBDR14.getInfo( m_SpecObjID, spectraInfo );
 
 	if ( spectraInfoLoaded )
 	{
 		m_Z		= spectraInfo.z;
 		m_Type	= spectraInfo.spClass;
 	} 
-	else {
-		spectraInfoLoaded = g_spectraDBDR10.loadDB( SpectraDB::DR10 ) && g_spectraDBDR10.getInfo( m_SpecObjID, spectraInfo );
+	else
+	{
+		spectraInfoLoaded = g_spectraDBDR12.loadDB( SpectraDB::DR12 ) && g_spectraDBDR12.getInfo( m_SpecObjID, spectraInfo );
 		if ( spectraInfoLoaded )
 		{
 			m_Z		= spectraInfo.z;
 			m_Type	= spectraInfo.spClass;
 		} 
 		else {
-			spectraInfoLoaded = g_spectraDBDR9.loadDB( SpectraDB::DR9 ) && g_spectraDBDR9.getInfo( m_SpecObjID, spectraInfo );
+			spectraInfoLoaded = g_spectraDBDR10.loadDB( SpectraDB::DR10 ) && g_spectraDBDR10.getInfo( m_SpecObjID, spectraInfo );
 			if ( spectraInfoLoaded )
 			{
 				m_Z		= spectraInfo.z;
 				m_Type	= spectraInfo.spClass;
-			}
+			} 
 			else {
-				Helpers::print("Could not load additional spectra info for specObjID="+Helpers::numberToString(m_SpecObjID)+" from spectra DB.\n", _logStream );
+				spectraInfoLoaded = g_spectraDBDR9.loadDB( SpectraDB::DR9 ) && g_spectraDBDR9.getInfo( m_SpecObjID, spectraInfo );
+				if ( spectraInfoLoaded )
+				{
+					m_Z		= spectraInfo.z;
+					m_Type	= spectraInfo.spClass;
+				}
+				else {
+					Helpers::print("Could not load additional spectra info for specObjID="+Helpers::numberToString(m_SpecObjID)+" from spectra DB.\n", _logStream );
+				}
 			}
 		}
 	}
@@ -1127,7 +1137,7 @@ bool Spectra::loadFromFITS_DR8(const std::string &_filename, std::ofstream *_log
 	}
 
 
-	m_SpecObjID = Helpers::stringToNumber<int64_t>(specID);
+	m_SpecObjID = Helpers::stringToNumber<uint64_t>(specID);
 
 	if ( getFiber() != fiber || 
 		 getMJD() != mjd ||

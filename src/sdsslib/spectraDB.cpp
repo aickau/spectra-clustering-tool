@@ -108,7 +108,7 @@ bool SpectraDB::writeDB( DR _dataRelease )
 	int lastPercentage =-1;
 	for ( int rowNum=1;rowNum<=tblrows;rowNum++ )
 	{
-		int64_t specObjID;
+		uint64_t specObjID;
 		Info info;
 		char *arrVal[2];
 
@@ -126,7 +126,7 @@ bool SpectraDB::writeDB( DR _dataRelease )
 
 		// spec obj id
 		fits_read_col( f, TSTRING, 22, rowNum, 1, 1, NULL, arrVal, NULL, &status );
-		specObjID = Helpers::stringToNumber<int64_t>(val);
+		specObjID = Helpers::stringToNumber<uint64_t>(val);
 
 		// source type
 		arrVal[1] = NULL;
@@ -168,7 +168,7 @@ bool SpectraDB::writeDB( DR _dataRelease )
 		
 		// apparently additional columns were inserted in DR12, therefore read z value from a different column number than in previous releases.
 		fits_read_col( f, TDOUBLE, zColumnNumber, rowNum, 1, 1, NULL, &info.z, NULL, &status );
-		m_spectraDB.insert(std::map<int64_t,Info>::value_type(specObjID, info) );
+		m_spectraDB.insert(SpectraDBMap::value_type(specObjID, info) );
 
 		if ( status != 0 ) {
 			printf( "SpectraDB::writeDB() Error: Column read error at row number %i\n", rowNum );
@@ -198,11 +198,11 @@ bool SpectraDB::writeDB( DR _dataRelease )
 	}
 	
 	// serialize map
-	std::map<int64_t,Info>::iterator it = m_spectraDB.begin();
-	std::map<int64_t,Info>::iterator itEnd = m_spectraDB.end();
+	SpectraDBMap::iterator it = m_spectraDB.begin();
+	SpectraDBMap::iterator itEnd = m_spectraDB.end();
 	while ( it != itEnd )
 	{
-		file.write((const char*)&it->first, sizeof(int64_t) );
+		file.write((const char*)&it->first, sizeof(uint64_t) );
 		file.write((const char*)&it->second, sizeof(Info));
 		it++;
 	}
@@ -219,7 +219,7 @@ bool SpectraDB::loadNewestDB( std::ofstream *_logStream )
 	if ( m_spectraDB.size() > 0 )
 		return true;
 
-	SpectraDB::DR dataReleases[] = {DR12,DR10,DR9};
+	SpectraDB::DR dataReleases[] = {DR14,DR12,DR10,DR9};
 	const int numDBs = sizeof(dataReleases)/sizeof(SpectraDB::DR);
 
 	bool success = false;
@@ -269,7 +269,7 @@ bool SpectraDB::loadDB( DR _dataRelease )
 
 
 	const size_t fileSize = FileHelpers::getFileSize(dbFilename);
-	const size_t elementSize = sizeof(Info)+4;
+	const size_t elementSize = sizeof(uint64_t)+sizeof(Info);
 
 	if ( fileSize < elementSize || fileSize%elementSize != 0 )
 		return false;
@@ -283,20 +283,20 @@ bool SpectraDB::loadDB( DR _dataRelease )
 	}
 	for ( size_t i=0;i<numElements;i++ )
 	{
-		int64_t specObjID;
+		uint64_t specObjID;
 		Info info;
-		file.read((char*)&specObjID, sizeof(int64_t) );
+		file.read((char*)&specObjID, sizeof(uint64_t) );
 		file.read((char*)&info, sizeof(Info) );
-		//m_spectraDB.insert( m_spectraDB.end(), std::make_pair<int64_t,Info>(specObjID, info) );
-		m_spectraDB.insert(std::map<int64_t,Info>::value_type(specObjID, info) );	}
+		//m_spectraDB.insert( m_spectraDB.end(), std::make_pair<uint64_t,Info>(specObjID, info) );
+		m_spectraDB.insert(SpectraDBMap::value_type(specObjID, info) );	}
 
 	return true;
 }
 
 
-bool SpectraDB::getInfo(int64_t _specObjID, Info &_outInfo )
+bool SpectraDB::getInfo(uint64_t _specObjID, Info &_outInfo )
 {
-	std::map<int64_t,Info>::iterator it = m_spectraDB.find(_specObjID);
+	SpectraDBMap::iterator it = m_spectraDB.find(_specObjID);
 	if ( it == m_spectraDB.end() )
 		return false;
 

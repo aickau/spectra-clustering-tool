@@ -65,11 +65,13 @@ public:
 	// _logStream output loading result to log file, or only to console if NULL
 	bool loadNewestDB( std::ofstream *_logStream );
 
-	bool getInfo( int64_t _specObjID, Info &_outInfo );
+	bool getInfo( uint64_t _specObjID, Info &_outInfo );
 
 private:
 
-	std::map<int64_t,Info> m_spectraDB;
+	typedef std::map<uint64_t,Info> SpectraDBMap;
+
+	SpectraDBMap m_spectraDB;
 };
 
 

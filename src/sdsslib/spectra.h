@@ -524,7 +524,7 @@ public:
 	float m_Max;
 	int32_t m_Index;					// index to source spectrum [0..num src spectra-1], -1 = no src spectrum
 	int16_t m_SamplesRead;
-	int64_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
+	uint64_t m_SpecObjID;				// spectra object identifier, encodes plate id, fiber id & MJD for SDSS spectra. Light curves with no SDSS association may use a simple hash)
 	int32_t m_Type;						// bits 0..2 SpectraClass 
 										// bits 3..9 SpectraSubClass
 										// bit 10 BROADLINE flag
