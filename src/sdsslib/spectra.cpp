@@ -1867,11 +1867,12 @@ std::string Spectra::getURL()const
 	//       object explorer      http://skyserver.sdss.org/dr12/en/tools/explore/summary.aspx?plate=4031&mjd=55604&fiber=420 
 //	std::string sstrUrlDR12("http://dr12.sdss3.org/spectrumDetail?plateid=");
 //	std::string sstrUrlDR10("http://dr10.sdss3.org/spectrumDetail?plateid=");
-	std::string sstrUrlDR12("http://skyserver.sdss.org/dr12/en/tools/explore/summary.aspx?plate=");
-	std::string sstrUrlDR10("http://skyserver.sdss.org/dr10/en/tools/explore/summary.aspx?plate=");
+//	std::string sstrUrlDR10("http://skyserver.sdss.org/dr10/en/tools/explore/summary.aspx?plate=");
+//	std::string sstrUrlDR12("http://skyserver.sdss.org/dr12/en/tools/explore/summary.aspx?plate=");
+	std::string sstrUrlDR14("http://skyserver.sdss.org/dr14/en/tools/explore/summary.aspx?plate=");
 
 
-	std::string sstrUrl(sstrUrlDR12);
+	std::string sstrUrl(sstrUrlDR14);
 
 	sstrUrl += Helpers::numberToString( getPlate() );
 	sstrUrl += "&mjd=";
