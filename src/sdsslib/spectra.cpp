@@ -865,7 +865,7 @@ void Spectra::loadDataFromSpectraDB( std::ofstream *_logStream )
 					m_Type	= spectraInfo.spClass;
 				}
 				else {
-					Helpers::print("Could not load additional spectra info for specObjID="+Helpers::numberToString(m_SpecObjID)+" from spectra DB.\n", _logStream );
+					Helpers::print("Could not load additional spectra info for specObjID="+Helpers::numberToString<uint64_t>(m_SpecObjID)+" from spectra DB.\n", _logStream );
 				}
 			}
 		}
