@@ -3309,23 +3309,40 @@ void writeMapToTIFF()
 	}
 	
 //	BigTIFF::test();
-
 }
 
+
+void printAdditionalInfo()
+{
+	std::ofstream logFile("specObjOperations_log.txt");
+
+	SpectraVFS vfs("allSpectra.bin");
+
+	Helpers::print(Helpers::numberToString(vfs.getNumSpectra())+ " spectra loaded.\n\n", &logFile);
+
+	for (size_t i=0;i<vfs.getNumSpectra();i++)
+	{
+		Spectra *sp = vfs.beginRead(i);
+		Helpers::print(sp->getFileName()+"  z:"+Helpers::numberToString(sp->m_Z)+"   spectrum class:"+Spectra::spectraClassToString(sp->getClass())+"   spectrum subclass:" + Spectra::spectraSubClassToString(sp->getSubClass())+"\n",&logFile);
+		vfs.endRead(i);
+	}
+
+
+
+}
 void writeSpectraParmDB()
 {
-// 	SpectraDB db9;
-// 	db9.writeDB(SpectraDB::DR9);
-// 
-// 	SpectraDB db10;
-// 	db10.writeDB(SpectraDB::DR10);
-// 
-// 	SpectraDB db12;
-// 	db12.writeDB(SpectraDB::DR12);
+ 	SpectraDB db9;
+ 	db9.writeDB(SpectraDB::DR9);
+ 
+ 	SpectraDB db10;
+ 	db10.writeDB(SpectraDB::DR10);
+ 
+ 	SpectraDB db12;
+ 	db12.writeDB(SpectraDB::DR12);
 
 	SpectraDB db14;
 	db14.writeDB(SpectraDB::DR14);
-
 }
 
 void main(int argc, char* argv[])
@@ -3381,6 +3398,7 @@ void main(int argc, char* argv[])
 	//writeMapToTIFF();
 	//writeSpectraInfoToTable();
 	//writeSpectraParmDB();
+	printAdditionalInfo();
 
 	printf ("fin.\n" );
 

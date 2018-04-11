@@ -213,41 +213,8 @@ bool SpectraDB::writeDB( DR _dataRelease )
 }
 
 
-bool SpectraDB::loadNewestDB( std::ofstream *_logStream )
-{
-	// DB already loaded?
-	if ( m_spectraDB.size() > 0 )
-		return true;
 
-	SpectraDB::DR dataReleases[] = {DR14,DR12,DR10,DR9};
-	const int numDBs = sizeof(dataReleases)/sizeof(SpectraDB::DR);
-
-	bool success = false;
-	for ( int i=0;i<numDBs;i++ ) {
-		SpectraDB::DR dataRelease = dataReleases[i];
-		const bool DBAvailable = loadDB(dataReleases[i]);
-		if (DBAvailable)
-		{
-			return true;
-		} 
-		else
-		{
-			if ( dataRelease == DR9 ) {
-				Helpers::print( "Warning, spectraParamDR9.bin missing. DR8, DR9 spectra cannot be loaded.\n" , _logStream );
-			} else if ( dataRelease == DR10 ) {
-				Helpers::print( "Warning, spectraParamDR10.bin missing. DR10 spectra cannot be loaded.\n" , _logStream );
-			} else {
-				Helpers::print( "Warning, spectraParamDR12.bin missing. DR12 spectra cannot be loaded.\n" , _logStream );
-			}
-		}
-	}
-
-	// no spectra DB found in current directory.
-	return false;
-}
-
-
-bool SpectraDB::loadDB( DR _dataRelease )
+bool SpectraDB::loadDB( DR _dataRelease, std::ofstream *_logStream )
 {
 	// DB already loaded?
 	if ( m_spectraDB.size() > 0 )
@@ -271,16 +238,21 @@ bool SpectraDB::loadDB( DR _dataRelease )
 	const size_t fileSize = FileHelpers::getFileSize(dbFilename);
 	const size_t elementSize = sizeof(uint64_t)+sizeof(Info);
 
-	if ( fileSize < elementSize || fileSize%elementSize != 0 )
-		return false;
-	
-	const size_t numElements = fileSize / elementSize; 
 
 	std::ifstream file(dbFilename.c_str(), std::ios::in|std::ios::binary );
 	if ( !file.is_open() )
 	{
+		Helpers::print("Error: Could not open "+dbFilename+ ". File missing.\n", _logStream);
 		return false;
 	}
+	if ( fileSize < elementSize || fileSize%elementSize != 0 )
+	{
+		Helpers::print("Error: Wrong file size of "+dbFilename+ ". File is not matching element size.\n", _logStream);
+		return false;
+	}
+
+	const size_t numElements = fileSize / elementSize; 
+
 	for ( size_t i=0;i<numElements;i++ )
 	{
 		uint64_t specObjID;

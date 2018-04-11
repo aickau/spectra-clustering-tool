@@ -59,11 +59,7 @@ public:
 	bool writeDB( DR _dataRelease );
 
 	// load binary DB into memory.
-	bool loadDB( DR _dataRelease );
-
-	// load newest DB that can be found.
-	// _logStream output loading result to log file, or only to console if NULL
-	bool loadNewestDB( std::ofstream *_logStream );
+	bool loadDB( DR _dataRelease, std::ofstream *_logStream );
 
 	bool getInfo( uint64_t _specObjID, Info &_outInfo );
 
