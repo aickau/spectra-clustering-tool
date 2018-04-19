@@ -71,15 +71,11 @@ const float Spectra::waveEndDst		= 9200.f;
 int Spectra::pixelStart				= 0;		
 int Spectra::pixelEnd				= Spectra::numSamples;		
 
-SpectraDB g_spectraDBDR14;
-SpectraDB g_spectraDBDR12;
-SpectraDB g_spectraDBDR10;
-SpectraDB g_spectraDBDR9;
 
 Spectra::Spectra()
 {
 	// make sure data structure is aligned to 16 byte boundaries for SSE
-	assert( sizeof(Spectra) % 16 == 0 ); //< this doesn't require alignment to 16 byte boundaries
+	assert( sizeof(Spectra) % 16 == 0 ); 
 	clear();
 }
 
@@ -833,43 +829,60 @@ bool Spectra::loadFromFITS(const std::string &_filename, std::ofstream *_logStre
 
 void Spectra::loadDataFromSpectraDB( std::ofstream *_logStream )
 {
+	static SpectraDB spectraDBDR14;
+	static SpectraDB spectraDBDR12;
+	static SpectraDB spectraDBDR10;
+	static SpectraDB spectraDBDR9;
+
+	static bool spectraDBsLoaded = false;
+	if ( !spectraDBsLoaded )
+	{
+		spectraDBDR14.loadDB( SpectraDB::DR14, _logStream );
+		spectraDBDR12.loadDB( SpectraDB::DR12, _logStream );
+		spectraDBDR10.loadDB( SpectraDB::DR10, _logStream );
+		spectraDBDR9.loadDB( SpectraDB::DR9, _logStream );
+
+		spectraDBsLoaded = true;
+	}
+
 	SpectraDB::Info spectraInfo;
+	
 	// load spectra DB the first time and retrieve add. spectra params
-	bool spectraInfoLoaded = g_spectraDBDR14.loadDB( SpectraDB::DR14 ) && g_spectraDBDR14.getInfo( m_SpecObjID, spectraInfo );
+	bool spectraInfoLoaded = spectraDBDR14.getInfo( m_SpecObjID, spectraInfo );
 
 	if ( spectraInfoLoaded )
 	{
 		m_Z		= spectraInfo.z;
 		m_Type	= spectraInfo.spClass;
+		return;
 	} 
-	else
+
+	spectraInfoLoaded = spectraDBDR12.getInfo( m_SpecObjID, spectraInfo );
+	if ( spectraInfoLoaded )
 	{
-		spectraInfoLoaded = g_spectraDBDR12.loadDB( SpectraDB::DR12 ) && g_spectraDBDR12.getInfo( m_SpecObjID, spectraInfo );
-		if ( spectraInfoLoaded )
-		{
-			m_Z		= spectraInfo.z;
-			m_Type	= spectraInfo.spClass;
-		} 
-		else {
-			spectraInfoLoaded = g_spectraDBDR10.loadDB( SpectraDB::DR10 ) && g_spectraDBDR10.getInfo( m_SpecObjID, spectraInfo );
-			if ( spectraInfoLoaded )
-			{
-				m_Z		= spectraInfo.z;
-				m_Type	= spectraInfo.spClass;
-			} 
-			else {
-				spectraInfoLoaded = g_spectraDBDR9.loadDB( SpectraDB::DR9 ) && g_spectraDBDR9.getInfo( m_SpecObjID, spectraInfo );
-				if ( spectraInfoLoaded )
-				{
-					m_Z		= spectraInfo.z;
-					m_Type	= spectraInfo.spClass;
-				}
-				else {
-					Helpers::print("Could not load additional spectra info for specObjID="+Helpers::numberToString<uint64_t>(m_SpecObjID)+" from spectra DB.\n", _logStream );
-				}
-			}
-		}
+		m_Z		= spectraInfo.z;
+		m_Type	= spectraInfo.spClass;
+		return;
+	} 
+
+	spectraInfoLoaded = spectraDBDR10.getInfo( m_SpecObjID, spectraInfo );
+	if ( spectraInfoLoaded )
+	{
+		m_Z		= spectraInfo.z;
+		m_Type	= spectraInfo.spClass;
+		return;
+	} 
+
+	spectraInfoLoaded = spectraDBDR9.getInfo( m_SpecObjID, spectraInfo );
+	if ( spectraInfoLoaded )
+	{
+		m_Z		= spectraInfo.z;
+		m_Type	= spectraInfo.spClass;
+		return;
 	}
+
+
+	Helpers::print("Error: Could not load additional spectra info for specObjID="+Helpers::numberToString<uint64_t>(m_SpecObjID)+" from spectra DB.\n", _logStream );
 }
 
 
@@ -2446,6 +2459,19 @@ Spectra::SpectraClass Spectra::spectraClassFromString( const std::string &_spect
 	return SPC_UNKNOWN;
 }
 
+std::string Spectra::spectraClassToString( SpectraClass _spectraClass )
+{
+	switch(_spectraClass)
+	{
+	case SPC_NOT_SET: return std::string("Not set");
+	case SPC_STAR: return std::string("Star");
+	case SPC_GALAXY: return std::string("Galaxy");
+	case SPC_QSO: return std::string("QSO");
+	}
+	return std::string("Unknown");
+}
+
+
 bool Spectra::spectraSubClassHasBroadlineFromString( const std::string &_spectraSubClass )
 {
 	std::string ssstrSpectraSubClass( Helpers::upperCase(_spectraSubClass) );
@@ -2670,6 +2696,115 @@ Spectra::SpectraSubClass Spectra::spectraSubClassFromString( const std::string &
 
 	return SPSC_NOT_SET;
 }
+
+
+std::string Spectra::spectraSubClassToString( SpectraSubClass _spectraSubClass )
+{
+	switch(_spectraSubClass)
+	{
+	case SPSC_NOT_SET: return std::string("Not Set");
+	case SPSC_STARFORMING: return std::string("Starforming");
+	case SPSC_STARBURST: return std::string("Starburst");
+	case SPSC_AGN: return std::string("AGN");
+	case SPSC_O: return std::string("O");
+	case SPSC_O8: return std::string("O8");
+	case SPSC_O9: return std::string("O9");
+	case SPSC_OB: return std::string("OB");
+
+	case SPSC_B0: return std::string("B0");
+	case SPSC_B1: return std::string("B1");
+	case SPSC_B2: return std::string("B2");
+	case SPSC_B3: return std::string("B3");
+	case SPSC_B4: return std::string("B4");
+	case SPSC_B5: return std::string("B5");
+	case SPSC_B6: return std::string("B6");
+	case SPSC_B7: return std::string("B7");
+	case SPSC_B8: return std::string("B8");
+	case SPSC_B9: return std::string("B9");
+	case SPSC_A0: return std::string("A0");
+	case SPSC_A0p: return std::string("A0p");
+
+	case SPSC_A1: return std::string("A1");
+	case SPSC_A2: return std::string("A2");
+	case SPSC_A3: return std::string("A3");
+	case SPSC_A4: return std::string("A4");
+	case SPSC_A5: return std::string("A5");
+	case SPSC_A6: return std::string("A6");
+	case SPSC_A7: return std::string("A7");
+	case SPSC_A8: return std::string("A8");
+	case SPSC_A9: return std::string("A9");
+	case SPSC_F0: return std::string("F0");
+	case SPSC_F1: return std::string("F1");
+	case SPSC_F2: return std::string("F2");
+	case SPSC_F3: return std::string("F3");
+	case SPSC_F4: return std::string("F4");
+	case SPSC_F5: return std::string("F5");
+	case SPSC_F6: return std::string("F6");
+	case SPSC_F7: return std::string("F7");
+	case SPSC_F8: return std::string("F8");
+	case SPSC_F9: return std::string("F9");
+	case SPSC_G0: return std::string("G0");
+	case SPSC_G1: return std::string("G1");
+	case SPSC_G2: return std::string("G2");
+	case SPSC_G3: return std::string("G3");
+	case SPSC_G4: return std::string("G4");
+	case SPSC_G5: return std::string("G5");
+	case SPSC_G6: return std::string("G6");
+	case SPSC_G7: return std::string("G7");
+	case SPSC_G8: return std::string("G8");
+	case SPSC_G9: return std::string("G9");
+	case SPSC_K0: return std::string("K0");
+	case SPSC_K1: return std::string("K1");
+	case SPSC_K2: return std::string("K2");
+	case SPSC_K3: return std::string("K3");
+	case SPSC_K4: return std::string("K4");
+	case SPSC_K5: return std::string("K5");
+	case SPSC_K6: return std::string("K6");
+	case SPSC_K7: return std::string("K7");
+	case SPSC_K8: return std::string("K8");
+	case SPSC_K9: return std::string("K9");
+
+	case SPSC_M0V: return std::string("M0V");
+	case SPSC_M2V: return std::string("M2V");
+
+	case SPSC_M1: return std::string("M1");
+	case SPSC_M2: return std::string("M2");
+	case SPSC_M3: return std::string("M3");
+	case SPSC_M4: return std::string("M4");
+	case SPSC_M5: return std::string("M5");
+	case SPSC_M6: return std::string("M6");
+	case SPSC_M7: return std::string("M7");
+	case SPSC_M8: return std::string("M8");
+	case SPSC_M9: return std::string("M9");
+	case SPSC_L0: return std::string("L0");
+	case SPSC_L1: return std::string("L1");
+	case SPSC_L2: return std::string("L2");
+	case SPSC_L3: return std::string("L3");
+	case SPSC_L4: return std::string("L4");
+	case SPSC_L5: return std::string("L5");
+	case SPSC_L55: return std::string("L5.5");
+	case SPSC_L6: return std::string("L6");
+	case SPSC_L7: return std::string("L7");
+	case SPSC_L8: return std::string("L8");
+	case SPSC_L9: return std::string("L9");
+
+	case SPSC_LDWARF: return std::string("LDWARF");
+	case SPSC_T2: return std::string("T2");
+	case SPSC_CARBON: return std::string("Carbon");
+	case SPSC_CARBONWD: return std::string("Carbon WD");
+	case SPSC_CARBON_LINES: return std::string("Carbon WD Lines");
+	case SPSC_CV: return std::string("CV");
+	case SPSC_CALCIUMWD: return std::string("Calcium WD");
+	case SPSC_WD: return std::string("WD");
+	case SPSC_WDCOOLER: return std::string("WD Cooler");
+	case SPSC_WDHOTTER: return std::string("WD Hotter");
+	case SPSC_WDMAGNETIC: return std::string("WD Magnetic");
+	case SPSC_BROADLINE: return std::string("Broadline");
+
+	}
+	return std::string("Unknown");
+}
+
 
 
 std::string Spectra::spectraVersionToString( SpectraVersion _spectraVersion )

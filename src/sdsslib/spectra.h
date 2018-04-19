@@ -538,6 +538,9 @@ public:
 
 	//@}
 
+
+	// TODO: move utility functions to spectra base helpers
+
 	/** @name HELPER FUNCTIONS
 	*/
 	//@{
@@ -565,6 +568,11 @@ public:
 
 	static SpectraClass spectraClassFromString( const std::string &_spectraClass );
 	static SpectraSubClass spectraSubClassFromString( const std::string &_spectraSubClass );
+
+
+	// TODO provide getters in spectra
+	static std::string spectraClassToString( SpectraClass _spectraClass );
+	static std::string spectraSubClassToString( SpectraSubClass _spectraSubClass );
 
 	// returns SPSC_BROADLINE or SPSC_NOT_SET
 	static bool spectraSubClassHasBroadlineFromString( const std::string &_spectraSubClass );
