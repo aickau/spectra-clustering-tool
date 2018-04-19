@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <stdint.h>
 
 namespace FileHelpers
 {
@@ -45,8 +46,9 @@ namespace FileHelpers
 	// \return true if file exists, otherwise false.
 	bool fileExists(const std::string &_sstrFilename);
 
-	//! \return size of file in bytes
-	size_t getFileSize(const std::string &_sstrFilename);
+	
+	//! \return size of file in bytes or 0 if file could not be found / opened
+	uint64_t getFileSize(const std::string &_sstrFilename);
 
 	// get a list of files from a given directory.
 	// e.g. _sstrSearchDir = d:/hui/* - find all files in directory "d:/hui" and all subdirectories.

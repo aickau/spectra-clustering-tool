@@ -1938,7 +1938,7 @@ void writeParamsFromSelection(const std::string &sstrDataDir )
 	sstrIndexList+= ".bin";
 
 
-	const size_t fileSize = FileHelpers::getFileSize( sstrIndexList.c_str() );
+	const uint64_t fileSize = FileHelpers::getFileSize( sstrIndexList.c_str() );
 
 	FILE *f=fopen(sstrIndexList.c_str(),"rb");
 	if ( f== NULL) {
@@ -3062,7 +3062,7 @@ void analyzeSpectraJumps()
 	Helpers::print("Input: indexListXXXX.bin .. indexListYYYY.bin in continuous range.\n", &logFile, true );
 
 	size_t j = 0;
-	size_t fileSize = 0;
+	uint64_t fileSize = 0;
 	std::string sstrIndexList1;
 
 	do

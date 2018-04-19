@@ -282,7 +282,7 @@ void KeyTwo()
 void displaySpectra( const std::string &_sstrSpectraListFilename, const std::string &_sstrIndexlistFilename, const std::string &_sstrSourceSpectraFilename, const std::string &_sstrOutPlotFilename )
 {
 
-	const size_t fileSize = FileHelpers::getFileSize(_sstrIndexlistFilename);
+	const uint64_t fileSize = FileHelpers::getFileSize(_sstrIndexlistFilename);
 
 	if ( fileSize == 0 )
 	{

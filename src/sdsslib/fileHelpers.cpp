@@ -41,7 +41,7 @@
 #define MAX_PATH 4096
 #endif
 
-
+#undef max
 
 
 #ifdef WIN32
@@ -205,23 +205,20 @@ bool FileHelpers::fileExists(const std::string &_sstrFilename)
 }
 
 
-size_t FileHelpers::getFileSize(const std::string &_sstrFilename)
+uint64_t FileHelpers::getFileSize(const std::string &_sstrFilename)
 {
-	FILE *f = fopen( _sstrFilename.c_str(), "rb" );
-
-	if (f == NULL )
+	std::ifstream file(_sstrFilename.c_str(), std::ios::in|std::ios::binary );
+	if ( !file.is_open() )
 	{
 		return 0;
 	}
 
-	_fseeki64( f, 0, SEEK_END );
-	int64_t fileSize = _ftelli64( f );
-	fclose( f );
+	file.ignore( std::numeric_limits<std::streamsize>::max() );
+	const std::streamsize length = file.gcount();
+	file.clear();  
+	file.seekg( 0, std::ios_base::beg );
 
-	// check if we reach 32 bit limits.
-	assert( static_cast<size_t>(fileSize) == fileSize );
-
-	return static_cast<size_t>(fileSize);
+	return static_cast<uint64_t>(length);
 }
 
 

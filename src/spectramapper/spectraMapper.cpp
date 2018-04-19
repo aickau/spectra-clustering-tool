@@ -100,7 +100,7 @@ SpectraMapper::SpectraMapper( const std::string &sstrSourceSpectraFilename, cons
 	size_t j=199;
 
 	Helpers::print("Reading index list file "+sstrIndexlistFilename+"..\n", &logFile);
-	const size_t fileSize = FileHelpers::getFileSize( sstrIndexlistFilename );
+	const uint64_t fileSize = FileHelpers::getFileSize( sstrIndexlistFilename );
 	if ( fileSize == 0 )
 	{
 		Helpers::print("Error: Missing index list file "+sstrIndexlistFilename+".\n", &logFile);

@@ -235,8 +235,8 @@ bool SpectraDB::loadDB( DR _dataRelease, std::ofstream *_logStream )
 	}
 
 
-	const size_t fileSize = FileHelpers::getFileSize(dbFilename);
-	const size_t elementSize = sizeof(uint64_t)+sizeof(Info);
+	const uint64_t fileSize = FileHelpers::getFileSize(dbFilename);
+	const uint64_t elementSize = sizeof(uint64_t)+sizeof(Info);
 
 
 	std::ifstream file(dbFilename.c_str(), std::ios::in|std::ios::binary );
@@ -259,8 +259,8 @@ bool SpectraDB::loadDB( DR _dataRelease, std::ofstream *_logStream )
 		Info info;
 		file.read((char*)&specObjID, sizeof(uint64_t) );
 		file.read((char*)&info, sizeof(Info) );
-		//m_spectraDB.insert( m_spectraDB.end(), std::make_pair<uint64_t,Info>(specObjID, info) );
-		m_spectraDB.insert(SpectraDBMap::value_type(specObjID, info) );	}
+		m_spectraDB.insert(SpectraDBMap::value_type(specObjID, info) );
+	}
 
 	return true;
 }
